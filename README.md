@@ -83,7 +83,7 @@ OMA                                              OMA 폴더
 │       ├── docker-compose.yaml                  - Docker 구성
 │       └── ...                                  - 표준 Maven 프로젝트 구조
 ├── initOMA.sh                                   OMA 애플리케이션 변환 프로그램 메인 수행 스크립트
-├── pre-requisites.sh                            사전 요구사항 설정 스크립트
+├── setup.sh                                     사전 요구사항 설정 스크립트
 ├── OMA.properties                               프로젝트 설정 파일 (환경 변수)
 ├── README.md                                    프로젝트 메인 가이드
 └── THIRD-PARTY-LICENSES.md                      서드파티 라이선스 정보
