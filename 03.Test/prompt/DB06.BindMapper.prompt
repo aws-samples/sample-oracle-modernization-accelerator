@@ -1,0 +1,156 @@
+DB06.BindMapper.py 프로그램을 작성해주세요. 이 프로그램은 SQL 파일의 바인드 변수를 샘플 값으로 대체하는 프로그램입니다.
+
+요구사항:
+1. orcl_sql_extract 및 pg_sql_extract 디렉토리에서 SQL 파일을 읽습니다.
+2. 각 SQL 파일에 대해 sampler 디렉토리에서 해당하는 JSON 파일을 찾습니다.
+3. SQL 파일의 바인드 변수를 JSON 파일에 정의된 샘플 값으로 대체합니다:
+   - Oracle 스타일: :variable_name → 샘플 값
+   - MyBatis 스타일: #{variable_name} → 샘플 값
+   - 복잡한 MyBatis 스타일: #{variable_name, jdbcType=VARCHAR} → 샘플 값
+4. 타입에 따라 적절한 형식으로 값을 대체합니다:
+   - VARCHAR2: 작은따옴표로 묶음 ('sample')
+   - DATE: 날짜 형식으로 변환 (TO_DATE('2023-01-01', 'YYYY-MM-DD'))
+   - NUMBER: 그대로 사용 (1)
+   - BOOLEAN: 작은따옴표로 묶음 ('Y')
+5. 대체된 SQL을 새 디렉토리에 저장합니다:
+   - orcl_sql_extract → orcl_sql_done
+   - pg_sql_extract → pg_sql_done
+6. 바인드 변수가 없거나 샘플 값이 없는 경우 파일을 그대로 복사합니다.
+
+데이터베이스별 날짜 함수 처리:
+1. Oracle SQL 파일의 경우:
+   ```python
+   def format_date_oracle(date_str):
+       # 날짜 형식 정규화
+       try:
+           # ISO 형식 (YYYY-MM-DD)으로 파싱
+           date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+           # Oracle TO_DATE 함수 사용
+           return f"TO_DATE('{date_obj.strftime('%Y-%m-%d')}', 'YYYY-MM-DD')"
+       except ValueError:
+           # 파싱 실패 시 원본 값을 TO_DATE로 감싸서 반환
+           return f"TO_DATE('{date_str}', 'YYYY-MM-DD')"
+   ```
+
+2. PostgreSQL SQL 파일의 경우:
+   ```python
+   def format_date_postgresql(date_str):
+       # 날짜 형식 정규화
+       try:
+           # ISO 형식 (YYYY-MM-DD)으로 파싱
+           date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+           # PostgreSQL 날짜 리터럴 또는 TO_DATE 함수 사용
+           return f"'{date_obj.strftime('%Y-%m-%d')}'::date"
+           # 또는 return f"TO_DATE('{date_obj.strftime('%Y-%m-%d')}', 'YYYY-MM-DD')"
+       except ValueError:
+           # 파싱 실패 시 원본 값을 날짜 타입으로 캐스팅
+           return f"'{date_str}'::date"
+   ```
+
+복잡한 표현식 처리:
+1. 바인드 변수가 연산의 일부인 경우 처리:
+   ```python
+   def replace_bind_variable_in_expression(sql_text, var_name, replacement):
+       # 단순 바인드 변수 대체
+       patterns = [
+           fr':{var_name}\b',  # Oracle 스타일
+           fr'#\{{{var_name}(?:\s*,\s*[^}}]+)?\}}'  # MyBatis 스타일 (속성 포함)
+       ]
+       
+       for pattern in patterns:
+           # 바인드 변수 주변 컨텍스트 확인 (연산자 등)
+           context_pattern = fr'([^a-zA-Z0-9_])({pattern})(\s*[+\-*/]\s*\d+|\d+\s*[+\-*/]\s*({pattern}))'
+           
+           # 연산 컨텍스트에서 바인드 변수 대체
+           def replace_in_context(match):
+               prefix = match.group(1)
+               operator_part = match.group(3)
+               # 바인드 변수를 괄호로 감싸서 연산 우선순위 보존
+               return f"{prefix}({replacement}){operator_part}"
+           
+           sql_text = re.sub(context_pattern, replace_in_context, sql_text)
+           
+           # 일반 바인드 변수 대체
+           sql_text = re.sub(pattern, replacement, sql_text)
+       
+       return sql_text
+   ```
+
+2. 함수 내부의 바인드 변수 처리:
+   ```python
+   def handle_function_with_bind(sql_text, var_name, replacement, var_type):
+       # 함수 내부의 바인드 변수 패턴
+       function_pattern = fr'([A-Za-z0-9_]+\s*\(\s*):{var_name}(\s*(?:,|\)))'
+       
+       # 함수에 따라 다르게 처리
+       def replace_in_function(match):
+           function_name = match.group(1).strip().split('(')[0].upper()
+           # 문자열 함수인 경우 작은따옴표로 감싸기
+           if function_name in ['SUBSTR', 'SUBSTRING', 'INSTR', 'REPLACE', 'TRIM', 'LTRIM', 'RTRIM']:
+               if var_type != 'NUMBER':
+                   return f"{match.group(1)}'{replacement.strip(\"'\")}'{match.group(2)}"
+           # 숫자 함수인 경우 따옴표 제거
+           elif function_name in ['ROUND', 'TRUNC', 'ABS', 'MOD']:
+               if var_type == 'NUMBER':
+                   return f"{match.group(1)}{replacement.strip(\"'\")}'{match.group(2)}"
+           
+           # 기본 처리
+           return f"{match.group(1)}{replacement}{match.group(2)}"
+       
+       return re.sub(function_pattern, replace_in_function, sql_text)
+   ```
+
+바인드 변수 대체 알고리즘:
+1. SQL 파일에서 바인드 변수 패턴을 찾습니다:
+   - Oracle 스타일: :([a-zA-Z0-9_]+)
+   - MyBatis 스타일: #\{([a-zA-Z0-9_]+)(?:\s*,\s*[^}]+)?\}
+2. 찾은 각 변수에 대해 JSON 파일에서 해당 변수의 타입과 샘플 값을 조회합니다.
+3. 타입에 따라 적절한 형식으로 변환합니다:
+   - VARCHAR2: 'sample_value'
+   - DATE: 데이터베이스에 맞는 날짜 형식 사용
+   - NUMBER: 123
+   - BOOLEAN: 'Y'
+4. 원본 SQL의 바인드 변수를 변환된 값으로 대체합니다.
+5. 복잡한 표현식 내의 바인드 변수도 적절히 처리합니다.
+
+오류 처리:
+1. JSON 파일이 없는 경우 처리
+2. 바인드 변수가 JSON에 정의되지 않은 경우 처리
+3. 잘못된 타입 정보 처리
+4. 출력 디렉토리 접근 권한 문제 처리
+
+사용 예시:
+```
+# 기본 사용법
+python3 DB06.BindMapper.py
+
+# 특정 디렉토리의 SQL 파일만 처리
+python3 DB06.BindMapper.py --dir orcl_sql_extract
+
+# 특정 파일만 처리
+python3 DB06.BindMapper.py --file orcl_sql_extract/app.module.query.sql
+
+# 출력 디렉토리 지정
+python3 DB06.BindMapper.py --output custom_output_dir
+
+# 누락된 바인드 변수 처리 방법 지정
+python3 DB06.BindMapper.py --missing-vars keep  # 원본 바인드 변수 유지
+python3 DB06.BindMapper.py --missing-vars default  # 기본값으로 대체
+
+# 상세 로깅 활성화
+python3 DB06.BindMapper.py --verbose
+```
+
+바인드 변수 대체 예시:
+- 원본 SQL: `SELECT * FROM users WHERE user_id = :userId AND reg_date > :regDate`
+- JSON 파일:
+  ```json
+  [
+    {"variable": "userId", "type": "NUMBER", "sample_value": 12345},
+    {"variable": "regDate", "type": "DATE", "sample_value": "2023-01-01"}
+  ]
+  ```
+- Oracle 변환 결과: `SELECT * FROM users WHERE user_id = 12345 AND reg_date > TO_DATE('2023-01-01', 'YYYY-MM-DD')`
+- PostgreSQL 변환 결과: `SELECT * FROM users WHERE user_id = 12345 AND reg_date > '2023-01-01'::date`
+
+프로그램은 처리 진행 상황을 표시하고, 완료 후에는 처리된 SQL 파일 수와 대체된 바인드 변수 수를 요약하여 보여줍니다.

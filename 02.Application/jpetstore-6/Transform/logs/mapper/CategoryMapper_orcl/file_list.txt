@@ -1,0 +1,2 @@
+CategoryMapper_orcl-01-select-getCategory.xml
+CategoryMapper_orcl-02-select-getCategoryList.xml

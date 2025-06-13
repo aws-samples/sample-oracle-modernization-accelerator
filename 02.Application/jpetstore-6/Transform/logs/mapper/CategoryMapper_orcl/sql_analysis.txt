@@ -1,0 +1,12 @@
+SQL Analysis Results:
+1. getCategory:
+  - Type: SELECT query
+  - Contains: Simple SELECT with WHERE clause
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+2. getCategoryList:
+  - Type: SELECT query
+  - Contains: Simple SELECT without WHERE clause
+  - Oracle-specific features: None
+  - Conversion needed: No

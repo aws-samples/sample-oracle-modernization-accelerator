@@ -1,0 +1,29 @@
+Conversion Summary:
+
+Date: 2025-05-29
+Conversion Type: Oracle to PostgreSQL MyBatis Mapper Files
+Source Directory: /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/logs/mapper/OrderMapper_orcl/extract
+Target Directory: /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/logs/mapper/OrderMapper_orcl/transform
+
+Files Processed:
+1. OrderMapper_orcl-01-select-getOrder.xml → OrderMapper_pg-01-select-getOrder.xml
+   - No significant changes required
+   - Added conversion comment
+
+2. OrderMapper_orcl-02-select-getOrdersByUsername.xml → OrderMapper_pg-02-select-getOrdersByUsername.xml
+   - No significant changes required
+   - Added conversion comment
+
+3. OrderMapper_orcl-03-insert-insertOrder.xml → OrderMapper_pg-03-insert-insertOrder.xml
+   - No significant changes required
+   - Added conversion comment
+
+4. OrderMapper_orcl-04-insert-insertOrderStatus.xml → OrderMapper_pg-04-insert-insertOrderStatus.xml
+   - Verified jdbcType="NUMERIC" compatibility with PostgreSQL
+   - Added conversion comment
+
+Conversion Notes:
+- All files were syntactically compatible with PostgreSQL without major changes
+- Added appropriate comments to document the conversion process
+- Maintained original case for table and column names
+- Preserved all MyBatis dynamic SQL features and variable bindings

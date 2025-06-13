@@ -1,0 +1,17 @@
+Conversion Summary:
+
+Files Processed:
+1. SequenceMapper_orcl-01-select-getSequence.xml → SequenceMapper_pg-01-select-getSequence.xml
+2. SequenceMapper_orcl-02-update-updateSequence.xml → SequenceMapper_pg-02-update-updateSequence.xml
+
+Conversion Details:
+- Both files contained standard SQL that is compatible with both Oracle and PostgreSQL
+- No Oracle-specific features were detected
+- Added appropriate comments to indicate conversion status
+- Maintained original XML structure and indentation
+
+Conversion Statistics:
+- Total files processed: 2
+- Files requiring conversion: 0
+- Files with no changes needed: 2
+- Conversion success rate: 100%

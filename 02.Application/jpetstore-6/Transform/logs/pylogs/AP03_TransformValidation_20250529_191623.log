@@ -1,0 +1,34 @@
+2025-05-29 19:16:23,579 - DEBUG - 로그 파일이 설정되었습니다: /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/logs/pylogs/AP03_TransformValidation_20250529_191623.log
+2025-05-29 19:16:23,579 - INFO - Starting AP03.TransformValidation.py
+2025-05-29 19:16:23,579 - INFO - Mapper Folder: /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper
+2025-05-29 19:16:23,579 - INFO - Origin Suffix: _orcl
+2025-05-29 19:16:23,579 - INFO - Transform Folder: /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform
+2025-05-29 19:16:23,579 - INFO - Test Mode: False
+2025-05-29 19:16:23,579 - INFO - Log Level: INFO
+2025-05-29 19:16:23,579 - INFO - Starting validation : Checking transformation completeness
+2025-05-29 19:16:23,579 - INFO - Found 14 XML files in /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper
+2025-05-29 19:16:23,579 - DEBUG - Grouped files into 7 base names
+2025-05-29 19:16:23,579 - INFO - Found 0 files with transformation failures
+2025-05-29 19:16:23,579 - INFO - Empty failure CSV (header only) created at /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/SQLTransformTargetFailure.csv
+2025-05-29 19:16:23,579 - INFO - Starting validation : Validating XML syntax
+2025-05-29 19:16:23,581 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/OrderMapper.xml
+2025-05-29 19:16:23,581 - DEBUG - XML validation successful for OrderMapper.xml
+2025-05-29 19:16:23,583 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/SequenceMapper.xml
+2025-05-29 19:16:23,583 - DEBUG - XML validation successful for SequenceMapper.xml
+2025-05-29 19:16:23,585 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/AccountMapper.xml
+2025-05-29 19:16:23,585 - DEBUG - XML validation successful for AccountMapper.xml
+2025-05-29 19:16:23,587 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/ProductMapper.xml
+2025-05-29 19:16:23,587 - DEBUG - XML validation successful for ProductMapper.xml
+2025-05-29 19:16:23,589 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/ItemMapper.xml
+2025-05-29 19:16:23,589 - DEBUG - XML validation successful for ItemMapper.xml
+2025-05-29 19:16:23,590 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/CategoryMapper.xml
+2025-05-29 19:16:23,591 - DEBUG - XML validation successful for CategoryMapper.xml
+2025-05-29 19:16:23,593 - DEBUG - Validation successful for /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper/LineItemMapper.xml
+2025-05-29 19:16:23,593 - DEBUG - XML validation successful for LineItemMapper.xml
+2025-05-29 19:16:23,593 - INFO - Validated 7 XML files
+2025-05-29 19:16:23,593 - INFO - XML validation results written to /home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/xmllintResult.csv
+2025-05-29 19:16:23,593 - INFO - Validation process completed
+2025-05-29 19:16:23,593 - INFO - Total files checked: 7
+2025-05-29 19:16:23,593 - INFO - Transformation failures: 0
+2025-05-29 19:16:23,593 - INFO - XML validation failures: 0
+2025-05-29 19:16:23,593 - INFO - All validations completed successfully

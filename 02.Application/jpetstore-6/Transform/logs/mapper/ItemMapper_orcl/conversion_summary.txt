@@ -1,0 +1,28 @@
+Conversion Summary:
+
+Date: 2025-05-29
+Files Processed: 4
+Files Successfully Converted: 4
+Files with Errors: 0
+
+Conversion Details:
+1. ItemMapper_orcl-01-select-getItemListByProduct.xml → ItemMapper_pg-01-select-getItemListByProduct.xml
+   - No Oracle-specific features found
+   - Added conversion comment
+
+2. ItemMapper_orcl-02-select-getItem.xml → ItemMapper_pg-02-select-getItem.xml
+   - No Oracle-specific features found
+   - Added conversion comment
+
+3. ItemMapper_orcl-03-select-getInventoryQuantity.xml → ItemMapper_pg-03-select-getInventoryQuantity.xml
+   - No Oracle-specific features found
+   - Added conversion comment
+
+4. ItemMapper_orcl-04-update-updateInventoryQuantity.xml → ItemMapper_pg-04-update-updateInventoryQuantity.xml
+   - No Oracle-specific features found
+   - Added conversion comment
+
+Notes:
+- All queries were standard SQL compatible with both Oracle and PostgreSQL
+- No Oracle-specific syntax requiring conversion was found
+- Added standard conversion comments to all files for documentation purposes

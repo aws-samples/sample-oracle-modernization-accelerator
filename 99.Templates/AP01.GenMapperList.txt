@@ -1,0 +1,20 @@
+[작업 요청: MyBatis Mapper와 JNDI 정보 추출]
+작업 결과 위치 : $ASSESSMENT_FOLDER/
+
+작업 흐름
+   1단계: Mapper 목록 추출
+   실행 명령어:
+   find $JAVA_SOURCE_FOLDER/main/resources/mapper -name "*.xml" | awk 'BEGIN {print "No.,FileName"} {print NR "," $0}' > $ASSESSMENT_FOLDER/Mapperlist.csv
+
+   2단계: JNDI 정보 추출
+      1. dev 환경 설정 파일 확인
+         find $JAVA_SOURCE_FOLDER/main/resources -name "*dev*.yml"
+      - "*dev*.yml" 로 화일을 검색 할 수 었는 경우, JNDI 설정이 있는 다른 설정 파일 검색, 설정 파일 위치: $JAVA_SOURCE_FOLDER/main/resources/
+      - "*dev*.yml" 로 화일을 검색 할 수 었는 경우  추가 검색 대상 파일: *.yml, *.xml, *.properties
+      2. JNDI 정보 추출 및 CSV 생성
+         - 파일명: $ASSESSMENT_FOLDER/JNDI.csv
+         - 형식: JNDI,Description,useyn,Transform
+         - 규칙: $TRANSFORM_JNDI와 일치하는 JNDI이면 Transform='Yes'
+
+참고 사항:
+- 지시 사항 이외의 별도 화일 생성 금지

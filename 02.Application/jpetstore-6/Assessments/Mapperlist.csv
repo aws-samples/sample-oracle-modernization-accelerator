@@ -1,0 +1,8 @@
+No.,FileName
+1,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/OrderMapper.xml
+2,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/SequenceMapper.xml
+3,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/AccountMapper.xml
+4,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ProductMapper.xml
+5,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ItemMapper.xml
+6,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/CategoryMapper.xml
+7,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/LineItemMapper.xml

@@ -1,0 +1,49 @@
+SQL Analysis Results:
+
+1. getAccountByUsername:
+  - Type: SELECT query
+  - Contains: Multi-table join with column aliases
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+2. getAccountByUsernameAndPassword:
+  - Type: SELECT query
+  - Contains: Multi-table join with column aliases
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+3. updateAccount:
+  - Type: UPDATE query
+  - Contains: Standard UPDATE with parameter binding
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+4. insertAccount:
+  - Type: INSERT query
+  - Contains: Standard INSERT with parameter binding
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+5. updateProfile:
+  - Type: UPDATE query
+  - Contains: MyBatis bind variables for boolean conversion
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+6. insertProfile:
+  - Type: INSERT query
+  - Contains: MyBatis bind variables for boolean conversion
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+7. updateSignon:
+  - Type: UPDATE query
+  - Contains: Simple UPDATE with parameter binding
+  - Oracle-specific features: None
+  - Conversion needed: No
+
+8. insertSignon:
+  - Type: INSERT query
+  - Contains: Simple INSERT with parameter binding
+  - Oracle-specific features: None
+  - Conversion needed: No

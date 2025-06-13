@@ -1,0 +1,240 @@
+DB02.FindXMLFiles.py 프로그램을 작성해주세요. 이 프로그램은 지정된 디렉토리에서 XML 파일을 검색하고 파일 경로 목록을 생성하는 프로그램입니다.
+
+요구사항:
+1. 지정된 디렉토리와 그 하위 디렉토리에서 XML 파일을 재귀적으로 검색합니다.
+2. 명령줄 인수를 통해 다음 옵션을 제공합니다:
+   - 검색할 디렉토리 경로
+   - PostgreSQL XML 파일만 검색 (--pg 플래그)
+   - Oracle XML 파일만 검색 (--orcl 플래그)
+   - 검색 깊이 제한 (--max-depth 옵션)
+   - 출력 파일 지정 (--output 옵션)
+   - 상세 로깅 (--verbose 플래그)
+3. PostgreSQL XML 파일은 파일명에 'pg'가 포함된 XML 파일입니다 (*pg.xml).
+4. Oracle XML 파일은 파일명에 'orcl'이 포함된 XML 파일입니다 (*orcl.xml).
+5. 검색된 파일 경로를 출력 파일에 저장합니다:
+   - 기본 출력 파일: xml.lst
+   - PostgreSQL XML 파일 목록: pg_xml.lst
+   - Oracle XML 파일 목록: orcl_xml.lst
+6. 파일 확장자는 대소문자를 구분하지 않습니다 (.xml 또는 .XML).
+
+프로그램 구조:
+1. find_xml_files(directory, file_type=None, max_depth=None, verbose=False) 함수:
+   ```python
+   def find_xml_files(directory, file_type=None, max_depth=None, verbose=False):
+       """
+       지정된 디렉토리에서 XML 파일을 검색합니다.
+       
+       Args:
+           directory (str): 검색할 디렉토리 경로
+           file_type (str, optional): 'pg' 또는 'orcl'로 필터링
+           max_depth (int, optional): 최대 검색 깊이
+           verbose (bool, optional): 상세 로깅 여부
+           
+       Returns:
+           list: 발견된 XML 파일 경로 목록
+       """
+       if not os.path.isdir(directory):
+           print(f"오류: '{directory}'는 유효한 디렉토리가 아닙니다.")
+           sys.exit(1)
+           
+       xml_files = []
+       
+       # 디렉토리 깊이 계산 함수
+       def get_depth(path, base_path):
+           rel_path = os.path.relpath(path, base_path)
+           return rel_path.count(os.sep)
+       
+       # 디렉토리 순회
+       for root, dirs, files in os.walk(directory):
+           # 최대 깊이 제한 적용
+           if max_depth is not None and get_depth(root, directory) >= max_depth:
+               dirs.clear()  # 더 이상 하위 디렉토리 탐색 중지
+               
+           if verbose:
+               print(f"검색 중: {root}")
+               
+           # 파일 타입에 따른 패턴 설정
+           patterns = []
+           if file_type == 'pg':
+               patterns = ['*pg.xml', '*pg.XML']
+           elif file_type == 'orcl':
+               patterns = ['*orcl.xml', '*orcl.XML']
+           else:
+               patterns = ['*.xml', '*.XML']
+               
+           # 패턴에 맞는 파일 찾기
+           for pattern in patterns:
+               matches = glob.glob(os.path.join(root, pattern))
+               xml_files.extend(matches)
+               
+           if verbose and matches:
+               print(f"  발견된 파일: {len(matches)}개")
+               
+       return xml_files
+   ```
+
+2. save_to_file(file_list, output_file="xml.lst", verbose=False) 함수:
+   ```python
+   def save_to_file(file_list, output_file="xml.lst", verbose=False):
+       """
+       파일 경로 목록을 출력 파일에 저장합니다.
+       
+       Args:
+           file_list (list): 파일 경로 목록
+           output_file (str, optional): 출력 파일 경로
+           verbose (bool, optional): 상세 로깅 여부
+       """
+       # 출력 디렉토리 생성
+       output_dir = os.path.dirname(output_file)
+       if output_dir and not os.path.exists(output_dir):
+           os.makedirs(output_dir)
+           
+       with open(output_file, 'w', encoding='utf-8') as f:
+           for file_path in file_list:
+               f.write(f"{file_path}\n")
+               
+       if verbose:
+           print(f"파일 목록을 '{output_file}'에 저장했습니다.")
+       print(f"총 {len(file_list)}개의 XML 파일 목록이 '{output_file}'에 저장되었습니다.")
+   ```
+
+3. main() 함수:
+   ```python
+   def main():
+       # 명령줄 인수 파싱
+       parser = argparse.ArgumentParser(description='XML 파일을 찾아 목록을 생성합니다.')
+       parser.add_argument('directory', help='검색할 디렉토리 경로')
+       parser.add_argument('--pg', action='store_true', help='*pg.xml 파일만 검색')
+       parser.add_argument('--orcl', action='store_true', help='*orcl.xml 파일만 검색')
+       parser.add_argument('--max-depth', type=int, help='최대 검색 깊이')
+       parser.add_argument('--output', help='출력 파일 경로')
+       parser.add_argument('--verbose', '-v', action='store_true', help='상세 로깅 활성화')
+       
+       args = parser.parse_args()
+       
+       # 파일 타입 결정
+       file_type = None
+       if args.pg:
+           file_type = 'pg'
+       elif args.orcl:
+           file_type = 'orcl'
+           
+       # 출력 파일명 결정
+       output_file = args.output
+       if not output_file:
+           if file_type:
+               output_file = f"{file_type}_xml.lst"
+           else:
+               output_file = "xml.lst"
+               
+       # 파일 검색
+       if args.verbose:
+           print(f"'{args.directory}' 디렉토리에서 XML 파일 검색 시작...")
+           
+       xml_files = find_xml_files(args.directory, file_type, args.max_depth, args.verbose)
+       
+       if not xml_files:
+           print(f"'{args.directory}' 디렉토리 아래에서 조건에 맞는 XML 파일을 찾을 수 없습니다.")
+       else:
+           save_to_file(xml_files, output_file, args.verbose)
+   ```
+
+오류 처리:
+1. 디렉토리 접근 권한 오류 처리:
+   ```python
+   def find_xml_files(directory, file_type=None, max_depth=None, verbose=False):
+       try:
+           # 디렉토리 접근 권한 확인
+           if not os.access(directory, os.R_OK):
+               print(f"오류: '{directory}' 디렉토리에 접근 권한이 없습니다.")
+               sys.exit(1)
+               
+           # 나머지 코드...
+           
+       except PermissionError as e:
+           print(f"권한 오류: {e}")
+           sys.exit(1)
+       except Exception as e:
+           print(f"예상치 못한 오류: {e}")
+           sys.exit(1)
+   ```
+
+2. 출력 파일 쓰기 오류 처리:
+   ```python
+   def save_to_file(file_list, output_file="xml.lst", verbose=False):
+       try:
+           # 출력 디렉토리 생성
+           output_dir = os.path.dirname(output_file)
+           if output_dir and not os.path.exists(output_dir):
+               os.makedirs(output_dir)
+               
+           with open(output_file, 'w', encoding='utf-8') as f:
+               for file_path in file_list:
+                   f.write(f"{file_path}\n")
+                   
+           # 나머지 코드...
+           
+       except PermissionError:
+           print(f"오류: '{output_file}' 파일에 쓰기 권한이 없습니다.")
+           sys.exit(1)
+       except IOError as e:
+           print(f"파일 쓰기 오류: {e}")
+           sys.exit(1)
+   ```
+
+성능 최적화:
+1. 대용량 디렉토리 처리를 위한 최적화:
+   ```python
+   def find_xml_files_optimized(directory, file_type=None, max_depth=None, verbose=False):
+       """
+       대용량 디렉토리를 위한 최적화된 XML 파일 검색
+       """
+       xml_files = []
+       
+       # 파일 타입에 따른 패턴 설정
+       if file_type == 'pg':
+           pattern = re.compile(r'.*pg\.xml$', re.IGNORECASE)
+       elif file_type == 'orcl':
+           pattern = re.compile(r'.*orcl\.xml$', re.IGNORECASE)
+       else:
+           pattern = re.compile(r'.*\.xml$', re.IGNORECASE)
+           
+       # 디렉토리 깊이 계산 함수
+       base_depth = directory.count(os.sep)
+       
+       for root, dirs, files in os.walk(directory):
+           # 최대 깊이 제한 적용
+           current_depth = root.count(os.sep) - base_depth
+           if max_depth is not None and current_depth >= max_depth:
+               dirs.clear()  # 더 이상 하위 디렉토리 탐색 중지
+               
+           # 파일 필터링
+           for file in files:
+               if pattern.match(file):
+                   xml_files.append(os.path.join(root, file))
+                   
+       return xml_files
+   ```
+
+사용 예시:
+```
+# 기본 사용법 (모든 XML 파일 검색)
+python3 DB02.FindXMLFiles.py /path/to/search
+
+# PostgreSQL XML 파일만 검색
+python3 DB02.FindXMLFiles.py /path/to/search --pg
+
+# Oracle XML 파일만 검색
+python3 DB02.FindXMLFiles.py /path/to/search --orcl
+
+# 검색 깊이 제한
+python3 DB02.FindXMLFiles.py /path/to/search --max-depth 3
+
+# 출력 파일 지정
+python3 DB02.FindXMLFiles.py /path/to/search --output /custom/path/xml_files.lst
+
+# 상세 로깅 활성화
+python3 DB02.FindXMLFiles.py /path/to/search --verbose
+```
+
+프로그램은 검색 결과를 출력하고, 발견된 XML 파일 수와 출력 파일 경로를 표시해야 합니다.
