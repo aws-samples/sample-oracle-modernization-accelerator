@@ -1,9 +1,0 @@
-Schema,Action item,Number of occurrences,Learning curve efforts,Efforts to convert an occurrence of the action item,Action item description,Recommended action
-OMA,5077,1,0.0,8.0,PostgreSQL doesn't support the PIVOT clause for SELECT statements,Revise your code to use a procedure to prepare data and then return data as a view.
-OMA,5320,2,0.0,0.5,PostgreSQL doesn't support views with the INVALID status,Convert your source code manually.
-OMA,5341,1,1.0,4.0,PostgreSQL doesn't support LISTAGG functions with the ON OVERFLOW clause. ,Revise your code to use another function or create a user-defined function.
-OMA,5444,1,0.0,0.1,This conversion uses machine learning models that generate predictions based on patterns in data,"Machine learning output is probabilistic and should be reviewed for accuracy, including human evaluation, as needed for your use case."
-OMA,5578,1,0.0,8.0,DMS SC can't convert the SELECT statement,Revise your SELECT statement and try again.
-OMA,5628,1,4.0,6.0,Converted code might produce different results compared to the source code,"Review the converted code to make sure that it produces the same results as the source code. Rewrite dynamic statements in your source code, then try to convert again."
-OMA,5984,31,0.5,0.5,Specify the precision and scale values for your source column,"To improve the conversion and use the optimized data type mapping, specify the precision and scale values for the column in your source code. Then, convert the table again."
-OMA,9997,6,0.0,0.3,Unable to resolve objects,"Verify if the unresolved object is present in the database. If it isn't, check the object name or add the object. If the object is present, transform the code manually."

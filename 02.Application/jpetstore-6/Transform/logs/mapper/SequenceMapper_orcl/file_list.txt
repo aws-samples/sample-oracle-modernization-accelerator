@@ -1,2 +1,0 @@
-SequenceMapper_orcl-01-select-getSequence.xml
-SequenceMapper_orcl-02-update-updateSequence.xml

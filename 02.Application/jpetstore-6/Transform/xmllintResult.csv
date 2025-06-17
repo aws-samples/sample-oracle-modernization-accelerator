@@ -1,8 +1,0 @@
-Path,FileName,Message
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,OrderMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,SequenceMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,AccountMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,ProductMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,ItemMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,CategoryMapper.xml,Success
-/home/ec2-user/environment/OMA/Application/jpetstore-6/Transform/mapper,LineItemMapper.xml,Success

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 화면 지우기
+clear
+
 # 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -142,6 +145,106 @@ print_environment_variables() {
 }
 
 # ====================================================
+# Application 분석 환경 설정 함수
+# ====================================================
+setup_application_environment() {
+    print_separator
+    echo -e "${BLUE}${BOLD}Application 분석 환경 설정${NC}"
+    print_separator
+
+    # JAVA_SOURCE_FOLDER의 src 확인
+    if [ ! -d "$JAVA_SOURCE_FOLDER" ]; then
+        echo -e "${RED}오류: $JAVA_SOURCE_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ JAVA_SOURCE_FOLDER의 src 디렉토리 확인 완료${NC}"
+
+    # 기존 분석 내용 확인
+    local existing_analysis=false
+    if [ -d "$ASSESSMENT_FOLDER" ] && [ "$(ls -A $ASSESSMENT_FOLDER 2>/dev/null)" ]; then
+        existing_analysis=true
+        echo -e "${YELLOW}⚠️  기존 분석 내용이 존재합니다: $ASSESSMENT_FOLDER${NC}"
+        echo -e "${CYAN}기존 분석 결과를 유지하고 스크립트 복제를 건너뜁니다.${NC}"
+    fi
+
+    # ASSESSMENT_FOLDER 확인/생성
+    if [ -d "$ASSESSMENT_FOLDER" ] || [ -d "$TRANSFORM_FOLDER" ]; then
+        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 확인 완료${NC}"
+        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 확인 완료${NC}"
+    else
+        mkdir -p "$ASSESSMENT_FOLDER"
+        mkdir -p "$TRANSFORM_FOLDER"
+        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 생성 완료${NC}"
+        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
+    fi
+
+    # TOOLS_FOLDER 확인/생성
+    if [ -d "$TOOLS_FOLDER" ]; then
+        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 확인 완료${NC}"
+    else
+        mkdir -p "$TOOLS_FOLDER"
+        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 생성 완료${NC}"
+    fi
+
+    # TEST_FOLDER 확인
+    if [ -d "$TEST_FOLDER" ]; then
+        echo -e "${GREEN}✓ TEST_FOLDER 디렉토리 확인 완료${NC}"
+    else
+        echo -e "${YELLOW}알림: TEST_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
+    fi
+
+    # Template Script 복사 (기존 분석 내용이 없는 경우에만)
+    if [ "$existing_analysis" = false ]; then
+        print_separator
+        echo -e "${BLUE}${BOLD}Template Script 복사 (신규 프로젝트)${NC}"
+        print_separator
+
+        if [ ! -d "$TEMPLATES_FOLDER" ]; then
+            echo -e "${RED}오류: 99.Templates 디렉토리가 존재하지 않습니다.${NC}"
+            exit 1
+        fi
+
+        # AP로 시작하는 파일들을 찾아서 복사
+        local copied_count=0
+        for template_file in "$TEMPLATES_FOLDER"/AP*; do
+            if [ -f "$template_file" ]; then
+                filename=$(basename "$template_file")
+                target_file="$TOOLS_FOLDER/$filename"
+                
+                # 환경 변수 치환하여 복사
+                sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
+                    -e "s|\$ASSESSMENT_FOLDER|$ASSESSMENT_FOLDER|g" \
+                    -e "s|\$JAVA_SOURCE_FOLDER|$JAVA_SOURCE_FOLDER|g" \
+                    -e "s|\$TRANSFORM_FOLDER|$TRANSFORM_FOLDER|g" \
+                    -e "s|\$TEST_FOLDER|$TEST_FOLDER|g" \
+                    -e "s|\$TRANSFORM_JNDI|$TRANSFORM_JNDI|g" \
+                    -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
+                    -e "s|\$TOOLS_FOLDER|$TOOLS_FOLDER|g" \
+                    -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
+                    -e "s|\$TRANSFORM_RELATED_CLASS|$TRANSFORM_RELATED_CLASS|g" \
+                    -e "s|\$ASCT_HOME|$ASCT_HOME|g" \
+                    "$template_file" > "$target_file"
+                
+                echo -e "${GREEN}✓ $filename 복사 완료${NC}"
+                ((copied_count++))
+            fi
+        done
+        
+        if [ $copied_count -gt 0 ]; then
+            echo -e "${GREEN}✓ 총 $copied_count 개의 템플릿 파일이 복사되었습니다.${NC}"
+        else
+            echo -e "${YELLOW}경고: 복사할 템플릿 파일을 찾을 수 없습니다.${NC}"
+        fi
+    else
+        print_separator
+        echo -e "${CYAN}${BOLD}기존 분석 프로젝트 - 스크립트 복제 건너뜀${NC}"
+        print_separator
+        echo -e "${CYAN}기존 Tools 폴더의 스크립트들을 그대로 사용합니다.${NC}"
+        echo -e "${YELLOW}필요시 수동으로 99.Templates에서 개별 파일을 복사하세요.${NC}"
+    fi
+}
+
+# ====================================================
 # Step 3: MyBatis 기반 Java 애플리케이션의 JNDI와 XML Mapper정보 확인 및 리스트화
 # ====================================================
 process_mybatis_info() {
@@ -149,30 +252,38 @@ process_mybatis_info() {
     echo -e "${BLUE}${BOLD}Step 3: MyBatis 기반 Java 애플리케이션의 JNDI와 XML Mapper정보 확인 및 리스트화${NC}"
     print_separator
     echo -e "${CYAN}이 단계에서는 다음 작업을 수행합니다:${NC}"
-    echo -e "${CYAN}1. MyBatis 애플리케이션의 JNDI 정보를 확인합니다.${NC}"
-    echo -e "${CYAN}2. XML Mapper 파일들의 정보를 수집합니다.${NC}"
-    echo -e "${CYAN}3. 수집된 정보를 리스트화하여 저장합니다.${NC}"
+    echo -e "${CYAN}1. 애플리케이션 기본 정보 수집 및 기술 스택 분석${NC}"
+    echo -e "${CYAN}2. MyBatis 설정 파일 분석 및 Mapper 파일 목록 생성${NC}"
+    echo -e "${CYAN}3. JNDI 정보 추출 및 매핑 정보 생성${NC}"
+    echo -e "${CYAN}4. SQL 패턴 발견 및 분석${NC}"
+    echo -e "${CYAN}5. 통합 분석 리포트 (ApplicationReport.html) 생성${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}실행 예시:${NC}"
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP01.GenMapperList.txt${NC}"
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
 
-    for prompt_file in $TOOLS_FOLDER/AP01.*.txt; do
-        if [ -f "$prompt_file" ]; then
-            echo -e "${CYAN}프롬프트 파일 처리 중: $prompt_file${NC}"
-            echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $prompt_file${NC}"
-            q chat --trust-all-tools --no-interactive < "$prompt_file"
-        fi
-    done
+    # AP01.Discovery.txt 실행 (통합된 분석 작업)
+    if [ -f "$TOOLS_FOLDER/AP01.Discovery.txt" ]; then
+        echo -e "${CYAN}애플리케이션 분석 및 MyBatis 정보 추출 중...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
+        q chat --trust-all-tools --no-interactive < "$TOOLS_FOLDER/AP01.Discovery.txt"
+    else
+        echo -e "${RED}오류: AP01.Discovery.txt 파일을 찾을 수 없습니다: $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
+        return 1
+    fi
 
-    # JNDI와 Mapper 파일 조합 생성
+    # JNDI와 Mapper 파일 조합 생성 (후속 처리)
     echo -e "${BLUE}${BOLD}JNDI와 Mapper 파일 조합을 생성중입니다.${NC}"
-    python3 "$TOOLS_FOLDER/AP02.GenSQLTransformTarget.py"
+    if [ -f "$TOOLS_FOLDER/AP02.GenSQLTransformTarget.py" ]; then
+        python3 "$TOOLS_FOLDER/AP02.GenSQLTransformTarget.py"
+    else
+        echo -e "${YELLOW}경고: AP02.GenSQLTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
+    fi
     
-    # SQL Mapper Report 생성
+    # SQL Mapper Report 생성 (주석 처리된 부분 - 필요시 활성화)
     #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP02.GenSQLMapperReport.txt${NC}"
     #q chat --trust-all-tools --no-interactive < "$TOOLS_FOLDER/AP02.GenSQLMapperReport.txt"
 
-    # SQL Transform Target Report 생성
+    # SQL Transform Target Report 생성 (주석 처리된 부분 - 필요시 활성화)
     #echo -e "${BLUE}${BOLD}SQL Transform Target Report 생성중입니다.${NC}"
     #python3 "$TOOLS_FOLDER/AP02.ReportSQLTransformTarget.py"
 }
@@ -239,8 +350,12 @@ fi
 print_separator
 echo -e "${BLUE}${BOLD}OMA는 AWS에서 사전 환경이 구성된 상태에서 DB/Application 변환을 수행합니다.${NC}"
 echo -e "${BLUE}${BOLD}변환 대상 프로젝트를 선택하세요:${NC}"
-echo -e "${RED}${BOLD}프로젝트 선택 및 변환 작업은 AWS EC2에서 선택 되어야 하는 메뉴 입니다.${NC}"
-echo -e "${YELLOW}${BOLD}사전 환경 구성이 필요한 경우 setup/deploy-omabox.sh를 먼저 실행하세요.${NC}"
+print_separator
+echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
+echo -e "${YELLOW}OMA 변환 작업 수행 중 데이터베이스 연관된 작업은 Source 시스템과 연결이 되는${NC}"
+echo -e "${YELLOW}AWS 환경 구성을 사전에 요구합니다.${NC}"
+echo -e "${YELLOW}(DB Schema 변환, SQL Unit Test 등)${NC}"
+echo -e "${CYAN}${BOLD}사전 환경 구성 스크립트: ${GREEN}./setup/deploy-omabox.sh${NC}"
 print_separator
 echo -e "${BLUE}${BOLD}사용 가능한 프로젝트 목록:${NC}"
 for i in "${!projects[@]}"; do
@@ -272,93 +387,25 @@ fi
 # 선택된 프로젝트의 속성 읽기 및 설정
 read_properties "$selected_project" "$DEBUG_MODE"
 
-# ASSESSMENT_FOLDER 하위 내용 확인 및 처리
-if [ -d "$ASSESSMENT_FOLDER" ] && [ "$(ls -A $ASSESSMENT_FOLDER)" ]; then
+# 자동으로 Application 분석 환경 설정 수행
+echo -e "${BLUE}${BOLD}선택된 프로젝트: $selected_project${NC}"
+echo -e "${CYAN}환경 설정을 자동으로 수행합니다...${NC}"
+setup_application_environment
+
+# 기존 분석 내용 확인 및 알림 (환경 설정 후)
+if [ -d "$ASSESSMENT_FOLDER" ] && [ "$(ls -A $ASSESSMENT_FOLDER 2>/dev/null)" ]; then
     print_separator
-    echo -e "${RED}${BOLD}경고: 기존 분석 내용이 존재합니다.${NC}"
-    echo -e "${RED}${BOLD}ASSESSMENT_FOLDER: $ASSESSMENT_FOLDER${NC}"
+    echo -e "${YELLOW}${BOLD}⚠️  기존 분석 내용이 존재합니다${NC}"
+    echo -e "${CYAN}ASSESSMENT_FOLDER: $ASSESSMENT_FOLDER${NC}"
+    echo -e "${CYAN}기존 분석 결과가 보호되었습니다.${NC}"
     print_separator
     sleep 2
 fi
 
-# 환경 변수 출력
-print_environment_variables
-
-# ====================================================
-# Step 1: 분석 환경 설정
-# ====================================================
-setup_analysis_environment() {
-    print_separator
-    echo -e "${BLUE}${BOLD}Step 1: 분석 환경 설정${NC}"
-    print_separator
-
-    # JAVA_SOURCE_FOLDER의 src 확인
-    if [ ! -d "$JAVA_SOURCE_FOLDER" ]; then
-        echo -e "${RED}오류: $JAVA_SOURCE_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}✓ JAVA_SOURCE_FOLDER의 src 디렉토리 확인 완료${NC}"
-
-    # ASSESSMENT_FOLDER 확인
-    if [ -d "$ASSESSMENT_FOLDER" ] || [ -d "$TRANSFORM_FOLDER" ]; then
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 확인 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$ASSESSMENT_FOLDER"
-        mkdir -p "$TRANSFORM_FOLDER"
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 생성 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
-    fi
-
-    # TOOLS_FOLDER 확인
-    if [ -d "$TOOLS_FOLDER" ]; then
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$TOOLS_FOLDER"
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 생성 완료${NC}"
-    fi
-
-    # TEST_FOLDER 확인
-    if [ -d "$TEST_FOLDER" ]; then
-        echo -e "${GREEN}✓ TEST_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        echo -e "${YELLOW}알림: TEST_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
-    fi
-
-    # Template Script 복사
-    print_separator
-    echo -e "${BLUE}${BOLD}Template Script 복사${NC}"
-    print_separator
-
-    if [ ! -d "$TEMPLATES_FOLDER" ]; then
-        echo -e "${RED}오류: 99.Templates 디렉토리가 존재하지 않습니다.${NC}"
-        exit 1
-    fi
-
-    # AP로 시작하는 파일들을 찾아서 복사
-    for template_file in "$TEMPLATES_FOLDER"/AP*; do
-        if [ -f "$template_file" ]; then
-            filename=$(basename "$template_file")
-            target_file="$TOOLS_FOLDER/$filename"
-            
-            # 환경 변수 치환하여 복사
-            sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
-                -e "s|\$ASSESSMENT_FOLDER|$ASSESSMENT_FOLDER|g" \
-                -e "s|\$JAVA_SOURCE_FOLDER|$JAVA_SOURCE_FOLDER|g" \
-                -e "s|\$TRANSFORM_FOLDER|$TRANSFORM_FOLDER|g" \
-                -e "s|\$TEST_FOLDER|$TEST_FOLDER|g" \
-                -e "s|\$TRANSFORM_JNDI|$TRANSFORM_JNDI|g" \
-                -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
-                -e "s|\$TOOLS_FOLDER|$TOOLS_FOLDER|g" \
-                -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
-                -e "s|\$TRANSFORM_RELATED_CLASS|$TRANSFORM_RELATED_CLASS|g" \
-                -e "s|\$ASCT_HOME|$ASCT_HOME|g" \
-                "$template_file" > "$target_file"
-            
-            echo -e "${GREEN}✓ $filename 복사 완료${NC}"
-        fi
-    done
-}
+# 환경 변수 출력 (디버그 모드일 때만)
+if [ "$DEBUG_MODE" = true ]; then
+    print_environment_variables
+fi
 
 # ====================================================
 # Step 2: DB Schema 변환
@@ -479,124 +526,29 @@ process_db_schema_conversion() {
     print_separator
 }
 
-# ====================================================
-# Step 2: Application 분석 환경 설정
-# ====================================================
-setup_analysis_environment() {
-    print_separator
-    echo -e "${BLUE}${BOLD}Step 2: Application 분석 환경 설정${NC}"
-    print_separator
-
-    # JAVA_SOURCE_FOLDER의 src 확인
-    if [ ! -d "$JAVA_SOURCE_FOLDER" ]; then
-        echo -e "${RED}오류: $JAVA_SOURCE_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}✓ JAVA_SOURCE_FOLDER의 src 디렉토리 확인 완료${NC}"
-
-    # ASSESSMENT_FOLDER 확인
-    if [ -d "$ASSESSMENT_FOLDER" ] || [ -d "$TRANSFORM_FOLDER" ]; then
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 확인 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$ASSESSMENT_FOLDER"
-        mkdir -p "$TRANSFORM_FOLDER"
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 생성 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
-    fi
-
-    # TOOLS_FOLDER 확인
-    if [ -d "$TOOLS_FOLDER" ]; then
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$TOOLS_FOLDER"
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 생성 완료${NC}"
-    fi
-
-    # TEST_FOLDER 확인
-    if [ -d "$TEST_FOLDER" ]; then
-        echo -e "${GREEN}✓ TEST_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        echo -e "${YELLOW}알림: TEST_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
-    fi
-
-    # Template Script 복사
-    print_separator
-    echo -e "${BLUE}${BOLD}Template Script 복사${NC}"
-    print_separator
-
-    if [ ! -d "$TEMPLATES_FOLDER" ]; then
-        echo -e "${RED}오류: 99.Templates 디렉토리가 존재하지 않습니다.${NC}"
-        exit 1
-    fi
-
-    # AP로 시작하는 파일들을 찾아서 복사
-    for template_file in "$TEMPLATES_FOLDER"/AP*; do
-        if [ -f "$template_file" ]; then
-            filename=$(basename "$template_file")
-            target_file="$TOOLS_FOLDER/$filename"
-            
-            # 환경 변수 치환하여 복사
-            sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
-                -e "s|\$ASSESSMENT_FOLDER|$ASSESSMENT_FOLDER|g" \
-                -e "s|\$JAVA_SOURCE_FOLDER|$JAVA_SOURCE_FOLDER|g" \
-                -e "s|\$TRANSFORM_FOLDER|$TRANSFORM_FOLDER|g" \
-                -e "s|\$TEST_FOLDER|$TEST_FOLDER|g" \
-                -e "s|\$TRANSFORM_JNDI|$TRANSFORM_JNDI|g" \
-                -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
-                -e "s|\$TOOLS_FOLDER|$TOOLS_FOLDER|g" \
-                -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
-                -e "s|\$TRANSFORM_RELATED_CLASS|$TRANSFORM_RELATED_CLASS|g" \
-                -e "s|\$ASCT_HOME|$ASCT_HOME|g" \
-                "$template_file" > "$target_file"
-            
-            echo -e "${GREEN}✓ $filename 복사 완료${NC}"
-        fi
-    done
-}
-
 # Step별 수행 루프
 while true; do
     print_separator
     echo -e "${BLUE}${BOLD}Step별 수행을 선택하세요.${NC}"
     print_separator
     echo -e "${YELLOW}0. 상위 메뉴로 가기${NC}"
-    echo -e "${CYAN}1. Step 1: 분석 환경 설정${NC}"
-    echo -e "${YELLOW}   - Java 소스 코드 분석을 위한 환경 설정${NC}"
-    echo -e "${YELLOW}   - 템플릿 스크립트의 02.Application/Tools 폴더 복사 및 환경 설정${NC}"
-    echo -e "${MAGENTA}${BOLD}   정보 : 최초 분석시 Step 1은 반드시 수행해야 합니다.${NC}"
+    echo -e "${MAGENTA}1. DB Schema 변환${NC}"
+    echo -e "${YELLOW}   - Oracle → PostgreSQL 스키마 변환 (DB 연결 필요)${NC}"
 
-    echo -e "${CYAN}2. Step 2: DB Schema 변환${NC}"
-    echo -e "${YELLOW}   - Oracle 스키마를 PostgreSQL로 변환${NC}"
-    echo -e "${YELLOW}   - DMS Schema Conversion 결과를 기반으로 Amazon Q를 활용한 추가 변환${NC}"
-    echo -e "${MAGENTA}${BOLD}   정보 : Oracle 및 PostgreSQL 연결 환경 변수가 필요합니다.${NC}"
+    echo -e "${CYAN}2. 애플리케이션 분석 및 SQL변환 대상 추출${NC}"
+    echo -e "${YELLOW}   - JNDI, Mapper 파일 분석 → CSV 및 ApplicationReport.html 생성${NC}"
 
-    echo -e "${CYAN}3. Step 3: MyBatis 기반 Java 애플리케이션의 JNDI와 XML Mapper정보 확인 및 리스트화${NC}"
-    echo -e "${YELLOW}   Input:${NC}"
-    echo -e "${YELLOW}   - Java 소스 코드 (JAVA_SOURCE_FOLDER)${NC}"
-    echo -e "${YELLOW}   - OMA.properties 설정 파일${NC}"
-    echo -e "${YELLOW}   Output:${NC}"
-    echo -e "${YELLOW}   - JNDI 정보 리스트 (JNDIList.csv)${NC}"
-    echo -e "${YELLOW}   - XML Mapper 파일 정보 리스트 (MapperList.csv)${NC}"
-    echo -e "${YELLOW}   - SQL 변환 대상 리스트 (SQLTransformTarget.csv)${NC}"
-    echo -e "${MAGENTA}${BOLD}   경고 : Step 3을 수행한 이후에, MapperList.csv, SQLTransformTarget.csv 의 정확도를 확인 하고 조정 해야 합니다. ${NC}"
+    echo -e "${CYAN}3. 애플리케이션 SQL 변환 작업${NC}"
+    echo -e "${YELLOW}   - Oracle SQL → PostgreSQL SQL 변환 (전체/재시도 모드)${NC}"
 
-    echo -e "${CYAN}4. Step 4: SQL 변환 작업${NC}"
-    echo -e "${YELLOW}   Input:${NC}"
-    echo -e "${YELLOW}   - SQL 변환 대상 리스트 (SQLTransformTarget.csv)${NC}"
-    echo -e "${YELLOW}   Output:${NC}"
-    echo -e "${YELLOW}   - 변환된 XML Mapper 파일들 (Transform/[프로젝트명]/mapper/*)${NC}"
-    echo -e "${YELLOW}   - 변환 실패 리스트 (Assessment/SQLTransformFailure.csv)${NC}"
-    echo -e "${MAGENTA}${BOLD}   정보 : SQL 변환 작업은 전체 재작업(SQLTransformTarget.csv), 부분 재작업(SQLTransformFailure.csv) 두가지 모드로 수행 가능합니다.${NC}"
+    echo -e "${CYAN}4. 애플리케이션 SQL Unit Test${NC}"
+    echo -e "${YELLOW}   - 변환된 SQL 테스트 (미구현)${NC}"
 
-    echo -e "${CYAN}5. Step 5: SQL Unit Test 수행${NC}"
-    echo -e "${YELLOW}   Input:${NC}"
-    echo -e "${YELLOW}   - 변환된 XML Mapper 파일들 (Transform/[프로젝트명]/mapper/*)${NC}"
-    echo -e "${YELLOW}   Output:${NC}"
-    echo -e "${YELLOW}   - SQL Unit Test 결과 파일들${NC}"
+    echo -e "${CYAN}5. 애플리케이션 Java Source 변환 작업${NC}"
+    echo -e "${YELLOW}   - Java 소스 코드 내 Oracle 관련 코드 변환 (미구현)${NC}"
     echo -e "${YELLOW}6. 종료${NC}"
     print_separator
-    echo -ne "${CYAN}수행할 Step을 선택하세요 (0,1,2,3,4,5,6 또는 여러개 선택 가능, 예: 1, 2, 3): ${NC}"
+    echo -ne "${CYAN}수행할 Step을 선택하세요 (0,1,2,3,4,5,6 또는 여러개 선택 가능, 예: 1, 2): ${NC}"
     read selected_steps
 
     # 선택된 Step들을 배열로 변환
@@ -612,31 +564,23 @@ while true; do
                 ;;
             1)
                 print_separator
-                echo -e "${BLUE}${BOLD}Step 1을 시작하기 전 3초 대기합니다...${NC}"
-                print_separator
-                sleep 3
-                setup_analysis_environment
-                print_separator
-                ;;
-            2)
-                print_separator
-                echo -e "${BLUE}${BOLD}Step 2를 시작하기 전 3초 대기합니다...${NC}"
+                echo -e "${BLUE}${BOLD}DB Schema 변환을 시작하기 전 3초 대기합니다...${NC}"
                 print_separator
                 sleep 3
                 process_db_schema_conversion
                 print_separator
                 ;;
-            3)
+            2)
                 print_separator
-                echo -e "${BLUE}${BOLD}Step 3을 시작하기 전 3초 대기합니다...${NC}"
+                echo -e "${BLUE}${BOLD}애플리케이션 분석 및 SQL변환 대상 추출을 시작하기 전 3초 대기합니다...${NC}"
                 print_separator
                 sleep 3
                 process_mybatis_info
                 print_separator
                 ;;
-            4)
+            3)
                 print_separator
-                echo -e "${BLUE}${BOLD}Step 4를 시작하기 전 3초 대기합니다...${NC}"
+                echo -e "${BLUE}${BOLD}SQL 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
                 print_separator
                 echo ""
                 echo -e "${BLUE}${BOLD}변환 실패 항목 리스트 (Assessment/SQLTransformFailure.csv)를 새로 생성한 이후에 실행 됩니다...${NC}"
@@ -645,12 +589,19 @@ while true; do
                 process_sql_transform
                 print_separator
                 ;;
-            5)
+            4)
                 print_separator
-                echo -e "${BLUE}${BOLD}Step 5를 시작하기 전 3초 대기합니다...${NC}"
+                echo -e "${BLUE}${BOLD}애플리케이션 SQL Unit Test를 시작하기 전 3초 대기합니다...${NC}"
                 print_separator
                 sleep 3
-                echo -e "${BLUE}${BOLD}SQL Unit Test는 아직 통합 되지 않았습니다...${NC}"
+                echo -e "${BLUE}${BOLD}애플리케이션 SQL Unit Test는 아직 통합 되지 않았습니다...${NC}"
+                ;;
+            5)
+                print_separator
+                echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+                print_separator
+                sleep 3
+                echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업은 아직 통합 되지 않았습니다...${NC}"
                 ;;
             6)
                 print_separator

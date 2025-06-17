@@ -1,8 +1,0 @@
-No.,Filename,Namespace,DAO Class,Parent DAO Class,Transform Target
-1,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/OrderMapper.xml,org.mybatis.jpetstore.mapper.OrderMapper,OrderMapper,,Y
-2,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/SequenceMapper.xml,org.mybatis.jpetstore.mapper.SequenceMapper,SequenceMapper,,Y
-3,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/AccountMapper.xml,org.mybatis.jpetstore.mapper.AccountMapper,AccountMapper,,Y
-4,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ProductMapper.xml,org.mybatis.jpetstore.mapper.ProductMapper,ProductMapper,,Y
-5,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ItemMapper.xml,org.mybatis.jpetstore.mapper.ItemMapper,ItemMapper,,Y
-6,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/CategoryMapper.xml,org.mybatis.jpetstore.mapper.CategoryMapper,CategoryMapper,,Y
-7,/home/ec2-user/environment/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/LineItemMapper.xml,org.mybatis.jpetstore.mapper.LineItemMapper,LineItemMapper,,Y

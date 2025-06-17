@@ -173,7 +173,7 @@ def read_transform_target_list(file_path, logger):
         logger.error(f"Failed to read transform target list from {file_path}: {e}")
         return []
 
-def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, origin_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger):
+def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, origin_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger, java_source_folder):
     """XML 파일을 처리합니다 (추출, 변환, 병합)."""
     try:
         # 1. 파일 경로 분석
@@ -186,15 +186,18 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, o
             logger.warning(f"File {xml_name} already has origin suffix {origin_suffix}")
         
         # 매퍼 폴더 내 상대 경로 구성 (mapper 포함하지 않음)
+        logger.info(f"XML parent path: {str(xml_path.parent)}")
         if "mapper" in str(xml_path.parent):
             parts = str(xml_path.parent).split("mapper")[1].strip("/\\")
             if parts.startswith("/") or parts.startswith("\\"):
                 parts = parts[1:]
             transform_subfolderstructure = parts
-            logger.debug(f"Extracted subfolder structure: {transform_subfolderstructure}")
+            logger.info(f"Extracted subfolder structure: {transform_subfolderstructure}")
         else:
-            transform_subfolderstructure = ""
-            logger.debug("No subfolder structure found")
+            logger.info("No subfolder structure found. Let me using java_source_folder.")
+            last_folder = java_source_folder.rstrip("/\\").split("/")[-1].split("\\")[-1]
+            transform_subfolderstructure = str(xml_path.parent).split(last_folder)[1].strip("/\\")
+            logger.info(f"Extracted subfolder structure: {transform_subfolderstructure}")
         
         # 2. 복사 대상 폴더 구조 생성
         cp_target_folder_structure = transform_subfolderstructure
@@ -400,18 +403,19 @@ def main():
         log_level = log_level_map[args.log_level]
         log_level_str = args.log_level
     
-    # 1. 기초 변수 설정
+    # 1. 기초 변수 설정 
     # 환경 변수 설정
     if args.test:
         # 테스트 모드 기본값 설정
         application_name = 'bnd_b2eg'
-        oma_base_dir = '/Users/changik/workspace/JejuAir/OMA'
-        assessment_folder = '/Users/changik/workspace/JejuAir/OMA/Application/bnd_b2eg/Assessments'
-        transform_folder = '/Users/changik/workspace/JejuAir/OMA/Application/bnd_b2eg/Transform'
-        transform_target_list = '/Users/changik/workspace/JejuAir/OMA/Application/bnd_b2eg/Transform/SQLTransformTarget.csv'
-        tools_folder = '/Users/changik/workspace/JejuAir/OMA/Application/bnd_b2eg/Tools'
+        oma_base_dir = '/Users/changik//workspace/oracle-modernization-accelerator/'
+        assessment_folder = '/Users/changik//workspace/oracle-modernization-accelerator/Application/bnd_b2eg/Assessments'
+        transform_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform'
+        transform_target_list = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/SQLTransformTarget.csv'
+        tools_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Tools'
         prompt_file = os.path.join(tools_folder, "AP03.SQLTransformTarget.txt")
         log_level_str = 'DEBUG'
+        java_source_folder = '/Users/changik//workspace/oracle-modernization-accelerator/SampleApp/jpetstore-6/src'
     else:
         # 환경 변수에서 값 가져오기
         application_name = os.environ.get('APPLICATION_NAME')
@@ -420,6 +424,7 @@ def main():
         transform_folder = os.environ.get('TRANSFORM_FOLDER')
         tools_folder = os.environ.get('TOOLS_FOLDER')
         prompt_file = os.path.join(tools_folder, "AP03.SQLTransformTarget.txt")
+        java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
         
         # 환경 변수 확인
         if not all([application_name, oma_base_dir, assessment_folder, transform_folder]):
@@ -476,6 +481,7 @@ def main():
     logger.info(f"Transform Suffix: {transform_suffix}")
     logger.info(f"Test Mode: {args.test}")
     logger.info(f"Thread Count: {thread_count}")
+    logger.info(f"Application Source Folder: {java_source_folder}")    
     
     # 2. 변환 대상 목록 읽기
     target_files = read_transform_target_list(transform_target_list, logger)
@@ -508,7 +514,8 @@ def main():
             qlog_folder,
             qprompt_folder,
             log_level_str,
-            logger
+            logger,
+            java_source_folder
         )
         
         # 결과 업데이트 (락 사용)

@@ -1,4 +1,0 @@
-ItemMapper_orcl-01-select-getItemListByProduct.xml
-ItemMapper_orcl-02-select-getItem.xml
-ItemMapper_orcl-03-select-getInventoryQuantity.xml
-ItemMapper_orcl-04-update-updateInventoryQuantity.xml

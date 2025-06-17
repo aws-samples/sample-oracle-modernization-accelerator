@@ -1,2 +1,0 @@
-JNDI,Description,useyn,Transform
-jdbc:oracle:thin:@//OracleDB:1521/XEPDB1,Oracle JDBC connection for jpetstore,Y,Yes

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Report Template</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #0066cc, #007bff);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 15px;
+        }
+        
+        .section {
+            background: white;
+            margin: 25px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .section h2 {
+            color: #0066cc;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .section h3 {
+            color: #0066cc;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .card h4 {
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #e9f7fd, #f8f9fa);
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .warning-box {
+            background: #f8d7da;
+            border-left: 4px solid #f5c6cb;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffeeba;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: #0066cc;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tr:hover {
+            background: #e9ecef;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.3em 0.7em;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .badge-high { background: #dc3545; }
+        .badge-medium { background: #ffc107; color: #333; }
+        .badge-low { background: #28a745; }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+        
+        .directory-tree {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+            font-size: 0.85em;
+            line-height: 1.6;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .oracle-code {
+            background: #fff5f5;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .postgres-code {
+            background: #f0f9ff;
+            border-left: 4px solid #28a745;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Sample Report Template</h1>
+            <p>Professional Report Layout Template</p>
+        </div>
+
+        <div class="section">
+            <h2>📊 1. System Architecture Overview</h2>
+            
+            <div class="summary-box">
+                <h3>🏗️ Overall Architecture</h3>
+                <p><strong>Sample Web Application Architecture</strong></p>
+                <ul>
+                    <li>Modern web application framework</li>
+                    <li>Frontend framework integration</li>
+                    <li>Standard enterprise architecture</li>
+                </ul>
+            </div>
+
+            <h3>⚙️ Technology Stack</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>🔧 Backend</h4>
+                    <ul>
+                        <li><strong>Framework A</strong>: Core framework</li>
+                        <li><strong>Framework B</strong>: Web framework</li>
+                        <li><strong>Database</strong>: Database system</li>
+                        <li><strong>Library C</strong>: Additional library</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>🎨 Frontend</h4>
+                    <ul>
+                        <li><strong>Framework X</strong>: UI framework</li>
+                        <li><strong>HTML5/JavaScript</strong>: Web standards</li>
+                        <li><strong>CSS</strong>: Styling</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>📚 Libraries</h4>
+                    <ul>
+                        <li><strong>Library 1</strong>: File processing</li>
+                        <li><strong>Library 2</strong>: Web services</li>
+                        <li><strong>Library 3</strong>: Utilities</li>
+                        <li><strong>Component A</strong>: UI component</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>📁 Directory Structure</h3>
+            <div class="directory-tree">project/
+├── config/                     # Configuration files
+│   ├── app.xml                 # Application config
+│   ├── lib/                    # Library files
+│   └── classes/                # Compiled classes
+├── resources/                  # Application resources
+│   ├── framework/              # Framework files
+│   ├── modules/                # Application modules
+│   ├── common/                 # Common components
+│   ├── system/                 # System management
+│   ├── service/                # Service modules
+│   ├── order/                  # Order management
+│   ├── catalog/                # Product catalog
+│   ├── master/                 # Master data
+│   └── config.json             # Configuration file
+├── templates/                  # Template files
+├── static/                     # Static files
+└── components/                 # UI components</div>
+
+            <h3>🔧 Application Configuration</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>Web Application Settings</h4>
+                    <ul>
+                        <li><strong>Encoding Filter</strong>: UTF-8 encoding</li>
+                        <li><strong>Security Filter</strong>: Security configurations</li>
+                        <li><strong>Framework Config</strong>: Main framework setup</li>
+                        <li><strong>Component Config</strong>: Component settings</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Business Modules</h4>
+                    <ul>
+                        <li><strong>Module A</strong>: Service request management</li>
+                        <li><strong>Module B</strong>: Order management</li>
+                        <li><strong>Module C</strong>: Product catalog</li>
+                        <li><strong>Module D</strong>: Master data</li>
+                        <li><strong>Module E</strong>: System management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Key Features</h4>
+                <ul>
+                    <li><strong>Sample Project</strong>: Template demonstration project</li>
+                    <li><strong>Management System</strong>: Sample management system</li>
+                    <li><strong>Modern Architecture</strong>: Contemporary application design</li>
+                    <li><strong>Standard Framework</strong>: Industry standard framework</li>
+                    <li><strong>Integration Ready</strong>: Enterprise integration capabilities</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🗄️ 2. Database Configuration Analysis</h2>
+            
+            <div class="summary-box">
+                <h3>📋 Database Setup Overview</h3>
+                <p>This application uses <strong>Sample Database Framework</strong> for database connectivity and data access layer implementation.</p>
+            </div>
+
+            <h3>⚙️ Database Configuration Files</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Configuration File</th>
+                        <th>Purpose</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>config-database.xml</strong></td>
+                        <td>Main database configuration</td>
+                        <td>/config/resources/</td>
+                    </tr>
+                    <tr>
+                        <td><strong>config-mapping.xml</strong></td>
+                        <td>Database mapping configuration</td>
+                        <td>/config/spring/</td>
+                    </tr>
+                    <tr>
+                        <td><strong>database-config.dtd</strong></td>
+                        <td>Database DTD file</td>
+                        <td>/config/</td>
+                    </tr>
+                    <tr>
+                        <td><strong>config-datasource.xml</strong></td>
+                        <td>Data source configuration</td>
+                        <td>/config/resources/</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔧 Database Configuration Features</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>Type Aliases</h4>
+                    <div class="code-block">
+&lt;typeAliases&gt;
+    &lt;typeAlias alias="sampleMap" type="sample.framework.util.SampleMap"/&gt;
+    &lt;typeAlias alias="hashMap" type="java.util.HashMap" /&gt;
+    &lt;typeAlias alias="map" type="java.util.Map"/&gt;
+    &lt;typeAlias alias="customMap" type="custom.framework.util.CustomMap"/&gt;
+&lt;/typeAliases&gt;
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Main Settings</h4>
+                    <ul>
+                        <li><strong>Cache Enabled</strong>: cacheEnabled="true"</li>
+                        <li><strong>Statement Timeout</strong>: 25 seconds</li>
+                        <li><strong>Executor Type</strong>: REUSE mode</li>
+                        <li><strong>JDBC Type for Null</strong>: VARCHAR</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Custom Implementation</h4>
+                    <p><strong>RefreshableSqlSessionFactoryBean</strong></p>
+                    <p>Custom SqlSessionFactory with auto-reload functionality for development</p>
+                    <div class="code-block">
+&lt;property name="interval" value="1000"&gt;&lt;/property&gt;
+                    </div>
+                </div>
+            </div>
+
+            <h3>📄 Database Mapper Files</h3>
+            <div class="highlight-box">
+                <p><strong>Total 25 Database Mapper Files</strong> identified.</p>
+                <p>Location: <code>/config/sqlmap/**/*.xml</code></p>
+            </div>
+
+            <h4>📋 Sample Mapper Files</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Module</th>
+                        <th>File Name</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>common</td><td>CommonDao_sqlMap.xml</td><td>Common functions</td></tr>
+                    <tr><td>2</td><td>common</td><td>CodeDao_sqlMap.xml</td><td>Code management</td></tr>
+                    <tr><td>3</td><td>common</td><td>UserDao_sqlMap.xml</td><td>User management</td></tr>
+                    <tr><td>4</td><td>common</td><td>FileDao_sqlMap.xml</td><td>File management</td></tr>
+                    <tr><td>5</td><td>service</td><td>ServiceDao_sqlMap.xml</td><td>Service management</td></tr>
+                    <tr><td>6</td><td>order</td><td>OrderDao_sqlMap.xml</td><td>Order processing</td></tr>
+                    <tr><td>7</td><td>catalog</td><td>CatalogDao_sqlMap.xml</td><td>Product catalog</td></tr>
+                    <tr><td>8</td><td>system</td><td>SystemDao_sqlMap.xml</td><td>System management</td></tr>
+                </tbody>
+            </table>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>File Count</th>
+                        <th>Main Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>common</strong></td>
+                        <td>8 files</td>
+                        <td>Common functions (login, file, code management)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>service</strong></td>
+                        <td>6 files</td>
+                        <td>Service request management</td>
+                    </tr>
+                    <tr>
+                        <td><strong>order</strong></td>
+                        <td>5 files</td>
+                        <td>Order management</td>
+                    </tr>
+                    <tr>
+                        <td><strong>catalog</strong></td>
+                        <td>4 files</td>
+                        <td>Product catalog management</td>
+                    </tr>
+                    <tr>
+                        <td><strong>system</strong></td>
+                        <td>2 files</td>
+                        <td>System management</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔄 3. Database Query Pattern Analysis</h2>
+            
+            <div class="summary-box">
+                <h3>🎯 Analysis Objective</h3>
+                <p>Analyze database query patterns and identify optimization opportunities for better performance.</p>
+            </div>
+
+            <h3>🔍 Database Pattern Analysis Results</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pattern Type</th>
+                        <th>Frequency</th>
+                        <th>Complexity</th>
+                        <th>Optimization</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Date Functions</strong></td>
+                        <td>High (50+ times)</td>
+                        <td><span class="badge badge-low">Low</span></td>
+                        <td>Standard date functions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>System Tables</strong></td>
+                        <td>Medium (15+ times)</td>
+                        <td><span class="badge badge-low">Low</span></td>
+                        <td>Remove or use alternatives</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sequence Usage</strong></td>
+                        <td>Medium (10+ times)</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                        <td>Modern sequence functions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Null Handling</strong></td>
+                        <td>High (20+ times)</td>
+                        <td><span class="badge badge-low">Low</span></td>
+                        <td>Standard null functions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>String Aggregation</strong></td>
+                        <td>Medium (5+ times)</td>
+                        <td><span class="badge badge-high">High</span></td>
+                        <td>Modern aggregation functions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Row Limiting</strong></td>
+                        <td>Medium (10+ times)</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                        <td>Standard LIMIT clause</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔧 Query Pattern Examples</h3>
+
+            <div class="card">
+                <h4>1. Date Function Usage</h4>
+                <div class="code-block oracle-code">
+<strong>Before:</strong>
+INSERT INTO SAMPLE_TABLE (..., CREATE_DATE, UPDATE_DATE) 
+VALUES (..., CURRENT_DATE, CURRENT_DATE)
+
+UPDATE SAMPLE_TABLE SET UPDATE_DATE = CURRENT_DATE WHERE ...
+                </div>
+                <div class="code-block postgres-code">
+<strong>After:</strong>
+INSERT INTO SAMPLE_TABLE (..., CREATE_DATE, UPDATE_DATE) 
+VALUES (..., NOW(), NOW())
+
+UPDATE SAMPLE_TABLE SET UPDATE_DATE = NOW() WHERE ...
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>2. System Table Optimization</h4>
+                <div class="code-block oracle-code">
+<strong>Before:</strong>
+SELECT #{empno} EMPNO FROM SYSTEM_TABLE
+
+SELECT 'ID'||TO_CHAR(CURRENT_DATE, 'YYMMDD') || 
+       LPAD(SEQUENCE_NAME.NEXTVAL, 4, '0') ID_NO 
+FROM SYSTEM_TABLE
+                </div>
+                <div class="code-block postgres-code">
+<strong>After:</strong>
+SELECT #{empno} AS EMPNO
+
+SELECT 'ID'||TO_CHAR(NOW(), 'YYMMDD') || 
+       LPAD(NEXTVAL('SEQUENCE_NAME'), 4, '0') AS ID_NO
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>3. Null Handling Functions</h4>
+                <div class="code-block oracle-code">
+<strong>Before:</strong>
+SELECT NVL((SELECT S.USER_NAME FROM USER_TABLE S 
+           WHERE S.USER_ID = A.CREATOR_ID AND ROWNUM = 1), 
+           A.CREATOR_ID) CREATOR_NAME
+                </div>
+                <div class="code-block postgres-code">
+<strong>After:</strong>
+SELECT COALESCE((SELECT S.USER_NAME FROM USER_TABLE S 
+                WHERE S.USER_ID = A.CREATOR_ID LIMIT 1), 
+                A.CREATOR_ID) AS CREATOR_NAME
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Important Notes</h4>
+                <ul>
+                    <li><strong>Database Links</strong>: External database connections need Foreign Data Wrapper alternatives</li>
+                    <li><strong>Stored Procedures</strong>: Complex procedures may need function conversion</li>
+                    <li><strong>Data Types</strong>: Large object types need appropriate mapping</li>
+                    <li><strong>Sequences</strong>: Database sequences need recreation with proper syntax</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 4. Analysis Summary</h2>
+            
+            <div class="summary-box">
+                <h3>🎯 Analysis Scope</h3>
+                <ul>
+                    <li><strong>Total 25</strong> database mapper files</li>
+                    <li><strong>8 major pattern types</strong> identified</li>
+                    <li><strong>Estimated optimization points</strong>: 100+ locations</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <p><strong>📅 Analysis Date:</strong> 2025-06-16</p>
+            <p><strong>📊 Analysis Target:</strong> Sample Application Template</p>
+        </div>
+    </div>
+</body>
+</html>
