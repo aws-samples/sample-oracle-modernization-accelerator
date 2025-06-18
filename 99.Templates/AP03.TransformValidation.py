@@ -267,12 +267,12 @@ def write_xmllint_result(results, output_file, logger):
         logger.error(f"Error writing XML validation results: {e}")
         return False
 
-def create_failure_csv(failure_list, transform_folder, logger, origin_suffix='_orcl'):
+def create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix='_orcl'):
     """변환 실패 목록으로 CSV 파일을 생성합니다.
     
     매개변수:
         failure_list (list): 변환에 실패한 파일 목록
-        transform_folder (str): 변환 폴더 경로
+        app_transform_folder (str): 변환 폴더 경로
         logger: 로거 인스턴스
         origin_suffix (str): 원본 파일의 접미사 (기본값: _orcl)
         
@@ -281,8 +281,8 @@ def create_failure_csv(failure_list, transform_folder, logger, origin_suffix='_o
     """
     try:
         # 경로 정의
-        source_csv = os.path.join(transform_folder, 'SQLTransformTarget.csv')
-        output_file = os.path.join(transform_folder, 'SQLTransformTargetFailure.csv')
+        source_csv = os.path.join(app_transform_folder, 'SQLTransformTarget.csv')
+        output_file = os.path.join(app_transform_folder, 'SQLTransformTargetFailure.csv')
         
         # 기존 파일이 있으면 삭제
         if os.path.exists(output_file):
@@ -368,12 +368,12 @@ def main():
     parser = argparse.ArgumentParser(description='MyBatis XML 변환 검증 프로세스')
     parser.add_argument('-m', '--mapper-folder', dest='mapper_folder', help='검증할 매퍼 파일이 있는 디렉토리')
     parser.add_argument('-o', '--origin-suffix', dest='origin_suffix', default='_orcl', help='원본 파일의 접미사 (기본값: _orcl)')
-    parser.add_argument('-f', '--transform-folder', dest='transform_folder', help='변환 폴더 경로')
+    parser.add_argument('-f', '--app-transform-folder', dest='app_transform_folder', help='변환 폴더 경로')
+    parser.add_argument('-g', '--app-log-folder', dest='app_log_folder', help='log 폴더 경로')
     parser.add_argument('-l', '--log', help='로그 파일 경로 지정', default=None)
     parser.add_argument('-v', '--verbose', action='store_true', help='상세 로깅 활성화 (--log-level DEBUG와 동일)')
     parser.add_argument('-t', '--test', action='store_true', help='기본 설정으로 테스트 모드 실행')
-    parser.add_argument('--log-level', choices=log_level_choices, default='INFO',
-                        help='로그 레벨 설정 (기본값: INFO)')
+    parser.add_argument('--log-level', choices=log_level_choices, default='INFO', help='로그 레벨 설정 (기본값: INFO)')
     
     args = parser.parse_args()
     
@@ -390,15 +390,16 @@ def main():
     
     if test_mode:
         # 테스트 모드의 기본값
-        transform_folder = '$TRANSFORM_FOLDER'
-        mapper_folder = '$TRANSFORM_FOLDER/mapper'
+        app_transform_folder = '$APP_TRANSFORM_FOLDER'
+        mapper_folder = '$APP_TRANSFORM_FOLDER/mapper'
         log_level = logging.DEBUG
         log_level_str = 'DEBUG'
     else:
         # 명령줄 인수 또는 환경 변수에서 값 가져오기
         mapper_folder = args.mapper_folder or os.environ.get('MAPPER_FOLDER')
-        transform_folder = args.transform_folder or os.environ.get('TRANSFORM_FOLDER')
+        app_transform_folder = args.app_transform_folder or os.environ.get('APP_TRANSFORM_FOLDER')
     
+    app_log_folder = args.app_log_folder or os.environ.get('APP_LOGS_FOLDER')
     origin_suffix = args.origin_suffix
     
     # 먼저 콘솔 로깅만 설정 (필수 매개변수 검증용)
@@ -410,13 +411,13 @@ def main():
         logger.error("매개변수로 제공하거나 MAPPER_FOLDER 환경 변수를 설정하세요.")
         sys.exit(1)
     
-    if not transform_folder:
-        logger.error("오류: TRANSFORM_FOLDER가 지정되지 않았습니다.")
-        logger.error("매개변수로 제공하거나 TRANSFORM_FOLDER 환경 변수를 설정하세요.")
+    if not app_transform_folder:
+        logger.error("오류: APP_TRANSFORM_FOLDER가 지정되지 않았습니다.")
+        logger.error("매개변수로 제공하거나 APP_TRANSFORM_FOLDER 환경 변수를 설정하세요.")
         sys.exit(1)
     
     # 로그 폴더 설정
-    log_folder = os.path.join(transform_folder, 'logs', 'pylogs')
+    log_folder = app_log_folder
     os.makedirs(log_folder, exist_ok=True)
     
     # 로그 파일 설정
@@ -437,7 +438,7 @@ def main():
     logger.info("Starting AP03.TransformValidation.py")
     logger.info(f"Mapper Folder: {mapper_folder}")
     logger.info(f"Origin Suffix: {origin_suffix}")
-    logger.info(f"Transform Folder: {transform_folder}")
+    logger.info(f"Transform Folder: {app_transform_folder}")
     logger.info(f"Test Mode: {test_mode}")
     logger.info(f"Log Level: {log_level_str}")
     
@@ -446,14 +447,14 @@ def main():
     failure_list = check_transformation_completeness(mapper_folder, origin_suffix, logger)
     
     # SQLTransformTargetFailure.csv 생성
-    create_failure_csv(failure_list, transform_folder, logger, origin_suffix)
+    create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix)
     
     # 3. 검증 2: XML 구문 검증
     logger.info("Starting validation : Validating XML syntax")
     xmllint_results = validate_xml_files(mapper_folder, origin_suffix, logger)
     
     # xmllintResult.csv 생성
-    xmllint_result_file = os.path.join(transform_folder, 'xmllintResult.csv')
+    xmllint_result_file = os.path.join(app_transform_folder, 'xmllintResult.csv')
     write_xmllint_result(xmllint_results, xmllint_result_file, logger)
     
     # 4. 요약

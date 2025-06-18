@@ -1,0 +1,421 @@
+DB10.AnalyzeResult.py 프로그램을 작성해주세요. 이 프로그램은 Oracle과 PostgreSQL 쿼리 결과의 차이를 분석하고 보고서를 생성하는 프로그램입니다.
+
+요구사항:
+1. PostgreSQL 데이터베이스의 sqllist 테이블에서 same='N'인 레코드를 조회합니다.
+2. Oracle과 PostgreSQL 결과의 차이를 분석하고 차이 유형을 분류합니다:
+   - 데이터 타입 차이 (숫자 vs 문자열)
+   - 날짜 형식 차이
+   - NULL 처리 차이
+   - 대소문자 구분 차이
+   - 공백 차이
+   - 결과 순서 차이
+   - 함수 동작 차이
+   - 구문 차이
+   - 오류 발생
+   - 기타 차이
+3. 분석 결과를 HTML 보고서로 생성합니다:
+   - 차이 유형별 통계 차트
+   - 각 SQL 문의 상세 분석 결과
+   - Oracle과 PostgreSQL SQL 코드 비교
+   - 결과 차이 시각화 (diff 형식)
+4. 명령행 인수를 통해 필터링 옵션을 제공합니다:
+   - SQL 타입 필터링
+   - 애플리케이션 이름 필터링
+   - 분석할 결과 수 제한
+   - 출력 파일 지정
+
+차이 분석 알고리즘:
+1. 결과 문자열을 파싱하여 구조화된 데이터로 변환합니다:
+   ```python
+   def parse_result_to_structured_data(result_text):
+       """
+       결과 문자열을 구조화된 데이터로 변환
+       """
+       lines = result_text.strip().split('\n')
+       if not lines:
+           return {"headers": [], "rows": []}
+           
+       # CSV 형식 파싱
+       try:
+           reader = csv.reader(lines)
+           rows = list(reader)
+           if not rows:
+               return {"headers": [], "rows": []}
+               
+           headers = rows[0]
+           data_rows = rows[1:]
+           
+           # 컬럼별 데이터 타입 추론
+           column_types = infer_column_types(data_rows)
+           
+           return {
+               "headers": headers,
+               "rows": data_rows,
+               "column_types": column_types,
+               "row_count": len(data_rows),
+               "column_count": len(headers)
+           }
+       except Exception as e:
+           # CSV 파싱 실패 시 일반 텍스트로 처리
+           return {
+               "headers": [],
+               "rows": lines,
+               "column_types": [],
+               "row_count": len(lines),
+               "column_count": 0,
+               "is_text": True
+           }
+   ```
+
+2. 두 결과의 구조(컬럼 수, 행 수)를 비교합니다:
+   ```python
+   def compare_result_structure(oracle_data, pg_data):
+       """
+       결과 구조 비교
+       """
+       differences = []
+       
+       # 컬럼 수 비교
+       if oracle_data["column_count"] != pg_data["column_count"]:
+           differences.append({
+               "type": "structure",
+               "subtype": "column_count",
+               "description": f"Column count differs: Oracle has {oracle_data['column_count']} columns, PostgreSQL has {pg_data['column_count']} columns"
+           })
+       
+       # 행 수 비교
+       if oracle_data["row_count"] != pg_data["row_count"]:
+           differences.append({
+               "type": "structure",
+               "subtype": "row_count",
+               "description": f"Row count differs: Oracle has {oracle_data['row_count']} rows, PostgreSQL has {pg_data['row_count']} rows"
+           })
+           
+       # 헤더 비교
+       if not oracle_data.get("is_text") and not pg_data.get("is_text"):
+           header_diff = []
+           for i, (oracle_header, pg_header) in enumerate(zip(oracle_data["headers"], pg_data["headers"])):
+               if oracle_header.strip().upper() != pg_header.strip().upper():
+                   header_diff.append({
+                       "column_index": i,
+                       "oracle_header": oracle_header,
+                       "pg_header": pg_header
+                   })
+           
+           if header_diff:
+               differences.append({
+                   "type": "structure",
+                   "subtype": "headers",
+                   "description": f"Column headers differ in {len(header_diff)} positions",
+                   "details": header_diff
+               })
+               
+       return differences
+   ```
+
+3. 컬럼별로 데이터 타입을 추론하고 비교합니다:
+   ```python
+   def infer_column_types(rows):
+       """
+       컬럼별 데이터 타입 추론
+       """
+       if not rows or not rows[0]:
+           return []
+           
+       column_count = len(rows[0])
+       types = ["unknown"] * column_count
+       
+       for row in rows:
+           for i, value in enumerate(row):
+               if i >= column_count:
+                   break
+                   
+               if types[i] != "unknown":
+                   continue
+                   
+               if value is None or value.strip() == "":
+                   continue
+                   
+               # 숫자 타입 확인
+               if re.match(r'^-?\d+(\.\d+)?$', value.strip()):
+                   types[i] = "number"
+                   continue
+                   
+               # 날짜 타입 확인
+               if re.match(r'^\d{2,4}[-/]\d{1,2}[-/]\d{1,2}', value.strip()):
+                   types[i] = "date"
+                   continue
+                   
+               # 기본 문자열 타입
+               types[i] = "string"
+               
+       return types
+   ```
+
+4. 값의 차이를 분석하여 차이 유형을 결정합니다:
+   ```python
+   def analyze_value_differences(oracle_data, pg_data):
+       """
+       값 차이 분석
+       """
+       if oracle_data.get("is_text") or pg_data.get("is_text"):
+           return analyze_text_differences(oracle_data, pg_data)
+           
+       differences = []
+       
+       # 행 단위 비교
+       for row_idx, (oracle_row, pg_row) in enumerate(zip(oracle_data["rows"], pg_data["rows"])):
+           for col_idx, (oracle_val, pg_val) in enumerate(zip(oracle_row, pg_row)):
+               # 값이 같으면 건너뛰기
+               if oracle_val == pg_val:
+                   continue
+                   
+               # NULL 처리 차이
+               if (oracle_val is None or oracle_val.strip() == "") != (pg_val is None or pg_val.strip() == ""):
+                   differences.append({
+                       "type": "value",
+                       "subtype": "null_handling",
+                       "row": row_idx,
+                       "column": col_idx,
+                       "oracle_value": oracle_val,
+                       "pg_value": pg_val,
+                       "description": "NULL handling difference"
+                   })
+                   continue
+                   
+               # 대소문자 차이
+               if oracle_val.upper() == pg_val.upper():
+                   differences.append({
+                       "type": "value",
+                       "subtype": "case_sensitivity",
+                       "row": row_idx,
+                       "column": col_idx,
+                       "oracle_value": oracle_val,
+                       "pg_value": pg_val,
+                       "description": "Case sensitivity difference"
+                   })
+                   continue
+                   
+               # 공백 차이
+               if oracle_val.strip() == pg_val.strip():
+                   differences.append({
+                       "type": "value",
+                       "subtype": "whitespace",
+                       "row": row_idx,
+                       "column": col_idx,
+                       "oracle_value": oracle_val,
+                       "pg_value": pg_val,
+                       "description": "Whitespace difference"
+                   })
+                   continue
+                   
+               # 날짜 형식 차이
+               if oracle_data["column_types"][col_idx] == "date" or pg_data["column_types"][col_idx] == "date":
+                   if normalize_date(oracle_val) == normalize_date(pg_val):
+                       differences.append({
+                           "type": "value",
+                           "subtype": "date_format",
+                           "row": row_idx,
+                           "column": col_idx,
+                           "oracle_value": oracle_val,
+                           "pg_value": pg_val,
+                           "description": "Date format difference"
+                       })
+                       continue
+                       
+               # 숫자 형식 차이
+               if oracle_data["column_types"][col_idx] == "number" or pg_data["column_types"][col_idx] == "number":
+                   if normalize_number(oracle_val) == normalize_number(pg_val):
+                       differences.append({
+                           "type": "value",
+                           "subtype": "number_format",
+                           "row": row_idx,
+                           "column": col_idx,
+                           "oracle_value": oracle_val,
+                           "pg_value": pg_val,
+                           "description": "Number format difference"
+                       })
+                       continue
+                       
+               # 기타 값 차이
+               differences.append({
+                   "type": "value",
+                   "subtype": "content",
+                   "row": row_idx,
+                   "column": col_idx,
+                   "oracle_value": oracle_val,
+                   "pg_value": pg_val,
+                   "description": "Content difference"
+               })
+               
+       return differences
+   ```
+
+5. 차이가 발생한 위치와 내용을 기록합니다.
+
+차트 생성:
+1. matplotlib 라이브러리를 사용하여 차트 생성:
+   ```python
+   def generate_charts(analysis_results, output_dir):
+       """
+       분석 결과를 기반으로 차트 생성
+       """
+       # 차이 유형별 통계
+       difference_types = {}
+       for result in analysis_results:
+           for diff in result["differences"]:
+               diff_type = f"{diff['type']}_{diff['subtype']}"
+               difference_types[diff_type] = difference_types.get(diff_type, 0) + 1
+               
+       # 파이 차트 생성
+       plt.figure(figsize=(10, 8))
+       plt.pie(difference_types.values(), labels=difference_types.keys(), autopct='%1.1f%%')
+       plt.title('Difference Types Distribution')
+       pie_chart_path = os.path.join(output_dir, 'difference_types_pie.png')
+       plt.savefig(pie_chart_path)
+       plt.close()
+       
+       # 애플리케이션별 차이 분포
+       app_differences = {}
+       for result in analysis_results:
+           app_name = result["app_name"]
+           app_differences[app_name] = app_differences.get(app_name, 0) + len(result["differences"])
+           
+       # 막대 차트 생성
+       plt.figure(figsize=(12, 6))
+       plt.bar(app_differences.keys(), app_differences.values())
+       plt.title('Differences by Application')
+       plt.xlabel('Application')
+       plt.ylabel('Number of Differences')
+       plt.xticks(rotation=45, ha='right')
+       app_chart_path = os.path.join(output_dir, 'differences_by_app.png')
+       plt.savefig(app_chart_path)
+       plt.close()
+       
+       return {
+           'pie_chart': os.path.basename(pie_chart_path),
+           'app_chart': os.path.basename(app_chart_path)
+       }
+   ```
+
+대규모 분석 결과 처리:
+1. 페이지네이션 구현:
+   ```python
+   def generate_paginated_report(analysis_results, output_dir, items_per_page=20):
+       """
+       페이지네이션이 적용된 보고서 생성
+       """
+       total_items = len(analysis_results)
+       total_pages = (total_items + items_per_page - 1) // items_per_page
+       
+       # 요약 페이지 생성
+       summary_path = os.path.join(output_dir, 'index.html')
+       with open(summary_path, 'w') as f:
+           f.write(generate_summary_html(analysis_results, total_pages))
+           
+       # 상세 페이지 생성
+       for page in range(1, total_pages + 1):
+           start_idx = (page - 1) * items_per_page
+           end_idx = min(start_idx + items_per_page, total_items)
+           page_results = analysis_results[start_idx:end_idx]
+           
+           page_path = os.path.join(output_dir, f'page_{page}.html')
+           with open(page_path, 'w') as f:
+               f.write(generate_detail_page_html(page_results, page, total_pages))
+               
+       return summary_path
+   ```
+
+2. 요약 보고서와 상세 보고서 분리:
+   ```python
+   def generate_summary_html(analysis_results, total_pages):
+       """
+       요약 HTML 생성
+       """
+       # 차트 생성
+       charts = generate_charts(analysis_results, os.path.dirname(output_path))
+       
+       html = f"""
+       <!DOCTYPE html>
+       <html>
+       <head>
+           <title>SQL Comparison Analysis Summary</title>
+           <style>
+               /* CSS 스타일 정의 */
+           </style>
+       </head>
+       <body>
+           <h1>SQL Comparison Analysis Summary</h1>
+           <div class="summary-stats">
+               <p>Total SQL analyzed: {len(analysis_results)}</p>
+               <p>Total differences found: {sum(len(r['differences']) for r in analysis_results)}</p>
+           </div>
+           
+           <div class="charts">
+               <div class="chart">
+                   <h2>Difference Types Distribution</h2>
+                   <img src="{charts['pie_chart']}" alt="Difference Types Pie Chart">
+               </div>
+               <div class="chart">
+                   <h2>Differences by Application</h2>
+                   <img src="{charts['app_chart']}" alt="Differences by Application Chart">
+               </div>
+           </div>
+           
+           <h2>Detail Pages</h2>
+           <ul>
+       """
+       
+       for page in range(1, total_pages + 1):
+           html += f'<li><a href="page_{page}.html">Page {page}</a></li>\n'
+           
+       html += """
+           </ul>
+       </body>
+       </html>
+       """
+       
+       return html
+   ```
+
+HTML 보고서 구성:
+1. 요약 섹션:
+   - 총 분석 항목 수
+   - 차이 유형별 통계 (파이 차트)
+   - 애플리케이션별 차이 분포 (막대 차트)
+   - SQL 타입별 차이 분포 (막대 차트)
+2. 상세 분석 섹션:
+   - SQL ID, 애플리케이션 이름, SQL 타입
+   - Oracle SQL과 PostgreSQL SQL 코드 (구문 강조 표시)
+   - 차이 유형 및 설명
+   - 결과 차이 시각화 (diff 형식)
+   - 권장 수정 사항
+
+사용 예시:
+```
+# 기본 사용법
+python3 DB10.AnalyzeResult.py
+
+# SQL 타입 필터링
+python3 DB10.AnalyzeResult.py --type S
+
+# 애플리케이션 필터링
+python3 DB10.AnalyzeResult.py --app app_name
+
+# 결과 수 제한
+python3 DB10.AnalyzeResult.py --limit 50
+
+# 출력 파일 지정
+python3 DB10.AnalyzeResult.py --output custom_report.html
+
+# 페이지당 항목 수 지정
+python3 DB10.AnalyzeResult.py --items-per-page 10
+
+# 인터랙티브 차트 생성
+python3 DB10.AnalyzeResult.py --interactive
+
+# 상세 로깅 활성화
+python3 DB10.AnalyzeResult.py --verbose
+```
+
+프로그램은 분석 진행 상황을 표시하고, 완료 후에는 분석된 SQL 수와 차이 유형별 통계를 요약하여 보여줍니다. 또한 생성된 HTML 보고서의 경로를 출력합니다.

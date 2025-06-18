@@ -31,18 +31,16 @@ echo -e "${CYAN}├── initOMA.sh                                   OMA 애�
 echo -e "${CYAN}├── OMA.properties                               프로젝트 설정 파일-환경 변수로 사용${NC}"
 echo -e "${CYAN}├── [프로젝트명]                                   분석 및 변환 단위 : 애플리케이션명으로 구분${NC}"
 echo -e "${CYAN}│   ├── 01.Database                              - 데이터데이스 스키마 변환 결과${NC}"
-echo -e "${CYAN}│   │      ├── python                              - 데이터베이스 변환 프로그램${NC}"
+echo -e "${CYAN}│   │      ├── Tools                              - 데이터베이스 변환 프로그램${NC}"
 echo -e "${CYAN}│   │      ├── work                                - 데이터베이슨 변환 중간 단계 결과 저장${NC}"
-echo -e "${CYAN}│   │      ├── prompt                              - 데이터베이스 변환 프로그램 생성 프롬프트${NC}"
-echo -e "${CYAN}│   │      └── log                                 - 데이터베이스 변환 로그 디렉토리${NC}"
+echo -e "${CYAN}│   │      └── Logs                                 - 데이터베이스 변환 로그 디렉토리${NC}"
 echo -e "${CYAN}│   ├── 02.Application                           - 애플리케이션 분석 결과 디렉토리${NC}"
 echo -e "${CYAN}│   │      ├── Assessments                         - 기초 분석 JNDI 정보와 분석 대상 리스트 정의${NC}"
 echo -e "${CYAN}│   │      ├── Tools                               - Q Prompt와 프로그램 : initOMA.sh 수행 시 Tools 폴더에 복사됨${NC}"
 echo -e "${CYAN}│   │      └── Transform                           - 애플리케이션 SQL 전환 결과 및 로그 정보${NC}"
 echo -e "${CYAN}│   └── 03.Test                                  Unit 테스트 수행 결과 및 도구${NC}"
-echo -e "${CYAN}│          ├── python                              - Unit Test Program${NC}"
-echo -e "${CYAN}│          ├── work                                - 임시 저장 화일들${NC}"
-echo -e "${CYAN}│          └── prompt                              - 데이터베이스 변환 프로그램 생성 프롬프트${NC}"
+echo -e "${CYAN}│          ├── Tools                              - Unit Test Program${NC}"
+echo -e "${CYAN}│          └── work                                - 임시 저장 화일들${NC}"
 echo -e "${CYAN}└── 99.Templates                                 OMA 프로젝트 수행을 위한 분석 도구 템플릿. Tools 폴더에 복사됨${NC}"
 
 
@@ -51,13 +49,17 @@ echo -e "${CYAN}└── 99.Templates                                 OMA 프�
 # ====================================================
 read_properties() {
     local APPLICATION_NAME=$1
-    local DEBUG_MODE=${2:-false}  # 두 번째 인자가 없으면 false
-    local in_section=false
+    local DEBUG_MODE=${2:-false}
     
     if [ "$DEBUG_MODE" = true ]; then
         echo "디버깅: Properties 파일 읽기 시작"
     fi
     
+    # APPLICATION_NAME을 즉시 export (COMMON 섹션 치환용)
+    export APPLICATION_NAME="$APPLICATION_NAME"
+    
+    # 1단계: COMMON 섹션 먼저 읽기
+    local in_common_section=false
     while IFS='=' read -r key value || [ -n "$key" ]; do
         # 선행/후행 공백 제거
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -65,26 +67,70 @@ read_properties() {
         
         # 디버깅 출력
         if [ "$DEBUG_MODE" = true ]; then
-            echo "디버깅: 키='$key', 값='$value', 섹션상태=$in_section"
+            echo "디버깅: COMMON 단계 - 키='$key', 값='$value', 섹션상태=$in_common_section"
         fi
         
-        # 올바른 섹션인지 확인
-        if [[ $key == "[$APPLICATION_NAME]" ]]; then
-            in_section=true
+        # COMMON 섹션인지 확인
+        if [[ $key == "[COMMON]" ]]; then
+            in_common_section=true
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: 섹션 [$APPLICATION_NAME] 시작"
+                echo "디버깅: COMMON 섹션 시작"
             fi
             continue
         elif [[ $key =~ ^\[.*\]$ ]]; then
-            in_section=false
+            in_common_section=false
             if [ "$DEBUG_MODE" = true ]; then
                 echo "디버깅: 다른 섹션 시작 - $key"
             fi
             continue
         fi
         
-        # 올바른 섹션에 있고 키-값 쌍이 있는 경우
-        if [ "$in_section" = true ] && [[ -n $key && -n $value ]]; then
+        # COMMON 섹션에 있고 키-값 쌍이 있는 경우
+        if [ "$in_common_section" = true ] && [[ -n $key && -n $value ]]; then
+            # 키를 대문자로 변환하고 공백을 언더스코어로 변경
+            env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
+            
+            # 환경 변수 확장 (APPLICATION_NAME 치환)
+            expanded_value=$(eval echo "$value")
+            
+            # 환경 변수 설정
+            eval "export $env_var=\"$expanded_value\""
+            
+            if [ "$DEBUG_MODE" = true ]; then
+                echo "디버깅: COMMON 환경변수 설정 - $env_var='$expanded_value'"
+            fi
+        fi
+    done < "OMA.properties"
+    
+    # 2단계: 프로젝트 섹션 읽기 (오버라이드)
+    local in_project_section=false
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        # 선행/후행 공백 제거
+        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # 디버깅 출력
+        if [ "$DEBUG_MODE" = true ]; then
+            echo "디버깅: PROJECT 단계 - 키='$key', 값='$value', 섹션상태=$in_project_section"
+        fi
+        
+        # 올바른 프로젝트 섹션인지 확인
+        if [[ $key == "[$APPLICATION_NAME]" ]]; then
+            in_project_section=true
+            if [ "$DEBUG_MODE" = true ]; then
+                echo "디버깅: 프로젝트 섹션 [$APPLICATION_NAME] 시작"
+            fi
+            continue
+        elif [[ $key =~ ^\[.*\]$ ]]; then
+            in_project_section=false
+            if [ "$DEBUG_MODE" = true ]; then
+                echo "디버깅: 다른 섹션 시작 - $key"
+            fi
+            continue
+        fi
+        
+        # 올바른 프로젝트 섹션에 있고 키-값 쌍이 있는 경우
+        if [ "$in_project_section" = true ] && [[ -n $key && -n $value ]]; then
             # 키를 대문자로 변환하고 공백을 언더스코어로 변경
             env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
             
@@ -101,7 +147,7 @@ read_properties() {
             fi
             
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: 환경변수 설정 - $env_var='$expanded_value'"
+                echo "디버깅: PROJECT 환경변수 설정 - $env_var='$expanded_value'"
             fi
         fi
     done < "OMA.properties"
@@ -121,9 +167,9 @@ print_environment_variables() {
     echo -e "${GREEN}APPLICATION_NAME: $APPLICATION_NAME${NC}"
     echo -e "${GREEN}JAVA_SOURCE_FOLDER: $JAVA_SOURCE_FOLDER${NC}"
     echo -e "${GREEN}OMA_BASE_DIR: $OMA_BASE_DIR${NC}"
-    echo -e "${GREEN}ASSESSMENT_FOLDER: $ASSESSMENT_FOLDER${NC}"
-    echo -e "${GREEN}TOOLS_FOLDER: $TOOLS_FOLDER${NC}"
-    echo -e "${GREEN}TRANSFORM_FOLDER: $TRANSFORM_FOLDER${NC}"
+    echo -e "${GREEN}APP_ASSESSMENT_FOLDER: $APP_ASSESSMENT_FOLDER${NC}"
+    echo -e "${GREEN}APP_TOOLS_FOLDER: $APP_TOOLS_FOLDER${NC}"
+    echo -e "${GREEN}APP_TRANSFORM_FOLDER: $APP_TRANSFORM_FOLDER${NC}"
     echo -e "${GREEN}TEST_FOLDER: $TEST_FOLDER${NC}"
     echo -e "${GREEN}TRANSFORM_JNDI: $TRANSFORM_JNDI${NC}"
     echo -e "${GREEN}TEMPLATES_FOLDER: $TEMPLATES_FOLDER${NC}"
@@ -161,39 +207,56 @@ setup_application_environment() {
 
     # 기존 분석 내용 확인
     local existing_analysis=false
-    if [ -d "$ASSESSMENT_FOLDER" ] && [ "$(ls -A $ASSESSMENT_FOLDER 2>/dev/null)" ]; then
+    if [ -d "$APP_ASSESSMENT_FOLDER" ] && [ "$(ls -A $APP_ASSESSMENT_FOLDER 2>/dev/null)" ]; then
         existing_analysis=true
-        echo -e "${YELLOW}⚠️  기존 분석 내용이 존재합니다: $ASSESSMENT_FOLDER${NC}"
+        echo -e "${YELLOW}⚠️  기존 분석 내용이 존재합니다: $APP_ASSESSMENT_FOLDER${NC}"
         echo -e "${CYAN}기존 분석 결과를 유지하고 스크립트 복제를 건너뜁니다.${NC}"
     fi
 
-    # ASSESSMENT_FOLDER 확인/생성
-    if [ -d "$ASSESSMENT_FOLDER" ] || [ -d "$TRANSFORM_FOLDER" ]; then
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 확인 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$ASSESSMENT_FOLDER"
-        mkdir -p "$TRANSFORM_FOLDER"
-        echo -e "${GREEN}✓ ASSESSMENT_FOLDER 디렉토리 생성 완료${NC}"
-        echo -e "${GREEN}✓ TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
-    fi
+    # ====================================================
+    # 01.Database 디렉토리 구조 생성
+    # ====================================================
+    echo -e "${BLUE}${BOLD}01.Database 디렉토리 구조 생성${NC}"
+    
+    mkdir -p "$DB_ASSESSMENTS_FOLDER"
+    mkdir -p "$DB_LOGS_FOLDER"
+    mkdir -p "$DB_TOOLS_FOLDER"
+    mkdir -p "$DB_TRANSFORM_FOLDER"
+    
+    echo -e "${GREEN}✓ DB_ASSESSMENTS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ DB_LOGS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ DB_TOOLS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ DB_TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
 
-    # TOOLS_FOLDER 확인/생성
-    if [ -d "$TOOLS_FOLDER" ]; then
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        mkdir -p "$TOOLS_FOLDER"
-        echo -e "${GREEN}✓ TOOLS_FOLDER 디렉토리 생성 완료${NC}"
-    fi
+    # ====================================================
+    # 02.Application 디렉토리 구조 생성
+    # ====================================================
+    echo -e "${BLUE}${BOLD}02.Application 디렉토리 구조 생성${NC}"
+    
+    mkdir -p "$APP_ASSESSMENT_FOLDER"
+    mkdir -p "$APP_TOOLS_FOLDER"
+    mkdir -p "$APP_TRANSFORM_FOLDER"
+    mkdir -p "$APP_LOGS_FOLDER"
+    
+    echo -e "${GREEN}✓ APP_ASSESSMENT_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ APP_TOOLS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ APP_TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ APP_LOGS_FOLDER 디렉토리 생성 완료${NC}"
 
-    # TEST_FOLDER 확인
-    if [ -d "$TEST_FOLDER" ]; then
-        echo -e "${GREEN}✓ TEST_FOLDER 디렉토리 확인 완료${NC}"
-    else
-        echo -e "${YELLOW}알림: TEST_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
-    fi
+    # ====================================================
+    # 03.Test 디렉토리 구조 생성
+    # ====================================================
+    echo -e "${BLUE}${BOLD}03.Test 디렉토리 구조 생성${NC}"
+    
+    mkdir -p "$TEST_TOOLS_FOLDER"
+    mkdir -p "$TEST_LOGS_FOLDER"
+    
+    echo -e "${GREEN}✓ TEST_TOOLS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ TEST_LOGS_FOLDER 디렉토리 생성 완료${NC}"
 
+    # ====================================================
     # Template Script 복사 (기존 분석 내용이 없는 경우에만)
+    # ====================================================
     if [ "$existing_analysis" = false ]; then
         print_separator
         echo -e "${BLUE}${BOLD}Template Script 복사 (신규 프로젝트)${NC}"
@@ -204,37 +267,89 @@ setup_application_environment() {
             exit 1
         fi
 
-        # AP로 시작하는 파일들을 찾아서 복사
-        local copied_count=0
-        for template_file in "$TEMPLATES_FOLDER"/AP*; do
+        # ====================================================
+        # DB01* 파일들을 DB_TOOLS_FOLDER에 복사
+        # ====================================================
+        echo -e "${CYAN}DB01* 파일들을 Database Tools 폴더에 복사 중...${NC}"
+        local db_copied_count=0
+        for template_file in "$TEMPLATES_FOLDER"/DB01*; do
             if [ -f "$template_file" ]; then
                 filename=$(basename "$template_file")
-                target_file="$TOOLS_FOLDER/$filename"
+                target_file="$DB_TOOLS_FOLDER/$filename"
                 
                 # 환경 변수 치환하여 복사
                 sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
-                    -e "s|\$ASSESSMENT_FOLDER|$ASSESSMENT_FOLDER|g" \
-                    -e "s|\$JAVA_SOURCE_FOLDER|$JAVA_SOURCE_FOLDER|g" \
-                    -e "s|\$TRANSFORM_FOLDER|$TRANSFORM_FOLDER|g" \
-                    -e "s|\$TEST_FOLDER|$TEST_FOLDER|g" \
-                    -e "s|\$TRANSFORM_JNDI|$TRANSFORM_JNDI|g" \
-                    -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
-                    -e "s|\$TOOLS_FOLDER|$TOOLS_FOLDER|g" \
-                    -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
-                    -e "s|\$TRANSFORM_RELATED_CLASS|$TRANSFORM_RELATED_CLASS|g" \
                     -e "s|\$ASCT_HOME|$ASCT_HOME|g" \
+                    -e "s|\$DB_ASSESSMENTS_FOLDER|$DB_ASSESSMENTS_FOLDER|g" \
+                    -e "s|\$DB_LOGS_FOLDER|$DB_LOGS_FOLDER|g" \
+                    -e "s|\$DB_TOOLS_FOLDER|$DB_TOOLS_FOLDER|g" \
+                    -e "s|\$DB_TRANSFORM_FOLDER|$DB_TRANSFORM_FOLDER|g" \
+                    -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
+                    -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
                     "$template_file" > "$target_file"
                 
-                echo -e "${GREEN}✓ $filename 복사 완료${NC}"
-                ((copied_count++))
+                echo -e "${GREEN}✓ $filename → Database/Tools 복사 완료${NC}"
+                ((db_copied_count++))
+            fi
+        done
+
+        # ====================================================
+        # AP* 파일들을 APP_TOOLS_FOLDER에 복사
+        # ====================================================
+        echo -e "${CYAN}AP* 파일들을 Application Tools 폴더에 복사 중...${NC}"
+        local app_copied_count=0
+        for template_file in "$TEMPLATES_FOLDER"/AP*; do
+            if [ -f "$template_file" ]; then
+                filename=$(basename "$template_file")
+                target_file="$APP_TOOLS_FOLDER/$filename"
+                
+                # 환경 변수 치환하여 복사
+                sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
+                    -e "s|\$APP_ASSESSMENT_FOLDER|$APP_ASSESSMENT_FOLDER|g" \
+                    -e "s|\$JAVA_SOURCE_FOLDER|$JAVA_SOURCE_FOLDER|g" \
+                    -e "s|\$APP_TRANSFORM_FOLDER|$APP_TRANSFORM_FOLDER|g" \
+                    -e "s|\$APP_LOGS_FOLDER|$APP_LOGS_FOLDER|g" \
+                    -e "s|\$TRANSFORM_JNDI|$TRANSFORM_JNDI|g" \
+                    -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
+                    -e "s|\$APP_TOOLS_FOLDER|$APP_TOOLS_FOLDER|g" \
+                    -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
+                    -e "s|\$TRANSFORM_RELATED_CLASS|$TRANSFORM_RELATED_CLASS|g" \
+                    "$template_file" > "$target_file"
+                
+                echo -e "${GREEN}✓ $filename → Application/Tools 복사 완료${NC}"
+                ((app_copied_count++))
+            fi
+        done
+
+        # ====================================================
+        # TST* 파일들을 TEST_TOOLS_FOLDER에 복사
+        # ====================================================
+        echo -e "${CYAN}TST* 파일들을 Test Tools 폴더에 복사 중...${NC}"
+        local test_copied_count=0
+        for template_file in "$TEMPLATES_FOLDER"/TST*; do
+            if [ -f "$template_file" ]; then
+                filename=$(basename "$template_file")
+                target_file="$TEST_TOOLS_FOLDER/$filename"
+                
+                # 환경 변수 치환하여 복사
+                sed -e "s|\$APPLICATION_NAME|$APPLICATION_NAME|g" \
+                    -e "s|\$TEST_FOLDER|$TEST_FOLDER|g" \
+                    -e "s|\$TEST_TOOLS_FOLDER|$TEST_TOOLS_FOLDER|g" \
+                    -e "s|\$TEST_LOGS_FOLDER|$TEST_LOGS_FOLDER|g" \
+                    -e "s|\$OMA_BASE_DIR|$OMA_BASE_DIR|g" \
+                    -e "s|\$TEMPLATES_FOLDER|$TEMPLATES_FOLDER|g" \
+                    "$template_file" > "$target_file"
+                
+                echo -e "${GREEN}✓ $filename → Test/Tools 복사 완료${NC}"
+                ((test_copied_count++))
             fi
         done
         
-        if [ $copied_count -gt 0 ]; then
-            echo -e "${GREEN}✓ 총 $copied_count 개의 템플릿 파일이 복사되었습니다.${NC}"
-        else
-            echo -e "${YELLOW}경고: 복사할 템플릿 파일을 찾을 수 없습니다.${NC}"
-        fi
+        # 복사 결과 요약
+        echo -e "${GREEN}✓ Database: $db_copied_count 개 파일 복사 완료${NC}"
+        echo -e "${GREEN}✓ Application: $app_copied_count 개 파일 복사 완료${NC}"
+        echo -e "${GREEN}✓ Test: $test_copied_count 개 파일 복사 완료${NC}"
+        
     else
         print_separator
         echo -e "${CYAN}${BOLD}기존 분석 프로젝트 - 스크립트 복제 건너뜀${NC}"
@@ -259,33 +374,33 @@ process_mybatis_info() {
     echo -e "${CYAN}5. 통합 분석 리포트 (ApplicationReport.html) 생성${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}실행 예시:${NC}"
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AP01.Discovery.txt${NC}"
 
     # AP01.Discovery.txt 실행 (통합된 분석 작업)
-    if [ -f "$TOOLS_FOLDER/AP01.Discovery.txt" ]; then
+    if [ -f "$APP_TOOLS_FOLDER/AP01.Discovery.txt" ]; then
         echo -e "${CYAN}애플리케이션 분석 및 MyBatis 정보 추출 중...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
-        q chat --trust-all-tools --no-interactive < "$TOOLS_FOLDER/AP01.Discovery.txt"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AP01.Discovery.txt${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/AP01.Discovery.txt"
     else
-        echo -e "${RED}오류: AP01.Discovery.txt 파일을 찾을 수 없습니다: $TOOLS_FOLDER/AP01.Discovery.txt${NC}"
+        echo -e "${RED}오류: AP01.Discovery.txt 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/AP01.Discovery.txt${NC}"
         return 1
     fi
 
     # JNDI와 Mapper 파일 조합 생성 (후속 처리)
     echo -e "${BLUE}${BOLD}JNDI와 Mapper 파일 조합을 생성중입니다.${NC}"
-    if [ -f "$TOOLS_FOLDER/AP02.GenSQLTransformTarget.py" ]; then
-        python3 "$TOOLS_FOLDER/AP02.GenSQLTransformTarget.py"
+    if [ -f "$APP_TOOLS_FOLDER/AP02.GenSQLTransformTarget.py" ]; then
+        python3 "$APP_TOOLS_FOLDER/AP02.GenSQLTransformTarget.py"
     else
         echo -e "${YELLOW}경고: AP02.GenSQLTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
     fi
     
     # SQL Mapper Report 생성 (주석 처리된 부분 - 필요시 활성화)
-    #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $TOOLS_FOLDER/AP02.GenSQLMapperReport.txt${NC}"
-    #q chat --trust-all-tools --no-interactive < "$TOOLS_FOLDER/AP02.GenSQLMapperReport.txt"
+    #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AP02.GenSQLMapperReport.txt${NC}"
+    #q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/AP02.GenSQLMapperReport.txt"
 
     # SQL Transform Target Report 생성 (주석 처리된 부분 - 필요시 활성화)
     #echo -e "${BLUE}${BOLD}SQL Transform Target Report 생성중입니다.${NC}"
-    #python3 "$TOOLS_FOLDER/AP02.ReportSQLTransformTarget.py"
+    #python3 "$APP_TOOLS_FOLDER/AP02.ReportSQLTransformTarget.py"
 }
 
 # ====================================================
@@ -309,23 +424,32 @@ process_sql_transform() {
     local retry_arg=""
     if [ "$retry_mode" = "1" ]; then
         echo -e "${GREEN}재시도 모드로 실행합니다. SQLTransformTargetFailure.csv의 항목만 처리합니다.${NC}"
-        retry_arg="--file $TRANSFORM_FOLDER/SQLTransformTargetFailure.csv"
+        retry_arg="--file $APP_TRANSFORM_FOLDER/SQLTransformTargetFailure.csv"
     else
         echo -e "${GREEN}전체 모드로 실행합니다. SQLTransformTarget.csv의 모든 항목을 처리합니다.${NC}"
     fi
     
     echo -e "${BLUE}${BOLD}실행 명령:${NC}"
-    echo -e "${BLUE}${BOLD}python3 $TOOLS_FOLDER/AP03.SQLTransformTarget.py $retry_arg${NC}"
+    echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/AP03.SQLTransformTarget.py $retry_arg${NC}"
     print_separator
 
     echo -e "${BLUE}${BOLD}작업을 수행하기 이전에 3초 대기 합니다.${NC}"
     sleep 3
 
-    python3 "$TOOLS_FOLDER/AP03.SQLTransformTarget.py" $retry_arg
+    python3 "$APP_TOOLS_FOLDER/AP03.SQLTransformTarget.py" $retry_arg
     print_separator
     print_separator
     echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
     echo -e "${YELLOW}오류 정보는 Assessment/SQLTransformFailure.csv에 리스팅되었습니다.${NC}"
+    print_separator
+    echo -e "${BLUE}${BOLD}SQL Transform 작업 결과 보고서를 작성합니다.${NC}"
+    sleep 1
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AP03.TransformReport.txt ${NC}"
+    q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AP03.TransformReport.txt
+    sleep 1
+    print_separator
+    echo -e "${GREEN}SQL 변환 작업 보고서가 작성되었습니다.${NC}"
+    echo -e "${YELLOW}${BOLD}$APP_TOOLS_FOLDER 에서 확인 가능합니다.${NC}"
 }
 
 # ====================================================
@@ -338,8 +462,8 @@ if [ ! -f "OMA.properties" ]; then
     exit 1
 fi
 
-# OMA.properties에서 프로젝트 목록 가져오기
-projects=($(grep -o '\[.*\]' OMA.properties | tr -d '[]'))
+# OMA.properties에서 프로젝트 목록 가져오기 (COMMON 제외)
+projects=($(grep -o '\[.*\]' OMA.properties | tr -d '[]' | grep -v '^COMMON$'))
 
 if [ ${#projects[@]} -eq 0 ]; then
     echo -e "${RED}오류: OMA.properties에 프로젝트가 정의되어 있지 않습니다.${NC}"
@@ -352,8 +476,7 @@ echo -e "${BLUE}${BOLD}OMA는 AWS에서 사전 환경이 구성된 상태에서 
 echo -e "${BLUE}${BOLD}변환 대상 프로젝트를 선택하세요:${NC}"
 print_separator
 echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
-echo -e "${YELLOW}OMA 변환 작업 수행 중 데이터베이스 연관된 작업은 Source 시스템과 연결이 되는${NC}"
-echo -e "${YELLOW}AWS 환경 구성을 사전에 요구합니다.${NC}"
+echo -e "${YELLOW}OMA 변환 작업 수행 중 데이터베이스 연관된 작업은 Source 시스템과 연결이 되는 AWS 환경 구성을 사전에 요구합니다.${NC}"
 echo -e "${YELLOW}(DB Schema 변환, SQL Unit Test 등)${NC}"
 echo -e "${CYAN}${BOLD}사전 환경 구성 스크립트: ${GREEN}./setup/deploy-omabox.sh${NC}"
 print_separator
@@ -393,10 +516,10 @@ echo -e "${CYAN}환경 설정을 자동으로 수행합니다...${NC}"
 setup_application_environment
 
 # 기존 분석 내용 확인 및 알림 (환경 설정 후)
-if [ -d "$ASSESSMENT_FOLDER" ] && [ "$(ls -A $ASSESSMENT_FOLDER 2>/dev/null)" ]; then
+if [ -d "$APP_ASSESSMENT_FOLDER" ] && [ "$(ls -A $APP_ASSESSMENT_FOLDER 2>/dev/null)" ]; then
     print_separator
     echo -e "${YELLOW}${BOLD}⚠️  기존 분석 내용이 존재합니다${NC}"
-    echo -e "${CYAN}ASSESSMENT_FOLDER: $ASSESSMENT_FOLDER${NC}"
+    echo -e "${CYAN}APP_ASSESSMENT_FOLDER: $APP_ASSESSMENT_FOLDER${NC}"
     echo -e "${CYAN}기존 분석 결과가 보호되었습니다.${NC}"
     print_separator
     sleep 2

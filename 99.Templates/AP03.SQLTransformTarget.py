@@ -230,12 +230,12 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, o
         
         # 5. AP03.xmlExtractor.py 호출 전제 조건 : 폴더가 이미 존재하면 삭제
         extract_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "extract")
-        transform_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "transform")
+        app_transform_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "transform")
         merge_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "merge")
         status_file = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "status.txt")
 
         # 폴더 삭제
-        for folder in [extract_folder, transform_folder, merge_folder]:
+        for folder in [extract_folder, app_transform_folder, merge_folder]:
             if os.path.exists(folder):
                 logger.info(f"Removing existing folder: {folder}")
                 shutil.rmtree(folder)
@@ -409,27 +409,28 @@ def main():
         # 테스트 모드 기본값 설정
         application_name = 'bnd_b2eg'
         oma_base_dir = '/Users/changik//workspace/oracle-modernization-accelerator/'
-        assessment_folder = '/Users/changik//workspace/oracle-modernization-accelerator/Application/bnd_b2eg/Assessments'
-        transform_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform'
+        app_assessment_folder = '/Users/changik//workspace/oracle-modernization-accelerator/Application/bnd_b2eg/Assessments'
+        app_transform_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform'
         transform_target_list = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/SQLTransformTarget.csv'
-        tools_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Tools'
-        prompt_file = os.path.join(tools_folder, "AP03.SQLTransformTarget.txt")
+        app_tools_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Tools'
+        prompt_file = os.path.join(app_tools_folder, "AP03.SQLTransformTarget.txt")
         log_level_str = 'DEBUG'
         java_source_folder = '/Users/changik//workspace/oracle-modernization-accelerator/SampleApp/jpetstore-6/src'
     else:
         # 환경 변수에서 값 가져오기
         application_name = os.environ.get('APPLICATION_NAME')
         oma_base_dir = os.environ.get('OMA_BASE_DIR')
-        assessment_folder = os.environ.get('ASSESSMENT_FOLDER')
-        transform_folder = os.environ.get('TRANSFORM_FOLDER')
-        tools_folder = os.environ.get('TOOLS_FOLDER')
-        prompt_file = os.path.join(tools_folder, "AP03.SQLTransformTarget.txt")
+        app_assessment_folder = os.environ.get('APP_ASSESSMENT_FOLDER')
+        app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER')
+        app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
+        app_logs_folder = os.environ.get('APP_LOGS_FOLDER')
+        prompt_file = os.path.join(app_tools_folder, "AP03.SQLTransformTarget.txt")
         java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
         
         # 환경 변수 확인
-        if not all([application_name, oma_base_dir, assessment_folder, transform_folder]):
+        if not all([application_name, oma_base_dir, app_assessment_folder, app_transform_folder]):
             print("Error: Required environment variables are not set.")
-            print("Please set APPLICATION_NAME, OMA_BASE_DIR, ASSESSMENT_FOLDER, and TRANSFORM_FOLDER.")
+            print("Please set APPLICATION_NAME, OMA_BASE_DIR, APP_ASSESSMENT_FOLDER, and APP_TRANSFORM_FOLDER.")
             sys.exit(1)
     
     # 스레드 수 설정
@@ -438,7 +439,7 @@ def main():
     # 파라미터값 변수 설정
     transform_target_list = args.transform_target_list
     if not transform_target_list:
-        transform_target_list = os.path.join(transform_folder, 'SQLTransformTarget.csv')
+        transform_target_list = os.path.join(app_transform_folder, 'SQLTransformTarget.csv')
     
     origin_suffix = args.origin_suffix
     if not origin_suffix:
@@ -451,12 +452,12 @@ def main():
         sys.exit(1)
     
     # 폴더 구조 생성 및 변수 설정
-    log_folder = os.path.join(transform_folder, 'logs')
+    log_folder = os.path.join(app_logs_folder, 'SQLTransformTarget')
     qlog_folder = os.path.join(log_folder, 'qlogs')
     qprompt_folder = os.path.join(log_folder, 'prompts')
     pylog_folder = os.path.join(log_folder, 'pylogs')
     mapper_processing_folder = os.path.join(log_folder, 'mapper')
-    origin_mapper_folder = os.path.join(transform_folder, 'mapper')
+    origin_mapper_folder = os.path.join(app_transform_folder, 'mapper')
     
     # 필요한 폴더 생성
     for folder in [log_folder, qlog_folder, qprompt_folder, pylog_folder, mapper_processing_folder, origin_mapper_folder]:
@@ -474,8 +475,8 @@ def main():
     logger.info("Starting AP03.sqlTransformTarget.py")
     logger.info(f"Application Name: {application_name}")
     logger.info(f"OMA Base Directory: {oma_base_dir}")
-    logger.info(f"Assessment Folder: {assessment_folder}")
-    logger.info(f"Transform Folder: {transform_folder}")
+    logger.info(f"Assessment Folder: {app_assessment_folder}")
+    logger.info(f"Transform Folder: {app_transform_folder}")
     logger.info(f"Transform Target List: {transform_target_list}")
     logger.info(f"Origin Suffix: {origin_suffix}")
     logger.info(f"Transform Suffix: {transform_suffix}")
@@ -559,7 +560,8 @@ def main():
             validation_script,
             "--mapper-folder", origin_mapper_folder,
             "--origin-suffix", origin_suffix,
-            "--transform-folder", transform_folder,
+            "--app-transform-folder", app_transform_folder,
+            "--app-log-folder", pylog_folder,
             f"--log-level={log_level_str}"  # 로그 레벨 전달
         ]
         
@@ -596,7 +598,7 @@ def main():
 
     # 7. 검증 결과 리포팅
     # Check SQLTransformTargetFailure.csv
-    failure_csv = os.path.join(transform_folder, 'SQLTransformTargetFailure.csv')
+    failure_csv = os.path.join(app_transform_folder, 'SQLTransformTargetFailure.csv')
     if os.path.exists(failure_csv):
         with open(failure_csv, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
@@ -611,7 +613,7 @@ def main():
                 logger.warning("="*80 + "\n")
 
     # Check xmllintResult.csv
-    xmllint_csv = os.path.join(transform_folder, 'xmllintResult.csv')
+    xmllint_csv = os.path.join(app_transform_folder, 'xmllintResult.csv')
     if os.path.exists(xmllint_csv):
         with open(xmllint_csv, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)

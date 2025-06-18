@@ -177,19 +177,65 @@
             margin: 15px 0;
             font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
             font-size: 0.85em;
-            line-height: 1.6;
-            white-space: pre;
+            line-height: 1.8;
+            white-space: pre-wrap;
             overflow-x: auto;
+        }
+        
+        .directory-tree .folder {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .directory-tree .file {
+            color: #333;
+        }
+        
+        .directory-tree .comment {
+            color: #666;
+            font-style: italic;
         }
         
         .oracle-code {
             background: #fff5f5;
-            border-left: 4px solid #dc3545;
+            border: 2px solid #dc3545;
+            border-left: 6px solid #dc3545;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .oracle-code::before {
+            content: "🔴 ORACLE";
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
         }
         
         .postgres-code {
             background: #f0f9ff;
-            border-left: 4px solid #28a745;
+            border: 2px solid #28a745;
+            border-left: 6px solid #28a745;
+            margin: 20px 0 10px 0;
+            position: relative;
+        }
+        
+        .postgres-code::before {
+            content: "🟢 POSTGRESQL";
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
         }
         
         ul, ol {
@@ -210,8 +256,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Sample Report Template</h1>
-            <p>Professional Report Layout Template</p>
+            <h1>🎯 Application Discovery Report</h1>
+            <p>Oracle to PostgreSQL Migration Application Discovery</p>
         </div>
 
         <div class="section">
@@ -219,11 +265,11 @@
             
             <div class="summary-box">
                 <h3>🏗️ Overall Architecture</h3>
-                <p><strong>Sample Web Application Architecture</strong></p>
+                <p><strong>[Application Name] Architecture</strong></p>
                 <ul>
-                    <li>Modern web application framework</li>
-                    <li>Frontend framework integration</li>
-                    <li>Standard enterprise architecture</li>
+                    <li>[Architecture Description]</li>
+                    <li>[Framework Information]</li>
+                    <li>[System Overview]</li>
                 </ul>
             </div>
 
@@ -232,82 +278,53 @@
                 <div class="card">
                     <h4>🔧 Backend</h4>
                     <ul>
-                        <li><strong>Framework A</strong>: Core framework</li>
-                        <li><strong>Framework B</strong>: Web framework</li>
-                        <li><strong>Database</strong>: Database system</li>
-                        <li><strong>Library C</strong>: Additional library</li>
+                        <li><strong>[Framework]</strong>: [Description]</li>
+                        <li><strong>[Database]</strong>: [Database System]</li>
+                        <li><strong>[Libraries]</strong>: [Additional Libraries]</li>
                     </ul>
                 </div>
                 <div class="card">
                     <h4>🎨 Frontend</h4>
                     <ul>
-                        <li><strong>Framework X</strong>: UI framework</li>
-                        <li><strong>HTML5/JavaScript</strong>: Web standards</li>
-                        <li><strong>CSS</strong>: Styling</li>
+                        <li><strong>[UI Framework]</strong>: [Description]</li>
+                        <li><strong>[Technologies]</strong>: [Web Technologies]</li>
                     </ul>
                 </div>
                 <div class="card">
                     <h4>📚 Libraries</h4>
                     <ul>
-                        <li><strong>Library 1</strong>: File processing</li>
-                        <li><strong>Library 2</strong>: Web services</li>
-                        <li><strong>Library 3</strong>: Utilities</li>
-                        <li><strong>Component A</strong>: UI component</li>
+                        <li><strong>[Library 1]</strong>: [Purpose]</li>
+                        <li><strong>[Library 2]</strong>: [Purpose]</li>
+                        <li><strong>[Library 3]</strong>: [Purpose]</li>
                     </ul>
                 </div>
             </div>
 
             <h3>📁 Directory Structure</h3>
-            <div class="directory-tree">project/
-├── config/                     # Configuration files
-│   ├── app.xml                 # Application config
-│   ├── lib/                    # Library files
-│   └── classes/                # Compiled classes
-├── resources/                  # Application resources
-│   ├── framework/              # Framework files
-│   ├── modules/                # Application modules
-│   ├── common/                 # Common components
-│   ├── system/                 # System management
-│   ├── service/                # Service modules
-│   ├── order/                  # Order management
-│   ├── catalog/                # Product catalog
-│   ├── master/                 # Master data
-│   └── config.json             # Configuration file
-├── templates/                  # Template files
-├── static/                     # Static files
-└── components/                 # UI components</div>
-
-            <h3>🔧 Application Configuration</h3>
-            <div class="grid">
-                <div class="card">
-                    <h4>Web Application Settings</h4>
-                    <ul>
-                        <li><strong>Encoding Filter</strong>: UTF-8 encoding</li>
-                        <li><strong>Security Filter</strong>: Security configurations</li>
-                        <li><strong>Framework Config</strong>: Main framework setup</li>
-                        <li><strong>Component Config</strong>: Component settings</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h4>Business Modules</h4>
-                    <ul>
-                        <li><strong>Module A</strong>: Service request management</li>
-                        <li><strong>Module B</strong>: Order management</li>
-                        <li><strong>Module C</strong>: Product catalog</li>
-                        <li><strong>Module D</strong>: Master data</li>
-                        <li><strong>Module E</strong>: System management</li>
-                    </ul>
-                </div>
-            </div>
+            <div class="directory-tree">[Project Root]/
+├── <span class="folder">[config/]</span>                    <span class="comment"># Configuration files</span>
+│   ├── <span class="file">[app.xml]</span>                 <span class="comment"># Application config</span>
+│   ├── <span class="folder">[lib/]</span>                  <span class="comment"># Library files</span>
+│   └── <span class="folder">[classes/]</span>              <span class="comment"># Compiled classes</span>
+├── <span class="folder">[resources/]</span>               <span class="comment"># Application resources</span>
+│   ├── <span class="folder">[framework/]</span>            <span class="comment"># Framework files</span>
+│   ├── <span class="folder">[modules/]</span>              <span class="comment"># Application modules</span>
+│   ├── <span class="folder">[common/]</span>               <span class="comment"># Common components</span>
+│   ├── <span class="folder">[sqlmap/]</span>               <span class="comment"># MyBatis SQL mappers</span>
+│   │   ├── <span class="folder">[module1/]</span>          <span class="comment"># Module 1 mappers</span>
+│   │   └── <span class="folder">[module2/]</span>          <span class="comment"># Module 2 mappers</span>
+│   └── <span class="file">[config.json]</span>            <span class="comment"># Configuration file</span>
+├── <span class="folder">[templates/]</span>               <span class="comment"># Template files</span>
+├── <span class="folder">[static/]</span>                  <span class="comment"># Static files</span>
+├── <span class="folder">[lib/]</span>                     <span class="comment"># Library JAR files</span>
+└── <span class="file">[web.xml]</span>                    <span class="comment"># Web application config</span></div>
 
             <div class="warning-box">
                 <h4>⚠️ Key Features</h4>
                 <ul>
-                    <li><strong>Sample Project</strong>: Template demonstration project</li>
-                    <li><strong>Management System</strong>: Sample management system</li>
-                    <li><strong>Modern Architecture</strong>: Contemporary application design</li>
-                    <li><strong>Standard Framework</strong>: Industry standard framework</li>
-                    <li><strong>Integration Ready</strong>: Enterprise integration capabilities</li>
+                    <li><strong>[Feature 1]</strong>: [Description]</li>
+                    <li><strong>[Feature 2]</strong>: [Description]</li>
+                    <li><strong>[Feature 3]</strong>: [Description]</li>
                 </ul>
             </div>
         </div>
@@ -317,7 +334,7 @@
             
             <div class="summary-box">
                 <h3>📋 Database Setup Overview</h3>
-                <p>This application uses <strong>Sample Database Framework</strong> for database connectivity and data access layer implementation.</p>
+                <p>This application uses <strong>[Database Framework]</strong> for database connectivity and data access layer implementation.</p>
             </div>
 
             <h3>⚙️ Database Configuration Files</h3>
@@ -332,24 +349,14 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>config-database.xml</strong></td>
-                        <td>Main database configuration</td>
-                        <td>/config/resources/</td>
+                        <td><strong>[Config File 1]</strong></td>
+                        <td>[Purpose]</td>
+                        <td>[Location]</td>
                     </tr>
                     <tr>
-                        <td><strong>config-mapping.xml</strong></td>
-                        <td>Database mapping configuration</td>
-                        <td>/config/spring/</td>
-                    </tr>
-                    <tr>
-                        <td><strong>database-config.dtd</strong></td>
-                        <td>Database DTD file</td>
-                        <td>/config/</td>
-                    </tr>
-                    <tr>
-                        <td><strong>config-datasource.xml</strong></td>
-                        <td>Data source configuration</td>
-                        <td>/config/resources/</td>
+                        <td><strong>[Config File 2]</strong></td>
+                        <td>[Purpose]</td>
+                        <td>[Location]</td>
                     </tr>
                 </tbody>
             </table>
@@ -359,61 +366,26 @@
                 <div class="card">
                     <h4>Type Aliases</h4>
                     <div class="code-block">
-&lt;typeAliases&gt;
-    &lt;typeAlias alias="sampleMap" type="sample.framework.util.SampleMap"/&gt;
-    &lt;typeAlias alias="hashMap" type="java.util.HashMap" /&gt;
-    &lt;typeAlias alias="map" type="java.util.Map"/&gt;
-    &lt;typeAlias alias="customMap" type="custom.framework.util.CustomMap"/&gt;
-&lt;/typeAliases&gt;
+[Type Alias Configuration]
                     </div>
                 </div>
                 <div class="card">
                     <h4>Main Settings</h4>
                     <ul>
-                        <li><strong>Cache Enabled</strong>: cacheEnabled="true"</li>
-                        <li><strong>Statement Timeout</strong>: 25 seconds</li>
-                        <li><strong>Executor Type</strong>: REUSE mode</li>
-                        <li><strong>JDBC Type for Null</strong>: VARCHAR</li>
+                        <li><strong>[Setting 1]</strong>: [Value]</li>
+                        <li><strong>[Setting 2]</strong>: [Value]</li>
+                        <li><strong>[Setting 3]</strong>: [Value]</li>
                     </ul>
-                </div>
-                <div class="card">
-                    <h4>Custom Implementation</h4>
-                    <p><strong>RefreshableSqlSessionFactoryBean</strong></p>
-                    <p>Custom SqlSessionFactory with auto-reload functionality for development</p>
-                    <div class="code-block">
-&lt;property name="interval" value="1000"&gt;&lt;/property&gt;
-                    </div>
                 </div>
             </div>
 
             <h3>📄 Database Mapper Files</h3>
             <div class="highlight-box">
-                <p><strong>Total 25 Database Mapper Files</strong> identified.</p>
-                <p>Location: <code>/config/sqlmap/**/*.xml</code></p>
+                <p><strong>Total [N] Database Mapper Files</strong> identified.</p>
+                <p>Location: <code>[Mapper File Location]</code></p>
             </div>
 
-            <h4>📋 Sample Mapper Files</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Module</th>
-                        <th>File Name</th>
-                        <th>Function</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>1</td><td>common</td><td>CommonDao_sqlMap.xml</td><td>Common functions</td></tr>
-                    <tr><td>2</td><td>common</td><td>CodeDao_sqlMap.xml</td><td>Code management</td></tr>
-                    <tr><td>3</td><td>common</td><td>UserDao_sqlMap.xml</td><td>User management</td></tr>
-                    <tr><td>4</td><td>common</td><td>FileDao_sqlMap.xml</td><td>File management</td></tr>
-                    <tr><td>5</td><td>service</td><td>ServiceDao_sqlMap.xml</td><td>Service management</td></tr>
-                    <tr><td>6</td><td>order</td><td>OrderDao_sqlMap.xml</td><td>Order processing</td></tr>
-                    <tr><td>7</td><td>catalog</td><td>CatalogDao_sqlMap.xml</td><td>Product catalog</td></tr>
-                    <tr><td>8</td><td>system</td><td>SystemDao_sqlMap.xml</td><td>System management</td></tr>
-                </tbody>
-            </table>
-
+            <h4>📋 Mapper Files by Module</h4>
             <table>
                 <thead>
                     <tr>
@@ -424,29 +396,14 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>common</strong></td>
-                        <td>8 files</td>
-                        <td>Common functions (login, file, code management)</td>
+                        <td><strong>[Module 1]</strong></td>
+                        <td>[N] files</td>
+                        <td>[Function Description]</td>
                     </tr>
                     <tr>
-                        <td><strong>service</strong></td>
-                        <td>6 files</td>
-                        <td>Service request management</td>
-                    </tr>
-                    <tr>
-                        <td><strong>order</strong></td>
-                        <td>5 files</td>
-                        <td>Order management</td>
-                    </tr>
-                    <tr>
-                        <td><strong>catalog</strong></td>
-                        <td>4 files</td>
-                        <td>Product catalog management</td>
-                    </tr>
-                    <tr>
-                        <td><strong>system</strong></td>
-                        <td>2 files</td>
-                        <td>System management</td>
+                        <td><strong>[Module 2]</strong></td>
+                        <td>[N] files</td>
+                        <td>[Function Description]</td>
                     </tr>
                 </tbody>
             </table>
@@ -457,10 +414,10 @@
             
             <div class="summary-box">
                 <h3>🎯 Analysis Objective</h3>
-                <p>Analyze database query patterns and identify optimization opportunities for better performance.</p>
+                <p>Analyze Oracle-specific database query patterns and identify PostgreSQL conversion requirements.</p>
             </div>
 
-            <h3>🔍 Database Pattern Analysis Results</h3>
+            <h3>🔍 Oracle Pattern Analysis Results Examples</h3>
             
             <table>
                 <thead>
@@ -468,131 +425,318 @@
                         <th>Pattern Type</th>
                         <th>Frequency</th>
                         <th>Complexity</th>
-                        <th>Optimization</th>
+                        <th>Conversion Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Date Functions</strong></td>
-                        <td>High (50+ times)</td>
-                        <td><span class="badge badge-low">Low</span></td>
-                        <td>Standard date functions</td>
-                    </tr>
-                    <tr>
-                        <td><strong>System Tables</strong></td>
-                        <td>Medium (15+ times)</td>
-                        <td><span class="badge badge-low">Low</span></td>
-                        <td>Remove or use alternatives</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Sequence Usage</strong></td>
-                        <td>Medium (10+ times)</td>
-                        <td><span class="badge badge-medium">Medium</span></td>
-                        <td>Modern sequence functions</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Null Handling</strong></td>
-                        <td>High (20+ times)</td>
-                        <td><span class="badge badge-low">Low</span></td>
-                        <td>Standard null functions</td>
-                    </tr>
-                    <tr>
-                        <td><strong>String Aggregation</strong></td>
-                        <td>Medium (5+ times)</td>
+                        <td><strong>CONNECT BY Hierarchical Query</strong></td>
+                        <td>[N] times</td>
                         <td><span class="badge badge-high">High</span></td>
-                        <td>Modern aggregation functions</td>
+                        <td>WITH RECURSIVE conversion required</td>
                     </tr>
                     <tr>
-                        <td><strong>Row Limiting</strong></td>
-                        <td>Medium (10+ times)</td>
+                        <td><strong>LISTAGG Aggregate Function</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-high">High</span></td>
+                        <td>STRING_AGG with ORDER BY handling</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DECODE Complex Conditions</strong></td>
+                        <td>[N] times</td>
                         <td><span class="badge badge-medium">Medium</span></td>
-                        <td>Standard LIMIT clause</td>
+                        <td>CASE WHEN nested conversion</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Oracle Join Syntax (+)</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                        <td>ANSI JOIN conversion required</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PL/SQL Blocks</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-high">High</span></td>
+                        <td>PostgreSQL function conversion</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MERGE Statement</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-high">High</span></td>
+                        <td>INSERT ON CONFLICT alternative</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Oracle Regex Functions</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-medium">Medium</span></td>
+                        <td>PostgreSQL regex conversion</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Link</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-high">High</span></td>
+                        <td>Foreign Data Wrapper required</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Oracle Sequence Usage</strong></td>
+                        <td>[N] times</td>
+                        <td><span class="badge badge-low">Low</span></td>
+                        <td>PostgreSQL sequence syntax</td>
                     </tr>
                 </tbody>
             </table>
 
-            <h3>🔧 Query Pattern Examples</h3>
+            <h3>🔧 Query Conversion Examples</h3>
 
             <div class="card">
-                <h4>1. Date Function Usage</h4>
+                <h4>1. CONNECT BY Hierarchical Query Conversion</h4>
+                <p><strong>Description:</strong> Oracle의 CONNECT BY 계층 쿼리를 PostgreSQL의 WITH RECURSIVE로 변환</p>
+                
                 <div class="code-block oracle-code">
-<strong>Before:</strong>
-INSERT INTO SAMPLE_TABLE (..., CREATE_DATE, UPDATE_DATE) 
-VALUES (..., CURRENT_DATE, CURRENT_DATE)
-
-UPDATE SAMPLE_TABLE SET UPDATE_DATE = CURRENT_DATE WHERE ...
+SELECT LEVEL, employee_id, manager_id, first_name
+FROM employees
+START WITH manager_id IS NULL
+CONNECT BY PRIOR employee_id = manager_id
+ORDER SIBLINGS BY first_name;
                 </div>
+                
                 <div class="code-block postgres-code">
-<strong>After:</strong>
-INSERT INTO SAMPLE_TABLE (..., CREATE_DATE, UPDATE_DATE) 
-VALUES (..., NOW(), NOW())
-
-UPDATE SAMPLE_TABLE SET UPDATE_DATE = NOW() WHERE ...
+WITH RECURSIVE emp_hierarchy AS (
+    -- Anchor member
+    SELECT 1 as level, employee_id, manager_id, first_name
+    FROM employees 
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive member
+    SELECT eh.level + 1, e.employee_id, e.manager_id, e.first_name
+    FROM employees e
+    INNER JOIN emp_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT level, employee_id, manager_id, first_name
+FROM emp_hierarchy
+ORDER BY level, first_name;
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px;">
+                    <strong>💡 Conversion Notes:</strong> CONNECT BY는 WITH RECURSIVE로 변환하며, START WITH는 앵커 멤버, CONNECT BY는 재귀 멤버로 분리해야 함
                 </div>
             </div>
 
             <div class="card">
-                <h4>2. System Table Optimization</h4>
+                <h4>2. LISTAGG Aggregate Function Conversion</h4>
+                <p><strong>Description:</strong> Oracle의 LISTAGG 함수를 PostgreSQL의 STRING_AGG로 변환</p>
+                
                 <div class="code-block oracle-code">
-<strong>Before:</strong>
-SELECT #{empno} EMPNO FROM SYSTEM_TABLE
-
-SELECT 'ID'||TO_CHAR(CURRENT_DATE, 'YYMMDD') || 
-       LPAD(SEQUENCE_NAME.NEXTVAL, 4, '0') ID_NO 
-FROM SYSTEM_TABLE
+SELECT department_id,
+       LISTAGG(first_name, ', ') WITHIN GROUP (ORDER BY first_name) AS employee_names
+FROM employees
+GROUP BY department_id;
                 </div>
+                
                 <div class="code-block postgres-code">
-<strong>After:</strong>
-SELECT #{empno} AS EMPNO
-
-SELECT 'ID'||TO_CHAR(NOW(), 'YYMMDD') || 
-       LPAD(NEXTVAL('SEQUENCE_NAME'), 4, '0') AS ID_NO
+SELECT department_id,
+       STRING_AGG(first_name, ', ' ORDER BY first_name) AS employee_names
+FROM employees
+GROUP BY department_id;
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px;">
+                    <strong>💡 Conversion Notes:</strong> LISTAGG의 WITHIN GROUP 절은 STRING_AGG의 ORDER BY 절로 변환. 구분자와 정렬 순서 유지 필요
                 </div>
             </div>
 
             <div class="card">
-                <h4>3. Null Handling Functions</h4>
+                <h4>3. Oracle Join Syntax (+) Conversion</h4>
+                <p><strong>Description:</strong> Oracle의 (+) 조인 구문을 ANSI JOIN으로 변환</p>
+                
                 <div class="code-block oracle-code">
-<strong>Before:</strong>
-SELECT NVL((SELECT S.USER_NAME FROM USER_TABLE S 
-           WHERE S.USER_ID = A.CREATOR_ID AND ROWNUM = 1), 
-           A.CREATOR_ID) CREATOR_NAME
+SELECT e.first_name, d.department_name
+FROM employees e, departments d
+WHERE e.department_id = d.department_id(+)
+  AND e.salary > 50000;
                 </div>
+                
                 <div class="code-block postgres-code">
-<strong>After:</strong>
-SELECT COALESCE((SELECT S.USER_NAME FROM USER_TABLE S 
-                WHERE S.USER_ID = A.CREATOR_ID LIMIT 1), 
-                A.CREATOR_ID) AS CREATOR_NAME
+SELECT e.first_name, d.department_name
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.department_id
+WHERE e.salary > 50000;
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px;">
+                    <strong>💡 Conversion Notes:</strong> (+) 기호가 있는 쪽이 NULL을 허용하는 쪽. RIGHT JOIN 또는 LEFT JOIN으로 적절히 변환 필요
                 </div>
             </div>
 
             <div class="warning-box">
-                <h4>⚠️ Important Notes</h4>
+                <h4>⚠️ Migration Considerations</h4>
                 <ul>
-                    <li><strong>Database Links</strong>: External database connections need Foreign Data Wrapper alternatives</li>
-                    <li><strong>Stored Procedures</strong>: Complex procedures may need function conversion</li>
-                    <li><strong>Data Types</strong>: Large object types need appropriate mapping</li>
-                    <li><strong>Sequences</strong>: Database sequences need recreation with proper syntax</li>
+                    <li><strong>[Consideration 1]</strong>: [Description]</li>
+                    <li><strong>[Consideration 2]</strong>: [Description]</li>
+                    <li><strong>[Consideration 3]</strong>: [Description]</li>
                 </ul>
             </div>
         </div>
 
         <div class="section">
-            <h2>📋 4. Analysis Summary</h2>
+            <h2>⚠️ 4. High-Risk Oracle Features Analysis</h2>
             
             <div class="summary-box">
-                <h3>🎯 Analysis Scope</h3>
+                <h3>🚨 Critical Migration Points</h3>
+                <p>다음 Oracle 특화 기능들은 자동 변환이 불가능하며 <strong>수동 검토 및 재설계가 필요</strong>합니다.</p>
+            </div>
+
+            <h3>🔗 Database Link Usage</h3>
+            <div class="highlight-box">
+                <p><strong>발견된 Database Link 사용: [N]건</strong></p>
+                <p>PostgreSQL에서는 Foreign Data Wrapper(FDW) 또는 별도 연동 방식으로 대체 필요</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>XML File</th>
+                        <th>SQL ID</th>
+                        <th>SQL Statement</th>
+                        <th>DB Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>[Mapper File Name]</strong></td>
+                        <td>[SQL ID]</td>
+                        <td><code>[SQL Statement with @dblink]</code></td>
+                        <td>[DB Link Name]</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔐 Encryption Functions</h3>
+            <div class="highlight-box">
+                <p><strong>발견된 암호화 함수 사용: [N]건</strong></p>
+                <p>Oracle DBMS_CRYPTO, DBMS_OBFUSCATION_TOOLKIT 등은 PostgreSQL pgcrypto 확장으로 대체</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>XML File</th>
+                        <th>SQL ID</th>
+                        <th>SQL Statement</th>
+                        <th>Encryption Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>[Mapper File Name]</strong></td>
+                        <td>[SQL ID]</td>
+                        <td><code>[SQL Statement with encryption]</code></td>
+                        <td>[Function Name]</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📧 UTL_SMTP and Mail Functions</h3>
+            <div class="highlight-box">
+                <p><strong>발견된 메일 관련 함수 사용: [N]건</strong></p>
+                <p>UTL_SMTP, UTL_MAIL 등은 애플리케이션 레벨에서 처리하거나 PostgreSQL 확장 사용</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>XML File</th>
+                        <th>SQL ID</th>
+                        <th>SQL Statement</th>
+                        <th>Mail Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>[Mapper File Name]</strong></td>
+                        <td>[SQL ID]</td>
+                        <td><code>[SQL Statement with UTL_SMTP]</code></td>
+                        <td>[Function Name]</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔧 Other High-Risk Features</h3>
+            <div class="highlight-box">
+                <p><strong>기타 고위험 기능들: [N]건</strong></p>
+                <p>DBMS_JOB, DBMS_SCHEDULER, UTL_FILE, XMLTYPE 등 Oracle 특화 기능들</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>XML File</th>
+                        <th>SQL ID</th>
+                        <th>SQL Statement</th>
+                        <th>Feature Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>[Mapper File Name]</strong></td>
+                        <td>[SQL ID]</td>
+                        <td><code>[SQL Statement with Oracle feature]</code></td>
+                        <td>[Feature Name]</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>🚨 Action Required</h4>
                 <ul>
-                    <li><strong>Total 25</strong> database mapper files</li>
-                    <li><strong>8 major pattern types</strong> identified</li>
-                    <li><strong>Estimated optimization points</strong>: 100+ locations</li>
+                    <li><strong>Database Link</strong>: Foreign Data Wrapper 설정 또는 애플리케이션 레벨 연동 검토</li>
+                    <li><strong>Encryption</strong>: PostgreSQL pgcrypto 확장 설치 및 함수 매핑</li>
+                    <li><strong>UTL_SMTP</strong>: 애플리케이션에서 메일 발송 로직으로 이관</li>
+                    <li><strong>기타 기능</strong>: 각 기능별 PostgreSQL 대안 또는 애플리케이션 로직 검토</li>
                 </ul>
             </div>
         </div>
 
+        <div class="section">
+            <h2>📋 5. Analysis Summary</h2>
+            
+            <div class="summary-box">
+                <h3>🎯 Migration Analysis Results</h3>
+                <ul>
+                    <li><strong>Total [N]</strong> database mapper files analyzed</li>
+                    <li><strong>[N] pattern types</strong> identified for conversion</li>
+                    <li><strong>Estimated conversion points</strong>: [N] locations</li>
+                    <li><strong>Migration complexity</strong>: [Low/Medium/High]</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>📊 Conversion Statistics</h4>
+                    <ul>
+                        <li><strong>Simple Conversions</strong>: [N] items</li>
+                        <li><strong>Complex Conversions</strong>: [N] items</li>
+                        <li><strong>Manual Review Required</strong>: [N] items</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>🎯 Next Steps</h4>
+                    <ul>
+                        <li>Review conversion recommendations</li>
+                        <li>Plan migration phases</li>
+                        <li>Execute SQL transformations</li>
+                        <li>Validate converted queries</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-            <p><strong>📅 Analysis Date:</strong> 2025-06-16</p>
-            <p><strong>📊 Analysis Target:</strong> Sample Application Template</p>
+            <p><strong>📅 Analysis Date:</strong> [Analysis Date]</p>
+            <p><strong>📊 Analysis Target:</strong> [Application Name]</p>
+            <p><strong>🔧 Generated by:</strong> OMA (Oracle Modernization Accelerator)</p>
         </div>
     </div>
 </body>

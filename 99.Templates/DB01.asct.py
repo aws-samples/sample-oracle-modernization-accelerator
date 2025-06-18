@@ -305,7 +305,7 @@ def convert_to_postgres(oracle_ddl, object_type, object_name, strict_mode=False)
         save_original_ddl(object_type, object_name, oracle_ddl)
 
         # Read the prompt template
-        prompt_template_path = os.path.join(ASCT_HOME, 'Prompts', 'oracle_to_postgres_prompt.txt')
+        prompt_template_path = os.path.join(ASCT_HOME, 'Tools', 'DB01.oracle_to_postgres_prompt.txt')
         with open(prompt_template_path, 'r') as f:
             prompt_template = f.read()
 

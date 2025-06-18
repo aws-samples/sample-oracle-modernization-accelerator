@@ -1,0 +1,241 @@
+DB09.ExecuteAndCompareSQL.py 프로그램을 작성해주세요. 이 프로그램은 Oracle과 PostgreSQL에서 SQL을 실행하고 결과를 비교하는 프로그램입니다.
+
+요구사항:
+1. PostgreSQL 데이터베이스의 sqllist 테이블에서 SQL 문을 읽습니다.
+2. 각 SQL 문을 Oracle과 PostgreSQL에서 실행합니다.
+3. 환경 변수에서 데이터베이스 연결 정보를 가져옵니다:
+   - Oracle: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD, ORACLE_SID
+   - PostgreSQL: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
+4. 실행 결과를 비교하고 sqllist 테이블의 다음 컬럼을 업데이트합니다:
+   - orcl_result: Oracle 실행 결과
+   - pg_result: PostgreSQL 실행 결과
+   - same: 두 결과가 같으면 'Y', 다르면 'N'
+5. 실행 결과를 CSV 파일로 저장합니다:
+   - 파일명: sql_comparison_results_YYYYMMDD_HHMMSS.csv
+   - 컬럼: sql_id, app_name, stmt_type, orcl_file_path, pg_file_path, orcl_result_status, pg_result_status, same, execution_time
+6. 명령행 인수를 통해 특정 SQL 타입만 실행하도록 필터링할 수 있습니다.
+
+SQL 실행 방법:
+1. Oracle SQL 실행:
+   - sqlplus 명령을 사용하여 실행
+   - 결과를 CSV 형식으로 출력하도록 설정
+   - SQL 문 끝에 있는 '/' 문자 제거
+   - 오류 처리 및 결과 캡처
+2. PostgreSQL SQL 실행:
+   - psql 명령을 사용하여 실행
+   - 결과를 CSV 형식으로 출력하도록 설정
+   - SQL 문 끝에 있는 '/' 문자 제거
+   - 오류 처리 및 결과 캡처
+
+대용량 결과셋 처리:
+1. 결과 행 수 제한 옵션 구현:
+   ```python
+   def execute_with_row_limit(sql, db_type, max_rows=1000):
+       """
+       행 수 제한을 적용하여 SQL 실행
+       """
+       if max_rows <= 0:
+           return execute_sql(sql, db_type)
+           
+       if db_type == 'oracle':
+           # Oracle에 행 제한 추가
+           if 'WHERE ROWNUM <=' not in sql.upper():
+               # 서브쿼리로 감싸서 ROWNUM 제한 추가
+               limited_sql = f"SELECT * FROM ({sql}) WHERE ROWNUM <= {max_rows}"
+           else:
+               limited_sql = sql
+       else:
+           # PostgreSQL에 행 제한 추가
+           if 'LIMIT ' not in sql.upper():
+               limited_sql = f"{sql} LIMIT {max_rows}"
+           else:
+               limited_sql = sql
+               
+       return execute_sql(limited_sql, db_type)
+   ```
+
+2. 스트리밍 방식으로 결과 처리:
+   ```python
+   def process_results_streaming(oracle_cmd, pg_cmd):
+       """
+       대용량 결과를 스트리밍 방식으로 처리
+       """
+       oracle_process = subprocess.Popen(oracle_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+       pg_process = subprocess.Popen(pg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+       
+       # 결과를 임시 파일에 저장
+       with tempfile.NamedTemporaryFile(mode='w+', delete=False) as oracle_tmp, \
+            tempfile.NamedTemporaryFile(mode='w+', delete=False) as pg_tmp:
+           
+           # 스트리밍 방식으로 결과 처리
+           for line in oracle_process.stdout:
+               oracle_tmp.write(line)
+           
+           for line in pg_process.stdout:
+               pg_tmp.write(line)
+               
+       # 프로세스 완료 대기
+       oracle_rc = oracle_process.wait()
+       pg_rc = pg_process.wait()
+       
+       # 임시 파일 경로 반환
+       return oracle_tmp.name, pg_tmp.name, oracle_rc, pg_rc
+   ```
+
+3. 대용량 결과 파일 비교:
+   ```python
+   def compare_large_result_files(oracle_file, pg_file):
+       """
+       대용량 결과 파일 비교
+       """
+       # 파일 해시값 계산으로 빠른 비교
+       with open(oracle_file, 'rb') as f:
+           oracle_hash = hashlib.md5(f.read()).hexdigest()
+           
+       with open(pg_file, 'rb') as f:
+           pg_hash = hashlib.md5(f.read()).hexdigest()
+           
+       if oracle_hash == pg_hash:
+           return True, "Results are identical"
+           
+       # 해시가 다르면 상세 비교 수행
+       return compare_result_files_detailed(oracle_file, pg_file)
+   ```
+
+타임아웃 처리:
+1. SQL 실행 시 타임아웃 설정:
+   ```python
+   def execute_sql_with_timeout(sql, db_type, timeout=30):
+       """
+       타임아웃을 적용하여 SQL 실행
+       """
+       if db_type == 'oracle':
+           cmd = ["sqlplus", "-S", f"{ORACLE_SVC_USER}/{ORACLE_SVC_PASSWORD}@{ORACLE_SID}"]
+       else:
+           cmd = ["psql", "-U", PGUSER, "-h", PGHOST, "-p", PGPORT, "-d", PGDATABASE]
+           
+       # 명령 실행 준비
+       process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, 
+                                 stderr=subprocess.PIPE, text=True)
+                                 
+       try:
+           # 타임아웃 적용하여 실행
+           stdout, stderr = process.communicate(input=sql, timeout=timeout)
+           return stdout, stderr, process.returncode, False
+       except subprocess.TimeoutExpired:
+           # 타임아웃 발생 시 프로세스 종료
+           process.kill()
+           return "", "Query execution timed out after {timeout} seconds", -1, True
+   ```
+
+2. 타임아웃 발생 SQL 별도 기록:
+   ```python
+   def log_timeout_query(sql_id, app_name, stmt_type, sql_text, timeout):
+       """
+       타임아웃 발생 SQL 기록
+       """
+       with open('timeout_queries.log', 'a') as f:
+           timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+           f.write(f"=== TIMEOUT SQL: {sql_id} ({app_name}) ===\n")
+           f.write(f"Timestamp: {timestamp}\n")
+           f.write(f"Type: {stmt_type}\n")
+           f.write(f"Timeout: {timeout} seconds\n")
+           f.write("SQL:\n")
+           f.write(f"{sql_text}\n\n")
+   ```
+
+결과 비교 알고리즘:
+1. 두 결과에서 공백, 대소문자, 줄바꿈 등의 차이는 무시합니다.
+2. 날짜 형식의 차이는 정규화하여 비교합니다:
+   ```python
+   def normalize_date(value):
+       """
+       다양한 날짜 형식을 표준 형식으로 정규화
+       """
+       # 일반적인 날짜 패턴
+       patterns = [
+           '%Y-%m-%d', '%Y/%m/%d', '%d-%m-%Y', '%d/%m/%Y',
+           '%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S',
+           '%d-%b-%Y', '%d-%b-%y'
+       ]
+       
+       for pattern in patterns:
+           try:
+               dt = datetime.strptime(value, pattern)
+               return dt.strftime('%Y-%m-%d')  # 표준 형식으로 변환
+           except ValueError:
+               continue
+               
+       return value  # 변환 실패 시 원본 값 반환
+   ```
+
+3. 숫자 형식의 차이는 정규화하여 비교합니다:
+   ```python
+   def normalize_number(value):
+       """
+       다양한 숫자 형식을 표준 형식으로 정규화
+       """
+       try:
+           # 쉼표, 공백 등 제거
+           cleaned = re.sub(r'[,\s]', '', value)
+           # 숫자로 변환 후 다시 문자열로 (1 == 1.0 처리)
+           return str(float(cleaned)) if '.' in cleaned else str(int(cleaned))
+       except (ValueError, TypeError):
+           return value
+   ```
+
+4. 결과 행의 순서가 다른 경우에도 내용이 같으면 같은 결과로 처리합니다:
+   ```python
+   def compare_results_unordered(oracle_results, pg_results):
+       """
+       행 순서를 무시하고 결과 비교
+       """
+       # 결과를 행 단위로 분리
+       oracle_rows = set(oracle_results.strip().split('\n'))
+       pg_rows = set(pg_results.strip().split('\n'))
+       
+       # 헤더 행 제거 (첫 번째 행)
+       if oracle_rows and pg_rows:
+           oracle_header = next(iter(oracle_rows))
+           pg_header = next(iter(pg_rows))
+           oracle_rows.remove(oracle_header)
+           pg_rows.remove(pg_header)
+       
+       # 정규화된 행 집합 비교
+       normalized_oracle = {normalize_row(row) for row in oracle_rows}
+       normalized_pg = {normalize_row(row) for row in pg_rows}
+       
+       return normalized_oracle == normalized_pg
+   ```
+
+사용 예시:
+```
+# 기본 사용법 (모든 SQL 실행)
+python3 DB09.ExecuteAndCompareSQL.py
+
+# 특정 SQL 타입만 실행
+python3 DB09.ExecuteAndCompareSQL.py --type S
+
+# 여러 SQL 타입 실행
+python3 DB09.ExecuteAndCompareSQL.py --type S,I,U
+
+# 특정 애플리케이션의 SQL만 실행
+python3 DB09.ExecuteAndCompareSQL.py --app app_name
+
+# 특정 SQL ID만 실행
+python3 DB09.ExecuteAndCompareSQL.py --sql-id query1,query2
+
+# 결과 CSV 파일 이름 지정
+python3 DB09.ExecuteAndCompareSQL.py --output custom_results.csv
+
+# 결과 행 수 제한
+python3 DB09.ExecuteAndCompareSQL.py --max-rows 500
+
+# SQL 실행 타임아웃 설정 (초)
+python3 DB09.ExecuteAndCompareSQL.py --timeout 60
+
+# 병렬 처리 스레드 수 지정
+python3 DB09.ExecuteAndCompareSQL.py --threads 4
+```
+
+프로그램은 SQL 실행 진행 상황을 표시하고, 완료 후에는 실행된 SQL 수, 성공/실패 건수, 결과가 같은/다른 건수를 요약하여 보여줍니다.

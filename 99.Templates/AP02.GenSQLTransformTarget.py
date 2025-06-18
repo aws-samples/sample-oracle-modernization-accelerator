@@ -28,7 +28,7 @@ AP02.GenSQLTransformTarget.py - XML 매퍼 파일에서 시작하여 부모 DAO 
    3.1 환경 변수:
        - TRANSFORM_RELATED_CLASS: 변환할 대상 클래스 목록 (쉼표로 구분)
        - JAVA_SOURCE_FOLDER: Java 소스 코드가 포함된 디렉토리
-       - ASSESSMENT_FOLDER: 결과 파일을 저장할 디렉토리
+       - APP_ASSESSMENT_FOLDER: 결과 파일을 저장할 디렉토리
 
    3.2 실행:
        python AP02.GenSQLTransformTarget.py [옵션]
@@ -49,20 +49,21 @@ AP02.GenSQLTransformTarget.py - XML 매퍼 파일에서 시작하여 부모 DAO 
 TRANSFORM_CLASS = os.getenv('TRANSFORM_RELATED_CLASS')
 TRANSFORM_CLASSES = [cls.strip() for cls in TRANSFORM_CLASS.split(',')] if TRANSFORM_CLASS else []
 SOURCE_DIR = os.getenv('JAVA_SOURCE_FOLDER')
-ASSESSMENT_FOLDER = os.getenv('ASSESSMENT_FOLDER')
-TRANSFORM_FOLDER = os.getenv('TRANSFORM_FOLDER')
+APP_ASSESSMENT_FOLDER = os.getenv('APP_ASSESSMENT_FOLDER')
+APP_TRANSFORM_FOLDER = os.getenv('APP_TRANSFORM_FOLDER')
+APP_LOGS_FOLDER = os.getenv('APP_LOGS_FOLDER')
 MAPPER_DIR = os.path.join(os.path.dirname(SOURCE_DIR), 'main/resources/mapper')
 
 # 결과 파일 경로
-MAPPER_AND_JNDI_CSV = os.path.join(ASSESSMENT_FOLDER, 'MapperAndJndi.csv')
-SQL_TRANSFORM_TARGET_CSV = os.path.join(TRANSFORM_FOLDER, 'SQLTransformTarget.csv')
+MAPPER_AND_JNDI_CSV = os.path.join(APP_ASSESSMENT_FOLDER, 'MapperAndJndi.csv')
+SQL_TRANSFORM_TARGET_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SQLTransformTarget.csv')
 
 # =============================================================================
 # 로깅 설정
 # =============================================================================
 def setup_logging():
     """로깅 설정을 초기화합니다."""
-    log_dir = os.path.join(ASSESSMENT_FOLDER, 'logs')
+    log_dir = os.path.join(APP_LOGS_FOLDER, 'GenSQLTransformTarget')
     # 로그 디렉토리 생성
     os.makedirs(log_dir, exist_ok=True)
     
@@ -108,8 +109,8 @@ def check_required_env_vars():
         missing_vars.append('TRANSFORM_RELATED_CLASS')
     if not SOURCE_DIR:
         missing_vars.append('JAVA_SOURCE_FOLDER')
-    if not ASSESSMENT_FOLDER:
-        missing_vars.append('ASSESSMENT_FOLDER')
+    if not APP_ASSESSMENT_FOLDER:
+        missing_vars.append('APP_ASSESSMENT_FOLDER')
 
     if missing_vars:
         logger.error("The following environment variables are not set:")
@@ -124,10 +125,10 @@ def check_required_env_vars():
 def create_required_directories():
     """프로그램 실행에 필요한 디렉토리를 생성합니다."""
     try:
-        os.makedirs(os.path.join(ASSESSMENT_FOLDER), exist_ok=True)
-        os.makedirs(os.path.join(ASSESSMENT_FOLDER, 'logs'), exist_ok=True)
-        os.makedirs(os.path.join(TRANSFORM_FOLDER), exist_ok=True)
-        logger.info(f"Created required directories: {ASSESSMENT_FOLDER}/logs")
+        os.makedirs(os.path.join(APP_ASSESSMENT_FOLDER), exist_ok=True)
+        os.makedirs(os.path.join(APP_LOGS_FOLDER, 'GenSQLTransformTarget'), exist_ok=True)
+        os.makedirs(os.path.join(APP_TRANSFORM_FOLDER), exist_ok=True)
+        logger.info(f"Created required directories: {APP_LOGS_FOLDER}/GenSQLTransformTarget")
     except Exception as e:
         logger.error(f"Failed to create directories: {e}")
         sys.exit(1)
@@ -449,7 +450,7 @@ def main(xml_files=None):
     logger.info(f"{'=' * 100}")
     logger.info(f"TRANSFORM_RELATED_CLASS: {TRANSFORM_CLASSES}")
     logger.info(f"SOURCE_DIR: {SOURCE_DIR}")
-    logger.info(f"ASSESSMENT_FOLDER: {ASSESSMENT_FOLDER}")
+    logger.info(f"APP_ASSESSMENT_FOLDER: {APP_ASSESSMENT_FOLDER}")
     
     # 필수 환경 변수 및 디렉토리 확인
     check_required_env_vars()
@@ -475,7 +476,7 @@ def main(xml_files=None):
             if result:
                 results.append(result)
     else:
-        mapper_list_file = os.path.join(ASSESSMENT_FOLDER, 'Mapperlist.csv')
+        mapper_list_file = os.path.join(APP_ASSESSMENT_FOLDER, 'Mapperlist.csv')
         logger.info(f"\n")
         logger.info(f"{'=' * 100}")
         logger.info(f"Reading file list from: {mapper_list_file}")

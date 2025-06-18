@@ -1,0 +1,175 @@
+DB05.BindSampler.py 프로그램을 작성해주세요. 이 프로그램은 SQL 파일에서 바인드 변수를 추출하고 적절한 샘플 값을 할당하는 프로그램입니다.
+
+요구사항:
+1. orcl_sql_extract 및 pg_sql_extract 디렉토리에서 SQL 파일을 읽습니다.
+2. 각 SQL 파일에서 바인드 변수를 추출합니다:
+   - Oracle 스타일: :variable_name
+   - MyBatis 스타일: #{variable_name}
+   - 복잡한 MyBatis 스타일: #{variable_name, jdbcType=VARCHAR, mode=IN}
+3. 변수 이름을 기반으로 변수 타입을 추론합니다:
+   - DATE: 변수 이름에 'date', 'dt', 'day', 'time' 등이 포함된 경우
+   - NUMBER: 변수 이름에 'num', 'cnt', 'id', 'no', 'seq' 등이 포함된 경우
+   - BOOLEAN: 변수 이름에 'yn', 'flag', 'is_', 'has_' 등이 포함된 경우
+   - VARCHAR2: 기본 타입 (위 조건에 해당하지 않는 경우)
+4. all_dictionary.json 파일에서 적절한 샘플 값을 찾습니다:
+   - 변수 이름과 유사한 컬럼 이름 검색
+   - 같은 타입의 컬럼에서 샘플 값 선택
+   - 적절한 값을 찾지 못하면 타입별 기본값 사용
+5. 추출된 바인드 변수와 샘플 값을 JSON 파일로 저장합니다:
+   - 출력 디렉토리: sampler/
+   - 파일명: 원본 SQL 파일명과 동일하게 유지하되 확장자를 .json으로 변경
+
+복잡한 바인드 변수 패턴 처리:
+1. 정규식 패턴을 강화하여 다양한 MyBatis 바인드 변수 형식을 지원합니다:
+   ```python
+   # 기본 Oracle 바인드 변수 패턴
+   oracle_pattern = r':([a-zA-Z0-9_]+)'
+   
+   # 기본 MyBatis 바인드 변수 패턴
+   mybatis_simple_pattern = r'#\{([a-zA-Z0-9_]+)\}'
+   
+   # 복잡한 MyBatis 바인드 변수 패턴 (jdbcType, mode 등 속성 포함)
+   mybatis_complex_pattern = r'#\{([a-zA-Z0-9_]+)(?:\s*,\s*([^}]+))?\}'
+   ```
+
+2. jdbcType이 명시된 경우 이를 우선적으로 사용하여 타입을 결정합니다:
+   ```python
+   def extract_jdbc_type(properties_str):
+       if not properties_str:
+           return None
+       
+       # jdbcType=VARCHAR 패턴 찾기
+       match = re.search(r'jdbcType\s*=\s*([A-Z]+)', properties_str)
+       if match:
+           jdbc_type = match.group(1)
+           # JDBC 타입을 내부 타입으로 변환
+           type_mapping = {
+               'VARCHAR': 'VARCHAR2',
+               'CHAR': 'VARCHAR2',
+               'NVARCHAR': 'VARCHAR2',
+               'NCHAR': 'VARCHAR2',
+               'CLOB': 'VARCHAR2',
+               'INTEGER': 'NUMBER',
+               'DECIMAL': 'NUMBER',
+               'NUMERIC': 'NUMBER',
+               'BIGINT': 'NUMBER',
+               'FLOAT': 'NUMBER',
+               'DOUBLE': 'NUMBER',
+               'DATE': 'DATE',
+               'TIMESTAMP': 'DATE',
+               'TIME': 'DATE',
+               'BOOLEAN': 'BOOLEAN'
+           }
+           return type_mapping.get(jdbc_type, 'VARCHAR2')
+       
+       return None
+   ```
+
+타입 추론 로직 개선:
+1. 컬럼 이름과 변수 이름의 유사도를 계산하여 더 정확한 매칭을 수행합니다:
+   ```python
+   def calculate_similarity(var_name, col_name):
+       # 레벤슈타인 거리 계산 (문자열 편집 거리)
+       distance = Levenshtein.distance(var_name.lower(), col_name.lower())
+       max_len = max(len(var_name), len(col_name))
+       if max_len == 0:
+           return 0
+       
+       # 거리를 0-1 사이의 유사도로 변환 (1이 완전 일치)
+       similarity = 1 - (distance / max_len)
+       
+       # 접두사/접미사 보너스
+       if var_name.lower().startswith(col_name.lower()) or var_name.lower().endswith(col_name.lower()):
+           similarity += 0.1
+       if col_name.lower().startswith(var_name.lower()) or col_name.lower().endswith(var_name.lower()):
+           similarity += 0.1
+           
+       return min(similarity, 1.0)  # 최대 1.0으로 제한
+   ```
+
+2. SQL 문맥을 분석하여 타입 추론의 정확도를 높입니다:
+   ```python
+   def infer_type_from_context(variable, sql_text):
+       # 변수가 사용된 위치 찾기
+       var_pattern = fr':{variable}\b|#\{{{variable}(?:\s*,\s*[^}}]+)?\}}'
+       matches = list(re.finditer(var_pattern, sql_text))
+       
+       if not matches:
+           return None
+           
+       for match in matches:
+           # 변수 주변 텍스트 분석 (앞뒤 50자)
+           start = max(0, match.start() - 50)
+           end = min(len(sql_text), match.end() + 50)
+           context = sql_text[start:end].upper()
+           
+           # 날짜 관련 함수/비교가 있는지 확인
+           if re.search(r'(TO_DATE|TO_CHAR|DATE|TIMESTAMP|SYSDATE|CURRENT_DATE)', context):
+               return 'DATE'
+               
+           # 숫자 비교가 있는지 확인
+           if re.search(r'[<>=]\s*(?::|#\{)', context):
+               return 'NUMBER'
+               
+           # LIKE 연산자가 있는지 확인
+           if 'LIKE' in context:
+               return 'VARCHAR2'
+               
+       return None
+   ```
+
+샘플 값 선택 알고리즘:
+1. 변수 이름과 정확히 일치하는 컬럼 이름 검색
+2. 변수 이름이 포함된 컬럼 이름 검색
+3. 컬럼 이름이 변수 이름에 포함된 경우 검색
+4. 유사도가 높은 컬럼 이름 검색 (레벤슈타인 거리 기반)
+5. SQL 문맥 분석을 통한 타입 추론 및 해당 타입의 샘플 값 선택
+6. 같은 타입의 임의의 컬럼에서 샘플 값 선택
+7. 타입별 기본값 사용:
+   - DATE: '2023-01-01'
+   - NUMBER: 1
+   - BOOLEAN: 'Y'
+   - VARCHAR2: 'SAMPLE'
+
+JSON 출력 형식:
+```json
+[
+  {
+    "variable": "VARIABLE_NAME",
+    "type": "VARIABLE_TYPE",
+    "sample_value": "SAMPLE_VALUE",
+    "jdbc_type": "JDBC_TYPE",
+    "confidence": 0.95
+  },
+  ...
+]
+```
+
+오류 처리:
+1. 잘못된 SQL 구문 처리
+2. 사전 파일 누락 또는 형식 오류 처리
+3. 출력 디렉토리 접근 권한 문제 처리
+4. 중복 변수 처리 (같은 SQL 파일 내에서 동일한 변수가 여러 번 사용된 경우)
+
+사용 예시:
+```
+# 기본 사용법
+python3 DB05.BindSampler.py
+
+# 특정 디렉토리의 SQL 파일만 처리
+python3 DB05.BindSampler.py --dir orcl_sql_extract
+
+# 특정 파일만 처리
+python3 DB05.BindSampler.py --file orcl_sql_extract/app.module.query.sql
+
+# 사전 파일 지정
+python3 DB05.BindSampler.py --dictionary /path/to/custom_dictionary.json
+
+# 유사도 임계값 설정
+python3 DB05.BindSampler.py --similarity-threshold 0.7
+
+# 상세 로깅 활성화
+python3 DB05.BindSampler.py --verbose
+```
+
+프로그램은 처리 진행 상황을 표시하고, 완료 후에는 처리된 SQL 파일 수와 추출된 바인드 변수 수를 요약하여 보여줍니다.

@@ -1,0 +1,149 @@
+DB04.GetDictionary.py 프로그램을 작성해주세요. 이 프로그램은 Oracle 및 PostgreSQL 데이터베이스에서 테이블 메타데이터와 샘플 데이터를 추출하여 데이터 사전(dictionary)을 생성하는 프로그램입니다.
+
+요구사항:
+1. Oracle과 PostgreSQL 데이터베이스에 연결합니다.
+2. 환경 변수에서 연결 정보를 가져옵니다:
+   - Oracle: ORACLE_SID, ORACLE_SVC_USER, ORACLE_SVC_PASSWORD
+   - PostgreSQL: PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
+3. 각 데이터베이스의 모든 테이블과 컬럼 정보를 수집합니다:
+   - 테이블 이름
+   - 컬럼 이름
+   - 데이터 타입
+   - 길이/정밀도
+   - NULL 허용 여부
+4. 각 컬럼에서 샘플 데이터를 추출합니다 (DISTINCT 값 최대 10개).
+5. 컬럼 이름 패턴과 데이터 타입을 기반으로 컬럼을 분류합니다:
+   - DATE 타입: 이름에 'date', 'dt', 'day', 'time' 등이 포함된 경우
+   - NUMBER 타입: 이름에 'num', 'cnt', 'id', 'no', 'seq' 등이 포함된 경우
+   - BOOLEAN 타입: 이름에 'yn', 'flag', 'is_', 'has_' 등이 포함된 경우
+   - VARCHAR2 타입: 기본 타입 (위 조건에 해당하지 않는 경우)
+6. 수집된 정보를 JSON 형식의 데이터 사전으로 생성합니다.
+7. 생성된 데이터 사전을 all_dictionary.json 파일로 저장합니다.
+8. 추출 과정의 로그를 dictionary_extraction.log 파일에 기록합니다.
+
+대용량 테이블 처리:
+1. 테이블 크기를 먼저 확인하고 임계값(기본값: 1백만 행) 이상인 경우 특별 처리합니다:
+   ```python
+   def get_table_size(connection, table_name, schema):
+       # Oracle 또는 PostgreSQL에서 테이블 행 수 추정
+       cursor = connection.cursor()
+       if connection_type == 'oracle':
+           cursor.execute(f"SELECT NUM_ROWS FROM ALL_TABLES WHERE OWNER = '{schema}' AND TABLE_NAME = '{table_name}'")
+       else:  # PostgreSQL
+           cursor.execute(f"SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = '{table_name}'")
+       result = cursor.fetchone()
+       return result[0] if result else 0
+   ```
+
+2. 대용량 테이블 처리 방법:
+   - 인덱스가 있는 컬럼을 활용하여 샘플 추출
+   - 랜덤 샘플링 사용 (Oracle: SAMPLE, PostgreSQL: TABLESAMPLE)
+   - 시간 제한을 두어 너무 오래 걸리는 쿼리는 중단 (timeout 설정)
+
+3. 대용량 테이블 샘플 추출 SQL:
+   ```sql
+   -- Oracle
+   SELECT /*+ FIRST_ROWS(10) */ DISTINCT column_name
+   FROM table_name SAMPLE(0.1)
+   WHERE column_name IS NOT NULL
+   AND ROWNUM <= 10
+   
+   -- PostgreSQL
+   SELECT DISTINCT column_name
+   FROM table_name TABLESAMPLE SYSTEM(0.1)
+   WHERE column_name IS NOT NULL
+   LIMIT 10
+   ```
+
+민감 정보 처리:
+1. 민감 컬럼 식별 패턴:
+   ```python
+   SENSITIVE_PATTERNS = [
+       'password', 'passwd', 'pwd', 'secret', 'key',
+       'ssn', 'social', 'credit', 'card', 'cvv', 'cvc',
+       'account', 'routing', 'license', 'auth',
+       'token', 'private', 'secure', 'hash', 'salt'
+   ]
+   
+   def is_sensitive_column(column_name):
+       column_lower = column_name.lower()
+       return any(pattern in column_lower for pattern in SENSITIVE_PATTERNS)
+   ```
+
+2. 민감 컬럼 처리:
+   - 민감 컬럼으로 식별된 경우 실제 데이터 대신 마스킹된 값 사용
+   - 데이터 타입은 유지하되 값은 'XXXXX' 또는 타입에 맞는 가짜 데이터로 대체
+   - 설정 파일을 통해 민감 컬럼 패턴 사용자 정의 가능
+
+데이터 사전 JSON 형식:
+```json
+{
+  "tables": {
+    "TABLE_NAME": {
+      "columns": {
+        "COLUMN_NAME": {
+          "type": "DATA_TYPE",
+          "length": LENGTH,
+          "nullable": true/false,
+          "samples": ["value1", "value2", "value3", ...],
+          "is_sensitive": false
+        },
+        "SENSITIVE_COLUMN": {
+          "type": "DATA_TYPE",
+          "length": LENGTH,
+          "nullable": true/false,
+          "samples": ["XXXXX", "XXXXX", "XXXXX", ...],
+          "is_sensitive": true
+        },
+        ...
+      },
+      "row_count": 1234,
+      "is_large_table": false
+    },
+    ...
+  },
+  "metadata": {
+    "extraction_date": "2023-05-22T16:30:00",
+    "oracle_schema": "SCHEMA_NAME",
+    "postgresql_schema": "schema_name",
+    "total_tables": 42,
+    "total_columns": 567,
+    "sensitive_columns": 12
+  }
+}
+```
+
+오류 처리:
+1. 데이터베이스 연결 오류 처리
+2. 권한 부족 문제 처리
+3. 타임아웃 처리 (장시간 실행 쿼리)
+4. 메모리 부족 상황 처리 (대용량 테이블)
+
+사용 예시:
+```
+# 기본 사용법
+python3 DB04.GetDictionary.py
+
+# 특정 스키마만 처리
+python3 DB04.GetDictionary.py --schema SCHEMA_NAME
+
+# 특정 테이블만 처리
+python3 DB04.GetDictionary.py --tables TABLE1,TABLE2
+
+# 샘플 데이터 수 지정
+python3 DB04.GetDictionary.py --samples 20
+
+# 출력 파일 지정
+python3 DB04.GetDictionary.py --output custom_dictionary.json
+
+# 대용량 테이블 임계값 설정
+python3 DB04.GetDictionary.py --large-table-threshold 500000
+
+# 쿼리 타임아웃 설정 (초)
+python3 DB04.GetDictionary.py --query-timeout 30
+
+# 민감 정보 패턴 파일 지정
+python3 DB04.GetDictionary.py --sensitive-patterns sensitive_patterns.txt
+```
+
+프로그램은 데이터 추출 진행 상황을 표시하고, 완료 후에는 처리된 테이블 수, 컬럼 수, 샘플 데이터 수를 요약하여 보여줍니다.
