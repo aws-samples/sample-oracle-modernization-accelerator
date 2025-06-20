@@ -1,0 +1,941 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OMABox Complete Infrastructure with VPC, Aurora PostgreSQL, DMS, and Oracle/PostgreSQL clients for database modernization'
+
+Parameters: {}  # No parameters needed - everything is self-contained
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AMI: ami-02457590d33d576c3  # Amazon Linux 2023 (2023.7.20250527.1)
+    us-west-2:
+      AMI: ami-0418306302097dbff  # Amazon Linux 2023 (2023.7.20250527.1)
+    eu-west-1:
+      AMI: ami-03400c3b73b5086e9  # Amazon Linux 2023 (2023.7.20250527.1)
+    ap-northeast-1:
+      AMI: ami-027fff96cc515f7bc  # Amazon Linux 2023 (2023.7.20250527.1)
+    ap-northeast-2:
+      AMI: ami-0e967ff96936c0c0c  # Amazon Linux 2023 (2023.7.20250527.1)
+
+Resources:
+  ###############################################################################################
+  ### VPC and Networking
+  ###############################################################################################
+  
+  # VPC
+  OMAVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.255.255.0/24
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: OMA_VPC
+
+  # Internet Gateway
+  OMAInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: OMA_IGW
+
+  # Attach Internet Gateway to VPC
+  OMAInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref OMAVPC
+      InternetGatewayId: !Ref OMAInternetGateway
+
+  # Public Subnet 1 (AZ-a)
+  OMAPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref OMAVPC
+      CidrBlock: 10.255.255.0/26    # 10.255.255.0 - 10.255.255.63
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: OMA_Public_Subnet_1
+
+  # Public Subnet 2 (AZ-b)
+  OMAPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref OMAVPC
+      CidrBlock: 10.255.255.64/26   # 10.255.255.64 - 10.255.255.127
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: OMA_Public_Subnet_2
+
+  # Private Subnet 1 (AZ-a) - for Aurora/DMS
+  OMAPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref OMAVPC
+      CidrBlock: 10.255.255.128/26  # 10.255.255.128 - 10.255.255.191
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: OMA_Private_Subnet_1
+
+  # Private Subnet 2 (AZ-b) - for Aurora/DMS
+  OMAPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref OMAVPC
+      CidrBlock: 10.255.255.192/26  # 10.255.255.192 - 10.255.255.255
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: OMA_Private_Subnet_2
+
+  # NAT Gateway EIP
+  OMANATGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: OMAInternetGatewayAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: OMA_NAT_EIP
+
+  # NAT Gateway (in Public Subnet 1)
+  OMANATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt OMANATGatewayEIP.AllocationId
+      SubnetId: !Ref OMAPublicSubnet1
+      Tags:
+        - Key: Name
+          Value: OMA_NAT_Gateway
+
+  # Public Route Table
+  OMAPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref OMAVPC
+      Tags:
+        - Key: Name
+          Value: OMA_Public_Route_Table
+
+  # Public Route to Internet Gateway
+  OMAPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: OMAInternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref OMAPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref OMAInternetGateway
+
+  # Associate Public Subnet 1 with Public Route Table
+  OMAPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OMAPublicSubnet1
+      RouteTableId: !Ref OMAPublicRouteTable
+
+  # Associate Public Subnet 2 with Public Route Table
+  OMAPublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OMAPublicSubnet2
+      RouteTableId: !Ref OMAPublicRouteTable
+
+  # Private Route Table
+  OMAPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref OMAVPC
+      Tags:
+        - Key: Name
+          Value: OMA_Private_Route_Table
+
+  # Private Route to NAT Gateway
+  OMAPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref OMAPrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref OMANATGateway
+
+  # Associate Private Subnet 1 with Private Route Table
+  OMAPrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OMAPrivateSubnet1
+      RouteTableId: !Ref OMAPrivateRouteTable
+
+  # Associate Private Subnet 2 with Private Route Table
+  OMAPrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OMAPrivateSubnet2
+      RouteTableId: !Ref OMAPrivateRouteTable
+
+  ###############################################################################################
+  ### KMS and Security
+  ###############################################################################################
+  # KMS Key for encryption
+  KMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS Key for OMA resources encryption
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow RDS and Secrets Manager
+            Effect: Allow
+            Principal:
+              Service:
+                - rds.amazonaws.com
+                - secretsmanager.amazonaws.com
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: '*'
+
+  KMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/oma-${AWS::StackName}'
+      TargetKeyId: !Ref KMSKey
+
+  # DB Subnet Group for Aurora
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Aurora PostgreSQL cluster
+      DBSubnetGroupName: !Sub '${AWS::StackName}-aurora-subnet-group'
+      SubnetIds:
+        - !Ref OMAPrivateSubnet1
+        - !Ref OMAPrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-aurora-subnet-group'
+  # IAM Role for EC2 Instance
+  OMABoxRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-OMABox-Role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:ListSecrets
+                Resource: '*'
+
+  # Instance Profile
+  OMABoxInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${AWS::StackName}-OMABox-InstanceProfile'
+      Roles:
+        - !Ref OMABoxRole
+
+  # Security Group
+  OMABoxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-OMABox-SG'
+      GroupDescription: Security Group for OMABox EC2 Instance
+      VpcId: !Ref OMAVPC
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-OMABox-SG'
+
+  # Security Group for VPC Endpoints
+  VPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-VPCEndpoint-SG'
+      GroupDescription: Security Group for VPC Endpoints
+      VpcId: !Ref OMAVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref OMABoxSecurityGroup
+          Description: Allow HTTPS from OMABox
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.255.255.0/24
+          Description: Allow HTTPS from OMA VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-VPCEndpoint-SG'
+
+  # Security Group for Database resources (Aurora, DMS)
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-Database-SG'
+      GroupDescription: Security Group for Aurora and DMS resources
+      VpcId: !Ref OMAVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref OMABoxSecurityGroup
+          Description: Allow PostgreSQL from OMABox
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Database-SG'
+
+  # Additional Security Group Rules for DMS (to avoid circular dependency)
+  DMSSecurityGroupRule1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DatabaseSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref DatabaseSecurityGroup
+      Description: Allow PostgreSQL from DMS
+
+  DMSSecurityGroupRule2:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DatabaseSecurityGroup
+      IpProtocol: tcp
+      FromPort: 1521
+      ToPort: 1521
+      SourceSecurityGroupId: !Ref DatabaseSecurityGroup
+      Description: Allow Oracle from DMS (for source connections)
+
+  # VPC Endpoint for SSM
+  SSMVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref OMAVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      VpcEndpointType: Interface
+      SubnetIds: 
+        - !Ref OMAPrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - ssm:UpdateInstanceInformation
+              - ssm:SendCommand
+              - ssm:ListCommands
+              - ssm:ListCommandInvocations
+              - ssm:DescribeInstanceInformation
+              - ssm:GetDeployablePatchSnapshotForInstance
+              - ssm:DescribeInstanceAssociationsStatus
+              - ssm:DescribeEffectiveInstanceAssociations
+            Resource: '*'
+
+  # VPC Endpoint for SSM Messages
+  SSMMessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref OMAVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssmmessages'
+      VpcEndpointType: Interface
+      SubnetIds: 
+        - !Ref OMAPrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - ssmmessages:CreateControlChannel
+              - ssmmessages:CreateDataChannel
+              - ssmmessages:OpenControlChannel
+              - ssmmessages:OpenDataChannel
+            Resource: '*'
+
+  # VPC Endpoint for EC2 Messages
+  EC2MessagesVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref OMAVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2messages'
+      VpcEndpointType: Interface
+      SubnetIds: 
+        - !Ref OMAPrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - ec2messages:AcknowledgeMessage
+              - ec2messages:DeleteMessage
+              - ec2messages:FailMessage
+              - ec2messages:GetEndpoint
+              - ec2messages:GetMessages
+              - ec2messages:SendReply
+            Resource: '*'
+
+  # VPC Endpoint for Secrets Manager
+  SecretsManagerVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref OMAVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
+      VpcEndpointType: Interface
+      SubnetIds: 
+        - !Ref OMAPrivateSubnet1
+      SecurityGroupIds:
+        - !Ref VPCEndpointSecurityGroup
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:ListSecrets
+            Resource: '*'
+
+  ###############################################################################################
+  ### Aurora PostgreSQL (Target Database)
+  ###############################################################################################
+  
+  # Aurora PostgreSQL Cluster
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub '${AWS::StackName}-aurora-cluster'
+      Engine: aurora-postgresql
+      EngineVersion: '15.7'
+      EngineMode: provisioned
+      DatabaseName: postgres
+      MasterUsername: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:password}}'
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DatabaseSecurityGroup
+      KmsKeyId: !Ref KMSKey
+      StorageEncrypted: true
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: '03:00-04:00'
+      PreferredMaintenanceWindow: 'sun:04:00-sun:05:00'
+      DeletionProtection: false
+      Port: 5432
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-aurora-cluster'
+
+  # Aurora PostgreSQL Instance
+  AuroraInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-aurora-instance'
+      DBClusterIdentifier: !Ref AuroraCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: db.r6g.large
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-aurora-instance'
+
+  ###############################################################################################
+  ### DMS (Database Migration Service)
+  ###############################################################################################
+  
+  # DMS VPC Role - Must be named exactly 'dms-vpc-role'
+  DMSVPCRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: dms-vpc-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: dms.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole
+      Path: /
+
+  # DMS CloudWatch Logs Role - Must be named exactly 'dms-cloudwatch-logs-role'
+  DMSCloudWatchLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: dms-cloudwatch-logs-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: dms.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole
+      Path: /
+
+  # DMS Subnet Group
+  DMSSubnetGroup:
+    Type: AWS::DMS::ReplicationSubnetGroup
+    Properties:
+      ReplicationSubnetGroupDescription: Subnet group for DMS replication instance
+      ReplicationSubnetGroupIdentifier: !Sub '${AWS::StackName}-dms-subnet-group'
+      SubnetIds:
+        - !Ref OMAPrivateSubnet1
+        - !Ref OMAPrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-dms-subnet-group'
+    DependsOn: DMSVPCRole
+
+  # DMS Replication Instance
+  DMSReplicationInstance:
+    Type: AWS::DMS::ReplicationInstance
+    Properties:
+      ReplicationInstanceIdentifier: !Sub '${AWS::StackName}-dms-instance'
+      ReplicationInstanceClass: dms.t3.medium
+      AllocatedStorage: 50
+      AutoMinorVersionUpgrade: true
+      MultiAZ: false
+      PubliclyAccessible: false
+      ReplicationSubnetGroupIdentifier: !Ref DMSSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DatabaseSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-dms-instance'
+    DependsOn: DMSVPCRole
+
+  # DMS Target Endpoint (Aurora PostgreSQL)
+  DMSTargetEndpoint:
+    Type: AWS::DMS::Endpoint
+    Properties:
+      EndpointIdentifier: !Sub '${AWS::StackName}-target-aurora'
+      EndpointType: target
+      EngineName: aurora-postgresql
+      DatabaseName: postgres
+      Username: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:username}}'
+      Password: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:password}}'
+      ServerName: !GetAtt AuroraCluster.Endpoint.Address
+      Port: 5432
+      KmsKeyId: !Ref KMSKey
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-target-aurora'
+
+  # DMS Source Endpoint (Oracle)
+  DMSSourceEndpoint:
+    Type: AWS::DMS::Endpoint
+    Properties:
+      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:sid}}'
+      EndpointIdentifier: !Sub '${AWS::StackName}-source-oracle'
+      EndpointType: source
+      EngineName: oracle
+      KmsKeyId: !Ref KMSKey
+      Username: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:username}}'
+      Password: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:password}}'
+      Port: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:port}}'
+      ServerName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:host}}'
+      OracleSettings:
+        UseBFile: true
+        UseLogminerReader: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-source-oracle'
+
+  ###############################################################################################
+  ### EC2 Instance (OMABox) - Created Last
+  ###############################################################################################
+  
+  # EC2 Instance - depends on all other resources
+  OMABoxInstance:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - AuroraCluster
+      - AuroraInstance
+      - SSMVPCEndpoint
+      - SSMMessagesVPCEndpoint
+      - EC2MessagesVPCEndpoint
+      - SecretsManagerVPCEndpoint
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      InstanceType: m6i.xlarge
+      IamInstanceProfile: !Ref OMABoxInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: false
+          DeviceIndex: 0
+          SubnetId: !Ref OMAPrivateSubnet1
+          GroupSet:
+            - !Ref OMABoxSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          
+          # Update system
+          dnf update -y
+          
+          # Install utilities and Oracle dependencies
+          dnf install -y unzip wget jq postgresql15 libnsl libaio
+          
+          # Install AWS CLI v2
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          rm -rf aws awscliv2.zip
+
+          # Install Amazon Q CLI
+          # Wait for ec2-user home directory to be ready
+          while [ ! -d /home/ec2-user ]; do sleep 1; done
+          
+          cat > /tmp/install-q.sh << 'EOF'
+          #!/bin/bash
+          export HOME=/home/ec2-user
+          cd /home/ec2-user
+          curl --proto "=https" --tlsv1.2 -sSf "https://desktop-release.q.us-east-1.amazonaws.com/latest/q-x86_64-linux.zip" -o "q.zip"
+          unzip q.zip
+          ./q/install.sh --global
+          rm -Rf q.zip q/
+          q --version
+          EOF
+          chmod +x /tmp/install-q.sh
+          sudo -u ec2-user HOME=/home/ec2-user /tmp/install-q.sh
+          echo "Amazon Q CLI installation completed - $(date)"
+          
+          # Create ec2-user home directory structure
+          USER_HOME=/home/ec2-user
+          
+          # Oracle Instant Client Setup
+          cd $USER_HOME
+          wget https://download.oracle.com/otn_software/linux/instantclient/1926000/instantclient-basic-linux.x64-19.26.0.0.0dbru.zip
+          wget https://download.oracle.com/otn_software/linux/instantclient/1926000/instantclient-sqlplus-linux.x64-19.26.0.0.0dbru.zip
+          wget https://download.oracle.com/otn_software/linux/instantclient/1926000/instantclient-tools-linux.x64-19.26.0.0.0dbru.zip
+          wget https://download.oracle.com/otn_software/linux/instantclient/1926000/instantclient-jdbc-linux.x64-19.26.0.0.0dbru.zip
+          
+          unzip -o instantclient-basic-linux.x64-19.26.0.0.0dbru.zip
+          unzip -o instantclient-sqlplus-linux.x64-19.26.0.0.0dbru.zip
+          unzip -o instantclient-tools-linux.x64-19.26.0.0.0dbru.zip
+          unzip -o instantclient-jdbc-linux.x64-19.26.0.0.0dbru.zip
+          
+          # Clean up zip files
+          rm -f instantclient-*.zip
+          
+          # Install libaio for Oracle client
+          dnf install -y libaio
+          
+          # Set Oracle Environment Variables
+          export ORACLE_HOME=$USER_HOME/instantclient_19_26
+          
+          # Create tnsnames.ora directory
+          mkdir -p $ORACLE_HOME/network/admin
+          
+          # Function to setup Oracle environment
+          setup_oracle_env() {
+              ORCLSECRETARN=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-oracle-admin" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
+              
+              if [ "$ORCLSECRETARN" != "null" ] && [ -n "$ORCLSECRETARN" ]; then
+                  echo "Setting up Oracle environment..."
+                  ORCLCREDS=$(aws secretsmanager get-secret-value --secret-id $ORCLSECRETARN --region ${AWS::Region} | jq -r '.SecretString')
+                  
+                  export ORCL_ADM_USER="$(echo $ORCLCREDS | jq -r '.username')"
+                  export ORCL_ADM_PWD="$(echo $ORCLCREDS | jq -r '.password')"
+                  export ORCL_HOST="$(echo $ORCLCREDS | jq -r '.host')"
+                  export ORCL_PORT="$(echo $ORCLCREDS | jq -r '.port')"
+                  export ORCL_SID="$(echo $ORCLCREDS | jq -r '.sid')"
+                  
+                  # Add Oracle environment to profile
+                  echo "" >> $USER_HOME/.bash_profile
+                  echo "## Oracle Env ##" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_HOME=$ORACLE_HOME" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_SID=$ORCL_SID" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_ADM_USER=$ORCL_ADM_USER" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_ADM_PASSWORD=$ORCL_ADM_PWD" >> $USER_HOME/.bash_profile
+                  echo "export LD_LIBRARY_PATH=$ORACLE_HOME" >> $USER_HOME/.bash_profile
+                  echo "export PATH=\$PATH:$ORACLE_HOME" >> $USER_HOME/.bash_profile
+                  
+                  # Setup service user credentials
+                  ORCLSECRETARN_SVC=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-oracle-service" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
+                  
+                  if [ "$ORCLSECRETARN_SVC" != "null" ] && [ -n "$ORCLSECRETARN_SVC" ]; then
+                      ORCLCREDS_SVC=$(aws secretsmanager get-secret-value --secret-id $ORCLSECRETARN_SVC --region ${AWS::Region} | jq -r '.SecretString')
+                      
+                      export ORCL_SVC_USER="$(echo $ORCLCREDS_SVC | jq -r '.username')"
+                      export ORCL_SVC_PWD="$(echo $ORCLCREDS_SVC | jq -r '.password')"
+                      
+                      echo "export ORACLE_SVC_USER=$ORCL_SVC_USER" >> $USER_HOME/.bash_profile
+                      echo "export ORACLE_SVC_PASSWORD=$ORCL_SVC_PWD" >> $USER_HOME/.bash_profile
+                  fi
+                  
+                  # Create tnsnames.ora
+                  echo "orcl=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=$ORCL_HOST)(PORT=$ORCL_PORT)))(CONNECT_DATA=(SID=$ORCL_SID)))" > $ORACLE_HOME/network/admin/tnsnames.ora
+              else
+                  echo "Oracle secrets not found. Skipping Oracle environment setup."
+              fi
+          }
+          
+          # Function to setup PostgreSQL environment
+          setup_postgresql_env() {
+              echo "Setting up PostgreSQL environment with Aurora endpoint..."
+              
+              # Use Aurora endpoint directly from CloudFormation
+              export PG_HOST="${AuroraCluster.Endpoint.Address}"
+              export PG_PORT="5432"
+              export PG_DB="postgres"
+              
+              # Try to get PostgreSQL credentials from secrets
+              PGSECRETARN=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-postgres-admin" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
+              
+              if [ "$PGSECRETARN" != "null" ] && [ -n "$PGSECRETARN" ]; then
+                  echo "Getting PostgreSQL credentials from secrets..."
+                  PGCREDS=$(aws secretsmanager get-secret-value --secret-id $PGSECRETARN --region ${AWS::Region} 2>/dev/null | jq -r '.SecretString' 2>/dev/null)
+                  
+                  if [ "$PGCREDS" != "null" ] && [ -n "$PGCREDS" ]; then
+                      export PG_ADM_USER="$(echo $PGCREDS | jq -r '.username')"
+                      export PG_ADM_PWD="$(echo $PGCREDS | jq -r '.password')"
+                      
+                      # Override database name if specified in secrets
+                      PG_DB_FROM_SECRET="$(echo $PGCREDS | jq -r '.database')"
+                      if [ "$PG_DB_FROM_SECRET" != "null" ] && [ -n "$PG_DB_FROM_SECRET" ]; then
+                          export PG_DB="$PG_DB_FROM_SECRET"
+                      fi
+                  fi
+              fi
+              
+              # Add PostgreSQL environment to profile
+              echo "" >> $USER_HOME/.bash_profile
+              echo "## PostgreSQL Env (Aurora) ##" >> $USER_HOME/.bash_profile
+              echo "export PGHOST=$PG_HOST" >> $USER_HOME/.bash_profile
+              echo "export PGDATABASE=$PG_DB" >> $USER_HOME/.bash_profile
+              echo "export PGPORT=$PG_PORT" >> $USER_HOME/.bash_profile
+              echo "export PGUSER=$PG_ADM_USER" >> $USER_HOME/.bash_profile
+              echo "export PGPASSWORD=$PG_ADM_PWD" >> $USER_HOME/.bash_profile
+              echo "export PG_ADM_USER=$PG_ADM_USER" >> $USER_HOME/.bash_profile
+              echo "export PG_ADM_PASSWORD=$PG_ADM_PWD" >> $USER_HOME/.bash_profile
+              
+              # Setup service user credentials if available
+              PGSECRETARN_SVC=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-postgres-service" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
+              
+              if [ "$PGSECRETARN_SVC" != "null" ] && [ -n "$PGSECRETARN_SVC" ]; then
+                  PGCREDS_SVC=$(aws secretsmanager get-secret-value --secret-id $PGSECRETARN_SVC --region ${AWS::Region} 2>/dev/null | jq -r '.SecretString' 2>/dev/null)
+                  
+                  if [ "$PGCREDS_SVC" != "null" ] && [ -n "$PGCREDS_SVC" ]; then
+                      export PG_SVC_USER="$(echo $PGCREDS_SVC | jq -r '.username')"
+                      export PG_SVC_PWD="$(echo $PGCREDS_SVC | jq -r '.password')"
+                      
+                      echo "" >> $USER_HOME/.bash_profile
+                      echo "## PostgreSQL Service User ##" >> $USER_HOME/.bash_profile
+                      echo "export PG_SVC_USER=$PG_SVC_USER" >> $USER_HOME/.bash_profile
+                      echo "export PG_SVC_PASSWORD=$PG_SVC_PWD" >> $USER_HOME/.bash_profile
+                  fi
+              fi
+              
+              echo "PostgreSQL environment configured successfully with Aurora endpoint: $PG_HOST"
+          }
+          
+          # Setup database environments
+          setup_oracle_env
+          setup_postgresql_env
+          
+          # Create OMA Working Directories
+          mkdir -p $USER_HOME/OMA/Database/Assessments/tab_ddl $USER_HOME/OMA/Database/Test $USER_HOME/OMA/Transform
+          
+          # PostgreSQL client 설치 (만약 설치되어 있지 않다면)
+          dnf install -y postgresql15
+          
+          # Python3 및 pip는 이미 설치되어 있음 (Amazon Linux 2023 기본)
+          
+          # 작업 디렉토리 구조 생성
+          mkdir -p $USER_HOME/OMA/Database/log
+          mkdir -p $USER_HOME/OMA/Database/work
+          mkdir -p $USER_HOME/OMA/Database/work/oracle
+          mkdir -p $USER_HOME/OMA/Database/work/transform
+          mkdir -p $USER_HOME/OMA/Database/work/extracted_csv
+          mkdir -p $USER_HOME/OMA/Database/failed_conversions
+          mkdir -p $USER_HOME/OMA/Database/prompt
+          
+          # Set OMA Environment Variables
+          export OMA=$USER_HOME/OMA
+          echo "" >> $USER_HOME/.bash_profile
+          echo "## OMA Env ##" >> $USER_HOME/.bash_profile
+          echo "export OMA_HOME=$OMA" >> $USER_HOME/.bash_profile
+          echo "export DB_ASSESSMENTS_FOLDER=\$OMA_HOME/Assessment" >> $USER_HOME/.bash_profile
+          echo "export OMA_TEST=\$OMA_HOME/Test" >> $USER_HOME/.bash_profile
+          echo "export OMA_TRANSFORM=\$OMA_HOME/Transform" >> $USER_HOME/.bash_profile
+          
+          # pg_get_tabledef setup
+          cd $USER_HOME
+          wget https://github.com/MichaelDBA/pg_get_tabledef/archive/refs/heads/main.zip
+          unzip main.zip
+          rm -f main.zip
+          
+          # Set proper ownership
+          chown -R ec2-user:ec2-user $USER_HOME
+          
+          # Install pg_get_tabledef if PostgreSQL is available
+          if command -v psql &> /dev/null; then
+              sudo -u ec2-user bash -c "source $USER_HOME/.bash_profile && psql -f $USER_HOME/pg_get_tabledef-main/pg_get_tabledef.sql" 2>/dev/null || echo "pg_get_tabledef installation skipped - database not accessible"
+          fi
+          
+          # Install and configure SSM Agent
+          dnf install -y amazon-ssm-agent
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
+          
+          # Wait for SSM Agent to start and register
+          sleep 30
+          
+          # Restart SSM Agent to ensure proper registration
+          systemctl restart amazon-ssm-agent
+          
+          # Verify SSM Agent status
+          systemctl status amazon-ssm-agent
+          
+          echo "OMABox setup completed successfully!"
+          echo "GIT Clone, OMA Repository, Setup OS Environment 설정 추가 해야함""
+          rm -Rf $USER_HOME/META-Inf
+
+      Tags:
+        - Key: Name
+          Value: OMABox
+        - Key: LastUpdated
+          Value: "2025-06-09-22:00"
+
+Outputs:
+  VPCId:
+    Description: VPC ID of the OMA VPC
+    Value: !Ref OMAVPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC-Id'
+      
+  PublicSubnet1Id:
+    Description: Public Subnet 1 ID
+    Value: !Ref OMAPublicSubnet1
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet1-Id'
+      
+  PublicSubnet2Id:
+    Description: Public Subnet 2 ID
+    Value: !Ref OMAPublicSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnet2-Id'
+      
+  PrivateSubnet1Id:
+    Description: Private Subnet 1 ID
+    Value: !Ref OMAPrivateSubnet1
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet1-Id'
+      
+  PrivateSubnet2Id:
+    Description: Private Subnet 2 ID
+    Value: !Ref OMAPrivateSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet2-Id'
+      
+  InstanceId:
+    Description: Instance ID of the OMABox EC2 instance
+    Value: !Ref OMABoxInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceId'
+      
+  InstancePrivateIP:
+    Description: Private IP address of the OMABox EC2 instance
+    Value: !GetAtt OMABoxInstance.PrivateIp
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateIP'
+      
+  SecurityGroupId:
+    Description: Security Group ID for the OMABox instance
+    Value: !Ref OMABoxSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupId'
+      
+  VPCEndpointSecurityGroupId:
+    Description: Security Group ID for VPC Endpoints
+    Value: !Ref VPCEndpointSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-VPCEndpoint-SecurityGroupId'
+      
+  DatabaseSecurityGroupId:
+    Description: Security Group ID for Database resources
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-Database-SecurityGroupId'
+      
+  AuroraClusterEndpoint:
+    Description: Aurora PostgreSQL cluster endpoint
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-Aurora-Endpoint'
+      
+  AuroraClusterPort:
+    Description: Aurora PostgreSQL cluster port
+    Value: !GetAtt AuroraCluster.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-Aurora-Port'
+      
+  AuroraSecretArn:
+    Description: PostgreSQL admin secret ARN (contains Aurora endpoint)
+    Value: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:oma-secret-postgres-admin'
+    Export:
+      Name: !Sub '${AWS::StackName}-Postgres-Secret-ARN'
+      
+  DMSReplicationInstanceArn:
+    Description: DMS Replication Instance ARN
+    Value: !Ref DMSReplicationInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-DMS-Instance-ARN'
+      
+  DMSTargetEndpointArn:
+    Description: DMS Target Endpoint ARN
+    Value: !Ref DMSTargetEndpoint
+    Export:
+      Name: !Sub '${AWS::StackName}-DMS-Target-Endpoint-ARN'
+      
+  DMSSourceEndpointArn:
+    Description: DMS Source Endpoint ARN
+    Value: !Ref DMSSourceEndpoint
+    Export:
+      Name: !Sub '${AWS::StackName}-DMS-Source-Endpoint-ARN'
+      
+  SSMConnectionCommand:
+    Description: Command to connect to the instance via SSM
+    Value: !Sub 'aws ssm start-session --target ${OMABoxInstance} --region ${AWS::Region}'

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.jpetstore.mapper.ItemMapper">
+
+<select id="getItemListByProduct" resultType="Item">
+    SELECT
+      ITEM.ITEMID,
+      ITEM.LISTPRICE,
+      ITEM.UNITCOST,
+      ITEM.SUPPLIER AS supplierId,
+      ITEM.PRODUCTID AS "product.productId",
+      PRODUCT.NAME AS "product.name",
+      PRODUCT.DESCN AS "product.description",
+      PRODUCT.CATEGORY AS "product.categoryId",
+      ITEM.STATUS,
+      ITEM.ATTR1 AS attribute1,
+      ITEM.ATTR2 AS attribute2,
+      ITEM.ATTR3 AS attribute3,
+      ITEM.ATTR4 AS attribute4,
+      ITEM.ATTR5 AS attribute5
+    FROM ITEM, PRODUCT
+    WHERE PRODUCT.PRODUCTID = ITEM.PRODUCTID
+    AND ITEM.PRODUCTID = #{value}
+  </select>
+</mapper>

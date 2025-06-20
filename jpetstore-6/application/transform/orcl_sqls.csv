@@ -1,0 +1,26 @@
+Folder,DBMS,File Name,Sequence,SQL Type,SQL ID
+AccountMapper_orcl/extract,orcl,AccountMapper,06,insert,insertProfile
+AccountMapper_orcl/extract,orcl,AccountMapper,04,insert,insertAccount
+AccountMapper_orcl/extract,orcl,AccountMapper,01,select,getAccountByUsername
+AccountMapper_orcl/extract,orcl,AccountMapper,03,update,updateAccount
+AccountMapper_orcl/extract,orcl,AccountMapper,05,update,updateProfile
+AccountMapper_orcl/extract,orcl,AccountMapper,08,insert,insertSignon
+AccountMapper_orcl/extract,orcl,AccountMapper,02,select,getAccountByUsernameAndPassword
+AccountMapper_orcl/extract,orcl,AccountMapper,07,update,updateSignon
+OrderMapper_orcl/extract,orcl,OrderMapper,02,select,getOrdersByUsername
+OrderMapper_orcl/extract,orcl,OrderMapper,01,select,getOrder
+OrderMapper_orcl/extract,orcl,OrderMapper,04,insert,insertOrderStatus
+OrderMapper_orcl/extract,orcl,OrderMapper,03,insert,insertOrder
+ItemMapper_orcl/extract,orcl,ItemMapper,02,select,getItem
+ItemMapper_orcl/extract,orcl,ItemMapper,01,select,getItemListByProduct
+ItemMapper_orcl/extract,orcl,ItemMapper,03,select,getInventoryQuantity
+ItemMapper_orcl/extract,orcl,ItemMapper,04,update,updateInventoryQuantity
+LineItemMapper_orcl/extract,orcl,LineItemMapper,02,insert,insertLineItem
+LineItemMapper_orcl/extract,orcl,LineItemMapper,01,select,getLineItemsByOrderId
+CategoryMapper_orcl/extract,orcl,CategoryMapper,01,select,getCategory
+CategoryMapper_orcl/extract,orcl,CategoryMapper,02,select,getCategoryList
+ProductMapper_orcl/extract,orcl,ProductMapper,01,select,getProduct
+ProductMapper_orcl/extract,orcl,ProductMapper,03,select,searchProductList
+ProductMapper_orcl/extract,orcl,ProductMapper,02,select,getProductListByCategory
+SequenceMapper_orcl/extract,orcl,SequenceMapper,02,update,updateSequence
+SequenceMapper_orcl/extract,orcl,SequenceMapper,01,select,getSequence

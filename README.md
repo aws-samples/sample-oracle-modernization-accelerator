@@ -1,158 +1,153 @@
-# OMA (Oracle Modernization Accelerator)
+# OMA (Oracle Modernization Accelerator) 프로젝트 실행 가이드
 
-OMA is a comprehensive sample code collection that automates the conversion of Oracle DBMS schemas and application SQL to PostgreSQL. This toolkit is specifically designed to work effectively with Amazon Q Developer, providing automated migration capabilities for enterprise database modernization projects.
+## 프로젝트 개요
+OMA는 Oracle 데이터베이스와 애플리케이션을 PostgreSQL로 현대화하는 도구입니다.
+AWS 환경에서 사전 구성된 상태에서 DB/Application 변환을 수행합니다.
 
-## Overview
-
-OMA provides automated scripts and tools for:
-- **Database Schema Migration**: Converting Oracle DDL to PostgreSQL-compatible schemas
-- **Application SQL Conversion**: Transforming Oracle SQL in MyBatis mapper files to PostgreSQL syntax
-- **Validation and Testing**: Ensuring conversion accuracy and compatibility
-- **Amazon Q Developer Integration**: Leveraging AI-powered code assistance for complex migration scenarios
-
-The project includes jpetstore-6 as an example application to demonstrate the migration process.
-
-## Project Structure
-
+## 디렉토리 구조
 ```
-OMA                                              OMA 폴더
-├── setup/                                       AWS Environment 설정 (사전 필수 구성요소)
-│   ├── deploy-omabox.sh                         - OMA Box 배포 스크립트
-│   ├── cleanup-omabox.sh                        - OMA Box 정리 스크립트
-│   ├── omabox-cloudformation.yaml               - CloudFormation 템플릿
-│   └── README.md                                - 사전 요구사항 가이드
-├── 01.Database/                                 데이터베이스 스키마 변환
-│   ├── Tools/                                   - 데이터베이스 변환 프로그램
-│   │   └── DB01.asct.py                         - 메인 데이터베이스 변환 프로그램
-│   ├── Prompts/                                 - 데이터베이스 변환 프롬프트
-│   ├── Assessments/                             - 분석 결과 및 추출된 데이터
-│   │   ├── extracted_csv/                       - 추출된 CSV 파일
-│   │   ├── oracle/                              - Oracle 스키마 파일
-│   │   └── incompatible.lst                     - 호환되지 않는 객체 목록
-│   ├── Transform/                               - 변환된 PostgreSQL 스키마
-│   ├── Logs/                                    - 변환 로그 디렉토리
-│   └── README.md                                - 데이터베이스 변환 가이드
-├── 02.Application/                              애플리케이션 SQL 변환
-│   └── jpetstore-6/                             - 예제 애플리케이션 프로젝트
-│       ├── Assessments/                         - 기초 분석 JNDI 정보와 분석 대상 리스트
-│       │   ├── JNDI.csv                         - JNDI 설정 정보
-│       │   ├── Mapperlist.csv                   - Mapper 파일 목록
-│       │   ├── MapperAndJndi.csv                - Mapper와 JNDI 매핑 정보
-│       │   └── logs/                            - 분석 로그
-│       ├── Tools/                               - Q Prompt와 변환 프로그램
-│       │   ├── AP01.GenMapperList.txt           - Mapper 목록 생성 프롬프트
-│       │   ├── AP02.GenSQLTransformTarget.py    - SQL 변환 대상 생성 프로그램
-│       │   ├── AP03.SQLTransformTarget.py       - SQL 변환 메인 프로그램
-│       │   ├── AP03.xmlExtractor.py             - XML 추출 프로그램
-│       │   ├── AP03.xmlMerger.py                - XML 병합 프로그램
-│       │   └── AP03.TransformValidation.py      - 변환 검증 프로그램
-│       └── Transform/                           - 애플리케이션 SQL 변환 결과
-│           ├── SQLTransformTarget.csv           - 변환 대상 Mapper 리스트
-│           ├── SQLTransformTargetFailure.csv    - 재실행 대상 Mapper 리스트
-│           ├── xmllintResult.csv                - XML 검증 결과
-│           ├── logs/                            - 변환 로그 디렉토리
-│           └── mapper/                          - 최종 변환 결과 Mapper 파일
-├── 03.Test/                                     Unit 테스트 수행 결과 및 도구
-│   ├── program/                                 - Unit Test 프로그램
-│   │   ├── TST01.initOMA.sh                     - 테스트 초기화 스크립트
-│   │   ├── TST02.GetDDL.sh                      - DDL 추출 스크립트
-│   │   ├── TST03.FindXMLFiles.py                - XML 파일 검색 프로그램
-│   │   ├── TST04.XMLToSQL.py                    - XML을 SQL로 변환
-│   │   ├── TST05.GetDictionary.py               - 데이터 딕셔너리 추출
-│   │   ├── TST06.BindSampler.py                 - 바인드 변수 샘플러
-│   │   ├── TST07.BindMapper.py                  - 바인드 매퍼
-│   │   ├── TST08.SaveSQLToDB.py                 - SQL을 DB에 저장
-│   │   ├── TST09.ExecuteAndCompareSQL.py        - SQL 실행 및 비교
-│   │   └── TST10.AnalyzeResult.py               - 결과 분석
-│   ├── prompt/                                  - 테스트 관련 프롬프트
-│   ├── work/                                    - 임시 저장 파일
-│   └── README.md                                - 테스트 가이드
-├── 99.Templates/                                OMA 프로젝트 수행을 위한 분석 도구 템플릿
-│   ├── AP01.GenMapperList.txt                   - Mapper 목록 생성 템플릿
-│   ├── AP02.GenSQLTransformTarget.py            - SQL 변환 대상 생성 템플릿
-│   ├── AP03.SQLTransformTarget.py               - SQL 변환 메인 템플릿
-│   ├── AP03.xmlExtractor.py                     - XML 추출 템플릿
-│   ├── AP03.xmlMerger.py                        - XML 병합 템플릿
-│   ├── AP03.TransformValidation.py              - 변환 검증 템플릿
-│   ├── DB01.asct.py                             - 데이터베이스 변환 템플릿
-│   └── TST*.py                                  - 테스트 프로그램 템플릿
-├── SampleApp/                                   샘플 애플리케이션
-│   └── jpetstore-6/                             - JPetStore 6 예제 애플리케이션
-│       ├── src/main/resources/                  - MyBatis mapper files with Oracle SQL
-│       ├── pom.xml                              - Maven 프로젝트 설정
-│       ├── docker-compose.yaml                  - Docker 구성
-│       └── ...                                  - 표준 Maven 프로젝트 구조
-├── initOMA.sh                                   OMA 애플리케이션 변환 프로그램 메인 수행 스크립트
-├── setup.sh                                     사전 요구사항 설정 스크립트
-├── OMA.properties                               프로젝트 설정 파일 (환경 변수)
-├── README.md                                    프로젝트 메인 가이드
-└── THIRD-PARTY-LICENSES.md                      서드파티 라이선스 정보
+sample-oracle-modernization-accelerator/          # OMA 루트 폴더 (OMA_BASE_DIR)
+├── initOMA.sh                                    # 메인 실행 스크립트 (통합 진입점)
+├── oma_env_[프로젝트명].sh                        # 프로젝트별 환경 변수 파일
+├── config/                                       # 프로젝트 설정 파일 디렉토리
+│   └── oma.properties                            # 환경 변수로 사용되는 설정 파일
+├── [프로젝트명]/                                  # 분석 및 변환 단위 (애플리케이션명으로 구분)
+│   ├── dbms/                                     # 데이터베이스 스키마 변환 결과
+│   ├── logs/                                     # 전체 프로세스 로그 디렉토리
+│   ├── application/                              # 애플리케이션 분석 및 변환 결과
+│   │   ├── *.csv                                 # JNDI, Mapper 분석 결과 파일들
+│   │   ├── Discovery-Report.html                 # 애플리케이션 분석 리포트
+│   │   └── transform/                            # SQL 변환 결과 및 로그
+│   └── test/                                     # Unit 테스트 수행 결과 및 도구
+└── bin/                                          # OMA 실행 스크립트 및 템플릿
+    ├── setEnv.sh                                 # 환경 설정 스크립트
+    ├── checkEnv.sh                               # 환경 변수 확인 스크립트
+    ├── processDBSchema.sh                        # DB Schema 변환 스크립트
+    ├── processAppDiscovery.sh                    # 애플리케이션 Discovery 스크립트
+    ├── processSQLTransform.sh                    # SQL 변환 스크립트
+    ├── processSQLTest.sh                         # SQL Unit Test 스크립트
+    ├── database/                                 # 데이터베이스 변환 템플릿
+    ├── application/                              # 애플리케이션 변환 템플릿
+    ├── promptTemplate/                           # AI 프롬프트 템플릿
+    └── test/                                     # 테스트 템플릿
 ```
 
-## Conversion Process
+## 실행 순서 및 의미
 
-The conversion process follows these steps:
+### 1. 환경 설정 (사전 준비)
+```bash
+# 프로젝트 초기 설정 및 환경 변수 파일 생성
+./bin/setEnv.sh
 
-1. **Generate list of mapper files to be converted**
-   - Identifies all Oracle SQL mapper files (_orcl.xml) in the extract directory
+# 환경 변수 로드 (생성된 파일 사용)
+source ./oma_env_프로젝트명.sh
 
-2. **Analyze SQL for Oracle-specific features**
-   - Examines each file for Oracle-specific SQL syntax
-   - Documents findings in sql_analysis.txt
+# 환경 변수 확인
+./bin/checkEnv.sh
+```
 
-3. **Perform Oracle to PostgreSQL conversion**
-   - Converts Oracle SQL to PostgreSQL SQL
-   - Handles special cases like PL/SQL blocks, pagination, sequences
-   - Preserves MyBatis dynamic SQL features
+### 2. 통합 실행 (권장)
+```bash
+# 메인 실행 스크립트 - 단계별 선택 가능
+./initOMA.sh
+```
 
-4. **Validate converted XML files**
-   - Uses xmllint to verify XML syntax correctness
-   - Ensures all files are well-formed
+### 3. 개별 단계 실행 (선택사항)
+```bash
+# Step 1: DB Schema 변환 (Oracle → PostgreSQL)
+./bin/processDBSchema.sh
 
-## Key Conversion Rules
+# Step 2: 애플리케이션 Discovery (JNDI, Mapper 분석)
+./bin/processAppDiscovery.sh
 
-The following Oracle to PostgreSQL conversions are applied:
+# Step 3: SQL 변환 (Oracle SQL → PostgreSQL SQL)
+./bin/processSQLTransform.sh
 
-- ROWNUM → LIMIT/OFFSET
-- NVL() → COALESCE()
-- DECODE() → CASE WHEN
-- SYSDATE → CURRENT_TIMESTAMP
-- FROM DUAL → Remove DUAL
-- Sequence.NEXTVAL → nextval('sequence')
-- LISTAGG → STRING_AGG
-- CONNECT BY → WITH RECURSIVE
-- Date functions:
-  - MONTHS_BETWEEN → AGE/EXTRACT
-  - ADD_MONTHS → + INTERVAL
-  - LAST_DAY → DATE_TRUNC with INTERVAL
+# Step 4: SQL Unit Test (변환된 SQL 테스트)
+./bin/processSQLTest.sh
+```
 
-## PL/SQL Block Handling
+## 변환 작업 단계별 의미
 
-PL/SQL blocks are converted to PostgreSQL's procedural language (PL/pgSQL):
+### Step 1: DB Schema 변환
+- **목적**: Oracle 데이터베이스 스키마를 PostgreSQL로 변환
+- **입력**: Oracle 데이터베이스 연결 정보
+- **출력**: `[프로젝트명]/dbms/` 디렉토리에 변환된 스키마 파일
+- **요구사항**: Source Oracle 시스템과의 연결 필요
 
-- Oracle's DECLARE → PostgreSQL's DO $$ DECLARE
-- Variable declarations without initialization
-- Maintained %TYPE references
-- Added $$ LANGUAGE plpgsql; at the end
+### Step 2: 애플리케이션 Discovery
+- **목적**: Java 애플리케이션에서 SQL 사용 패턴 분석
+- **분석 대상**: JNDI 설정, MyBatis Mapper 파일 등
+- **출력**: 
+  - `[프로젝트명]/application/*.csv` - 분석 결과 데이터
+  - `[프로젝트명]/application/Discovery-Report.html` - 분석 리포트
+- **요구사항**: 애플리케이션 소스 코드 경로 설정
 
-## Usage
+### Step 3: SQL 변환
+- **목적**: Oracle SQL을 PostgreSQL SQL로 변환
+- **입력**: Step 2에서 추출된 SQL 목록
+- **출력**: `[프로젝트명]/application/transform/` 디렉토리에 변환 결과
+- **특징**: AI 기반 변환, 전체/재시도 모드 지원
 
-To run the OMA conversion process:
+### Step 4: SQL Unit Test
+- **목적**: 변환된 SQL의 정확성 검증
+- **테스트 방법**: 원본 Oracle과 변환된 PostgreSQL 결과 비교
+- **출력**: `[프로젝트명]/test/` 디렉토리에 테스트 결과
+- **요구사항**: Oracle 및 PostgreSQL 데이터베이스 연결 필요
 
-1. **Setup**: Execute `./setup/deploy-omabox.sh` to set up the AWS environment (Aurora, DMS, Amazon Q on EC2)
-2. **Setup**: Configure your project settings in `OMA.Properties`
-3. **Initialize**: Execute `./initOMA.sh` and select your project to start the conversion process
-4. **Review**: Check the conversion results in the respective Transform directories
-5. **Validate**: Use the generated test scripts to verify conversion accuracy
+## 주요 특징
 
-The jpetstore-6 example application demonstrates the complete migration workflow from Oracle to PostgreSQL.
+### 환경 변수 기반 설정
+- `OMA_BASE_DIR`: OMA 프로젝트 루트 디렉토리
+- `APPLICATION_NAME`: 변환 대상 애플리케이션명
+- 프로젝트별 독립적인 환경 설정 지원
 
-## Notes
+### AWS 환경 통합
+- AWS 서비스와 연동된 변환 작업
+- 클라우드 기반 AI 모델 활용
+- 확장 가능한 아키텍처
 
-- All conversions preserve MyBatis dynamic SQL features
-- Variable bindings (#{...} and ${...}) are maintained exactly as in the original
-- Comments are added to document the conversion changes
+### 단계별 실행 지원
+- 전체 프로세스 통합 실행
+- 개별 단계별 실행 가능
+- 실패 지점부터 재시작 지원
 
-## License
+## 주의사항
 
-This project uses third-party software components. For detailed license information, see [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+### 사전 요구사항
+- AWS 환경 구성 (DB 연결 관련 작업 시)
+- Oracle 및 PostgreSQL 데이터베이스 연결 정보
+- Java 애플리케이션 소스 코드 경로
+
+### 데이터베이스 연결이 필요한 작업
+- **Step 1**: DB Schema 변환 - Oracle 연결 필요
+- **Step 4**: SQL Unit Test - Oracle 및 PostgreSQL 연결 필요
+
+### 실행 권한
+- 모든 `.sh` 스크립트에 실행 권한 필요
+- `chmod +x *.sh` 명령으로 권한 설정
+
+## 문제 해결
+
+### 환경 변수 미설정 오류
+```bash
+# 환경 변수 파일 확인
+ls -la oma_env_*.sh
+
+# 환경 변수 로드
+source ./oma_env_프로젝트명.sh
+```
+
+### 스크립트 실행 오류
+```bash
+# 실행 권한 확인 및 설정
+chmod +x initOMA.sh
+chmod +x bin/*.sh
+```
+
+### 로그 확인
+```bash
+# 프로젝트별 로그 디렉토리 확인
+ls -la [프로젝트명]/logs/
+```
+

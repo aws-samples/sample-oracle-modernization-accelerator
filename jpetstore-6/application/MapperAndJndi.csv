@@ -1,0 +1,8 @@
+No.,Filename,Namespace,DAO Class,Parent DAO Class,Transform Target
+1,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/OrderMapper.xml,org.mybatis.jpetstore.mapper.OrderMapper,OrderMapper,,Y
+2,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/SequenceMapper.xml,org.mybatis.jpetstore.mapper.SequenceMapper,SequenceMapper,,Y
+3,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/AccountMapper.xml,org.mybatis.jpetstore.mapper.AccountMapper,AccountMapper,,Y
+4,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ProductMapper.xml,org.mybatis.jpetstore.mapper.ProductMapper,ProductMapper,,Y
+5,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ItemMapper.xml,org.mybatis.jpetstore.mapper.ItemMapper,ItemMapper,,Y
+6,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/CategoryMapper.xml,org.mybatis.jpetstore.mapper.CategoryMapper,CategoryMapper,,Y
+7,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/LineItemMapper.xml,org.mybatis.jpetstore.mapper.LineItemMapper,LineItemMapper,,Y

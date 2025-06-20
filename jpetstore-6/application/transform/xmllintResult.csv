@@ -1,0 +1,8 @@
+Path,FileName,Message
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,OrderMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,SequenceMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,AccountMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,ProductMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,ItemMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,CategoryMapper.xml,Success
+/Users/changik/workspace/sample-oracle-modernization-accelerator/jpetstore-6/application/transform/mapper,LineItemMapper.xml,Success

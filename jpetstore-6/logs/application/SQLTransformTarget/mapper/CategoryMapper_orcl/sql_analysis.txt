@@ -1,0 +1,23 @@
+SQL Analysis Results:
+
+1. CategoryMapper_orcl-01-select-getCategory.xml:
+   - Query ID: getCategory
+   - Type: SELECT query
+   - Contains: Basic SELECT with column aliases and WHERE clause
+   - Oracle-specific features: None
+   - Conversion needed: No
+   - Notes: Standard SQL query compatible with PostgreSQL
+
+2. CategoryMapper_orcl-02-select-getCategoryList.xml:
+   - Query ID: getCategoryList
+   - Type: SELECT query
+   - Contains: Basic SELECT with column aliases
+   - Oracle-specific features: None
+   - Conversion needed: No
+   - Notes: Standard SQL query compatible with PostgreSQL
+
+Summary:
+- Total files analyzed: 2
+- Files requiring conversion: 0
+- Files with Oracle-specific features: 0
+- All queries use standard SQL syntax compatible with PostgreSQL

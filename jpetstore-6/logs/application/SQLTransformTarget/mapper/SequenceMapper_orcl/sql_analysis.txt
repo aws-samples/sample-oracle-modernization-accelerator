@@ -1,0 +1,24 @@
+SQL Analysis Results:
+
+1. SequenceMapper_orcl-01-select-getSequence.xml:
+   Query ID: getSequence
+   - Type: SELECT query
+   - Contains: Basic SELECT with WHERE clause using parameter binding
+   - Oracle-specific features: None detected
+   - Conversion needed: No (standard SQL)
+   - Notes: Simple table query with parameter binding #{name}
+
+2. SequenceMapper_orcl-02-update-updateSequence.xml:
+   Query ID: updateSequence
+   - Type: UPDATE query
+   - Contains: Basic UPDATE with SET and WHERE clauses using parameter binding
+   - Oracle-specific features: None detected
+   - Conversion needed: No (standard SQL)
+   - Notes: Simple table update with parameter bindings #{nextId} and #{name}
+
+Summary:
+- Total files analyzed: 2
+- Files requiring conversion: 0
+- Files with standard SQL: 2
+- Oracle-specific patterns found: None
+- All queries use standard SQL syntax compatible with PostgreSQL
