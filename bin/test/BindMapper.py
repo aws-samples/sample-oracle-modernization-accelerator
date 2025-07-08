@@ -15,10 +15,11 @@
 #   * #{variable} format (MyBatis style)
 # - Formats values appropriately based on their data type:
 #   * Strings are quoted
-#   * Dates are converted to TO_DATE() functions
+#   * Dates are converted to TO_DATE() functions for Oracle, TO_TIMESTAMP() for PostgreSQL
 #   * Numbers are inserted as-is
 # - Saves the modified SQL files to the respective 'done' directories
 # - If no bind variables are found or no sample values exist, copies the file unchanged
+# - PostgreSQL files use Oracle sampler files (same bind variables, different SQL syntax)
 #
 # Usage:
 #   python3 DB07.BindMapper.py
@@ -105,9 +106,10 @@ def setup_logging():
     logger.info("=" * 60)
     
     return logger
+
 # Regular expressions for bind variables
-BIND_PATTERN_COLON = r':([a-zA-Z0-9_]+)'
-BIND_PATTERN_HASH = r'#{([a-zA-Z0-9_]+)}'
+BIND_PATTERN_COLON = r':([a-zA-Z][a-zA-Z0-9_]*)'  # Must start with letter
+BIND_PATTERN_HASH = r'#{([a-zA-Z0-9_]+)(?:\s*[,:][^}]*)*}'
 
 def ensure_directories():
     """출력 디렉토리들이 존재하는지 확인하고 생성합니다."""
@@ -139,9 +141,37 @@ def get_bind_variables(sql_file):
         with open(sql_file, 'r', encoding='utf-8') as f:
             sql_content = f.read()
         
-        # Extract bind variables
-        colon_vars = re.findall(BIND_PATTERN_COLON, sql_content)
-        hash_vars = re.findall(BIND_PATTERN_HASH, sql_content)
+        # Remove comment lines and process line by line to avoid false positives
+        lines = sql_content.split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            # Skip comment lines that start with --
+            if line.strip().startswith('--'):
+                processed_lines.append('')  # Keep line structure but remove content
+            else:
+                processed_lines.append(line)
+        
+        processed_content = '\n'.join(processed_lines)
+        
+        # First extract hash variables to avoid conflicts with colon variables inside them
+        hash_matches = re.finditer(BIND_PATTERN_HASH, processed_content)
+        hash_vars = []
+        for match in hash_matches:
+            var_name = match.group(1).strip()  # Remove whitespace from variable name
+            hash_vars.append(var_name)
+        
+        # Remove hash variable patterns from content before extracting colon variables
+        temp_content = processed_content
+        for match in re.finditer(BIND_PATTERN_HASH.replace('([a-zA-Z0-9_]+)', '[a-zA-Z0-9_]+'), processed_content):
+            temp_content = temp_content.replace(match.group(0), '')
+        
+        # Now extract colon variables from the cleaned content
+        colon_vars = re.findall(BIND_PATTERN_COLON, temp_content)
+        
+        # Remove duplicates while preserving order
+        colon_vars = list(dict.fromkeys(colon_vars))
+        hash_vars = list(dict.fromkeys(hash_vars))
         
         if colon_vars or hash_vars:
             logger.debug(f"{sql_file}: 바인드 변수 발견 - colon: {colon_vars}, hash: {hash_vars}")
@@ -157,7 +187,16 @@ def load_bind_values(sql_file):
     sampler_dir = paths['sampler_dir']
     
     base_name = os.path.basename(sql_file)
-    bind_file = os.path.join(sampler_dir, base_name.replace('.sql', '.json'))
+    
+    # PostgreSQL 파일인 경우 Oracle 샘플 파일을 찾도록 변환
+    if '_pg-' in base_name:
+        # PostgreSQL 파일명을 Oracle 파일명으로 변환
+        oracle_base_name = base_name.replace('_pg-', '_orcl-')
+        bind_file = os.path.join(sampler_dir, oracle_base_name.replace('.sql', '.json'))
+        logger.debug(f"PostgreSQL 파일 {base_name}에 대해 Oracle 샘플 파일 사용: {oracle_base_name}")
+    else:
+        # Oracle 파일인 경우 그대로 사용
+        bind_file = os.path.join(sampler_dir, base_name.replace('.sql', '.json'))
     
     if not os.path.exists(bind_file):
         logger.warning(f"바인드 변수 파일을 찾을 수 없습니다: {bind_file}")
@@ -181,7 +220,30 @@ def load_bind_values(sql_file):
         logger.error(f"바인드 변수 파일 읽기 오류 {bind_file}: {str(e)}")
         return {}
 
-def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values):
+def clean_sql_content(sql_content):
+    """SQL 내용에서 템플릿 변수와 불필요한 요소들을 제거합니다."""
+    lines = sql_content.split('\n')
+    cleaned_lines = []
+    
+    for line in lines:
+        # ${queryId} 같은 템플릿 변수가 단독으로 있는 라인 제거
+        if line.strip() == '${queryId}' or line.strip().startswith('${') and line.strip().endswith('}'):
+            continue
+        
+        # 라인 내의 템플릿 변수 패턴 제거 (${variable} 형태)
+        line = re.sub(r'\$\{[^}]+\}', '', line)
+        
+        # 빈 줄이 아니거나 의미있는 내용이 있는 경우만 추가
+        if line.strip() or (cleaned_lines and cleaned_lines[-1].strip()):
+            cleaned_lines.append(line)
+    
+    # 마지막 빈 줄들 제거
+    while cleaned_lines and not cleaned_lines[-1].strip():
+        cleaned_lines.pop()
+    
+    return '\n'.join(cleaned_lines)
+
+def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values, db_type="oracle"):
     """SQL 내용에서 바인드 변수를 실제 값으로 대체합니다."""
     modified_sql = sql_content
     replaced_vars = []
@@ -193,10 +255,29 @@ def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values):
             value = bind_values[var]['value']
             var_type = bind_values[var]['type']
             
-            # Format value based on type
+            # Format value based on type and database
             if var_type == "DATE":
-                formatted_value = f"TO_DATE('{value}', 'YYYYMMDDHH24MISS')"
-            elif var_type == "VARCHAR2" or (isinstance(value, str) and not str(value).isdigit()):
+                if db_type.lower() == "postgresql":
+                    # Determine the appropriate format based on value length
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMM')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDD')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDDHH24MISS')"
+                else:
+                    # Determine the appropriate format based on value length
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMM')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMMDD')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMMDDHH24MISS')"
+            elif var_type == "NUMBER" or isinstance(value, (int, float)):
+                # For NUMBER type or numeric values, don't quote
+                formatted_value = str(value)
+            elif var_type == "VARCHAR2" or var_type == "CHAR" or isinstance(value, str):
+                # For string types, add quotes
                 formatted_value = f"'{value}'"
             else:
                 formatted_value = str(value)
@@ -206,22 +287,84 @@ def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values):
         else:
             missing_vars.append(f":{var}")
     
-    # Replace hash-style bind variables (#{variable})
+    # Replace hash-style bind variables (#{variable}, #{variable:type}, #{variable,jdbcType=TYPE})
     for var in hash_vars:
         if var in bind_values:
             value = bind_values[var]['value']
             var_type = bind_values[var]['type']
             
-            # Format value based on type
-            if var_type == "DATE":
-                formatted_value = f"TO_DATE('{value}', 'YYYYMMDDHH24MISS')"
-            elif var_type == "VARCHAR2" or (isinstance(value, str) and not str(value).isdigit()):
+            # Find all patterns that match this variable (with various type specifications)
+            import re
+            patterns_to_replace = []
+            
+            # Pattern 1: #{variable}
+            pattern1 = f"#{{{var}}}"
+            if pattern1 in modified_sql:
+                patterns_to_replace.append(pattern1)
+            
+            # Pattern 2: #{variable:type} - find all type specifications for this variable
+            pattern2_regex = f"#{{{re.escape(var)}:([a-zA-Z0-9_]+)}}"
+            for match in re.finditer(pattern2_regex, modified_sql):
+                patterns_to_replace.append(match.group(0))
+            
+            # Pattern 3: #{variable,jdbcType=TYPE} - find all jdbcType specifications
+            pattern3_regex = f"#{{{re.escape(var)},jdbcType=([a-zA-Z0-9_]+)}}"
+            for match in re.finditer(pattern3_regex, modified_sql):
+                patterns_to_replace.append(match.group(0))
+            
+            # Pattern 4: #{variable           ,mode=OUT,jdbcType=TYPE} - find patterns with extra whitespace
+            pattern4_regex = f"#{{{re.escape(var)}\s*[,:][^}}]*}}"
+            for match in re.finditer(pattern4_regex, modified_sql):
+                patterns_to_replace.append(match.group(0))
+            
+            # Check if this bind variable is inside a TO_DATE function
+            is_inside_to_date = False
+            for pattern in patterns_to_replace:
+                for match in re.finditer(re.escape(pattern), modified_sql):
+                    start_pos = match.start()
+                    # Look backwards to see if we're inside a TO_DATE function
+                    preceding_text = modified_sql[max(0, start_pos-50):start_pos]
+                    if re.search(r'TO_DATE\s*\([^)]*$', preceding_text, re.IGNORECASE):
+                        is_inside_to_date = True
+                        break
+                if is_inside_to_date:
+                    break
+            
+            # Format value based on context and type
+            if is_inside_to_date:
+                # Inside TO_DATE function, use simple string
+                formatted_value = f"'{value}'"
+            elif var_type == "DATE":
+                if db_type.lower() == "postgresql":
+                    # Determine the appropriate format based on value length
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMM')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDD')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDDHH24MISS')"
+                else:
+                    # Determine the appropriate format based on value length
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMM')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMMDD')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"TO_DATE('{value}', 'YYYYMMDDHH24MISS')"
+            elif var_type == "NUMBER" or isinstance(value, (int, float)):
+                # For NUMBER type or numeric values, don't quote
+                formatted_value = str(value)
+            elif var_type == "VARCHAR2" or var_type == "CHAR" or var_type == "CLOB" or isinstance(value, str):
+                # For string types, add quotes
                 formatted_value = f"'{value}'"
             else:
                 formatted_value = str(value)
             
-            modified_sql = modified_sql.replace(f"#{{{var}}}", formatted_value)
-            replaced_vars.append(f"#{{{var}}} -> {formatted_value}")
+            # Replace all patterns for this variable
+            for pattern in patterns_to_replace:
+                if pattern in modified_sql:
+                    modified_sql = modified_sql.replace(pattern, formatted_value)
+                    replaced_vars.append(f"{pattern} -> {formatted_value}")
         else:
             missing_vars.append(f"#{{{var}}}")
     
@@ -232,6 +375,21 @@ def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values):
         logger.warning(f"샘플 값이 없는 바인드 변수: {', '.join(missing_vars)}")
     
     return modified_sql
+
+def add_oracle_terminator(sql_content):
+    """Oracle SQL에 구문 종료 문자 '/'를 추가합니다."""
+    # SQL 내용을 정리하고 마지막에 '/'가 없으면 추가
+    sql_content = sql_content.strip()
+    
+    # 이미 ';' 또는 '/'로 끝나는지 확인
+    if sql_content.endswith(';'):
+        # ';'를 '/'로 교체
+        sql_content = sql_content[:-1].strip() + '\n/'
+    elif not sql_content.endswith('/'):
+        # '/'가 없으면 추가
+        sql_content = sql_content + '\n/'
+    
+    return sql_content
 
 def process_sql_files(source_dir, target_dir, db_type):
     """소스 디렉토리의 SQL 파일들을 처리하여 타겟 디렉토리에 저장합니다."""
@@ -251,25 +409,61 @@ def process_sql_files(source_dir, target_dir, db_type):
         
         colon_vars, hash_vars, sql_content = get_bind_variables(sql_file)
         
+        # Clean SQL content first (remove template variables like ${queryId})
+        cleaned_sql_content = clean_sql_content(sql_content)
+        
         # Skip if no bind variables found
         if not colon_vars and not hash_vars:
-            shutil.copy(sql_file, os.path.join(target_dir, file_name))
-            logger.debug(f"{file_name}: 바인드 변수 없음, 원본 복사")
-            skipped_count += 1
+            # Even if no bind variables, still clean the SQL content
+            output_file = os.path.join(target_dir, file_name)
+            try:
+                # Oracle SQL인 경우 구문 종료 문자 추가
+                if db_type.lower() == "oracle" and not '_pg-' in file_name:
+                    cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
+                    logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
+                
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(cleaned_sql_content)
+                logger.debug(f"{file_name}: 바인드 변수 없음, 템플릿 정리 후 저장")
+                skipped_count += 1
+            except Exception as e:
+                logger.error(f"{file_name}: 파일 저장 오류 - {str(e)}")
+                shutil.copy(sql_file, output_file)
+                skipped_count += 1
             continue
         
         # Load bind values
         bind_values = load_bind_values(sql_file)
         
         if not bind_values:
-            # If no bind values found, just copy the file
-            shutil.copy(sql_file, os.path.join(target_dir, file_name))
-            logger.warning(f"{file_name}: 바인드 값 없음, 원본 복사")
-            skipped_count += 1
+            # If no bind values found, save cleaned SQL
+            output_file = os.path.join(target_dir, file_name)
+            try:
+                # Oracle SQL인 경우 구문 종료 문자 추가
+                if db_type.lower() == "oracle" and not '_pg-' in file_name:
+                    cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
+                    logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
+                
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(cleaned_sql_content)
+                logger.warning(f"{file_name}: 바인드 값 없음, 템플릿 정리 후 저장")
+                skipped_count += 1
+            except Exception as e:
+                logger.error(f"{file_name}: 파일 저장 오류 - {str(e)}")
+                shutil.copy(sql_file, output_file)
+                skipped_count += 1
             continue
         
-        # Replace bind variables
-        modified_sql = replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values)
+        # Replace bind variables with appropriate database type
+        if '_pg-' in file_name:
+            modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "postgresql")
+        else:
+            modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "oracle")
+        
+        # Oracle SQL인 경우 구문 종료 문자 추가
+        if db_type.lower() == "oracle" and not '_pg-' in file_name:
+            modified_sql = add_oracle_terminator(modified_sql)
+            logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
         
         # Save modified SQL
         output_file = os.path.join(target_dir, file_name)

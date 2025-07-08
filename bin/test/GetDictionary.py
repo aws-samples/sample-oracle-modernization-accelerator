@@ -69,18 +69,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class DatabaseDictionaryExtractor:
-    def __init__(self, username, password, connect_string):
+    def __init__(self, admin_username, admin_password, connect_string, service_users):
         """
         데이터베이스 딕셔너리 추출기 초기화
         
         Args:
-            username (str): 데이터베이스 사용자 이름
-            password (str): 데이터베이스 비밀번호
+            admin_username (str): 관리자 사용자 이름 (ORACLE_ADM_USER)
+            admin_password (str): 관리자 비밀번호
             connect_string (str): 데이터베이스 연결 문자열
+            service_users (list): 서비스 사용자 목록 (ORACLE_SVC_USER_LIST)
         """
-        self.username = username
-        self.password = password
+        self.admin_username = admin_username
+        self.admin_password = admin_password
         self.connect_string = connect_string
+        self.service_users = service_users
         self.dictionary = {}
         
     def execute_sql(self, sql_command):
@@ -120,10 +122,10 @@ class DatabaseDictionaryExtractor:
             logger.info(f"SQL 실행 중... (임시 파일: {temp_file_path})")
             
             # SQLPlus 명령 실행 (타임아웃 추가)
-            cmd = f"sqlplus -S {self.username}/{self.password}@{self.connect_string} @{temp_file_path}"
+            cmd = f"sqlplus -S {self.admin_username}/{self.admin_password}@{self.connect_string} @{temp_file_path}"
             
             # 명령어 로깅 (비밀번호 마스킹)
-            masked_cmd = cmd.replace(self.password, '*' * len(self.password))
+            masked_cmd = cmd.replace(self.admin_password, '*' * len(self.admin_password))
             logger.debug(f"실행 명령: {masked_cmd}")
             
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True, 
@@ -210,14 +212,17 @@ class DatabaseDictionaryExtractor:
             logger.error(f"테스트 결과: {result}")
             return False
 
-    def get_all_tables(self):
+    def get_all_tables(self, service_user):
         """
-        데이터베이스의 모든 테이블 목록을 가져옵니다.
+        특정 서비스 사용자의 모든 테이블 목록을 가져옵니다.
         
+        Args:
+            service_user (str): 서비스 사용자 이름
+            
         Returns:
             list: 테이블 이름 목록
         """
-        logger.info("데이터베이스에서 테이블 목록 가져오는 중...")
+        logger.info(f"서비스 사용자 '{service_user}'의 테이블 목록 가져오는 중...")
         
         # 먼저 연결 테스트
         test_sql = """
@@ -241,8 +246,8 @@ class DatabaseDictionaryExtractor:
         
         logger.info("데이터베이스 연결 확인됨")
         
-        # 테이블 목록 조회
-        sql = """
+        # 특정 서비스 사용자의 테이블 목록 조회
+        sql = f"""
         SET PAGESIZE 0
         SET FEEDBACK OFF
         SET HEADING OFF
@@ -251,39 +256,18 @@ class DatabaseDictionaryExtractor:
         SET LINESIZE 1000
         
         SELECT table_name 
-        FROM user_tables 
+        FROM all_tables 
+        WHERE owner = '{service_user.upper()}'
         ORDER BY table_name;
         
         EXIT;
         """
         
-        logger.info("USER_TABLES에서 테이블 목록 조회 중...")
+        logger.info(f"ALL_TABLES에서 '{service_user}' 소유 테이블 목록 조회 중...")
         result = self.execute_sql(sql)
         
         if not result:
-            logger.warning("USER_TABLES에서 결과를 가져올 수 없습니다. ALL_TABLES로 시도합니다.")
-            
-            # ALL_TABLES로 재시도
-            sql_all = """
-            SET PAGESIZE 0
-            SET FEEDBACK OFF
-            SET HEADING OFF
-            SET ECHO OFF
-            SET VERIFY OFF
-            SET LINESIZE 1000
-            
-            SELECT table_name 
-            FROM all_tables 
-            WHERE owner = USER
-            ORDER BY table_name;
-            
-            EXIT;
-            """
-            
-            result = self.execute_sql(sql_all)
-        
-        if not result:
-            logger.error("테이블 목록을 가져올 수 없습니다.")
+            logger.error(f"서비스 사용자 '{service_user}'의 테이블 목록을 가져올 수 없습니다.")
             return []
         
         tables = [line.strip() for line in result.splitlines() if line.strip()]
@@ -291,11 +275,11 @@ class DatabaseDictionaryExtractor:
         # SQLPlus 메시지 및 빈 줄 제거
         tables = [table for table in tables if table and not table.startswith("SQL") and not table.startswith("세션이")]
         
-        logger.info(f"{len(tables)}개의 테이블을 발견했습니다.")
+        logger.info(f"서비스 사용자 '{service_user}'에서 {len(tables)}개의 테이블을 발견했습니다.")
         
         # 테이블 목록 로깅 (처음 10개만)
         if tables:
-            logger.info("발견된 테이블 목록 (처음 10개):")
+            logger.info(f"발견된 테이블 목록 (처음 10개):")
             for i, table in enumerate(tables[:10]):
                 logger.info(f"  {i+1}. {table}")
             if len(tables) > 10:
@@ -303,19 +287,17 @@ class DatabaseDictionaryExtractor:
         
         return tables
     
-    def get_table_columns(self, table_name):
+    def get_table_columns(self, table_name, service_user):
         """
         특정 테이블의 모든 컬럼 정보를 가져옵니다.
         
         Args:
             table_name (str): 테이블 이름
+            service_user (str): 서비스 사용자 이름
             
         Returns:
             list: 컬럼 정보 목록 (이름, 데이터 타입)
         """
-        # 테이블 이름에 따옴표 추가
-        quoted_table = f'"{table_name}"'
-        
         sql = f"""
         SET PAGESIZE 0
         SET FEEDBACK OFF
@@ -325,8 +307,9 @@ class DatabaseDictionaryExtractor:
         SET LINESIZE 1000
         
         SELECT column_name, data_type, data_length, nullable
-        FROM user_tab_columns
+        FROM all_tab_columns
         WHERE table_name = '{table_name}'
+        AND owner = '{service_user.upper()}'
         ORDER BY column_id;
         
         EXIT;
@@ -364,7 +347,7 @@ class DatabaseDictionaryExtractor:
         
         return columns
     
-    def get_column_sample_values(self, table_name, column_name, data_type, sample_count=1):
+    def get_column_sample_values(self, table_name, column_name, data_type, service_user, sample_count=1):
         """
         특정 컬럼의 샘플 값을 가져옵니다.
         
@@ -372,6 +355,7 @@ class DatabaseDictionaryExtractor:
             table_name (str): 테이블 이름
             column_name (str): 컬럼 이름
             data_type (str): 데이터 타입
+            service_user (str): 서비스 사용자 이름
             sample_count (int): 가져올 샘플 개수 (기본값: 1)
             
         Returns:
@@ -382,8 +366,8 @@ class DatabaseDictionaryExtractor:
             return []
         
         try:
-            # 테이블과 컬럼 이름에 따옴표 추가
-            quoted_table = f'"{table_name}"'
+            # 테이블과 컬럼 이름에 스키마 추가
+            qualified_table = f'"{service_user.upper()}"."{table_name}"'
             quoted_column = f'"{column_name}"'
             
             sql = f"""
@@ -396,7 +380,7 @@ class DatabaseDictionaryExtractor:
             SET LONG 1000
             
             SELECT {quoted_column}
-            FROM {quoted_table}
+            FROM {qualified_table}
             WHERE {quoted_column} IS NOT NULL
             AND ROWNUM = 1;
             
@@ -411,7 +395,7 @@ class DatabaseDictionaryExtractor:
             
             return values
         except Exception as e:
-            logger.error(f"컬럼 {table_name}.{column_name} 샘플 값 추출 중 오류: {e}")
+            logger.error(f"컬럼 {service_user}.{table_name}.{column_name} 샘플 값 추출 중 오류: {e}")
             return []
     
     def classify_column_type(self, column_name, data_type):
@@ -468,49 +452,72 @@ class DatabaseDictionaryExtractor:
     
     def extract_dictionary(self):
         """
-        데이터베이스의 모든 테이블과 컬럼 정보를 추출하여 딕셔너리를 생성합니다.
+        모든 서비스 사용자의 테이블과 컬럼 정보를 추출하여 딕셔너리를 생성합니다.
         """
         logger.info("데이터베이스 딕셔너리 추출 시작...")
         start_time = datetime.now()
         
-        # 모든 테이블 목록 가져오기
-        tables = self.get_all_tables()
-        
-        # 각 테이블의 컬럼 정보 및 샘플 데이터 추출
-        for i, table_name in enumerate(tables, 1):
-            logger.info(f"테이블 처리 중: {table_name} ({i}/{len(tables)})")
+        # 각 서비스 사용자별로 처리
+        for service_user in self.service_users:
+            logger.info(f"서비스 사용자 '{service_user}' 처리 시작...")
             
-            # 테이블의 컬럼 정보 가져오기
-            columns = self.get_table_columns(table_name)
+            # 서비스 사용자의 모든 테이블 목록 가져오기
+            tables = self.get_all_tables(service_user)
             
-            # 테이블 정보 저장
-            self.dictionary[table_name] = {
-                'columns': {}
-            }
+            if not tables:
+                logger.warning(f"서비스 사용자 '{service_user}'에서 테이블을 찾을 수 없습니다.")
+                continue
             
-            # 각 컬럼의 샘플 데이터 추출
-            for column in columns:
-                column_name = column['name']
-                data_type = column['type']
+            # 서비스 사용자별 딕셔너리 초기화
+            if service_user not in self.dictionary:
+                self.dictionary[service_user] = {}
+            
+            # 각 테이블의 컬럼 정보 및 샘플 데이터 추출
+            for i, table_name in enumerate(tables, 1):
+                logger.info(f"테이블 처리 중: {service_user}.{table_name} ({i}/{len(tables)})")
                 
-                # 컬럼 유형 분류
-                category = self.classify_column_type(column_name, data_type)
+                # 테이블의 컬럼 정보 가져오기
+                columns = self.get_table_columns(table_name, service_user)
                 
-                # 샘플 값 추출
-                sample_values = self.get_column_sample_values(table_name, column_name, data_type)
-                
-                # 컬럼 정보 저장
-                self.dictionary[table_name]['columns'][column_name] = {
-                    'type': data_type,
-                    'category': category,
-                    'length': column['length'],
-                    'nullable': column['nullable'],
-                    'sample_values': sample_values
+                # 테이블 정보 저장
+                self.dictionary[service_user][table_name] = {
+                    'columns': {}
                 }
+                
+                # 각 컬럼의 샘플 데이터 추출
+                for column in columns:
+                    column_name = column['name']
+                    data_type = column['type']
+                    
+                    # 컬럼 유형 분류
+                    category = self.classify_column_type(column_name, data_type)
+                    
+                    # 샘플 값 추출
+                    sample_values = self.get_column_sample_values(table_name, column_name, data_type, service_user)
+                    
+                    # 컬럼 정보 저장
+                    self.dictionary[service_user][table_name]['columns'][column_name] = {
+                        'type': data_type,
+                        'category': category,
+                        'length': column['length'],
+                        'nullable': column['nullable'],
+                        'sample_values': sample_values
+                    }
+            
+            logger.info(f"서비스 사용자 '{service_user}' 처리 완료 ({len(tables)}개 테이블)")
         
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
         logger.info(f"데이터베이스 딕셔너리 추출 완료 (소요 시간: {duration:.2f}초)")
+        
+        # 전체 통계 출력
+        total_tables = sum(len(user_tables) for user_tables in self.dictionary.values())
+        total_columns = sum(
+            len(table_data.get('columns', {})) 
+            for user_tables in self.dictionary.values() 
+            for table_data in user_tables.values()
+        )
+        logger.info(f"전체 통계: {len(self.service_users)}개 사용자, {total_tables}개 테이블, {total_columns}개 컬럼")
     
     def save_dictionary(self, output_file="all_dictionary.json"):
         """
@@ -530,13 +537,25 @@ class DatabaseDictionaryExtractor:
         
         # 파일 크기 및 통계 정보 출력
         file_size = os.path.getsize(output_path)
-        table_count = len(self.dictionary)
-        total_columns = sum(len(table_data.get('columns', {})) for table_data in self.dictionary.values())
+        user_count = len(self.dictionary)
+        total_tables = sum(len(user_tables) for user_tables in self.dictionary.values())
+        total_columns = sum(
+            len(table_data.get('columns', {})) 
+            for user_tables in self.dictionary.values() 
+            for table_data in user_tables.values()
+        )
         
         logger.info(f"딕셔너리가 {output_path}에 저장되었습니다.")
         logger.info(f"파일 크기: {file_size:,} bytes")
-        logger.info(f"테이블 수: {table_count}")
+        logger.info(f"서비스 사용자 수: {user_count}")
+        logger.info(f"총 테이블 수: {total_tables}")
         logger.info(f"총 컬럼 수: {total_columns}")
+        
+        # 각 서비스 사용자별 통계 출력
+        for service_user, user_tables in self.dictionary.items():
+            table_count = len(user_tables)
+            column_count = sum(len(table_data.get('columns', {})) for table_data in user_tables.values())
+            logger.info(f"  - {service_user}: {table_count}개 테이블, {column_count}개 컬럼")
     
     def run(self):
         """
@@ -555,9 +574,10 @@ def check_environment_variables():
     
     # 필수 환경변수 목록
     required_env_vars = [
-        'ORACLE_SVC_USER',
-        'ORACLE_SVC_PASSWORD', 
-        'ORACLE_SVC_CONNECT_STRING'
+        'ORACLE_ADM_USER',
+        'ORACLE_ADM_PASSWORD', 
+        'ORACLE_SVC_CONNECT_STRING',
+        'ORACLE_SVC_USER_LIST'
     ]
     
     # 권장 환경변수 목록
@@ -618,19 +638,34 @@ def check_environment_variables():
     # 디렉토리 경로 확인
     logger.info(f"딕셔너리 저장 경로: {os.path.abspath(DICTIONARY_DIR)}")
     logger.info(f"로그 파일 저장 경로: {os.path.abspath(TEST_LOGS_FOLDER)}")
+    
+    # 서비스 사용자 목록 파싱 및 검증
+    service_user_list = os.environ.get('ORACLE_SVC_USER_LIST', '')
+    service_users = [user.strip() for user in service_user_list.split(',') if user.strip()]
+    
+    if not service_users:
+        logger.error("ORACLE_SVC_USER_LIST가 비어있거나 올바르지 않습니다.")
+        logger.error("예시: export ORACLE_SVC_USER_LIST=user1,user2,user3")
+        exit(1)
+    
+    logger.info(f"서비스 사용자 목록 ({len(service_users)}개):")
+    for i, user in enumerate(service_users, 1):
+        logger.info(f"  {i}. {user}")
+    
+    return service_users
 
 
 if __name__ == "__main__":
-    # 환경변수 확인
-    check_environment_variables()
+    # 환경변수 확인 및 서비스 사용자 목록 가져오기
+    service_users = check_environment_variables()
     
     # 데이터베이스 연결 정보
-    DB_USERNAME = os.environ.get('ORACLE_SVC_USER')
-    DB_PASSWORD = os.environ.get('ORACLE_SVC_PASSWORD')
+    DB_ADM_USERNAME = os.environ.get('ORACLE_ADM_USER')
+    DB_ADM_PASSWORD = os.environ.get('ORACLE_ADM_PASSWORD')
     DB_CONNECT_STRING = os.environ.get('ORACLE_SVC_CONNECT_STRING')
     
     # 딕셔너리 추출기 생성
-    extractor = DatabaseDictionaryExtractor(DB_USERNAME, DB_PASSWORD, DB_CONNECT_STRING)
+    extractor = DatabaseDictionaryExtractor(DB_ADM_USERNAME, DB_ADM_PASSWORD, DB_CONNECT_STRING, service_users)
     
     # 연결 테스트 먼저 수행
     logger.info("=" * 60)
@@ -640,9 +675,10 @@ if __name__ == "__main__":
     if not extractor.test_connection():
         logger.error("데이터베이스 연결에 실패했습니다. 다음 사항을 확인해주세요:")
         logger.error("1. Oracle 서버가 실행 중인지 확인")
-        logger.error("2. 연결 정보가 올바른지 확인 (ORACLE_SVC_USER, ORACLE_SVC_PASSWORD, ORACLE_SVC_CONNECT_STRING)")
+        logger.error("2. 연결 정보가 올바른지 확인 (ORACLE_ADM_USER, ORACLE_ADM_PASSWORD, ORACLE_SVC_CONNECT_STRING)")
         logger.error("3. SQLPlus가 설치되어 있고 PATH에 포함되어 있는지 확인")
         logger.error("4. 네트워크 연결 상태 확인")
+        logger.error("5. 관리자 계정이 서비스 사용자의 테이블에 접근할 수 있는 권한이 있는지 확인")
         exit(1)
     
     # 딕셔너리 추출 실행

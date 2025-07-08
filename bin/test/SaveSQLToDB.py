@@ -193,11 +193,11 @@ def create_sqllist_table(conn):
                 # 테이블 생성 SQL
                 create_table_sql = """
                 CREATE TABLE sqllist (
-                  sql_id          varchar(100) not null,
-                  app_name        varchar(20) not null,
+                  sql_id          varchar(200) not null,
+                  app_name        varchar(100) not null,
                   stmt_type       char(1) not null,
-                  orcl_file_path  varchar(150),
-                  pg_file_path    varchar(150),
+                  orcl_file_path  varchar(300),
+                  pg_file_path    varchar(300),
                   orcl            text,
                   pg              text, 
                   orcl_result     text,
@@ -226,44 +226,41 @@ def create_sqllist_table(conn):
         logger.error(f"테이블 생성 오류: {e}")
         conn.rollback()
         sys.exit(1)
-                  sql_id          varchar(100) not null,
-                  app_name        varchar(20) not null,
-                  stmt_type       char(1) not null,
-                  orcl_file_path  varchar(150),
-                  pg_file_path    varchar(150),
-                  orcl            text,
-                  pg              text, 
-                  orcl_result     text,
-                  pg_result       text,
-                  same            char(1),
-                  PRIMARY KEY (sql_id, app_name, stmt_type)
-                );
-
-                COMMENT ON COLUMN sqllist.sql_id IS 'Unique SQL statement ID. File_Name.ID';
-                COMMENT ON COLUMN sqllist.app_name IS 'Application name';
-                COMMENT ON COLUMN sqllist.stmt_type IS 'SQL statement type. S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block';
-                COMMENT ON COLUMN sqllist.orcl_file_path IS 'Oracle XML file path of this SQL statement';
-                COMMENT ON COLUMN sqllist.pg_file_path IS 'PostgreSQL XML file path of this SQL statement';
-                COMMENT ON COLUMN sqllist.orcl IS 'Origin Oracle statement';
-                COMMENT ON COLUMN sqllist.pg IS 'Transformed to Postgres statement';
-                COMMENT ON COLUMN sqllist.same IS 'Is it same orcl_result and pg_result? Y: same, N: different';
-                """
-                
-                cursor.execute(create_table_sql)
-                conn.commit()
-                print("sqllist 테이블이 성공적으로 생성되었습니다.")
-            else:
-                print("sqllist 테이블이 이미 존재합니다.")
-                
-    except Exception as e:
-        print(f"테이블 생성 오류: {e}")
-        conn.rollback()
-        sys.exit(1)
 
 def determine_sql_type(sql_content):
     """
-    SQL 내용을 분석하여 SQL 문 유형을 결정합니다.
+    SQL 파일 상단의 "-- SQL Type:" 주석에서 SQL 문 유형을 추출합니다.
+    주석이 없는 경우 SQL 내용을 분석하여 유형을 결정합니다.
     """
+    # SQL 파일 상단에서 "-- SQL Type:" 주석 찾기
+    lines = sql_content.split('\n')
+    for line in lines[:10]:  # 상위 10줄만 확인
+        line = line.strip()
+        if line.startswith('-- SQL Type:'):
+            # "-- SQL Type: insert" 형태에서 타입 추출
+            type_match = re.search(r'--\s*SQL\s+Type\s*:\s*(\w+)', line, re.IGNORECASE)
+            if type_match:
+                sql_type_str = type_match.group(1).lower()
+                logger.debug(f"주석에서 SQL 타입 추출: {sql_type_str}")
+                
+                # 타입 문자열을 stmt_type 코드로 변환
+                if sql_type_str == 'select':
+                    return 'S'
+                elif sql_type_str == 'insert':
+                    return 'I'
+                elif sql_type_str == 'update':
+                    return 'U'
+                elif sql_type_str == 'delete':
+                    return 'D'
+                elif sql_type_str == 'sql':
+                    return 'O'  # 기타 SQL
+                else:
+                    logger.warning(f"알 수 없는 SQL 타입: {sql_type_str}")
+                    return 'O'
+    
+    # 주석이 없는 경우 기존 방식으로 SQL 내용 분석
+    logger.debug("SQL Type 주석을 찾을 수 없어 SQL 내용을 분석합니다.")
+    
     # SQL 내용에서 주석 제거
     sql_without_comments = re.sub(r'/\*.*?\*/', '', sql_content, flags=re.DOTALL)
     sql_without_comments = re.sub(r'--.*?$', '', sql_without_comments, flags=re.MULTILINE)
@@ -289,6 +286,7 @@ def extract_app_name(filename):
     """
     파일 이름에서 어플리케이션 이름을 추출합니다.
     파일 이름의 첫 번째 부분이 어플리케이션 이름입니다.
+    Oracle과 PostgreSQL 파일명의 차이점(orcl/pg)을 제거하여 동일한 app_name을 생성합니다.
     """
     # 파일 이름에서 확장자 제거
     base_name = os.path.basename(filename)
@@ -296,7 +294,12 @@ def extract_app_name(filename):
     
     # 첫 번째 부분이 어플리케이션 이름
     if len(name_parts) > 1:
-        return name_parts[0]
+        app_name = name_parts[0]
+        # orcl과 pg 부분을 제거하여 동일한 app_name 생성
+        # 예: AccessLoggingDao_sqlMap_orcl-01-insert-accessLoggingDao
+        # -> AccessLoggingDao_sqlMap-01-insert-accessLoggingDao
+        app_name_normalized = app_name.replace('_orcl-', '-').replace('_pg-', '-')
+        return app_name_normalized
     
     return "unknown"
 
@@ -304,27 +307,24 @@ def extract_sql_id(filename):
     """
     파일 이름에서 SQL ID를 추출합니다.
     파일 이름에서 .sql 확장자를 제외한 부분입니다.
+    Oracle과 PostgreSQL 파일명의 차이점(orcl/pg)을 제거하여 동일한 SQL ID를 생성합니다.
     """
     # 파일 이름에서 확장자 제거
     base_name = os.path.basename(filename)
     sql_id_with_ext = os.path.splitext(base_name)[0]
     
+    # orcl과 pg 부분을 제거하여 동일한 SQL ID 생성
+    # 예: AccessLoggingDao_sqlMap_orcl-01-insert-accessLoggingDao.insertAccessLog.accessLoggingDao.insertAccessLog
+    # -> AccessLoggingDao_sqlMap-01-insert-accessLoggingDao.insertAccessLog.accessLoggingDao.insertAccessLog
+    sql_id_normalized = sql_id_with_ext.replace('_orcl-', '-').replace('_pg-', '-')
+    
     # 어플리케이션 이름 제외 (첫 번째 부분 제외)
-    parts = sql_id_with_ext.split('.')
+    parts = sql_id_normalized.split('.')
     if len(parts) > 1:
         return '.'.join(parts[1:])  # 첫 번째 부분(앱 이름) 제외
     
-    return sql_id_with_ext
+    return sql_id_normalized
 
-def process_sql_file(file_path, is_oracle):
-    """
-    SQL 파일을 처리하여 필요한 정보를 추출합니다.
-    """
-    try:
-        # 파일 내용 읽기
-        with open(file_path, 'r', encoding='utf-8') as f:
-            sql_content = f.read()
-        
 def process_sql_file(file_path, is_oracle):
     """
     SQL 파일을 처리하여 필요한 정보를 추출합니다.
