@@ -1,8 +1,0 @@
-No.,FileName
-1,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/OrderMapper.xml
-2,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/SequenceMapper.xml
-3,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/AccountMapper.xml
-4,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ProductMapper.xml
-5,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/ItemMapper.xml
-6,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/CategoryMapper.xml
-7,/Users/changik/workspace/SampleApp/jpetstore-6/src/main/resources/org/mybatis/jpetstore/mapper/LineItemMapper.xml
