@@ -40,7 +40,7 @@ echo -e "${CYAN}├── oma_env_[프로젝트명].sh                        �
 echo -e "${CYAN}├── config/                                      프로젝트 설정 파일 디렉토리${NC}"
 echo -e "${CYAN}│   └── oma.properties                           - 환경 변수로 사용되는 설정 파일${NC}"
 echo -e "${CYAN}├── [프로젝트명]/                                  분석 및 변환 단위 : 애플리케이션명으로 구분${NC}"
-echo -e "${CYAN}│   ├── dbms/                                    - 데이터베이스 스키마 변환 결과${NC}"
+echo -e "${CYAN}│   ├── database/                                 - 데이터베이스 스키마 변환 결과${NC}"
 echo -e "${CYAN}│   ├── logs/                                    - 전체 프로세스 로그 디렉토리${NC}"
 echo -e "${CYAN}│   ├── application/                             - 애플리케이션 분석 및 변환 결과${NC}"
 echo -e "${CYAN}│   │   ├── *.csv                                - JNDI, Mapper 분석 결과 파일들${NC}"
