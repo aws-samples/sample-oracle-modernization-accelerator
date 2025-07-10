@@ -1,0 +1,331 @@
+# ORACLE TO MYSQL CONVERSION RULES
+
+## PROCESSING ORDER (Applied in Phase 3 of Main Process):
+
+### Phase 3A - Basic Conversions (Apply First):
+- A. DUAL Table Removal (Clean up syntax first)
+- B. Package Handling (Convert to underscore naming)
+- C. Basic Functions
+- D. String Functions
+- E. Date Functions  
+- F. Sequence Handling (AUTO_INCREMENT)
+
+### Phase 3B - Advanced Processing (Apply Second):
+- G. Advanced NULL Handling
+- H. Additional Oracle Functions (High Priority)
+- I. Aggregate and Analytic Functions
+- J. Pagination
+- K. MyBatis JDBC Types
+- L. Stored Procedure Enhancement
+- M. ResultMap Column Names
+
+### Phase 3C - Complex Conversions (Apply Third):
+- Hierarchical Queries (CONNECT BY)
+- MERGE Statements  
+- Regular Expressions
+
+### Phase 4 - Final Step (Apply Last):
+- No additional processing required (MySQL handles automatic type conversion)
+
+## CORE ORACLE TO MYSQL FUNCTION CONVERSIONS
+
+### A. DUAL Table Removal (Clean up syntax first):
+- `SELECT 'Hello' FROM DUAL` → `SELECT 'Hello'`
+- `SELECT #{variable} FROM DUAL` → `SELECT #{variable}`
+- **Note**: MySQL doesn't require FROM clause for simple SELECT statements
+
+### B. Package Handling (Convert to underscore naming):
+- Convert Oracle package.procedure format to MySQL naming convention
+- `PACKAGE_NAME.PROCEDURE_NAME` → `PACKAGE_NAME_PROCEDURE_NAME`
+- `PACKAGE_NAME.FUNCTION_NAME` → `PACKAGE_NAME_FUNCTION_NAME`
+- Handle nested packages: `SCHEMA.PACKAGE.PROCEDURE` → `PACKAGE_PROCEDURE` (remove schema first, then convert package)
+- **Note**: MySQL doesn't support packages - use underscore naming convention to maintain logical grouping
+
+### C. Basic Functions:
+- `NVL(a, b)` → `IFNULL(a, b)` (MySQL preferred) or `COALESCE(a, b)`
+- `SYSDATE` → `NOW()` (MySQL preferred) or `CURRENT_TIMESTAMP`
+- `SUBSTR(str, pos, len)` → `SUBSTRING(str, pos, len)`
+- `SUBSTR(str, pos)` → `SUBSTRING(str, pos)` (from position to end)
+- `DECODE(...)` → `CASE WHEN ... END`
+- `GREATEST(a, b, c)` → `GREATEST(a, b, c)` (MySQL supports this)
+- `LEAST(a, b, c)` → `LEAST(a, b, c)` (MySQL supports this)
+- `SIGN(n)` → `SIGN(n)` (MySQL supports this)
+- `ABS(n)` → `ABS(n)` (MySQL supports this)
+- `ROUND(n, d)` → `ROUND(n, d)` (MySQL supports this)
+- `TRUNC(n, d)` → `TRUNCATE(n, d)` (function name different)
+- `MOD(n, m)` → `MOD(n, m)` (MySQL supports this)
+
+### D. String Functions:
+- `INSTR(str, substr)` → `LOCATE(substr, str)` (parameter order reversed)
+- `INSTR(str, substr, start_pos)` → `LOCATE(substr, str, start_pos)`
+- `LPAD(str, len, pad)` → `LPAD(str, len, pad)` (MySQL supports this)
+- `RPAD(str, len, pad)` → `RPAD(str, len, pad)` (MySQL supports this)
+- `TO_CHAR(num)` → `CAST(num AS CHAR)` or `CONVERT(num, CHAR)`
+- `TO_NUMBER(str)` → `CAST(str AS DECIMAL)` (simple conversion)
+- `TO_NUMBER(str, format)` → Requires custom logic for format handling
+- `LENGTH(str)` → `CHAR_LENGTH(str)` (for character count, recommended)
+- `LENGTHB(str)` → `LENGTH(str)` (for byte count)
+- `UPPER(str)` → `UPPER(str)` (MySQL supports this)
+- `LOWER(str)` → `LOWER(str)` (MySQL supports this)
+- `LTRIM(str)` → `LTRIM(str)` (MySQL supports this)
+- `RTRIM(str)` → `RTRIM(str)` (MySQL supports this)
+- `TRIM(str)` → `TRIM(str)` (MySQL supports this)
+
+### E. Date Functions:
+- `ADD_MONTHS(date, n)` → `DATE_ADD(date, INTERVAL n MONTH)`
+- `MONTHS_BETWEEN(d1, d2)` → `TIMESTAMPDIFF(MONTH, d2, d1)`
+- `LAST_DAY(date)` → `LAST_DAY(date)` (MySQL supports this)
+- `TRUNC(date, 'DD')` → `DATE(date)`
+- `TRUNC(date, 'MM')` → `DATE_FORMAT(date, '%Y-%m-01')` or `DATE_SUB(date, INTERVAL DAY(date)-1 DAY)`
+- `TRUNC(date, 'YYYY')` → `DATE_FORMAT(date, '%Y-01-01')` or `DATE_SUB(date, INTERVAL DAYOFYEAR(date)-1 DAY)`
+- `TO_DATE(str, 'YYYY-MM-DD')` → `STR_TO_DATE(str, '%Y-%m-%d')`
+- `TO_DATE(str, 'DD/MM/YYYY')` → `STR_TO_DATE(str, '%d/%m/%Y')`
+- `TO_CHAR(date, 'YYYY-MM-DD')` → `DATE_FORMAT(date, '%Y-%m-%d')`
+- `TO_CHAR(date, 'DD/MM/YYYY')` → `DATE_FORMAT(date, '%d/%m/%Y')`
+- `EXTRACT(YEAR FROM date)` → `YEAR(date)` or `EXTRACT(YEAR FROM date)`
+- `EXTRACT(MONTH FROM date)` → `MONTH(date)` or `EXTRACT(MONTH FROM date)`
+- `EXTRACT(DAY FROM date)` → `DAY(date)` or `EXTRACT(DAY FROM date)`
+- **Note**: Oracle and MySQL date format strings are different - requires format conversion
+
+#### Oracle to MySQL Date Format Conversion:
+- Oracle `YYYY` → MySQL `%Y` (4-digit year)
+- Oracle `YY` → MySQL `%y` (2-digit year)
+- Oracle `MM` → MySQL `%m` (month 01-12)
+- Oracle `MON` → MySQL `%b` (abbreviated month name)
+- Oracle `MONTH` → MySQL `%M` (full month name)
+- Oracle `DD` → MySQL `%d` (day 01-31)
+- Oracle `HH24` → MySQL `%H` (hour 00-23)
+- Oracle `HH` → MySQL `%h` (hour 01-12)
+- Oracle `MI` → MySQL `%i` (minutes 00-59)
+- Oracle `SS` → MySQL `%s` (seconds 00-59)
+
+### F. Sequence Handling (AUTO_INCREMENT):
+- `SEQ_NAME.NEXTVAL` → Use AUTO_INCREMENT column or `LAST_INSERT_ID()`
+- `SEQ_NAME.CURRVAL` → `LAST_INSERT_ID()`
+- **Note**: MySQL doesn't have sequences. Use AUTO_INCREMENT columns instead.
+- For existing sequence usage, consider table-based sequence simulation:
+  ```sql
+  CREATE TABLE sequences (
+      name VARCHAR(50) PRIMARY KEY,
+      current_value BIGINT NOT NULL DEFAULT 0
+  );
+  ```
+
+### G. Advanced NULL Handling:
+- `NVL2(expr1, expr2, expr3)` → `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
+- `NULLIF(expr1, expr2)` → `NULLIF(expr1, expr2)` (MySQL supports this)
+- Mixed type COALESCE: Handle with explicit CAST when needed
+- Date COALESCE: `COALESCE(hire_date, '1900-01-01')` → `COALESCE(hire_date, DATE('1900-01-01'))`
+
+### H. Additional Oracle Functions (High Priority):
+- `ROWID` → No direct equivalent (use PRIMARY KEY or AUTO_INCREMENT)
+- `ROWNUM` → Use `LIMIT` or window functions with `ROW_NUMBER()`
+- `LEVEL` (in hierarchical queries) → Use recursive CTE depth tracking
+- `SYS_GUID()` → `UUID()` (MySQL function)
+- `USER` → `USER()` (MySQL function)
+- `CHR(n)` → `CHAR(n)` (MySQL function)
+- `ASCII(str)` → `ASCII(str)` (MySQL supports this)
+- `INITCAP(str)` → No direct equivalent, use combination of UPPER/LOWER functions
+
+### I. Aggregate and Analytic Functions:
+- `COUNT(*)` → `COUNT(*)` (MySQL supports this)
+- `SUM(col)` → `SUM(col)` (MySQL supports this)
+- `AVG(col)` → `AVG(col)` (MySQL supports this)
+- `MIN(col)` → `MIN(col)` (MySQL supports this)
+- `MAX(col)` → `MAX(col)` (MySQL supports this)
+- `STDDEV(col)` → `STDDEV(col)` or `STD(col)` (MySQL)
+- `VARIANCE(col)` → `VARIANCE(col)` or `VAR_POP(col)` (MySQL)
+- `LISTAGG(col, delimiter)` → `GROUP_CONCAT(col SEPARATOR delimiter)` (MySQL equivalent)
+- `ROW_NUMBER() OVER (...)` → `ROW_NUMBER() OVER (...)` (MySQL 8.0+)
+- `RANK() OVER (...)` → `RANK() OVER (...)` (MySQL 8.0+)
+- `DENSE_RANK() OVER (...)` → `DENSE_RANK() OVER (...)` (MySQL 8.0+)
+- `LAG(col, n) OVER (...)` → `LAG(col, n) OVER (...)` (MySQL 8.0+)
+- `LEAD(col, n) OVER (...)` → `LEAD(col, n) OVER (...)` (MySQL 8.0+)
+- **Note**: Window functions require MySQL 8.0+. For older versions, use subqueries or variables.
+
+### J. Pagination:
+- `ROWNUM <= n` → `LIMIT n`
+- Complex ROWNUM pagination → `LIMIT m, n` (MySQL style) or `LIMIT n OFFSET m`
+- **Note**: MySQL supports both `LIMIT offset, count` and `LIMIT count OFFSET offset`
+
+### K. MyBatis JDBC Types:
+- `jdbcType="NUMBER"` → `jdbcType="DECIMAL"` or `jdbcType="INTEGER"`
+- `jdbcType="VARCHAR2"` → `jdbcType="VARCHAR"`
+- `jdbcType="CLOB"` → `jdbcType="LONGTEXT"` or `jdbcType="TEXT"`
+- `jdbcType="BLOB"` → `jdbcType="LONGBLOB"` or `jdbcType="BLOB"`
+- `jdbcType="DATE"` → `jdbcType="TIMESTAMP"` or `jdbcType="DATE"`
+- `jdbcType="TIMESTAMP"` → `jdbcType="TIMESTAMP"`
+
+### L. Stored Procedure Enhancement:
+- Basic conversion: `{call PROC()}` → `CALL PROC()`
+- **OUT Parameter Handling**: MySQL supports OUT and INOUT parameters
+- Use `{ call PROC(?, ?) }` for procedures with OUT parameters
+- Example:
+  ```xml
+  <!-- MySQL procedure call with OUT parameters -->
+  <select statementType="CALLABLE">
+      { call PROC(#{param1,mode=IN}, #{result,mode=OUT,jdbcType=INTEGER}) }
+  </select>
+  ```
+
+### M. ResultMap Column Names:
+- **MySQL Column Name Case Sensitivity**: Depends on `lower_case_table_names` system variable
+  - `lower_case_table_names=0` (Linux default): Case-sensitive
+  - `lower_case_table_names=1` (Windows default): Case-insensitive, stored as lowercase  
+  - `lower_case_table_names=2` (macOS default): Case-insensitive, stored as given
+- **Recommended Approach**: Convert to lowercase for maximum compatibility
+- Convert column attributes: `column="EMP_ID"` → `column="emp_id"`
+- Apply to `<result>`, `<id>`, `<association>`, `<collection>` tags  
+- **Important**: This ensures compatibility across different MySQL installations and operating systems
+- **Note**: Files containing only ResultMap are processed via STANDARD TRACK (not FAST TRACK)
+
+## ADVANCED CONVERSIONS
+
+### Hierarchical Queries (CONNECT BY):
+MySQL 8.0+ supports recursive CTEs:
+```sql
+-- Oracle CONNECT BY
+SELECT ... FROM table START WITH condition CONNECT BY PRIOR ...
+
+-- MySQL 8.0+ Recursive CTE
+WITH RECURSIVE cte AS (
+    SELECT ... FROM table WHERE condition  -- Anchor
+    UNION ALL
+    SELECT ... FROM table t JOIN cte ON ... -- Recursive
+) SELECT ... FROM cte;
+```
+
+For MySQL < 8.0, use stored procedures or application-level recursion.
+
+### MERGE Statements:
+MySQL 8.0+ supports similar functionality:
+```sql
+-- Oracle MERGE
+MERGE INTO target USING source ON (condition)
+WHEN MATCHED THEN UPDATE SET ...
+WHEN NOT MATCHED THEN INSERT ...
+
+-- MySQL 8.0+ (INSERT ... ON DUPLICATE KEY UPDATE)
+INSERT INTO target (columns...) 
+SELECT columns... FROM source
+ON DUPLICATE KEY UPDATE 
+    column1 = VALUES(column1),
+    column2 = VALUES(column2);
+
+-- Or use REPLACE INTO for simple cases
+REPLACE INTO target (columns...) SELECT columns... FROM source;
+```
+
+### Regular Expressions:
+- `REGEXP_LIKE(col, pattern)` → `col REGEXP 'pattern'` or `col RLIKE 'pattern'`
+- `REGEXP_LIKE(col, pattern, flags)` → `col REGEXP 'pattern'` (flags handling may differ)
+- `REGEXP_REPLACE(col, pattern, replacement)` → `REGEXP_REPLACE(col, pattern, replacement)` (MySQL 8.0+)
+- `REGEXP_REPLACE(col, pattern, replacement, position, occurrence, flags)` → `REGEXP_REPLACE(col, pattern, replacement)` (simplified in MySQL)
+- `REGEXP_SUBSTR(col, pattern)` → `REGEXP_SUBSTR(col, pattern)` (MySQL 8.0+)
+- `REGEXP_INSTR(col, pattern)` → `REGEXP_INSTR(col, pattern)` (MySQL 8.0+)
+- **Note**: For MySQL < 8.0, use basic REGEXP/RLIKE or string functions as alternatives
+
+## FINAL STEP: NO ADDITIONAL PROCESSING REQUIRED
+
+### OVERVIEW:
+Unlike PostgreSQL, MySQL does NOT require explicit casting of bind variables.
+MySQL performs automatic type conversion (implicit casting) which handles most Oracle-to-MySQL conversion scenarios.
+
+### MYSQL AUTOMATIC TYPE CONVERSION:
+MySQL automatically converts between compatible types:
+
+#### Examples of MySQL Auto-Conversion:
+```sql
+-- All of these work automatically in MySQL:
+WHERE user_id = #{userId}           -- String parameter → Integer column
+WHERE created_date = #{dateStr}     -- String parameter → Date column  
+WHERE salary > #{salaryStr}         -- String parameter → Decimal column
+WHERE is_active = #{flagNum}        -- Number parameter → Boolean column
+```
+
+### WHEN MYSQL AUTO-CONVERSION WORKS:
+- String to Number: `'123'` → `123`
+- String to Date: `'2023-01-01'` → `DATE('2023-01-01')`
+- Number to String: `123` → `'123'`
+- Boolean conversions: `1/0`, `TRUE/FALSE`, `'Y'/'N'`
+
+### NO PROCESSING REQUIRED:
+- **Skip metadata queries**
+- **Skip bind variable analysis** 
+- **Skip casting logic**
+- **Return XML unchanged**
+
+### MYSQL-SPECIFIC ADVANTAGES:
+1. **Simpler conversion process** - No complex type analysis needed
+2. **Better performance** - No additional database metadata queries
+3. **Fewer errors** - MySQL's flexible type system handles edge cases
+4. **Faster processing** - Skip entire casting phase
+
+### RECOMMENDED APPROACH:
+```
+Input:  WHERE user_id = #{userId} AND created_date = #{createdDate}
+Output: WHERE user_id = #{userId} AND created_date = #{createdDate}
+        (No changes - let MySQL handle type conversion)
+```
+
+### EXCEPTION CASES (Rare):
+Only add explicit casting if specific errors occur during testing:
+- Strict SQL mode compatibility issues
+- Performance optimization requirements  
+- Specific data type validation needs
+
+### PROCESSING INSTRUCTION:
+**SKIP Phase 4 entirely for MySQL conversion**
+
+## PROCESSING INSTRUCTIONS
+
+1. **Apply Core Conversions First**: Complete all function and syntax conversions
+2. **Apply Advanced Conversions**: Handle complex Oracle features  
+3. **Consider MySQL Version**: Some features require MySQL 8.0+
+4. **Final Step**: No additional processing required - MySQL handles type conversion automatically
+
+## PERFORMANCE CONSIDERATIONS
+
+- Use appropriate MySQL storage engine (InnoDB recommended)
+- Consider MySQL-specific indexing strategies
+- Use LIMIT for pagination instead of complex subqueries
+- Consider MySQL's query cache (if enabled)
+
+## COMMON ERROR PATTERNS TO FIX
+
+- `Data truncation: Incorrect datetime value` → Ensure proper date format conversion
+- `Data truncation: Out of range value` → Check numeric precision/scale
+- `Unknown column in 'field list'` → Verify column name case sensitivity
+- `Table doesn't exist` → Check database/schema name handling
+- `Syntax error near 'LIMIT'` → Use proper MySQL LIMIT syntax
+
+## MYSQL VERSION COMPATIBILITY
+
+### MySQL 5.7 and earlier:
+- No support for recursive CTEs (use stored procedures)
+- Limited JSON support
+- No window functions
+- Use `LIMIT offset, count` syntax
+
+### MySQL 8.0 and later:
+- Full support for recursive CTEs
+- Enhanced JSON support
+- Window functions available
+- Support for `LIMIT count OFFSET offset` syntax
+- Better regular expression support
+
+## ADDITIONAL MYSQL-SPECIFIC TRANSFORMATIONS
+
+### Boolean Handling:
+- Oracle: Use NUMBER(1) with 0/1 values
+- MySQL: Use BOOLEAN/TINYINT(1) with TRUE/FALSE or 0/1
+
+### Case Sensitivity:
+- Consider `lower_case_table_names` system variable
+- Default behavior varies by operating system
+- Recommend consistent lowercase naming
+
+### Character Set and Collation:
+- Ensure proper UTF-8 support: `utf8mb4` character set
+- Consider collation for sorting and comparison behavior
+- Example: `utf8mb4_unicode_ci` for general use

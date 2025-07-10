@@ -37,45 +37,94 @@ if [ ${#ENV_FILES[@]} -gt 0 ]; then
     print_separator
 fi
 
-# 필수 환경 변수 목록 (oma.properties에 실제로 정의된 변수들만)
-required_vars=(
-    "APPLICATION_NAME"
-    "JAVA_SOURCE_FOLDER"
-    "OMA_BASE_DIR"
-    "APPLICATION_FOLDER"
-    "APP_TOOLS_FOLDER"
-    "APP_TRANSFORM_FOLDER"
-    "APP_LOGS_FOLDER"
-    "DBMS_FOLDER"
-    "DBMS_LOGS_FOLDER"
-    "TEST_FOLDER"
-    "TEST_LOGS_FOLDER"
-    "TRANSFORM_JNDI"
-    "TRANSFORM_RELATED_CLASS"
-)
+# ====================================================
+# oma.properties에서 완전히 동적으로 모든 환경 변수 추출
+# ====================================================
+get_all_properties_variables() {
+    local APPLICATION_NAME=$1
+    local all_vars=()
+    
+    if [ ! -f "../config/oma.properties" ]; then
+        echo -e "${RED}오류: config/oma.properties 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    
+    # COMMON 섹션에서 변수 추출
+    local in_common_section=false
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        if [[ $key == "[COMMON]" ]]; then
+            in_common_section=true
+            continue
+        elif [[ $key =~ ^\[.*\]$ ]]; then
+            in_common_section=false
+            continue
+        fi
+        
+        if [ "$in_common_section" = true ] && [[ -n $key && $key != \#* ]]; then
+            env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
+            all_vars+=("$env_var")
+        fi
+    done < "../config/oma.properties"
+    
+    # 프로젝트 섹션에서 변수 추출
+    if [ -n "$APPLICATION_NAME" ]; then
+        local in_project_section=false
+        while IFS='=' read -r key value || [ -n "$key" ]; do
+            key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            
+            if [[ $key == "[$APPLICATION_NAME]" ]]; then
+                in_project_section=true
+                continue
+            elif [[ $key =~ ^\[.*\]$ ]]; then
+                in_project_section=false
+                continue
+            fi
+            
+            if [ "$in_project_section" = true ] && [[ -n $key && $key != \#* ]]; then
+                env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
+                all_vars+=("$env_var")
+            fi
+        done < "../config/oma.properties"
+    fi
+    
+    # 중복 제거하고 정렬
+    all_properties_vars=($(printf "%s\n" "${all_vars[@]}" | sort -u))
+}
 
-# 선택적 환경 변수 목록 (DB 연결 관련)
-optional_vars=(
-    "ORACLE_ADM_USER"
-    "ORACLE_ADM_PASSWORD"
-    "ORACLE_HOST"
-    "ORACLE_PORT"
-    "ORACLE_SID"
-    "PGHOST"
-    "PGUSER"
-    "PGPASSWORD"
-    "PGPORT"
-    "PGDATABASE"
-)
+# 동적으로 추출된 모든 환경 변수 목록
+all_properties_vars=()
+
+# 현재 APPLICATION_NAME 확인
+current_app_name="$APPLICATION_NAME"
+
+# oma.properties에서 완전히 동적으로 모든 환경 변수 목록 추출
+get_all_properties_variables "$current_app_name"
 
 # 환경 변수 상태 확인
 missing_vars=()
 set_vars=()
+core_vars=()
+db_vars=()
+other_vars=()
 
-echo -e "${BLUE}${BOLD}[필수 환경 변수]${NC}"
+# 변수들을 카테고리별로 자동 분류
+for var in "${all_properties_vars[@]}"; do
+    if [[ $var =~ ^(APPLICATION_NAME|JAVA_SOURCE_FOLDER|OMA_BASE_DIR|.*_FOLDER|TRANSFORM_.*|TARGET_DBMS_TYPE|SQL_MAPPER_FOLDER)$ ]]; then
+        core_vars+=("$var")
+    elif [[ $var =~ ^(ORACLE_|PG) ]]; then
+        db_vars+=("$var")
+    else
+        other_vars+=("$var")
+    fi
+done
+
+# 핵심 환경 변수 출력
+echo -e "${BLUE}${BOLD}[핵심 환경 변수]${NC}"
 print_separator
 
-for var in "${required_vars[@]}"; do
+for var in "${core_vars[@]}"; do
     if [ -n "${!var}" ]; then
         echo -e "${GREEN}✓ $var: ${!var}${NC}"
         set_vars+=("$var")
@@ -85,35 +134,75 @@ for var in "${required_vars[@]}"; do
     fi
 done
 
-print_separator
-echo -e "${BLUE}${BOLD}[DB 연결 환경 변수 - 선택사항]${NC}"
-print_separator
-
-echo -e "${CYAN}Oracle Connection:${NC}"
-for var in "ORACLE_ADM_USER" "ORACLE_ADM_PASSWORD" "ORACLE_HOST" "ORACLE_PORT" "ORACLE_SID"; do
-    if [ -n "${!var}" ]; then
-        if [ "$var" = "ORACLE_ADM_PASSWORD" ]; then
-            echo -e "${GREEN}✓ $var: ********${NC}"
-        else
-            echo -e "${GREEN}✓ $var: ${!var}${NC}"
+# DB 관련 환경 변수 출력
+if [ ${#db_vars[@]} -gt 0 ]; then
+    print_separator
+    echo -e "${BLUE}${BOLD}[DB 연결 환경 변수]${NC}"
+    print_separator
+    
+    # Oracle과 PostgreSQL 변수 자동 분류
+    oracle_vars=()
+    pg_vars=()
+    
+    for var in "${db_vars[@]}"; do
+        if [[ $var =~ ^ORACLE_ ]]; then
+            oracle_vars+=("$var")
+        elif [[ $var =~ ^PG ]]; then
+            pg_vars+=("$var")
         fi
-    else
-        echo -e "${YELLOW}○ $var: (not set)${NC}"
+    done
+    
+    # Oracle 변수들 출력
+    if [ ${#oracle_vars[@]} -gt 0 ]; then
+        echo -e "${CYAN}Oracle Connection:${NC}"
+        for var in "${oracle_vars[@]}"; do
+            if [ -n "${!var}" ]; then
+                if [[ $var =~ PASSWORD ]]; then
+                    echo -e "${GREEN}✓ $var: ********${NC}"
+                else
+                    echo -e "${GREEN}✓ $var: ${!var}${NC}"
+                fi
+            else
+                echo -e "${YELLOW}○ $var: (not set)${NC}"
+            fi
+        done
     fi
-done
+    
+    # PostgreSQL 변수들 출력
+    if [ ${#pg_vars[@]} -gt 0 ]; then
+        echo -e "${CYAN}PostgreSQL Connection:${NC}"
+        for var in "${pg_vars[@]}"; do
+            if [ -n "${!var}" ]; then
+                if [[ $var =~ PASSWORD ]]; then
+                    echo -e "${GREEN}✓ $var: ********${NC}"
+                else
+                    echo -e "${GREEN}✓ $var: ${!var}${NC}"
+                fi
+            else
+                echo -e "${YELLOW}○ $var: (not set)${NC}"
+            fi
+        done
+    fi
+fi
 
-echo -e "${CYAN}PostgreSQL Connection:${NC}"
-for var in "PGHOST" "PGUSER" "PGPASSWORD" "PGPORT" "PGDATABASE"; do
-    if [ -n "${!var}" ]; then
-        if [ "$var" = "PGPASSWORD" ]; then
-            echo -e "${GREEN}✓ $var: ********${NC}"
+# 기타 환경 변수 출력
+if [ ${#other_vars[@]} -gt 0 ]; then
+    print_separator
+    echo -e "${BLUE}${BOLD}[기타 환경 변수]${NC}"
+    print_separator
+    
+    for var in "${other_vars[@]}"; do
+        if [ -n "${!var}" ]; then
+            if [[ $var =~ PASSWORD ]]; then
+                echo -e "${GREEN}✓ $var: ********${NC}"
+            else
+                echo -e "${GREEN}✓ $var: ${!var}${NC}"
+            fi
         else
-            echo -e "${GREEN}✓ $var: ${!var}${NC}"
+            echo -e "${YELLOW}○ $var: (not set)${NC}"
         fi
-    else
-        echo -e "${YELLOW}○ $var: (not set)${NC}"
-    fi
-done
+    done
+fi
 
 print_separator
 echo -e "${BLUE}${BOLD}[환경 상태 요약]${NC}"

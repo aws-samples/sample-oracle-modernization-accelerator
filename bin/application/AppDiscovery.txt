@@ -1,4 +1,6 @@
-목표: Application의 Java Source를 분석하여 Oracle 관련한 Source 부분을 PostgreSQL로 변경하기 위한 사전 분석 작업 및 MyBatis 정보 추출
+Reference: Apply environment information from $OMA_HOME/bin/application/environment_context.txt
+
+목표: Application의 Java Source를 분석하여 Source 관련한 Source 부분을 Target로 변경하기 위한 사전 분석 작업 및 MyBatis 정보 추출
 
 작업 디렉토리: $JAVA_SOURCE_FOLDER
 결과 저장 위치: $APPLICATION_FOLDER/
@@ -72,7 +74,7 @@
        - CDATA 섹션 내용 포함하여 분석
        - 주석 및 동적 SQL 태그는 제외하고 순수 SQL만 추출
        
-       단계 2: Oracle 특화 패턴 자동 발견 (복잡한 변환 패턴 우선)
+       단계 2: Source 특화 패턴 자동 발견 (복잡한 변환 패턴 우선)
        - 고위험 기능 우선 식별 (수동 검토 필요):
          * Database Link 사용 (@dblink 구문)
          * 암호화 함수 (DBMS_CRYPTO, DBMS_OBFUSCATION_TOOLKIT)
@@ -84,24 +86,24 @@
          * CONNECT BY 계층 쿼리 (START WITH, CONNECT BY PRIOR)
          * LISTAGG 집계 함수 (WITHIN GROUP, ORDER BY 포함)
          * DECODE 복합 조건문 (중첩된 DECODE 구문)
-         * Oracle 조인 구문 (+) 사용
+         * Source 조인 구문 (+) 사용
          * PL/SQL 블록 (BEGIN...END, DECLARE 구문)
          * MERGE 구문 (WHEN MATCHED, WHEN NOT MATCHED)
-         * Oracle 정규식 함수 (REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE)
+         * Source 정규식 함수 (REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE)
        - 중복잡도 패턴 식별:
-         * Oracle 시퀀스 사용 (SEQUENCE.NEXTVAL, SEQUENCE.CURRVAL)
-         * Oracle 함수 패턴 (TO_DATE, TO_CHAR, NVL, SUBSTR 등)
+         * Source 시퀀스 사용 (SEQUENCE.NEXTVAL, SEQUENCE.CURRVAL)
+         * Source 함수 패턴 (TO_DATE, TO_CHAR, NVL, SUBSTR 등)
          * ROWNUM 사용 패턴
          * FROM DUAL 구문
-         * Oracle 데이터 타입 (VARCHAR2, NUMBER, CLOB, BLOB)
-       - 기타 Oracle 특화 요소들 (SYSDATE, v$session 등)
+         * Source 데이터 타입 (VARCHAR2, NUMBER, CLOB, BLOB)
+       - 기타 Source 특화 요소들 (SYSDATE, v$session 등)
        
        단계 3: 발견된 패턴별 상세 분석
        - 각 패턴의 사용 빈도 계산 (전체 파일에서 몇 번 사용되는지)
        - 패턴을 사용하는 Mapper 파일 수 계산
        - 패턴별 복잡도 평가 (단순 치환/중간 로직 변경/복잡한 재작성 필요)
        - 실제 사용 예시 추출 (각 패턴당 1-2개의 실제 코드)
-       - PostgreSQL 변환 방식 및 대안 제시
+       - Target 변환 방식 및 대안 제시
        
        단계 4: 패턴 분류 및 우선순위 설정
        - 빈도가 높은 패턴 우선 분류
@@ -159,7 +161,7 @@ ApplicationReport.html 단계별 생성 지시:
 
 1단계: 기본 구조 및 시스템 정보 생성
    - AppDiscoveryTemplate.html의 헤더, CSS, 기본 틀 복사
-   - 제목을 "Application Analysis Report - Oracle to PostgreSQL Migration Analysis"로 설정
+   - 제목을 "Application Analysis Report - Source to Target Migration Analysis"로 설정
    - System Architecture Overview 섹션 생성:
      * [Application Name]을 실제 프로젝트명으로 교체
      * Technology Stack의 [Framework], [Database], [Libraries] 등을 실제 의존성 분석 결과로 교체
@@ -177,19 +179,19 @@ ApplicationReport.html 단계별 생성 지시:
 
 3단계: SQL 패턴 분석 결과 추가
    - Database Query Pattern Analysis 섹션 추가:
-     * "Oracle-specific database query patterns" 분석 목표 명시
-     * Oracle Pattern Analysis Results Examples 테이블을 실제 발견된 패턴으로 교체
+     * "Source-specific database query patterns" 분석 목표 명시
+     * Source Pattern Analysis Results Examples 테이블을 실제 발견된 패턴으로 교체
      * 각 패턴의 빈도, 복잡도(Low/Medium/High 배지 사용), 변환 상태 표시
      * 고복잡도 패턴 우선 표시 (CONNECT BY, LISTAGG, PL/SQL, MERGE 등)
      * Query Conversion Examples를 실제 발견된 복잡한 SQL 예시로 교체:
        - [Pattern Name] Conversion을 실제 패턴명으로 교체
-       - Oracle 코드 블록(빨간 배경)에 실제 Oracle SQL 예시
-       - PostgreSQL 코드 블록(파란 배경)에 변환된 PostgreSQL SQL 예시
+       - Source 코드 블록(빨간 배경)에 실제 Source SQL 예시
+       - Target 코드 블록(파란 배경)에 변환된 Target SQL 예시
        - 💡 Conversion Notes에 실제 변환 주의사항 추가
      * Migration Considerations에 실제 마이그레이션 고려사항 추가
 
-4단계: 고위험 Oracle 기능 분석 추가
-   - High-Risk Oracle Features Analysis 섹션 추가:
+4단계: 고위험 Source 기능 분석 추가
+   - High-Risk Source Features Analysis 섹션 추가:
      * Database Link Usage 테이블:
        - XML File, SQL ID, SQL Statement, DB Link 컬럼으로 구성
        - @dblink 사용하는 모든 SQL 구문을 XML 파일별로 정리
@@ -225,6 +227,6 @@ ApplicationReport.html 단계별 생성 지시:
 - 생성된 CSV 파일들은 후속 변환 작업에서 참조됨
 - 실제 분석 데이터만 사용하고 샘플/예시 데이터는 사용 금지
 - 발견되지 않은 패턴이나 설정은 "해당 없음" 또는 "발견되지 않음"으로 표시
-- Oracle/PostgreSQL 코드 예시는 템플릿의 색상 구분 스타일 적용 (빨간/파란 배경)
+- Source/Target 코드 예시는 템플릿의 색상 구분 스타일 적용 (빨간/파란 배경)
 - 디렉토리 구조는 HTML 스타일링을 적용하여 가독성 향상
 - 최종적으로 하나의 완성된 $APPLICATION_FOLDER/Discovery-Report.html 파일 생성

@@ -1,0 +1,7 @@
+=== Environment Context ===
+SOURCE_DBMS_TYPE: Source database type (orcl=Oracle, pg=PostgreSQL, mysql=MySQL)
+TARGET_DBMS_TYPE: Target database type (orcl=Oracle, pg=PostgreSQL, mysql=MySQL)
+Database connection information is configured in environment variables, with source/target environments determined dynamically.
+You can use these clients for Oracle=sqlplus, for PosgtreSQL=psql and  for mySQL=mysql.
+All Application Java sources are in $JAVA_SOURCE_FOLDER.
+If you are creating a program or a temporary file, work with /tmp.

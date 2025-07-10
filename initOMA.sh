@@ -169,68 +169,258 @@ check_environment() {
 # Step별 스크립트 실행 함수들
 # ====================================================
 
-# Step 1: DB Schema 변환
+# 환경 설정 다시 수행
+execute_setenv() {
+    print_separator
+    echo -e "${YELLOW}환경 설정을 다시 수행합니다.${NC}"
+    echo -e "${CYAN}setEnv.sh를 실행합니다...${NC}"
+    cd "$OMA_BASE_DIR/bin"
+    ./setEnv.sh
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}환경 설정이 완료되었습니다.${NC}"
+        echo -e "${YELLOW}환경 변수가 설정되었으므로 계속 진행할 수 있습니다.${NC}"
+    else
+        echo -e "${RED}환경 설정에 실패했습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
+# 현재 환경 변수 확인
+execute_checkenv() {
+    print_separator
+    echo -e "${CYAN}현재 환경 변수를 확인합니다.${NC}"
+    cd "$OMA_BASE_DIR/bin"
+    ./checkEnv.sh
+    print_separator
+}
+
+# DB Schema 변환
 execute_db_schema() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 1: DB Schema 변환 스크립트 실행${NC}"
+    echo -e "${BLUE}${BOLD}DB Schema 변환을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}DB Schema 변환 스크립트 실행${NC}"
     
     if [ -f "$OMA_BASE_DIR/bin/processDBSchema.sh" ]; then
         echo -e "${CYAN}processDBSchema.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
         ./processDBSchema.sh
-        return $?
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}DB Schema 변환이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}DB Schema 변환 중 오류가 발생했습니다.${NC}"
+        fi
     else
         echo -e "${RED}오류: $OMA_BASE_DIR/bin/processDBSchema.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
+    print_separator
 }
 
-# Step 2: 애플리케이션 Discovery
+# 애플리케이션 Discovery
 execute_app_discovery() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 2: 애플리케이션 Discovery 스크립트 실행${NC}"
+    echo -e "${BLUE}${BOLD}애플리케이션 Discovery를 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}애플리케이션 Discovery 스크립트 실행${NC}"
     
     if [ -f "$OMA_BASE_DIR/bin/processAppDiscovery.sh" ]; then
         echo -e "${CYAN}processAppDiscovery.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
         ./processAppDiscovery.sh
-        return $?
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}애플리케이션 Discovery가 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}애플리케이션 Discovery 중 오류가 발생했습니다.${NC}"
+        fi
     else
         echo -e "${RED}오류: $OMA_BASE_DIR/bin/processAppDiscovery.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
+    print_separator
 }
 
-# Step 3: SQL 변환
+# SQL 변환
 execute_sql_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 3: SQL 변환 스크립트 실행${NC}"
+    echo -e "${BLUE}${BOLD}SQL 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    echo ""
+    echo -e "${BLUE}${BOLD}변환 실패 항목 리스트 (Assessment/SQLTransformFailure.csv)를 새로 생성한 이후에 실행 됩니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}SQL 변환 스크립트 실행${NC}"
     
     if [ -f "$OMA_BASE_DIR/bin/processSQLTransform.sh" ]; then
         echo -e "${CYAN}processSQLTransform.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
         ./processSQLTransform.sh
-        return $?
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}SQL 변환 작업 중 오류가 발생했습니다.${NC}"
+        fi
     else
         echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTransform.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
+    print_separator
 }
 
-# Step 4: SQL Unit Test
+# SQL Unit Test
 execute_sql_unittest() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 4: SQL Unit Test 스크립트 실행${NC}"
+    echo -e "${BLUE}${BOLD}애플리케이션 SQL Unit Test를 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}SQL Unit Test 스크립트 실행${NC}"
     
     if [ -f "$OMA_BASE_DIR/bin/processSQLTest.sh" ]; then
         echo -e "${CYAN}processSQLTest.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
         ./processSQLTest.sh
-        return $?
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}애플리케이션 SQL Unit Test가 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}애플리케이션 SQL Unit Test 중 오류가 발생했습니다.${NC}"
+        fi
     else
         echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTest.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
+    print_separator
+}
+
+# Java Source 변환
+execute_java_transform() {
+    print_separator
+    echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업은 아직 통합 되지 않았습니다...${NC}"
+    print_separator
+}
+
+# ====================================================
+# 메뉴 함수들
+# ====================================================
+
+# 환경 메뉴
+show_environment_menu() {
+    while true; do
+        print_separator
+        echo -e "${BLUE}${BOLD}0. 환경 메뉴${NC}"
+        print_separator
+        echo -e "${CYAN}1. 환경 설정 다시 수행 (setEnv.sh)${NC}"
+        echo -e "${CYAN}2. 현재 환경 변수 확인 (checkEnv.sh)${NC}"
+        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        print_separator
+        echo -ne "${CYAN}선택하세요 (1,2,b): ${NC}"
+        read choice
+        
+        case $choice in
+            1)
+                execute_setenv
+                ;;
+            2)
+                execute_checkenv
+                ;;
+            b|B)
+                return
+                ;;
+            *)
+                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                ;;
+        esac
+    done
+}
+
+# 데이터베이스 변환 메뉴
+show_database_menu() {
+    while true; do
+        print_separator
+        echo -e "${BLUE}${BOLD}1. 데이터베이스 변환 메뉴${NC}"
+        print_separator
+        echo -e "${MAGENTA}1. DB Schema 변환${NC}"
+        echo -e "${YELLOW}   - Source → Target 스키마 변환 (DB 연결 필요)${NC}"
+        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        print_separator
+        echo -ne "${CYAN}선택하세요 (1,b): ${NC}"
+        read choice
+        
+        case $choice in
+            1)
+                execute_db_schema
+                ;;
+            b|B)
+                return
+                ;;
+            *)
+                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                ;;
+        esac
+    done
+}
+
+# 애플리케이션 변환 메뉴
+show_application_menu() {
+    while true; do
+        print_separator
+        echo -e "${BLUE}${BOLD}2. 애플리케이션 변환 메뉴${NC}"
+        print_separator
+        echo -e "${CYAN}1. 애플리케이션 분석 및 SQL변환 대상 추출${NC}"
+        echo -e "${YELLOW}   - JNDI, Mapper 파일 분석 → CSV 및 ApplicationReport.html 생성${NC}"
+        echo -e "${CYAN}2. 애플리케이션 SQL 변환 작업${NC}"
+        echo -e "${YELLOW}   - Source SQL → Target SQL 변환 (전체/재시도 모드)${NC}"
+        echo -e "${CYAN}3. 애플리케이션 Java Source 변환 작업${NC}"
+        echo -e "${YELLOW}   - Java 소스 코드 내 Source 관련 코드 변환 (미구현)${NC}"
+        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        print_separator
+        echo -ne "${CYAN}선택하세요 (1,2,3,b): ${NC}"
+        read choice
+        
+        case $choice in
+            1)
+                execute_app_discovery
+                ;;
+            2)
+                execute_sql_transform
+                ;;
+            3)
+                execute_java_transform
+                ;;
+            b|B)
+                return
+                ;;
+            *)
+                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                ;;
+        esac
+    done
+}
+
+# SQL 테스트 수행 메뉴
+show_test_menu() {
+    while true; do
+        print_separator
+        echo -e "${BLUE}${BOLD}3. SQL 테스트 수행 메뉴${NC}"
+        print_separator
+        echo -e "${CYAN}1. 애플리케이션 SQL Unit Test${NC}"
+        echo -e "${YELLOW}   - 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
+        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        print_separator
+        echo -ne "${CYAN}선택하세요 (1,b): ${NC}"
+        read choice
+        
+        case $choice in
+            1)
+                execute_sql_unittest
+                ;;
+            b|B)
+                return
+                ;;
+            *)
+                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                ;;
+        esac
+    done
 }
 
 # ====================================================
@@ -240,7 +430,7 @@ execute_sql_unittest() {
 # 환경 변수 확인
 check_environment
 
-# Step별 수행 루프
+# 메인 메뉴 루프
 print_separator
 echo -e "${BLUE}${BOLD}OMA는 AWS에서 사전 환경이 구성된 상태에서 DB/Application 변환을 수행합니다.${NC}"
 echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
@@ -251,125 +441,40 @@ echo -e "${CYAN}${BOLD}사전 환경 구성이 필요한 경우 AWS 환경 설�
 
 while true; do
     print_separator
-    echo -e "${BLUE}${BOLD}Step별 수행을 선택하세요.${NC}"
-    echo -e "${YELLOW}0. 환경 설정 다시 수행 (setEnv.sh)${NC}"
-    echo -e "${CYAN}00. 현재 환경 변수 확인 (checkEnv.sh)${NC}"
-    echo -e "${MAGENTA}1. DB Schema 변환${NC}"
-    echo -e "${YELLOW}   - Oracle → PostgreSQL 스키마 변환 (DB 연결 필요)${NC}"
-
-    echo -e "${CYAN}2. 애플리케이션 분석 및 SQL변환 대상 추출${NC}"
-    echo -e "${YELLOW}   - JNDI, Mapper 파일 분석 → CSV 및 ApplicationReport.html 생성${NC}"
-
-    echo -e "${CYAN}3. 애플리케이션 SQL 변환 작업${NC}"
-    echo -e "${YELLOW}   - Oracle SQL → PostgreSQL SQL 변환 (전체/재시도 모드)${NC}"
-
-    echo -e "${CYAN}4. 애플리케이션 SQL Unit Test${NC}"
-    echo -e "${YELLOW}   - 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
-
-    echo -e "${CYAN}5. 애플리케이션 Java Source 변환 작업${NC}"
-    echo -e "${YELLOW}   - Java 소스 코드 내 Oracle 관련 코드 변환 (미구현)${NC}"
-    echo -e "${YELLOW}6. 종료${NC}"
+    echo -e "${BLUE}${BOLD}OMA 메인 메뉴${NC}"
     print_separator
-    echo -ne "${CYAN}수행할 Step을 선택하세요 (0,00,1,2,3,4,5,6 또는 여러개 선택 가능, 예: 1, 2): ${NC}"
-    read selected_steps
+    echo -e "${YELLOW}0. 환경 설정 및 확인${NC}"
+    echo -e "${MAGENTA}1. 데이터베이스 변환${NC}"
+    echo -e "${CYAN}2. 애플리케이션 변환${NC}"
+    echo -e "${CYAN}3. SQL 테스트 수행${NC}"
+    echo -e "${YELLOW}q. 종료${NC}"
+    print_separator
+    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,q): ${NC}"
+    read choice
 
-    # 선택된 Step들을 배열로 변환
-    IFS=',' read -ra steps <<< "$selected_steps"
-
-    for step in "${steps[@]}"; do
-        # 공백 제거
-        step=$(echo "$step" | xargs)
-        
-        case $step in
-            00)
-                print_separator
-                echo -e "${CYAN}현재 환경 변수를 확인합니다.${NC}"
-                cd "$OMA_BASE_DIR/bin"
-                ./checkEnv.sh
-                print_separator
-                ;;
-            0)
-                print_separator
-                echo -e "${YELLOW}환경 설정을 다시 수행합니다.${NC}"
-                echo -e "${CYAN}setEnv.sh를 실행합니다...${NC}"
-                cd "$OMA_BASE_DIR/bin"
-                ./setEnv.sh
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}환경 설정이 완료되었습니다.${NC}"
-                    echo -e "${YELLOW}환경 변수가 설정되었으므로 계속 진행할 수 있습니다.${NC}"
-                else
-                    echo -e "${RED}환경 설정에 실패했습니다.${NC}"
-                    exit 1
-                fi
-                print_separator
-                ;;
-            1)
-                print_separator
-                echo -e "${BLUE}${BOLD}DB Schema 변환을 시작하기 전 3초 대기합니다...${NC}"
-                sleep 3
-                execute_db_schema
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Step 1: DB Schema 변환이 완료되었습니다.${NC}"
-                else
-                    echo -e "${RED}Step 1: DB Schema 변환 중 오류가 발생했습니다.${NC}"
-                fi
-                print_separator
-                ;;
-            2)
-                print_separator
-                echo -e "${BLUE}${BOLD}애플리케이션 Discovery를 시작하기 전 3초 대기합니다...${NC}"
-                sleep 3
-                execute_app_discovery
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Step 2: 애플리케이션 Discovery가 완료되었습니다.${NC}"
-                else
-                    echo -e "${RED}Step 2: 애플리케이션 Discovery 중 오류가 발생했습니다.${NC}"
-                fi
-                print_separator
-                ;;
-            3)
-                print_separator
-                echo -e "${BLUE}${BOLD}SQL 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
-                echo ""
-                echo -e "${BLUE}${BOLD}변환 실패 항목 리스트 (Assessment/SQLTransformFailure.csv)를 새로 생성한 이후에 실행 됩니다...${NC}"
-                sleep 3
-                execute_sql_transform
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Step 3: SQL 변환 작업이 완료되었습니다.${NC}"
-                else
-                    echo -e "${RED}Step 3: SQL 변환 작업 중 오류가 발생했습니다.${NC}"
-                fi
-                print_separator
-                ;;
-            4)
-                print_separator
-                echo -e "${BLUE}${BOLD}애플리케이션 SQL Unit Test를 시작하기 전 3초 대기합니다...${NC}"
-                sleep 3
-                execute_sql_unittest
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Step 4: 애플리케이션 SQL Unit Test가 완료되었습니다.${NC}"
-                else
-                    echo -e "${RED}Step 4: 애플리케이션 SQL Unit Test 중 오류가 발생했습니다.${NC}"
-                fi
-                print_separator
-                ;;
-            5)
-                print_separator
-                echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
-                sleep 3
-                echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업은 아직 통합 되지 않았습니다...${NC}"
-                ;;
-            6)
-                print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
-                print_separator
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}잘못된 Step 번호입니다: $step${NC}"
-                ;;
-        esac
-    done
+    case $choice in
+        0)
+            show_environment_menu
+            ;;
+        1)
+            show_database_menu
+            ;;
+        2)
+            show_application_menu
+            ;;
+        3)
+            show_test_menu
+            ;;
+        q|Q)
+            print_separator
+            echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+            print_separator
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+            ;;
+    esac
 done
 
 echo -e "${GREEN}모든 설정이 완료되었습니다.${NC}"

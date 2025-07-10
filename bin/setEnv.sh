@@ -379,58 +379,78 @@ PROJECT_ENV_FILE="$OMA_BASE_DIR/oma_env_${APPLICATION_NAME}.sh"
 
 echo -e "${BLUE}${BOLD}환경 변수를 파일에 저장 중...${NC}"
 
-# 환경 변수 파일 생성
+# 환경 변수 파일 생성 - 완전히 동적으로 처리
 cat > "$ENV_FILE" << EOF
 #!/bin/bash
 # OMA 환경 변수 설정 (자동 생성됨)
 # 프로젝트: $APPLICATION_NAME
 # 생성 시간: $(date)
 
-export APPLICATION_NAME="$APPLICATION_NAME"
-export JAVA_SOURCE_FOLDER="$JAVA_SOURCE_FOLDER"
-export OMA_BASE_DIR="$OMA_BASE_DIR"
-export APPLICATION_FOLDER="$APPLICATION_FOLDER"
-export APP_TOOLS_FOLDER="$APP_TOOLS_FOLDER"
-export APP_TRANSFORM_FOLDER="$APP_TRANSFORM_FOLDER"
-export APP_LOGS_FOLDER="$APP_LOGS_FOLDER"
-export DBMS_FOLDER="$DBMS_FOLDER"
-export DBMS_LOGS_FOLDER="$DBMS_LOGS_FOLDER"
-export TEST_FOLDER="$TEST_FOLDER"
-export TEST_LOGS_FOLDER="$TEST_LOGS_FOLDER"
-export TRANSFORM_JNDI="$TRANSFORM_JNDI"
-export TRANSFORM_RELATED_CLASS="$TRANSFORM_RELATED_CLASS"
 EOF
 
-# DB 연결 환경 변수가 설정되어 있으면 추가
-if [ -n "$ORACLE_ADM_USER" ]; then
-    echo "export ORACLE_ADM_USER=\"$ORACLE_ADM_USER\"" >> "$ENV_FILE"
-fi
-if [ -n "$ORACLE_ADM_PASSWORD" ]; then
-    echo "export ORACLE_ADM_PASSWORD=\"$ORACLE_ADM_PASSWORD\"" >> "$ENV_FILE"
-fi
-if [ -n "$ORACLE_HOST" ]; then
-    echo "export ORACLE_HOST=\"$ORACLE_HOST\"" >> "$ENV_FILE"
-fi
-if [ -n "$ORACLE_PORT" ]; then
-    echo "export ORACLE_PORT=\"$ORACLE_PORT\"" >> "$ENV_FILE"
-fi
-if [ -n "$ORACLE_SID" ]; then
-    echo "export ORACLE_SID=\"$ORACLE_SID\"" >> "$ENV_FILE"
-fi
-if [ -n "$PGHOST" ]; then
-    echo "export PGHOST=\"$PGHOST\"" >> "$ENV_FILE"
-fi
-if [ -n "$PGUSER" ]; then
-    echo "export PGUSER=\"$PGUSER\"" >> "$ENV_FILE"
-fi
-if [ -n "$PGPASSWORD" ]; then
-    echo "export PGPASSWORD=\"$PGPASSWORD\"" >> "$ENV_FILE"
-fi
-if [ -n "$PGPORT" ]; then
-    echo "export PGPORT=\"$PGPORT\"" >> "$ENV_FILE"
-fi
-if [ -n "$PGDATABASE" ]; then
-    echo "export PGDATABASE=\"$PGDATABASE\"" >> "$ENV_FILE"
+# 현재 설정된 모든 환경 변수를 동적으로 추출하여 파일에 저장
+# oma.properties에서 정의된 모든 변수들을 확인
+if [ -f "../config/oma.properties" ]; then
+    # 모든 정의된 변수들을 수집
+    all_defined_vars=()
+    
+    # COMMON 섹션 처리
+    in_common_section=false
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        if [[ $key == "[COMMON]" ]]; then
+            in_common_section=true
+            continue
+        elif [[ $key =~ ^\[.*\]$ ]]; then
+            in_common_section=false
+            continue
+        fi
+        
+        if [ "$in_common_section" = true ] && [[ -n $key && $key != \#* ]]; then
+            env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
+            all_defined_vars+=("$env_var")
+        fi
+    done < "../config/oma.properties"
+    
+    # 프로젝트 섹션 처리
+    in_project_section=false
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        if [[ $key == "[$selected_project]" ]]; then
+            in_project_section=true
+            continue
+        elif [[ $key =~ ^\[.*\]$ ]]; then
+            in_project_section=false
+            continue
+        fi
+        
+        if [ "$in_project_section" = true ] && [[ -n $key && $key != \#* ]]; then
+            env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
+            all_defined_vars+=("$env_var")
+        fi
+    done < "../config/oma.properties"
+    
+    # 중복 제거하고 정렬
+    unique_vars=($(printf "%s\n" "${all_defined_vars[@]}" | sort -u))
+    
+    # 설정된 환경 변수들만 파일에 저장
+    for var in "${unique_vars[@]}"; do
+        if [ -n "${!var}" ]; then
+            echo "export $var=\"${!var}\"" >> "$ENV_FILE"
+        fi
+    done
+    
+    # PATH 설정 추가
+    echo "" >> "$ENV_FILE"
+    echo "# PATH 설정" >> "$ENV_FILE"
+    echo "export PATH=\"\$APP_TOOLS_FOLDER:\$OMA_BASE_DIR/bin:\$PATH\"" >> "$ENV_FILE"
+    
+    # Alias 설정 추가
+    echo "" >> "$ENV_FILE"
+    echo "# Alias 설정" >> "$ENV_FILE"
+    echo "alias qlog='tail_latest_log.sh'" >> "$ENV_FILE"
 fi
 
 # 환경 변수 파일에 실행 권한 부여
@@ -446,6 +466,11 @@ echo -e "${GREEN}✓ 환경 변수 파일 복사: $PROJECT_ENV_FILE${NC}"
 # 현재 셸에 환경 변수 설정
 echo -e "${BLUE}${BOLD}현재 셸 세션에 환경 변수 설정 중...${NC}"
 source "$ENV_FILE"
+
+# PATH에 필요한 디렉토리 추가
+echo -e "${BLUE}${BOLD}PATH 환경 변수 업데이트 중...${NC}"
+export PATH="$APP_TOOLS_FOLDER:$OMA_BASE_DIR/bin:$PATH"
+echo -e "${GREEN}✓ PATH에 APP_TOOLS_FOLDER와 OMA_BASE_DIR/bin이 추가되었습니다.${NC}"
 
 echo -e "${GREEN}✓ 환경 변수가 현재 셸 세션에 설정되었습니다.${NC}"
 echo -e "${BLUE}${BOLD}현재 프로젝트: ${GREEN}$APPLICATION_NAME${NC}"

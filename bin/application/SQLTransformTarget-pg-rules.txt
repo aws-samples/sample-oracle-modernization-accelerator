@@ -1,0 +1,242 @@
+# ORACLE TO POSTGRESQL CONVERSION RULES
+
+## PROCESSING ORDER (Applied in Phase 3 of Main Process):
+
+### Phase 3A - Basic Conversions (Apply First):
+- A. Basic Functions
+- B. Date Functions  
+- C. Sequence Handling
+- D. Pagination
+- E. String Functions
+
+### Phase 3B - Advanced Processing (Apply Second):
+- F. Advanced NULL Handling
+- G. Schema Removal
+- H. Stored Procedure Enhancement (OUT parameters)
+- I. DUAL Table Removal
+- J. MyBatis JDBC Types
+- K. ResultMap Column Names
+
+### Phase 3C - Complex Conversions (Apply Third):
+- Hierarchical Queries (CONNECT BY)
+- MERGE Statements  
+- Regular Expressions
+
+### Phase 4 - Final Step (Apply Last):
+- WHERE Clause Bind Variable CAST Processing
+
+## CORE ORACLE TO POSTGRESQL FUNCTION CONVERSIONS
+
+### A. Basic Functions:
+- `NVL(a, b)` → `COALESCE(a, b)`
+- `SYSDATE` → `CURRENT_TIMESTAMP`
+- `SUBSTR(str, pos, len)` → `SUBSTRING(str, pos, len)`
+- `DECODE(...)` → `CASE WHEN ... END`
+
+### B. Date Functions:
+- `ADD_MONTHS(date, n)` → `date + INTERVAL 'n months'`
+- `MONTHS_BETWEEN(d1, d2)` → `EXTRACT(YEAR FROM AGE(d1, d2)) * 12 + EXTRACT(MONTH FROM AGE(d1, d2))`
+- `LAST_DAY(date)` → `DATE_TRUNC('MONTH', date) + INTERVAL '1 MONTH - 1 day'`
+- `TRUNC(date, 'DD')` → `DATE_TRUNC('day', date)`
+
+### C. Sequence Handling:
+- `SEQ_NAME.NEXTVAL` → `nextval('seq_name')`
+- `SEQ_NAME.CURRVAL` → `currval('seq_name')`
+
+### D. Pagination:
+- `ROWNUM <= n` → `LIMIT n`
+- Complex ROWNUM pagination → `LIMIT n OFFSET m`
+
+### E. String Functions:
+- `INSTR(str, substr)` → `POSITION(substr IN str)`
+- `LPAD(str, len, pad)` → `LPAD(str::text, len, pad)`
+- `TO_CHAR(num)` → `num::text`
+- `TO_NUMBER(str)` → `str::numeric` (single argument case)
+- `TO_NUMBER(str, format)` → `TO_NUMBER(str, format)` (keep as is for format cases)
+
+### F. Advanced NULL Handling:
+- `NVL2(expr1, expr2, expr3)` → `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
+- Mixed type COALESCE: `COALESCE(employee_id, 'N/A')` → `COALESCE(employee_id::text, 'N/A')`
+- Date COALESCE: `COALESCE(hire_date, '1900-01-01')` → `COALESCE(hire_date, '1900-01-01'::date)`
+
+### G. Schema Removal:
+- Remove schema prefixes from tables, sequences, views, functions
+- `SCHEMA_NAME.TABLE_NAME` → `TABLE_NAME`
+- `SCHEMA_NAME.SEQUENCE_NAME` → `SEQUENCE_NAME`
+- **Procedure Handling Priority Order:**
+  1. `SCHEMA.PACKAGE.PROCEDURE` → Remove schema first → `PACKAGE.PROCEDURE` → `PACKAGE_PROCEDURE`
+  2. `PACKAGE.PROCEDURE` → Convert to `PACKAGE_PROCEDURE` (no schema to remove)
+  3. `SCHEMA.PROCEDURE` → Remove schema only → `PROCEDURE`
+- **Important**: Apply more specific patterns first, then general patterns
+
+### H. Stored Procedure Enhancement:
+- Basic conversion: `{call PROC()}` → `CALL PROC()`
+- **OUT Parameter Detection**: If procedure has OUT parameters, use `{ ?= call PROC(...) }`
+- Detect OUT parameters by checking for `mode=OUT` in MyBatis parameter definitions
+- Example:
+  ```xml
+  <!-- Has OUT parameters -->
+  <select statementType="CALLABLE">
+      { ?= call PROC(#{param1,mode=IN}, #{result,mode=OUT}) }
+  </select>
+  ```
+
+### I. DUAL Table Removal:
+- `SELECT 'Hello' FROM DUAL` → `SELECT 'Hello'`
+- `SELECT #{variable} FROM DUAL` → `SELECT #{variable}`
+
+### J. MyBatis JDBC Types:
+- `jdbcType="NUMBER"` → `jdbcType="NUMERIC"`
+- `jdbcType="VARCHAR2"` → `jdbcType="VARCHAR"`
+- `jdbcType="CLOB"` → `jdbcType="VARCHAR"`
+- `jdbcType="DATE"` → `jdbcType="TIMESTAMP"`
+
+### K. ResultMap Column Names:
+- Convert column attributes to lowercase in ResultMap tags
+- `column="EMP_ID"` → `column="emp_id"`
+- Apply only to `<result>`, `<id>`, `<association>`, `<collection>` tags
+- **Note**: Files containing only ResultMap are processed via STANDARD TRACK (not FAST TRACK)
+- This ensures PostgreSQL-specific column name conversion is applied
+
+## ADVANCED CONVERSIONS
+
+### Hierarchical Queries (CONNECT BY):
+Convert to recursive CTEs:
+```sql
+-- Oracle CONNECT BY
+SELECT ... FROM table START WITH condition CONNECT BY PRIOR ...
+
+-- PostgreSQL Recursive CTE
+WITH RECURSIVE cte AS (
+    SELECT ... FROM table WHERE condition  -- Anchor
+    UNION ALL
+    SELECT ... FROM table t JOIN cte ON ... -- Recursive
+) SELECT ... FROM cte
+```
+
+### MERGE Statements:
+Convert to INSERT ... ON CONFLICT:
+```sql
+-- Oracle MERGE
+MERGE INTO target USING source ON (condition)
+WHEN MATCHED THEN UPDATE SET ...
+WHEN NOT MATCHED THEN INSERT ...
+
+-- PostgreSQL
+INSERT INTO target SELECT ... FROM source
+ON CONFLICT (key) DO UPDATE SET ...
+```
+
+### Regular Expressions:
+- `REGEXP_LIKE(col, pattern)` → `col ~ 'pattern'`
+- `REGEXP_REPLACE(col, pattern, replacement)` → `REGEXP_REPLACE(col, pattern, replacement, 'g')`
+
+## FINAL STEP: WHERE CLAUSE BIND VARIABLE CAST PROCESSING
+
+### OVERVIEW:
+This is the FINAL step in PostgreSQL conversion process.
+Apply ONLY after all other transformations are complete.
+Input: Individual SQL ID XML fragments from Python processing
+Output: PostgreSQL-compatible XML with proper CAST applied to bind variables
+
+### STEP 1: QUERY TARGET DATABASE METADATA
+
+Use the following SQL to retrieve column information from target PostgreSQL database:
+
+```sql
+SELECT 
+    c.table_name,
+    c.column_name,
+    c.data_type,
+    CASE 
+        WHEN c.data_type IN ('integer', 'int4') THEN 'integer'
+        WHEN c.data_type IN ('bigint', 'int8') THEN 'bigint'
+        WHEN c.data_type IN ('numeric', 'decimal') THEN 'numeric'
+        WHEN c.data_type = 'date' THEN 'date'
+        WHEN c.data_type = 'timestamp without time zone' THEN 'timestamp'
+        WHEN c.data_type = 'timestamp with time zone' THEN 'timestamptz'
+        WHEN c.data_type = 'boolean' THEN 'boolean'
+        WHEN c.data_type IN ('character varying', 'varchar', 'text', 'char') THEN NULL  -- No cast needed
+        ELSE NULL  -- No cast needed for unknown types
+    END as cast_type
+FROM information_schema.columns c
+WHERE c.table_schema = 'public'  -- Adjust schema as needed
+AND UPPER(c.table_name) = UPPER(#{tableName})
+AND UPPER(c.column_name) = UPPER(#{columnName});
+```
+
+### STEP 2: PARSE SQL FRAGMENT
+
+Extract the following information from input XML:
+1. Table names from FROM clause and JOINs
+2. Column names used in WHERE conditions with bind variables
+3. Bind variable names (#{paramName} patterns)
+4. Create mapping: column_name → bind_variable → required_cast_type
+
+### STEP 3: APPLY CAST TO BIND VARIABLES
+
+Transform bind variables based on metadata:
+
+#### A. Equality Conditions:
+```
+Source: WHERE user_id = #{userId}
+Target: WHERE user_id = #{userId}::integer  (if user_id is integer type)
+```
+
+#### B. Range Conditions:
+```
+Source: WHERE salary BETWEEN #{min} AND #{max}
+Target: WHERE salary BETWEEN #{min}::numeric AND #{max}::numeric
+```
+
+#### C. IN Clauses:
+```
+Source: WHERE emp_id IN <foreach collection="ids" item="id">#{id}</foreach>
+Target: WHERE emp_id IN <foreach collection="ids" item="id">#{id}::integer</foreach>
+```
+
+#### D. Dynamic Conditions:
+```
+Source: <if test="userId != null">AND user_id = #{userId}</if>
+Target: <if test="userId != null">AND user_id = #{userId}::integer</if>
+```
+
+### STEP 4: HANDLE TABLE ALIASES
+
+When processing queries with table aliases:
+```sql
+SELECT * FROM users u WHERE u.user_id = #{userId}
+```
+- Map alias 'u' to actual table 'users'
+- Query metadata for 'users.user_id'
+- Apply appropriate cast
+
+### STEP 5: ERROR HANDLING
+
+If metadata query fails or column not found:
+- Log the issue
+- Keep original bind variable without cast
+- Mark for manual review
+
+## PROCESSING INSTRUCTIONS
+
+1. **Apply Core Conversions First**: Complete all function and syntax conversions
+2. **Apply Advanced Conversions**: Handle complex Oracle features
+3. **Final Step - Parse Input XML**: Extract SQL content and identify bind variables
+4. **Final Step - Query Metadata**: Use target database connection to get column types
+5. **Final Step - Apply Casts**: Transform bind variables based on actual column types
+6. **Return Transformed XML**: Maintain original XML structure
+
+## PERFORMANCE CONSIDERATIONS
+
+- Cache metadata queries to avoid repeated database calls
+- Apply CAST to parameters rather than columns when possible
+- Use batch metadata queries for multiple columns
+- Log transformation decisions for debugging
+
+## COMMON ERROR PATTERNS TO FIX
+
+- `operator does not exist: integer = character varying` → Add `::integer` to parameter
+- `operator does not exist: timestamp = character varying` → Add `::timestamp` to parameter
+- `invalid input syntax for type numeric` → Add null/empty checks before casting
+- `This statement does not declare an OUT parameter` → Use `{ ?= call ... }` for procedures with OUT parameters

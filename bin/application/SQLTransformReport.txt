@@ -1,11 +1,13 @@
+Reference: Apply environment information from $OMA_HOME/bin/application/environment_context.txt
+
 작업요청 : MyBatis SQL Mapping 전환 결과 보고서 작성
  
 디렉토리 구조:
 기본작업디렉토리:$APP_LOGS_FOLDER/SQLTransformTarget/mapper/
-├── classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/
-│   ├── sql_analysis.txt          # Oracle 특화 기능 분석 결과
-│   ├── extract/                  # Oracle SQL 파일들 (*_orcl-*.xml)
-│   └── transform/                # PostgreSQL SQL 파일들 (*_pg-*.xml)
+├── classes/sqlmap/com/AccessLoggingDao_sqlMap_src/
+│   ├── sql_analysis.txt          # Source 특화 기능 분석 결과
+│   ├── extract/                  # Source SQL 파일들 (*_src-*.xml)
+│   └── transform/                # Target SQL 파일들 (*_tgt-*.xml)
 ├── classes/sqlmap/itsm/csr/...
 └── classes/sqlmap/mro/...
 
@@ -18,9 +20,9 @@
 수행할 작업:
 
 1단계: 데이터 수집 및 분석
-- 모든 sql_analysis.txt 파일에서 Oracle 특화 기능,고난이도 변환 통계 추출
-- extract 폴더의 Oracle SQL 파일들을 orcl_sqls.csv로 정리
-- transform 폴더의 PostgreSQL SQL 파일들을 pg_sqls.csv로 정리
+- 모든 sql_analysis.txt 파일에서 Source 특화 기능,고난이도 변환 통계 추출
+- extract 폴더의 Source SQL 파일들을 src_sqls.csv로 정리
+- transform 폴더의 Target SQL 파일들을 tgt_sqls.csv로 정리
 - 1:1 매핑 검증 및 변환 성공률 계산
 
 2단계: HTML 보고서 생성
@@ -28,18 +30,18 @@
 
 전체 작업 개요 (4개 카드 형태):
 - 분석된 Mapper 파일 수
-- Oracle SQL 파일 수  
-- PostgreSQL SQL 파일 수
+- Source SQL 파일 수  
+- Target SQL 파일 수
 - 변환 성공률
 
-Oracle 일반 기능 분석 결과 (테이블):
-컬럼 구성: Oracle 일반 기능 | 발견 횟수 | PostgreSQL 변환 | 예시
+Source 일반 기능 분석 결과 (테이블):
+컬럼 구성: Source 일반 기능 | 발견 횟수 | Target 변환 | 예시
 - 컬럼 폭: 200px | 100px | 200px | 300px
 - 발견 횟수: 배지 스타일로 표시 (파란색 배경, 흰색 텍스트)
-- PostgreSQL 변환: 배지 스타일로 표시 (초록색 배경, 흰색 텍스트)
+- Target 변환: 배지 스타일로 표시 (초록색 배경, 흰색 텍스트)
 - 예시: sql_analysis.txt 화일중에서 해당 기능이 표현된 Contains 라인과 SQLID를 같이 표현
-  예. PcmComDao_sqlMap_orcl-02-select-pcmComDao.retrievePcmGoodList: Contains: TO_CHAR date formatting, NVL function, Oracle string concatenation (||)
-- 테이블 하단에 변환 예제 3개를 Oracle(빨간 테두리)과 PostgreSQL(초록 테두리) 코드 박스로 나란히 표시
+  예. PcmComDao_sqlMap_src-02-select-pcmComDao.retrievePcmGoodList: Contains: TO_CHAR date formatting, NVL function, Source string concatenation (||)
+- 테이블 하단에 변환 예제 3개를 Source(빨간 테두리)과 Target(초록 테두리) 코드 박스로 나란히 표시
 
 예시 미리보기는 
 주요 기능들:
@@ -47,7 +49,7 @@ Oracle 일반 기능 분석 결과 (테이블):
 - ROWNUM → LIMIT/OFFSET
 - DECODE → CASE WHEN
 - NVL → COALESCE()
-- TO_DATE/TO_CHAR → PostgreSQL 함수
+- TO_DATE/TO_CHAR → Target 함수
 - FROM DUAL → 제거 또는 VALUES
 - String Concatenation (||) → CONCAT() 또는 ||
 - Sequence.NEXTVAL → nextval('sequence_name')
@@ -58,23 +60,23 @@ Oracle 일반 기능 분석 결과 (테이블):
 - 컬럼 폭: 180px | 80px | 80px | 200px | 250px
 - 발견 횟수: 배지 스타일로 표시
 - 변환 난이도: 색상 코딩 (매우 높음: 빨강, 높음: 주황, 중간: 노랑)
-- 권장 조치사항: 각 기능별 구체적인 PostgreSQL 변환 방법 제시
+- 권장 조치사항: 각 기능별 구체적인 Target 변환 방법 제시
 - 예시 : sql_analysis.txt 화일중에서 해당 기능이 표현된 Contains 라인과 SQLID를 같이 표현
   예. pcmPcAsstDisuseMgtDao.updatePcmPcAsstDisuseMgt Contains: WITH clause, LISTAGG, CONNECT BY hierarchical query, SYS_CONNECT_BY_PATH, LEVEL, SYSDATE
-- 테이블 하단에 변환 예제 4개를 Oracle(빨간 테두리)과 PostgreSQL(초록 테두리) 코드 박스로 나란히 표시
+- 테이블 하단에 변환 예제 4개를 Source(빨간 테두리)과 Target(초록 테두리) 코드 박스로 나란히 표시
 
 
-변환 난이도가 높은 Oracle 기능들을 경고 색상으로 강조:
+변환 난이도가 높은 Source 기능들을 경고 색상으로 강조:
 - Hierarchical Query (CONNECT BY) - 매우 높음 → WITH RECURSIVE 구문으로 재작성 필요
-- Stored Procedure/Package Call - 매우 높음 → 저장 프로시저를 PostgreSQL 함수로 변환
+- Stored Procedure/Package Call - 매우 높음 → 저장 프로시저를 Target 함수로 변환
 - MERGE Statement - 높음 → INSERT ... ON CONFLICT 구문으로 변환
 - String Aggregation (LISTAGG) - 높음 → STRING_AGG() 함수로 변환
-- PL/SQL Block/Cursor - 매우 높음 → PostgreSQL PL/pgSQL로 재작성
+- PL/SQL Block/Cursor - 매우 높음 → Target PL/pgSQL로 재작성
 - Database Link - 매우 높음 → 외부 데이터 래퍼(FDW) 사용 검토
 - LOB Data Types (CLOB/BLOB) - 중간 → TEXT/BYTEA 타입으로 변환
-- Table Function - 높음 → PostgreSQL 함수로 재작성
-- DBMS_LOB Functions - 높음 → PostgreSQL LOB 함수로 변환
-- Regular Expression Functions - 중간 → PostgreSQL 정규식 함수 사용
+- Table Function - 높음 → Target 함수로 재작성
+- DBMS_LOB Functions - 높음 → Target LOB 함수로 변환
+- Regular Expression Functions - 중간 → Target 정규식 함수 사용
 
 고난이도 변환 실제 예시 (테이블 하단에 추가):
 1. MERGE Statement 예시:
@@ -91,7 +93,7 @@ SELECT, INSERT, UPDATE, DELETE 등의 분포 통계
 3단계: 스타일링 및 테이블 구성
 - 모던한 반응형 디자인
 - 통계는 카드형 레이아웃
-- 실제 분석 예시는 코드 박스로 표시 (Oracle: 빨간색 테두리, PostgreSQL: 초록색 테두리)
+- 실제 분석 예시는 코드 박스로 표시 (Source: 빨간색 테두리, Target: 초록색 테두리)
 - 테이블 hover 효과 적용
 
 테이블 스타일링 요구사항:
@@ -122,37 +124,37 @@ SELECT, INSERT, UPDATE, DELETE 등의 분포 통계
 .complexity-high { /* 높음 난이도 */ }
 .complexity-medium { /* 중간 난이도 */ }
 .action-cell { /* 권장 조치사항 셀 */ }
-.conversion-pair { /* Oracle-PostgreSQL 비교 */ }
+.conversion-pair { /* Source-Target 비교 */ }
 
 파일명 파싱 규칙:
-- Oracle: 파일명_orcl-번호-SQLType-SQLID.xml
-- PostgreSQL: 파일명_pg-번호-SQLType-SQLID.xml
+- Source: 파일명_src-번호-SQLType-SQLID.xml
+- Target: 파일명_tgt-번호-SQLType-SQLID.xml
 
 출력 파일:
-1. orcl_sqls.csv (Oracle SQL 파일 목록)
+1. src_sqls.csv (Source SQL 파일 목록)
 - 컬럼 : Folder, DBMS, XMLFile, Sequence, SQL Type, SQL ID
 
 - 예시.
-  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/extract/AccessLoggingDao_sqlMap_orcl-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
+  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract/AccessLoggingDao_sqlMap_src-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
   
   Folder, DBMS, File Name, Sequence, SQL Type, SQL ID
-  classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/extract, orcl, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
+  classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract, src, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
 
-2. orcl_xml.lst (Oracle SQL 파일 목록)
+2. src_xml.lst (Source SQL 파일 목록)
   - 예시.
-    /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/extract/AccessLoggingDao_sqlMap_orcl-01-insert-accessLoggingDao.insertAccessLog.xml
+    /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract/AccessLoggingDao_sqlMap_src-01-insert-accessLoggingDao.insertAccessLog.xml
   
-3. pg_sqls.csv (PostgreSQL SQL 파일 목록)
+3. tgt_sqls.csv (Target SQL 파일 목록)
 - 컬럼 : Folder, DBMS, XMLFile, Sequence, SQL Type, SQL ID
 - 예시.
-   /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/transform/AccessLoggingDao_sqlMap_pg-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
+   /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform/AccessLoggingDao_sqlMap_tgt-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
    
    Folder, DBMS, File Name, Sequence, SQL Type, SQL ID
-   classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/transform, pg, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
+   classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform, pg, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
 
-4. pg_xml.lst (Oracle SQL 파일 목록)
+4. tgt_xml.lst (Source SQL 파일 목록)
   - 예시.
-  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_orcl/transform/AccessLoggingDao_sqlMap_pg-01-insert-accessLoggingDao.insertAccessLog.xml
+  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform/AccessLoggingDao_sqlMap_tgt-01-insert-accessLoggingDao.insertAccessLog.xml
 
 5. Transform-Report.html (종합 보고서)
 

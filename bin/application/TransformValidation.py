@@ -14,7 +14,7 @@ TransformValidation.py - MyBatis XML 변환 검증 프로세스
 옵션:
     -h, --help                  도움말 표시
     -m, --mapper-folder         검증할 매퍼 파일이 있는 디렉토리
-    -o, --origin-suffix         원본 파일의 접미사 (기본값: _orcl)
+    -o, --origin-suffix         원본 파일의 접미사 (기본값: _src)
     -f, --transform-folder      변환 폴더 경로
     -l, --log                   로그 파일 경로 지정
     -v, --verbose               상세 로깅 활성화 (--log-level DEBUG와 동일)
@@ -24,7 +24,7 @@ TransformValidation.py - MyBatis XML 변환 검증 프로세스
 
 예제:
     python3 TransformValidation.py -m /path/to/mapper -f /path/to/transform
-    python3 TransformValidation.py --mapper-folder /path/to/mapper --origin-suffix _orcl --transform-folder /path/to/transform
+    python3 TransformValidation.py --mapper-folder /path/to/mapper --origin-suffix _src --transform-folder /path/to/transform
 """
 
 import os
@@ -267,14 +267,14 @@ def write_xmllint_result(results, output_file, logger):
         logger.error(f"Error writing XML validation results: {e}")
         return False
 
-def create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix='_orcl'):
+def create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix='_src'):
     """변환 실패 목록으로 CSV 파일을 생성합니다.
     
     매개변수:
         failure_list (list): 변환에 실패한 파일 목록
         app_transform_folder (str): 변환 폴더 경로
         logger: 로거 인스턴스
-        origin_suffix (str): 원본 파일의 접미사 (기본값: _orcl)
+        origin_suffix (str): 원본 파일의 접미사 (기본값: _src)
         
     반환값:
         bool: 성공 상태
@@ -367,7 +367,7 @@ def main():
     # 명령줄 인수 파싱
     parser = argparse.ArgumentParser(description='MyBatis XML 변환 검증 프로세스')
     parser.add_argument('-m', '--mapper-folder', dest='mapper_folder', help='검증할 매퍼 파일이 있는 디렉토리')
-    parser.add_argument('-o', '--origin-suffix', dest='origin_suffix', default='_orcl', help='원본 파일의 접미사 (기본값: _orcl)')
+    parser.add_argument('-o', '--origin-suffix', dest='origin_suffix', default='_src', help='원본 파일의 접미사 (기본값: _src)')
     parser.add_argument('-f', '--app-transform-folder', dest='app_transform_folder', help='변환 폴더 경로')
     parser.add_argument('-g', '--app-log-folder', dest='app_log_folder', help='log 폴더 경로')
     parser.add_argument('-l', '--log', help='로그 파일 경로 지정', default=None)

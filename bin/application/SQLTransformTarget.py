@@ -23,17 +23,19 @@ SQLTransformTarget.py - MyBatis XML 변환 대상 처리 프로그램
 옵션:
     -h, --help                  도움말 표시
     -f, --file                  변환 대상 목록 CSV 파일 경로
-    -o, --origin-suffix         원본 파일 접미사 (기본값: _orcl)
-    -s, --transform-suffix      변환 파일 접미사 (기본값: _pg)
+    -o, --origin-suffix         원본 파일 접미사 (기본값: _src)
+    -s, --transform-suffix      변환 파일 접미사 (기본값: _tgt)
     -l, --log                   로그 파일 경로
     -v, --verbose               상세 로깅 활성화 (--log-level DEBUG와 동일)
     -t, --test                  테스트 모드 활성화
+    --use-sudo                  파일 복사 시 sudo 사용 (권한 이슈 해결)
     --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                                 로그 레벨 설정 (기본값: INFO)
 
 예제:
     python3 SQLTransformTarget.py -f /path/to/SQLTransformTarget.csv
-    python3 SQLTransformTarget.py --file /path/to/SQLTransformTarget.csv --origin-suffix _orcl --transform-suffix _pg
+    python3 SQLTransformTarget.py --file /path/to/SQLTransformTarget.csv --origin-suffix _src --transform-suffix _tgt
+    python3 SQLTransformTarget.py -f /path/to/SQLTransformTarget.csv --use-sudo
 """
 
 import os
@@ -128,29 +130,76 @@ def run_command(cmd, logger, cwd=None):
         logger.error(f"Failed to execute command: {e}")
         return -1
 
-def ensure_directory(directory, logger):
-    """디렉토리가 존재하는지 확인하고, 없으면 생성합니다."""
+def ensure_directory(directory, logger, use_sudo=False):
+    """디렉토리가 존재하는지 확인하고, 없으면 생성합니다. 권한 이슈 시 sudo를 사용할 수 있습니다."""
     try:
-        os.makedirs(directory, exist_ok=True)
-        logger.debug(f"Directory ensured: {directory}")
-        return True
+        # 디렉토리가 이미 존재하는지 확인
+        if os.path.exists(directory):
+            logger.debug(f"Directory already exists: {directory}")
+            return True
+            
+        # 일반 생성 시도
+        if not use_sudo:
+            try:
+                os.makedirs(directory, exist_ok=True)
+                logger.debug(f"Directory created: {directory}")
+                return True
+            except PermissionError as pe:
+                logger.warning(f"Permission denied for normal mkdir, trying with sudo: {pe}")
+                # 권한 오류 시 sudo로 재시도
+                return ensure_directory(directory, logger, use_sudo=True)
+        else:
+            # sudo를 사용한 디렉토리 생성
+            cmd = ["sudo", "mkdir", "-p", directory]
+            result = run_command(cmd, logger)
+            if result == 0:
+                logger.debug(f"Directory created with sudo: {directory}")
+                return True
+            else:
+                logger.error(f"Failed to create directory with sudo: {directory}")
+                return False
+                
     except Exception as e:
         logger.error(f"Failed to create directory {directory}: {e}")
+        if not use_sudo:
+            logger.info("Retrying directory creation with sudo...")
+            return ensure_directory(directory, logger, use_sudo=True)
         return False
 
-def copy_file(source, destination, logger):
-    """파일을 복사합니다."""
+def copy_file(source, destination, logger, use_sudo=False):
+    """파일을 복사합니다. 권한 이슈 시 sudo를 사용할 수 있습니다."""
     try:
         # 대상 디렉토리가 없으면 생성
         dest_dir = os.path.dirname(destination)
-        ensure_directory(dest_dir, logger)
+        if not ensure_directory(dest_dir, logger, use_sudo):
+            return False
         
-        # 파일 복사
-        shutil.copy2(source, destination)
-        logger.debug(f"Copied file from {source} to {destination}")
-        return True
+        # 일반 복사 시도
+        if not use_sudo:
+            try:
+                shutil.copy2(source, destination)
+                logger.debug(f"Copied file from {source} to {destination}")
+                return True
+            except PermissionError as pe:
+                logger.warning(f"Permission denied for normal copy, trying with sudo: {pe}")
+                # 권한 오류 시 sudo로 재시도
+                return copy_file(source, destination, logger, use_sudo=True)
+        else:
+            # sudo를 사용한 복사
+            cmd = ["sudo", "cp", "-p", source, destination]
+            result = run_command(cmd, logger)
+            if result == 0:
+                logger.debug(f"Copied file with sudo from {source} to {destination}")
+                return True
+            else:
+                logger.error(f"Failed to copy file with sudo from {source} to {destination}")
+                return False
+                
     except Exception as e:
         logger.error(f"Failed to copy file from {source} to {destination}: {e}")
+        if not use_sudo:
+            logger.info("Retrying with sudo...")
+            return copy_file(source, destination, logger, use_sudo=True)
         return False
 
 def read_transform_target_list(file_path, logger):
@@ -173,7 +222,7 @@ def read_transform_target_list(file_path, logger):
         logger.error(f"Failed to read transform target list from {file_path}: {e}")
         return []
 
-def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, origin_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger, java_source_folder):
+def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, source_sql_mapper_folder, target_sql_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger, java_source_folder, use_sudo=False):
     """XML 파일을 처리합니다 (추출, 변환, 병합)."""
     try:
         # 1. 파일 경로 분석
@@ -185,34 +234,54 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, o
         if origin_suffix in xml_stem:
             logger.warning(f"File {xml_name} already has origin suffix {origin_suffix}")
         
-        # 매퍼 폴더 내 상대 경로 구성 (mapper 포함하지 않음)
+        # 매퍼 폴더 내 상대 경로 구성 (source_sql_mapper_folder 기준)
         logger.info(f"XML parent path: {str(xml_path.parent)}")
-        if "mapper" in str(xml_path.parent):
-            parts = str(xml_path.parent).split("mapper")[1].strip("/\\")
-            if parts.startswith("/") or parts.startswith("\\"):
-                parts = parts[1:]
-            transform_subfolderstructure = parts
-            logger.info(f"Extracted subfolder structure: {transform_subfolderstructure}")
+        logger.info(f"Source SQL mapper folder: {source_sql_mapper_folder}")
+        
+        # source_sql_mapper_folder를 기준으로 상대 경로 추출
+        xml_parent_path = str(xml_path.parent)
+        source_mapper_path = os.path.abspath(source_sql_mapper_folder)
+        
+        # XML 파일이 source_sql_mapper_folder 하위에 있는지 확인
+        if xml_parent_path.startswith(source_mapper_path):
+            # source_sql_mapper_folder 이후의 상대 경로 추출
+            relative_path = os.path.relpath(xml_parent_path, source_mapper_path)
+            if relative_path == ".":
+                transform_subfolderstructure = ""
+            else:
+                transform_subfolderstructure = relative_path
+            logger.info(f"Extracted subfolder structure from source mapper folder: {transform_subfolderstructure}")
         else:
-            logger.info("No subfolder structure found. Let me using java_source_folder.")
-            last_folder = java_source_folder.rstrip("/\\").split("/")[-1].split("\\")[-1]
-            transform_subfolderstructure = str(xml_path.parent).split(last_folder)[1].strip("/\\")
-            logger.info(f"Extracted subfolder structure: {transform_subfolderstructure}")
+            # XML 파일이 source_sql_mapper_folder 외부에 있는 경우, 기존 로직 사용
+            logger.warning(f"XML file is not under source_sql_mapper_folder. Using fallback logic.")
+            if "mapper" in xml_parent_path:
+                parts = xml_parent_path.split("mapper")[1].strip("/\\")
+                if parts.startswith("/") or parts.startswith("\\"):
+                    parts = parts[1:]
+                transform_subfolderstructure = parts
+                logger.info(f"Extracted subfolder structure using mapper keyword: {transform_subfolderstructure}")
+            else:
+                logger.info("No subfolder structure found. Using java_source_folder fallback.")
+                last_folder = java_source_folder.rstrip("/\\").split("/")[-1].split("\\")[-1]
+                transform_subfolderstructure = xml_parent_path.split(last_folder)[1].strip("/\\")
+                logger.info(f"Extracted subfolder structure using java source folder: {transform_subfolderstructure}")
         
         # 2. 복사 대상 폴더 구조 생성
         cp_target_folder_structure = transform_subfolderstructure
         cp_targetfile_name = f"{xml_stem}{origin_suffix}{xml_path.suffix}"
         
-        # 복사 대상 경로 구성
-        cp_target_folder = os.path.join(origin_mapper_folder, cp_target_folder_structure)
+        # 복사 대상 경로 구성 (TARGET_SQL_MAPPER_FOLDER 기준)
+        cp_target_folder = os.path.join(target_sql_mapper_folder, cp_target_folder_structure)
         cp_target_path = os.path.join(cp_target_folder, cp_targetfile_name)
         
-        # 폴더 생성
-        ensure_directory(cp_target_folder, logger)
+        # 폴더 생성 (권한 이슈 시 자동으로 sudo 재시도)
+        if not ensure_directory(cp_target_folder, logger):
+            logger.error(f"Failed to create target folder: {cp_target_folder}")
+            return False, None
         logger.info(f"Created folder structure: {cp_target_folder}")
         
-        # 3. 파일 복사
-        if not copy_file(xml_file, cp_target_path, logger):
+        # 3. 파일 복사 (sudo 옵션 적용)
+        if not copy_file(xml_file, cp_target_path, logger, use_sudo):
             return False, None
         
         logger.info(f"Copied {xml_file} to {cp_target_path}")
@@ -355,8 +424,8 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, o
             xml_stem.replace(origin_suffix, "") + xml_path.suffix
         )
 
-        # 13. 변환 결과 파일 복사
-        if not copy_file(xmlmerge_file, final_transform_file, logger):
+        # 13. 변환 결과 파일 복사 (sudo 옵션 적용)
+        if not copy_file(xmlmerge_file, final_transform_file, logger, use_sudo):
             logger.error(f"Failed to copy final transformed file to {final_transform_file}")
             return False, None
         
@@ -385,13 +454,14 @@ def main():
     # 명령줄 인수 파싱
     parser = argparse.ArgumentParser(description='MyBatis XML 변환 대상 처리 프로그램')
     parser.add_argument('-f', '--file', dest='transform_target_list', help='변환 대상 목록 CSV 파일 경로')
-    parser.add_argument('-o', '--origin-suffix', dest='origin_suffix', default='_orcl', help='원본 파일 접미사 (기본값: _orcl)')
-    parser.add_argument('-s', '--transform-suffix', dest='transform_suffix', default='_pg', help='변환 파일 접미사 (기본값: _pg)')
+    parser.add_argument('-o', '--origin-suffix', dest='origin_suffix', default='_src', help='원본 파일 접미사 (기본값: _src)')
+    parser.add_argument('-s', '--transform-suffix', dest='transform_suffix', default='_tgt', help='변환 파일 접미사 (기본값: _tgt)')
     parser.add_argument('-l', '--log', help='로그 파일 경로', default=None)
     parser.add_argument('-v', '--verbose', action='store_true', help='상세 로깅 활성화 (--log-level DEBUG와 동일)')
     parser.add_argument('--log-level', choices=log_level_choices, default='INFO',
                         help='로그 레벨 설정 (기본값: INFO)')
     parser.add_argument('-t', '--test', action='store_true', help='테스트 모드 활성화')
+    parser.add_argument('--use-sudo', action='store_true', help='파일 복사 시 sudo 사용 (권한 이슈 해결)')
     
     args = parser.parse_args()
     
@@ -416,6 +486,8 @@ def main():
         prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget.txt")
         log_level_str = 'DEBUG'
         java_source_folder = '/Users/changik//workspace/oracle-modernization-accelerator/SampleApp/jpetstore-6/src'
+        source_sql_mapper_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/mapper'
+        target_sql_mapper_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/mapper_target'
     else:
         # 환경 변수에서 값 가져오기
         application_name = os.environ.get('APPLICATION_NAME')
@@ -426,11 +498,13 @@ def main():
         app_logs_folder = os.environ.get('APP_LOGS_FOLDER')
         prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget.txt")
         java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
+        source_sql_mapper_folder = os.environ.get('SOURCE_SQL_MAPPER_FOLDER')
+        target_sql_mapper_folder = os.environ.get('TARGET_SQL_MAPPER_FOLDER')
         
         # 환경 변수 확인
-        if not all([application_name, oma_base_dir, app_assessment_folder, app_transform_folder]):
+        if not all([application_name, oma_base_dir, app_assessment_folder, app_transform_folder, source_sql_mapper_folder, target_sql_mapper_folder]):
             print("Error: Required environment variables are not set.")
-            print("Please set APPLICATION_NAME, OMA_BASE_DIR, APPLICATION_FOLDER, and APP_TRANSFORM_FOLDER.")
+            print("Please set APPLICATION_NAME, OMA_BASE_DIR, APPLICATION_FOLDER, APP_TRANSFORM_FOLDER, SOURCE_SQL_MAPPER_FOLDER, and TARGET_SQL_MAPPER_FOLDER.")
             sys.exit(1)
     
     # 스레드 수 설정
@@ -457,10 +531,9 @@ def main():
     qprompt_folder = os.path.join(log_folder, 'prompts')
     pylog_folder = os.path.join(log_folder, 'pylogs')
     mapper_processing_folder = os.path.join(log_folder, 'mapper')
-    origin_mapper_folder = os.path.join(app_transform_folder, 'mapper')
     
     # 필요한 폴더 생성
-    for folder in [log_folder, qlog_folder, qprompt_folder, pylog_folder, mapper_processing_folder, origin_mapper_folder]:
+    for folder in [log_folder, qlog_folder, qprompt_folder, pylog_folder, mapper_processing_folder, source_sql_mapper_folder, target_sql_mapper_folder]:
         os.makedirs(folder, exist_ok=True)
     
     # 로그 파일 경로 설정
@@ -510,13 +583,15 @@ def main():
             origin_suffix,
             transform_suffix,
             mapper_processing_folder,
-            origin_mapper_folder,
+            source_sql_mapper_folder,
+            target_sql_mapper_folder,
             prompt_file,
             qlog_folder,
             qprompt_folder,
             log_level_str,
             logger,
-            java_source_folder
+            java_source_folder,
+            args.use_sudo
         )
         
         # 결과 업데이트 (락 사용)
@@ -558,7 +633,7 @@ def main():
         validation_cmd = [
             "python3", 
             validation_script,
-            "--mapper-folder", origin_mapper_folder,
+            "--mapper-folder", target_sql_mapper_folder,
             "--origin-suffix", origin_suffix,
             "--app-transform-folder", app_transform_folder,
             "--app-log-folder", pylog_folder,
