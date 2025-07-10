@@ -855,6 +855,9 @@ Resources:
                   echo "export ORACLE_ADM_PASSWORD=$ORCL_ADM_PWD" >> $USER_HOME/.bash_profile
                   echo "export LD_LIBRARY_PATH=$ORACLE_HOME" >> $USER_HOME/.bash_profile
                   echo "export PATH=\$PATH:$ORACLE_HOME" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_HOST=$ORCL_HOST" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_PORT=$ORCL_PORT" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_SVC_CONNECT_STRING=orcl" >> $USER_HOME/.bash_profile
                   
                   # Setup service user credentials
                   ORCLSECRETARN_SVC=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-oracle-service" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
