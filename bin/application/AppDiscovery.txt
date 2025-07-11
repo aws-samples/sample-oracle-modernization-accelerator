@@ -9,11 +9,26 @@ Reference: Apply environment information from $OMA_HOME/bin/application/environm
 
 분석 범위 및 실행 단계:
 
-1단계: 애플리케이션 기본 정보 수집
+1단계: 애플리케이션 기본 정보 수집 및 시스템 아키텍처 분석
    - 프로젝트 타입 파악 (Maven/Gradle/Traditional)
    - 프레임워크 및 기술 스택 분석
    - Java 버전 및 의존성 라이브러리 확인
    - 디렉토리 구조 분석
+   - **상세 시스템 아키텍처 분석**:
+     * 애플리케이션 레이어 구조 (Presentation, Business, Data Access, Integration)
+     * 모듈별 의존성 관계 및 패키지 구조
+     * 설정 파일 분석 (Spring Context, MyBatis Config, Database Config)
+     * 외부 시스템 연동 현황 (Web Service, REST API, Database Link)
+     * 보안 아키텍처 (Spring Security, 인증/인가 방식)
+     * 트랜잭션 관리 방식 및 데이터소스 구성
+     * 로깅 및 모니터링 구성
+     * 배포 아키텍처 (WAR/JAR, 서버 구성)
+     * 캐시 사용 현황 (EhCache, Redis 등)
+     * 메시징 시스템 사용 현황 (JMS, MQ 등)
+   - **기술 스택 호환성 분석**:
+     * 각 프레임워크 버전의 PostgreSQL/MySQL 호환성
+     * 레거시 라이브러리 식별 및 업그레이드 필요성
+     * Oracle 특화 라이브러리 의존성 분석
 
 2단계: MyBatis XML 매퍼 파일 전수 분석
    - 매퍼 파일 검색 우선순위:
@@ -21,11 +36,20 @@ Reference: Apply environment information from $OMA_HOME/bin/application/environm
      2. $JAVA_SOURCE_FOLDER/**/WEB-INF/classes/sqlmap/*.xml  
      3. $JAVA_SOURCE_FOLDER/**/*.xml (mapper, sqlmap, dao 포함)
    - 모든 XML 매퍼 파일 목록 생성 (Mapperlist.csv)
+   - **매퍼 파일 통계 분석**:
+     * 모듈별 매퍼 파일 분포 (패키지/디렉토리 기준)
+     * 파일 크기별 분포 (Small/Medium/Large)
+     * 복잡도별 파일 분포 (Simple/Moderate/Complex/High Risk)
+     * 비즈니스 도메인별 분류 (예: air, hotel, common, admin 등)
    - Oracle 특화 패턴 검출 및 복잡도 평가
    - 가능한 경우 $APP_TOOLS_FOLDER/appDiscovery-utils.sh 활용
    - 새로운 6단계 복잡도 체계 적용: Critical(15점), High(10점), Medium-High(7점), Medium(5점), Low(2점), Minimal(1점)
    - 상세 분석 결과를 Oracle_Pattern_Analysis.txt에 저장
    - 파일별 복잡도 점수를 Oracle_Complexity_Summary.csv에 저장
+   - **신규 추가**: Oracle_Complexity_Detail.csv 생성
+     * 형식: MapperFile,PatternType,PatternName,Occurrences,LineNumbers,ConversionDifficulty,BusinessImpact,ActualCode
+     * 각 패턴별 상세 정보: 발생 건수, 라인 번호, 실제 SQL 코드, 변환 난이도, 비즈니스 영향도
+     * 예시: "TbAirBt100Mapper_Custom.xml","Critical","DBMS_CRYPTO.ENCRYPT",2,"45,67","High - Custom Function Required","Security Logic","DBMS_CRYPTO.ENCRYPT(password, key)"
 
 3단계: 설정 파일 검색 및 JNDI 정보 추출
    - 설정 파일 검색 우선순위:
@@ -85,6 +109,10 @@ Reference: Apply environment information from $OMA_HOME/bin/application/environm
      * Oracle XMLType 처리 코드
      * Oracle 특화 데이터 변환 로직
    - 분석 결과를 Java_Oracle_Analysis.txt에 저장
+   - **신규 추가**: Java_Oracle_Detail.csv 생성
+     * 형식: JavaFile,PatternType,PatternName,Occurrences,LineNumbers,ConversionDifficulty,BusinessImpact,ActualCode
+     * 각 Java 의존성별 상세 정보: 발생 건수, 라인 번호, 실제 Java 코드, 변환 난이도, 비즈니스 영향도
+     * 예시: "AirReservationMaster_ServiceImpl.java","Medium","Oracle JDBC Driver",1,"9259","Medium - Driver Change Required","Database Connection","oracle.jdbc.OracleDriver"
 
 5단계: JNDI 설정 분석 및 CSV 생성
    - JNDI 데이터소스 구성 분석
@@ -106,9 +134,22 @@ Reference: Apply environment information from $OMA_HOME/bin/application/environm
    - 실제 분석 결과 기반 동적 컨텐츠 생성 (하드코딩 금지)
    - HTML 구조 동적 생성:
      * 헤더 섹션: 애플리케이션 정보 및 생성 일시
-     * 시스템 아키텍처 개요: 프로젝트 정보, 기술 스택, 디렉토리 구조
-     * Oracle 복잡도 분석 대시보드: 6단계 복잡도 점수 및 타임라인
-     * Oracle 패턴 분석 결과: 실제 발견된 패턴만 표시 (조건부 렌더링)
+     * **시스템 아키텍처 개요**: 상세 아키텍처 분석 결과 표시
+       - 애플리케이션 아키텍처 다이어그램 (텍스트 기반)
+       - 레이어별 구성 요소 및 역할
+       - 모듈별 의존성 매트릭스
+       - 기술 스택 상세 정보 (버전, PostgreSQL/MySQL 호환성, 업그레이드 필요성)
+       - 외부 시스템 연동 현황 테이블
+       - 데이터소스 및 JNDI 구성 정보
+       - 보안 아키텍처 구성
+       - 성능 및 확장성 고려사항
+     * **SQL XML Mapper Summary**: 매퍼 파일 통계 및 분포 분석
+       - 총 매퍼 파일 수 및 모듈별 분포 테이블
+       - 복잡도별 파일 분포 차트 (Simple/Moderate/Complex/High Risk)
+       - 비즈니스 도메인별 매퍼 분류 및 설명
+       - 파일 크기별 분포 (라인 수 기준)
+       - Oracle 패턴 사용 빈도별 매퍼 분류
+     * **Oracle 패턴 분석 결과**: Oracle_Complexity_Detail.csv 기반 상세 테이블 생성
      * Java Oracle 의존성 분석: 실제 Java 코드 분석 결과
      * JNDI 설정 분석: 실제 JNDI 구성 정보 (상위 10개만 표시)
      * 종합 분석 요약: AI 기반 마이그레이션 권장사항
@@ -117,15 +158,12 @@ Reference: Apply environment information from $OMA_HOME/bin/application/environm
      * Oracle 패턴이 발견되지 않은 경우 "해당 없음" 표시
      * JNDI 설정이 없는 경우 경고 메시지 표시
      * Java Oracle 의존성이 없는 경우 "Clean" 상태 표시
-   - 유형별 대표 예시만 HTML에 표시 (가독성 최적화):
-     * Critical 패턴: 각 세부 유형별 1개씩 실제 파일명과 라인 표시
-       (Database Links 1개, Encryption Functions 1개, DBMS Packages 1개, PL/SQL Blocks 1개, 등)
-     * High 패턴: 각 세부 유형별 1개씩 실제 예시 표시
-       (Complex Hierarchical Queries 1개, Advanced Aggregate Functions 1개, MERGE 1개, 등)
-     * Medium-High 패턴: 각 세부 유형별 1개씩 실제 예시 표시
-     * Medium 패턴: 각 세부 유형별 1개씩 실제 예시 표시
-     * Java 의존성: 각 세부 유형별 1개씩 실제 파일 예시
-       (Oracle JDBC 1개, CLOB/BLOB 1개, Sequence 1개, Exception Handling 1개, 등)
+   - **상세 테이블 생성 규칙**:
+     * 모든 Oracle 패턴과 Java 의존성은 실제 분석 결과만 표시
+     * 패턴별 파일건수, 발생건수 표시 // 파일 1개의 세부 예시 포함
+     * 실제 코드 예시는 10 Line 내에서 표시. 핵심 코드는 표시 되어야 함
+     * 테이블이 길어져도 완전한 정보 제공 우선
+     * 발견되지 않은 패턴은 테이블 자체를 생성하지 않음
    - Discovery-Report.html 생성
 
 Oracle 패턴 분석 상세 범위:
@@ -248,11 +286,15 @@ AI 분석 지침:
 
 생성 파일 목록:
 - Mapperlist.csv (매퍼 파일 목록)
+- Mapper_Statistics.csv (모듈별 매퍼 파일 통계 - 신규)
 - JNDI.csv (JNDI 설정 정보)  
 - MapperAndJndi.csv (매퍼-JNDI 연관 관계)
 - Oracle_Pattern_Analysis.txt (상세 Oracle 패턴 분석)
 - Oracle_Complexity_Summary.csv (파일별 복잡도 점수)
+- Oracle_Complexity_Detail.csv (패턴별 상세 정보 - 신규)
 - Java_Oracle_Analysis.txt (Java 의존성 분석)
+- Java_Oracle_Detail.csv (Java 의존성별 상세 정보 - 신규)
+- System_Architecture_Analysis.txt (시스템 아키텍처 상세 분석 - 신규)
 - Discovery-Report.html (AI 기반 종합 HTML 리포트)
 
 특별 지시사항:
