@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# Oracle Application Discovery Report Generation Script
+# This script executes the enhanced Oracle analysis using Amazon Q
+
+echo "=== Oracle Application Discovery Report Generation ==="
+echo "Starting Oracle migration analysis..."
+echo "Date: $(date)"
+echo "Working Directory: $(pwd)"
+echo ""
+
+# Check if required environment variables are set
+if [ -z "$APP_TOOLS_FOLDER" ]; then
+    echo "Error: APP_TOOLS_FOLDER environment variable is not set"
+    exit 1
+fi
+
+if [ -z "$APPLICATION_FOLDER" ]; then
+    echo "Error: APPLICATION_FOLDER environment variable is not set"
+    exit 1
+fi
+
+if [ -z "$JAVA_SOURCE_FOLDER" ]; then
+    echo "Error: JAVA_SOURCE_FOLDER environment variable is not set"
+    exit 1
+fi
+
+# Check if required appDiscovery files exist
+if [ ! -f "$APP_TOOLS_FOLDER/appDiscovery.txt" ]; then
+    echo "Error: appDiscovery.txt not found in $APP_TOOLS_FOLDER"
+    exit 1
+fi
+
+if [ ! -f "$APP_TOOLS_FOLDER/appDiscovery-template.html" ]; then
+    echo "Error: appDiscovery-template.html not found in $APP_TOOLS_FOLDER"
+    exit 1
+fi
+
+# Check if optional utility scripts exist
+if [ ! -f "$APP_TOOLS_FOLDER/appDiscovery-utils.sh" ]; then
+    echo "Info: appDiscovery-utils.sh not found (optional utility for advanced pattern analysis)"
+fi
+
+echo "Environment Check:"
+echo "  - APP_TOOLS_FOLDER: $APP_TOOLS_FOLDER"
+echo "  - APPLICATION_FOLDER: $APPLICATION_FOLDER"
+echo "  - JAVA_SOURCE_FOLDER: $JAVA_SOURCE_FOLDER"
+echo ""
+
+echo "File Check:"
+echo "  ✅ appDiscovery.txt - Main AI analysis prompt"
+echo "  ✅ appDiscovery-template.html - CSS template"
+if [ -f "$APP_TOOLS_FOLDER/appDiscovery-utils.sh" ]; then
+    echo "  📋 appDiscovery-utils.sh - Oracle pattern analysis utilities (available)"
+else
+    echo "  📋 appDiscovery-utils.sh - Oracle pattern analysis utilities (not found, using built-in analysis)"
+fi
+echo ""
+
+# Create APPLICATION_FOLDER if it doesn't exist
+mkdir -p "$APPLICATION_FOLDER"
+
+echo "Executing Oracle Application Discovery Analysis..."
+echo "This will analyze:"
+echo "  - MyBatis Mapper files for Oracle patterns (FULL ANALYSIS - ALL FILES)"
+echo "  - Java source code for Oracle dependencies (Enhanced 12+ categories)"
+echo "  - JNDI configuration and database connections"
+echo "  - Generate AI-powered migration analysis with 6-tier complexity scoring"
+echo "  - Dynamic HTML report generation with real-time content"
+echo ""
+
+# Execute the Oracle analysis using Amazon Q
+echo "🤖 Starting Amazon Q AI analysis with enhanced appDiscovery prompt..."
+echo "📊 Using 6-tier complexity system: Critical(15), High(10), Medium-High(7), Medium(5), Low(2), Minimal(1)"
+echo "🔍 Analyzing 50+ Oracle-specific patterns with intelligent detection"
+q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
+
+# Check if the analysis completed successfully
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "=== Oracle Analysis Completed Successfully ==="
+    echo ""
+    
+    # List generated files with file sizes and analysis
+    echo "Generated Analysis Files:"
+    
+    if [ -f "$APPLICATION_FOLDER/Discovery-Report.html" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/Discovery-Report.html" | awk '{print $5}')
+        echo "  ✅ Discovery-Report.html ($file_size) - AI-powered analysis report"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/Oracle_Pattern_Analysis.txt" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/Oracle_Pattern_Analysis.txt" | awk '{print $5}')
+        echo "  ✅ Oracle_Pattern_Analysis.txt ($file_size) - Detailed pattern analysis"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/Oracle_Complexity_Summary.csv" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/Oracle_Complexity_Summary.csv" | awk '{print $5}')
+        line_count=$(wc -l < "$APPLICATION_FOLDER/Oracle_Complexity_Summary.csv" 2>/dev/null || echo "0")
+        echo "  ✅ Oracle_Complexity_Summary.csv ($file_size, $line_count files) - File complexity scores"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/Java_Oracle_Analysis.txt" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/Java_Oracle_Analysis.txt" | awk '{print $5}')
+        echo "  ✅ Java_Oracle_Analysis.txt ($file_size) - Java dependency analysis"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/Mapperlist.csv" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/Mapperlist.csv" | awk '{print $5}')
+        mapper_count=$(tail -n +2 "$APPLICATION_FOLDER/Mapperlist.csv" 2>/dev/null | wc -l || echo "0")
+        echo "  ✅ Mapperlist.csv ($file_size, $mapper_count mappers) - MyBatis mapper file list"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/JNDI.csv" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/JNDI.csv" | awk '{print $5}')
+        echo "  ✅ JNDI.csv ($file_size) - JNDI configuration analysis"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/MapperAndJndi.csv" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/MapperAndJndi.csv" | awk '{print $5}')
+        echo "  ✅ MapperAndJndi.csv ($file_size) - Mapper-JNDI associations"
+    fi
+    
+    echo ""
+    echo "📊 AI-Powered Analysis Summary:"
+    
+    # Show analysis summary if available
+    if [ -f "$APPLICATION_FOLDER/Oracle_Pattern_Analysis.txt" ]; then
+        echo "  📈 Oracle Complexity Analysis:"
+        grep -E "(Total Mapper Files|Total Oracle Complexity Score|OVERALL APPLICATION COMPLEXITY|ESTIMATED TOTAL TIMELINE)" "$APPLICATION_FOLDER/Oracle_Pattern_Analysis.txt" 2>/dev/null | sed 's/^/    /' || echo "    Analysis details available in Oracle_Pattern_Analysis.txt"
+    fi
+    
+    if [ -f "$APPLICATION_FOLDER/Java_Oracle_Analysis.txt" ]; then
+        echo "  ☕ Java Dependencies:"
+        grep -E "(Files with Oracle imports|CLOB usage|BLOB usage|Java Oracle Dependency Score|Java Oracle Dependency Complexity)" "$APPLICATION_FOLDER/Java_Oracle_Analysis.txt" 2>/dev/null | sed 's/^/    /' || echo "    Java dependency details available in Java_Oracle_Analysis.txt"
+    fi
+    
+    echo ""
+    echo "🌐 Open Discovery-Report.html in your browser to view the comprehensive AI-powered Oracle migration analysis"
+    echo "📁 Analysis files saved in: $APPLICATION_FOLDER"
+    echo ""
+    echo "🤖 This analysis was powered by Amazon Q with advanced Oracle pattern recognition and migration insights"
+    echo ""
+    
+else
+    echo ""
+    echo "❌ Oracle Analysis Failed"
+    echo "Please check the error messages above and try again"
+    echo ""
+    echo "Troubleshooting:"
+    echo "  1. Verify JAVA_SOURCE_FOLDER contains MyBatis XML files"
+    echo "  2. Check file permissions in APPLICATION_FOLDER"
+    echo "  3. Ensure Amazon Q CLI is properly configured"
+    echo "  4. Verify appDiscovery.txt prompt is accessible"
+    echo "  5. Review the error logs above for specific issues"
+    exit 1
+fi
+
+echo "=== Oracle Application Discovery Report Generation Complete ==="

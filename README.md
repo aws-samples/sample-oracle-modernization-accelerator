@@ -23,7 +23,7 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더 (OMA_BASE_
     ├── setEnv.sh                                 # 환경 설정 스크립트
     ├── checkEnv.sh                               # 환경 변수 확인 스크립트
     ├── processDBSchema.sh                        # DB Schema 변환 스크립트
-    ├── processAppDiscovery.sh                    # 애플리케이션 Discovery 스크립트
+    ├── processappDiscovery.sh                    # 애플리케이션 Discovery 스크립트
     ├── processSQLTransform.sh                    # SQL 변환 스크립트
     ├── processSQLTest.sh                         # SQL Unit Test 스크립트
     ├── database/                                 # 데이터베이스 변환 템플릿
@@ -76,7 +76,7 @@ source ./oma_env_프로젝트명.sh
 ./bin/processDBSchema.sh
 
 # Step 2: 애플리케이션 Discovery (JNDI, Mapper 분석)
-./bin/processAppDiscovery.sh
+./bin/processappDiscovery.sh
 
 # Step 3: SQL 변환 (Oracle SQL → PostgreSQL SQL)
 ./bin/processSQLTransform.sh

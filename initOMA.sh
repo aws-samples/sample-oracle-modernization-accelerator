@@ -225,17 +225,17 @@ execute_app_discovery() {
     sleep 3
     echo -e "${BLUE}${BOLD}애플리케이션 Discovery 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processAppDiscovery.sh" ]; then
-        echo -e "${CYAN}processAppDiscovery.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processappDiscovery.sh" ]; then
+        echo -e "${CYAN}processappDiscovery.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processAppDiscovery.sh
+        ./processappDiscovery.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}애플리케이션 Discovery가 완료되었습니다.${NC}"
         else
             echo -e "${RED}애플리케이션 Discovery 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processAppDiscovery.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processappDiscovery.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator

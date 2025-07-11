@@ -41,15 +41,15 @@ process_mybatis_info() {
     echo -e "${CYAN}5. 통합 분석 리포트 (ApplicationReport.html) 생성${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}실행 예시:${NC}"
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AppDiscovery.txt${NC}"
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
 
-    # AppDiscovery.txt 실행 (통합된 분석 작업)
-    if [ -f "$APP_TOOLS_FOLDER/AppDiscovery.txt" ]; then
+    # appDiscovery.txt 실행 (통합된 분석 작업)
+    if [ -f "$APP_TOOLS_FOLDER/appDiscovery.txt" ]; then
         echo -e "${CYAN}애플리케이션 분석 및 MyBatis 정보 추출 중...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/AppDiscovery.txt${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/AppDiscovery.txt"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
     else
-        echo -e "${RED}오류: AppDiscovery.txt 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/AppDiscovery.txt${NC}"
+        echo -e "${RED}오류: appDiscovery.txt 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
         return 1
     fi
 
