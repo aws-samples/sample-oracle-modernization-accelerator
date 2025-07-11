@@ -479,6 +479,171 @@ Resources:
           Value: !Sub '${AWS::StackName}-aurora-instance'
 
   ###############################################################################################
+  ### DMS Schema Conversion
+  ###############################################################################################
+  
+  # KMS Access Policy for DMS Schema Conversion
+  KmsAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-KmsAccessPolicy'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt KMSKey.Arn
+
+  # DMS Schema Conversion S3 Access Role
+  DmsScS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-dms-sc-s3-role'
+      Description: Allow DMS SC to access the data in the S3 Bucket from Cloud Formation Template
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: dms.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  # DMS Schema Conversion S3 Bucket
+  DmsS3Bucket:
+    Type: AWS::S3::Bucket    
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub 'oma-dms-sc-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+        
+  # S3 Bucket Policy
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain        
+    Properties:
+      Bucket: !Ref DmsS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PrefixListAllow
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:PutObject
+              - s3:DeleteObject
+              - s3:GetObjectVersion
+            Resource:
+              - !Sub arn:aws:s3:::${DmsS3Bucket}
+              - !Sub arn:aws:s3:::${DmsS3Bucket}/*
+            Condition:
+              IpAddress:
+                aws:SourceIp: 10.255.255.0/24
+
+  # DMS Schema Conversion Secrets Manager Role
+  DmsScSecretsManagerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-dms-sc-secrets-role'
+      Description: Allow DMS SC to access the data in the Database Secrets from Cloud Formation Template
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub 'dms.${AWS::Region}.amazonaws.com'
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: schema-conversion.dms.amazonaws.com
+            Action: sts:AssumeRole     
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+        - !Ref KmsAccessPolicy
+ 
+  # Source Data Provider (Oracle)
+  SourceDataProvider:
+    Type: AWS::DMS::DataProvider
+    Properties:
+      DataProviderIdentifier: !Sub '${AWS::StackName}-dms-sc-source'
+      DataProviderName: !Sub '${AWS::StackName}-dms-sc-source'
+      Engine: oracle
+      Settings: 
+        OracleSettings:
+          DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:dbname}}'
+          Port: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:port}}'
+          ServerName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:host}}'
+          SslMode: none
+
+  # Destination Data Provider (Aurora PostgreSQL)
+  DestinationDataProvider:
+    Type: AWS::DMS::DataProvider
+    DependsOn:
+      - DMSVPCRole         
+    Properties:
+      DataProviderIdentifier: !Sub '${AWS::StackName}-dms-sc-target'
+      DataProviderName: !Sub '${AWS::StackName}-dms-sc-target'
+      Engine: aurora_postgresql
+      Settings: 
+        PostgreSqlSettings:
+          DatabaseName: postgres
+          Port: 5432
+          ServerName: !GetAtt AuroraCluster.Endpoint.Address
+          SslMode: none
+
+  # DMS Instance Profile
+  InstanceProfileIdentifier:
+    Type: AWS::DMS::InstanceProfile
+    Properties:
+      Description: DMS SC instance profile
+      NetworkType: IPV4
+      InstanceProfileIdentifier: !Sub '${AWS::StackName}-dms-sc-profile'
+      InstanceProfileName: !Sub '${AWS::StackName}-dms-sc-profile'
+      SubnetGroupIdentifier: !Ref DMSSubnetGroup      
+      PubliclyAccessible: false
+      VpcSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+
+  # DMS Schema Conversion Migration Project
+  DmsScMigrationProject:
+    Type: AWS::DMS::MigrationProject
+    Properties:
+      Description: DMS SC Migration Project from Cloud Formation Template
+      InstanceProfileIdentifier: !Ref InstanceProfileIdentifier
+      MigrationProjectName: !Sub '${AWS::StackName}-dms-sc-project'
+      SchemaConversionApplicationAttributes:
+        S3BucketPath: !Ref DmsS3Bucket
+        S3BucketRoleArn: !GetAtt DmsScS3AccessRole.Arn
+      SourceDataProviderDescriptors:
+        - DataProviderArn: !GetAtt SourceDataProvider.DataProviderArn
+          SecretsManagerSecretId: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:oma-secret-oracle-service'
+          SecretsManagerAccessRoleArn: !GetAtt DmsScSecretsManagerRole.Arn
+          DataProviderIdentifier: !Ref SourceDataProvider
+      TargetDataProviderDescriptors:
+        - DataProviderArn: !GetAtt DestinationDataProvider.DataProviderArn
+          SecretsManagerSecretId: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:oma-secret-postgres-admin'
+          SecretsManagerAccessRoleArn: !GetAtt DmsScSecretsManagerRole.Arn
+          DataProviderIdentifier: !Ref DestinationDataProvider
+
+  ###############################################################################################
   ### DMS (Database Migration Service)
   ###############################################################################################
   
@@ -690,7 +855,9 @@ Resources:
                   echo "export ORACLE_ADM_USER=$ORCL_ADM_USER" >> $USER_HOME/.bash_profile
                   echo "export ORACLE_ADM_PASSWORD=$ORCL_ADM_PWD" >> $USER_HOME/.bash_profile
                   echo "export LD_LIBRARY_PATH=$ORACLE_HOME" >> $USER_HOME/.bash_profile
-                  echo "export PATH=\$PATH:$ORACLE_HOME" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_HOST=$ORCL_HOST" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_PORT=$ORCL_PORT" >> $USER_HOME/.bash_profile
+                  echo "export ORACLE_SVC_CONNECT_STRING=orcl" >> $USER_HOME/.bash_profile
                   
                   # Setup service user credentials
                   ORCLSECRETARN_SVC=$(aws secretsmanager list-secrets --filters Key="name",Values="oma-secret-oracle-service" --query 'SecretList[*].ARN' --region ${AWS::Region} | jq -r '.[0]' 2>/dev/null)
