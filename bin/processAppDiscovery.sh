@@ -38,7 +38,7 @@ process_mybatis_info() {
     echo -e "${CYAN}2. MyBatis 설정 파일 분석 및 Mapper 파일 목록 생성${NC}"
     echo -e "${CYAN}3. JNDI 정보 추출 및 매핑 정보 생성${NC}"
     echo -e "${CYAN}4. SQL 패턴 발견 및 분석${NC}"
-    echo -e "${CYAN}5. 통합 분석 리포트 (ApplicationReport.html) 생성${NC}"
+    echo -e "${CYAN}5. 통합 분석 리포트 (DiscoveryReport.html) 생성${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}실행 예시:${NC}"
     echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"

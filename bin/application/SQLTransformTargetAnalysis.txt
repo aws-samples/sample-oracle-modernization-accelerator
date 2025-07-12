@@ -1,4 +1,3 @@
-Reference: Apply environment information from $OMA_HOME/bin/application/environment_context.txt
 
 Step 2. Analyze SQL for all {MAPPER_SRCL1_DIR}/*{ORIGIN_SUFFIX}*.xml files
 

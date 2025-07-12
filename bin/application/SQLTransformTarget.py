@@ -234,37 +234,36 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
         if origin_suffix in xml_stem:
             logger.warning(f"File {xml_name} already has origin suffix {origin_suffix}")
         
-        # 매퍼 폴더 내 상대 경로 구성 (source_sql_mapper_folder 기준)
+        # 매퍼 폴더 내 상대 경로 구성 (SOURCE_SQL_MAPPER_FOLDER 환경변수 기준)
         logger.info(f"XML parent path: {str(xml_path.parent)}")
         logger.info(f"Source SQL mapper folder: {source_sql_mapper_folder}")
         
-        # source_sql_mapper_folder를 기준으로 상대 경로 추출
+        # SOURCE_SQL_MAPPER_FOLDER를 기준으로 상대 경로 추출
         xml_parent_path = str(xml_path.parent)
         source_mapper_path = os.path.abspath(source_sql_mapper_folder)
         
-        # XML 파일이 source_sql_mapper_folder 하위에 있는지 확인
+        # XML 파일이 SOURCE_SQL_MAPPER_FOLDER 하위에 있는지 확인
         if xml_parent_path.startswith(source_mapper_path):
-            # source_sql_mapper_folder 이후의 상대 경로 추출
+            # SOURCE_SQL_MAPPER_FOLDER 이후의 상대 경로 추출
             relative_path = os.path.relpath(xml_parent_path, source_mapper_path)
             if relative_path == ".":
                 transform_subfolderstructure = ""
             else:
                 transform_subfolderstructure = relative_path
-            logger.info(f"Extracted subfolder structure from source mapper folder: {transform_subfolderstructure}")
+            logger.info(f"Extracted subfolder structure from SOURCE_SQL_MAPPER_FOLDER: {transform_subfolderstructure}")
         else:
-            # XML 파일이 source_sql_mapper_folder 외부에 있는 경우, 기존 로직 사용
-            logger.warning(f"XML file is not under source_sql_mapper_folder. Using fallback logic.")
-            if "mapper" in xml_parent_path:
-                parts = xml_parent_path.split("mapper")[1].strip("/\\")
-                if parts.startswith("/") or parts.startswith("\\"):
-                    parts = parts[1:]
-                transform_subfolderstructure = parts
-                logger.info(f"Extracted subfolder structure using mapper keyword: {transform_subfolderstructure}")
+            # XML 파일이 SOURCE_SQL_MAPPER_FOLDER 하위에 없는 경우, SOURCE_SQL_MAPPER_FOLDER 이후 경로를 직접 추출
+            logger.warning(f"XML file is not under SOURCE_SQL_MAPPER_FOLDER. Extracting path after SOURCE_SQL_MAPPER_FOLDER.")
+            
+            # SOURCE_SQL_MAPPER_FOLDER 경로 이후의 경로 추출
+            if source_mapper_path in xml_parent_path:
+                # SOURCE_SQL_MAPPER_FOLDER 이후의 경로 추출
+                after_source_mapper = xml_parent_path.replace(source_mapper_path, "").strip("/\\")
+                transform_subfolderstructure = after_source_mapper
+                logger.info(f"Extracted subfolder structure after SOURCE_SQL_MAPPER_FOLDER: {transform_subfolderstructure}")
             else:
-                logger.info("No subfolder structure found. Using java_source_folder fallback.")
-                last_folder = java_source_folder.rstrip("/\\").split("/")[-1].split("\\")[-1]
-                transform_subfolderstructure = xml_parent_path.split(last_folder)[1].strip("/\\")
-                logger.info(f"Extracted subfolder structure using java source folder: {transform_subfolderstructure}")
+                transform_subfolderstructure = ""
+                logger.warning("Could not find SOURCE_SQL_MAPPER_FOLDER in path, using empty string")
         
         # 2. 복사 대상 폴더 구조 생성
         cp_target_folder_structure = transform_subfolderstructure
@@ -280,28 +279,41 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
             return False, None
         logger.info(f"Created folder structure: {cp_target_folder}")
         
-        # 3. 파일 복사 (sudo 옵션 적용)
-        if not copy_file(xml_file, cp_target_path, logger, use_sudo):
-            return False, None
+        # 3. 파일 복사 - origin 폴더에 복사
+        # xmlExtractor.py 호출을 위한 출력 폴더 구성
+        xml_file_basename = Path(xml_file).stem
+        logger.debug(f"XML file basename: {xml_file_basename}")
+        xmlwork_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename)
+        origin_folder = os.path.join(xmlwork_folder, "origin")
         
-        logger.info(f"Copied {xml_file} to {cp_target_path}")
+        # origin 폴더 생성
+        if not ensure_directory(origin_folder, logger):
+            logger.error(f"Failed to create origin folder: {origin_folder}")
+            return False, None
+        logger.info(f"Created origin folder: {origin_folder}")
+        
+        # origin 폴더에 파일 복사 (source prefix 추가)
+        origin_file_name = f"{xml_stem}{origin_suffix}{xml_path.suffix}"
+        origin_file_path = os.path.join(origin_folder, origin_file_name)
+        if not copy_file(xml_file, origin_file_path, logger, use_sudo):
+            logger.error(f"Failed to copy file to origin folder: {origin_file_path}")
+            return False, None
+        logger.info(f"Copied {xml_file} to {origin_file_path}")
         
         # 복사된 파일 목록
-        cp_targetfiles = [cp_target_path]
+        cp_targetfiles = [origin_file_path]
         logger.debug(f"Target files list: {cp_targetfiles}")
         
-        # 4. xmlExtractor.py 호출을 위한 출력 폴더 구성
-        cp_targetfile_basename = Path(cp_targetfiles[0]).stem
-        logger.debug(f"Target file basename: {cp_targetfile_basename}")
-        xmlwork_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename)    # 추출, 변환, 병합 의 Root 폴더 구조 생성
+        # 4. xmlExtractor.py 호출을 위한 출력 폴더 구성 (이미 위에서 설정됨)
+        xmlwork_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename)    # 추출, 변환, 병합 의 Root 폴더 구조 생성
         xmlextract_folder = os.path.join(xmlwork_folder, "extract")                                         # 추출 폴더 구조 생성
         ensure_directory(xmlextract_folder, logger)
         
         # 5. xmlExtractor.py 호출 전제 조건 : 폴더가 이미 존재하면 삭제
-        extract_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "extract")
-        app_transform_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "transform")
-        merge_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "merge")
-        status_file = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "status.txt")
+        extract_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "extract")
+        app_transform_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "transform")
+        merge_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "merge")
+        status_file = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "status.txt")
 
         # 폴더 삭제
         for folder in [extract_folder, app_transform_folder, merge_folder]:
@@ -314,27 +326,27 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
             logger.info(f"Removing existing status file: {status_file}")
             os.remove(status_file)
 
-        # 5. xmlExtractor.py 호출 - 로그 레벨 전달
+        # 5. xmlExtractor.py 호출 - 로그 레벨 전달 (복사된 파일 사용)
         extractor_cmd = [
             "python3",
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "xmlExtractor.py"),
-            "--input", cp_target_path,
+            "--input", origin_file_path,  # 복사된 파일 사용
             "--output", xmlextract_folder,
             f"--log-level={log_level}"
         ]
         
         if run_command(extractor_cmd, logger) != 0:
-            logger.error(f"xmlExtractor.py failed for {cp_target_path}")
+            logger.error(f"xmlExtractor.py failed for {origin_file_path}")
             return False, None
         
-        logger.info(f"Successfully extracted Level1 elements from {cp_target_path}")
+        logger.info(f"Successfully extracted Level1 elements from {origin_file_path}")
         
         # 6. 추출된 파일 목록 구성
         xmlextract_l1list = [os.path.join(xmlextract_folder, f) for f in os.listdir(xmlextract_folder) if f.endswith('.xml')]
         logger.debug(f"Extracted {len(xmlextract_l1list)} Level1 elements")
         
         # 7. 변환 폴더 구성
-        xmltransform_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "transform")
+        xmltransform_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "transform")
         ensure_directory(xmltransform_folder, logger)
         
         # 8. 추출된 파일 변환 (파일명 패턴 변경) 
@@ -349,12 +361,12 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
             prompt = prompt_template.replace("{L1FolderName}", xmlwork_folder)
             logger.debug(f"Prompt template processed for folder: {xmlwork_folder}")
 
-            prompt = prompt.replace("{MAPPER_ORCLL1_DIR}", extract_folder)
-            logger.debug(f"Replaced MAPPER_ORCLL1_DIR with {extract_folder} in prompt")
+            prompt = prompt.replace("{MAPPER_SRCL1_DIR}", extract_folder)
+            logger.debug(f"Replaced MAPPER_SRCL1_DIR with {extract_folder} in prompt")
             
-            # Replace pg-l1 folder name in prompt with processed_folder/MAPPER_PGL1_DIR
-            prompt = prompt.replace("{MAPPER_PGL1_DIR}", xmltransform_folder)
-            logger.debug(f"Replaced MAPPER_PGL1_DIR with {xmltransform_folder} in prompt")
+            # Replace target folder name in prompt with processed_folder/MAPPER_TGTL1_DIR
+            prompt = prompt.replace("{MAPPER_TGTL1_DIR}", xmltransform_folder)
+            logger.debug(f"Replaced MAPPER_TGTL1_DIR with {xmltransform_folder} in prompt")
             
             # Replace ORIGIN_SUFFIX in prompt with origin_suffix
             prompt = prompt.replace("{ORIGIN_SUFFIX}", origin_suffix)
@@ -364,14 +376,14 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
             logger.debug(f"Replaced TRANSFORM_SUFFIX with {transform_suffix} in prompt")
 
 
-            prompt_filename = cp_targetfile_basename + ".prompt"
+            prompt_filename = xml_file_basename + ".prompt"
             temp_prompt_file = os.path.join(qprompt_folder, prompt_filename)
             with open(temp_prompt_file, 'w', encoding='utf-8') as f:
                 f.write(prompt)
                 logger.info(f"Created temporary prompt file: {temp_prompt_file}")
 
             # Q Transfrom 수행
-            log_file = os.path.join(qlog_folder, f"{cp_targetfile_basename}.log")
+            log_file = os.path.join(qlog_folder, f"{xml_file_basename}.log")
 
             logger.info(f"Executing command: q chat --trust-all-tools --no-interactive < {temp_prompt_file} > {log_file}")        
             cmd = f"q chat --trust-all-tools --no-interactive < {temp_prompt_file} > {log_file}"
@@ -396,7 +408,7 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
 
         
         # 9. 병합 폴더 구성
-        xmlmerge_folder = os.path.join(mapper_folder, cp_target_folder_structure, cp_targetfile_basename, "merge")
+        xmlmerge_folder = os.path.join(mapper_folder, cp_target_folder_structure, xml_file_basename, "merge")
         ensure_directory(xmlmerge_folder, logger)
         
         # 10. 병합 파일명 구성
@@ -483,7 +495,18 @@ def main():
         app_transform_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform'
         transform_target_list = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/SQLTransformTarget.csv'
         app_tools_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Tools'
-        prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget.txt")
+        
+        # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
+        target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+        if target_dbms_type == 'postgres':
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+        elif target_dbms_type == 'mysql':
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-mysql-rules.txt")
+        else:
+            # 기본값으로 postgres 사용
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+            logger.warning(f"Unknown TARGET_DBMS_TYPE: {target_dbms_type}, using postgres rules")
+        
         log_level_str = 'DEBUG'
         java_source_folder = '/Users/changik//workspace/oracle-modernization-accelerator/SampleApp/jpetstore-6/src'
         source_sql_mapper_folder = '/Users/changik//workspace/oracle-modernization-accelerator//Application/bnd_b2eg/Transform/mapper'
@@ -496,7 +519,17 @@ def main():
         app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER')
         app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
         app_logs_folder = os.environ.get('APP_LOGS_FOLDER')
-        prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget.txt")
+        
+        # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
+        target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+        if target_dbms_type == 'postgres':
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+        elif target_dbms_type == 'mysql':
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-mysql-rules.txt")
+        else:
+            # 기본값으로 postgres 사용
+            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+        
         java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
         source_sql_mapper_folder = os.environ.get('SOURCE_SQL_MAPPER_FOLDER')
         target_sql_mapper_folder = os.environ.get('TARGET_SQL_MAPPER_FOLDER')
@@ -551,6 +584,19 @@ def main():
     logger.info(f"Assessment Folder: {app_assessment_folder}")
     logger.info(f"Transform Folder: {app_transform_folder}")
     logger.info(f"Transform Target List: {transform_target_list}")
+    logger.info(f"Target DBMS Type: {os.environ.get('TARGET_DBMS_TYPE', 'postgres')}")
+    logger.info(f"Prompt File: {prompt_file}")
+    
+    # 프롬프트 파일 존재 여부 확인
+    if not os.path.exists(prompt_file):
+        logger.error(f"Prompt file not found: {prompt_file}")
+        logger.error("Please ensure the appropriate transformation rules file exists:")
+        logger.error("- For PostgreSQL: SQLTransformTarget-pg-rules.txt")
+        logger.error("- For MySQL: SQLTransformTarget-mysql-rules.txt")
+        sys.exit(1)
+    else:
+        logger.info(f"Using transformation rules file: {os.path.basename(prompt_file)}")
+    
     logger.info(f"Origin Suffix: {origin_suffix}")
     logger.info(f"Transform Suffix: {transform_suffix}")
     logger.info(f"Test Mode: {args.test}")

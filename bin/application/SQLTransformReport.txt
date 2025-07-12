@@ -1,96 +1,48 @@
-Reference: Apply environment information from $OMA_HOME/bin/application/environment_context.txt
 
 작업요청 : MyBatis SQL Mapping 전환 결과 보고서 작성
- 
-디렉토리 구조:
-기본작업디렉토리:$APP_LOGS_FOLDER/SQLTransformTarget/mapper/
-├── classes/sqlmap/com/AccessLoggingDao_sqlMap_src/
-│   ├── sql_analysis.txt          # Source 특화 기능 분석 결과
-│   ├── extract/                  # Source SQL 파일들 (*_src-*.xml)
-│   └── transform/                # Target SQL 파일들 (*_tgt-*.xml)
-├── classes/sqlmap/itsm/csr/...
-└── classes/sqlmap/mro/...
 
-프로그램 생성 임시 디렉토리: /tmp
-- 임시로 프로그램을 만들거나 json 화일을 생성하는 경우 /tmp에 작성
-
-
-결과 디렉토리 : $APP_TRANSFORM_FOLDER
+디렉토리 정보 : 
+- Oracle DBMS Source XML Folder : $SOURCE_SQL_MAPPER_FOLDER
+- Target DBMS Source XML Folder : $TARGET_SQL_MAPPER_FOLDER
+- 결과 디렉토리: $APP_TRANSFORM_FOLDER
+- 임시 디렉토리 : /tmp
 
 수행할 작업:
 
 1단계: 데이터 수집 및 분석
-- 모든 sql_analysis.txt 파일에서 Source 특화 기능,고난이도 변환 통계 추출
-- extract 폴더의 Source SQL 파일들을 src_sqls.csv로 정리
-- transform 폴더의 Target SQL 파일들을 tgt_sqls.csv로 정리
-- 1:1 매핑 검증 및 변환 성공률 계산
+- SOURCE_SQL_MAPPER_FOLDER, TARGET_SQL_MAPPER_FOLDER의 XML, XML화일내의 SQLID 통계 정보를 파악
+- 환경변수 TARGET_DBMS_TYPE=postgres 인 경우, $APP_TOOLS_FOLDER/SQLTransformTarget-pg-rules.txt를 참조
+- 환경변수 TARGET_DBMS_TYPE=mysql 인 경우, $APP_TOOLS_FOLDER/SQLTransformTarget-mysql-rules.txt를 참조
 
 2단계: HTML 보고서 생성
-다음 구조의 한글 보고서를 생성하세요:
+다음 구조의 한글 보고서를 생성:
 
-전체 작업 개요 (4개 카드 형태):
-- 분석된 Mapper 파일 수
-- Source SQL 파일 수  
-- Target SQL 파일 수
+Transform 개요 (4개 카드 형태):
+- SOURCE_SQL_MAPPER_FOLDER XML 화일수
+- TARGET_SQL_MAPPER_FOLDER 수
+- SOURCE_SQL_MAPPER_FOLDER의 SQLID수
+- SOURCE_SQL_MAPPER_FOLDER의 SQLID 수
 - 변환 성공률
 
-Source 일반 기능 분석 결과 (테이블):
-컬럼 구성: Source 일반 기능 | 발견 횟수 | Target 변환 | 예시
-- 컬럼 폭: 200px | 100px | 200px | 300px
-- 발견 횟수: 배지 스타일로 표시 (파란색 배경, 흰색 텍스트)
-- Target 변환: 배지 스타일로 표시 (초록색 배경, 흰색 텍스트)
-- 예시: sql_analysis.txt 화일중에서 해당 기능이 표현된 Contains 라인과 SQLID를 같이 표현
-  예. PcmComDao_sqlMap_src-02-select-pcmComDao.retrievePcmGoodList: Contains: TO_CHAR date formatting, NVL function, Source string concatenation (||)
-- 테이블 하단에 변환 예제 3개를 Source(빨간 테두리)과 Target(초록 테두리) 코드 박스로 나란히 표시
+XML 변환 현황표 (테이블 형태)
+SOURCE_SQL_MAPPER_FOLDER 경로별 XML 화일수 vs TARGET_SQL_MAPPER_FOLDER 경로별 XML 화일수
 
-예시 미리보기는 
-주요 기능들:
-- SYSDATE → CURRENT_TIMESTAMP
-- ROWNUM → LIMIT/OFFSET
-- DECODE → CASE WHEN
-- NVL → COALESCE()
-- TO_DATE/TO_CHAR → Target 함수
-- FROM DUAL → 제거 또는 VALUES
-- String Concatenation (||) → CONCAT() 또는 ||
-- Sequence.NEXTVAL → nextval('sequence_name')
-- Outer Join (+) → LEFT/RIGHT JOIN
+SQLID 변환 현황표 (테이블 형태)
+SOURCE_SQL_MAPPER_FOLDER XML 화일, SQLID수 vs SOURCE_SQL_MAPPER_FOLDER XML 화일, SQLID 수
 
-고난이도 변환 대상 분석 (별도 테이블):
-컬럼 구성: 고난이도 변환 기능 | 발견 횟수 | 변환 난이도 | 권장 조치사항 | 예시
-- 컬럼 폭: 180px | 80px | 80px | 200px | 250px
-- 발견 횟수: 배지 스타일로 표시
-- 변환 난이도: 색상 코딩 (매우 높음: 빨강, 높음: 주황, 중간: 노랑)
-- 권장 조치사항: 각 기능별 구체적인 Target 변환 방법 제시
-- 예시 : sql_analysis.txt 화일중에서 해당 기능이 표현된 Contains 라인과 SQLID를 같이 표현
-  예. pcmPcAsstDisuseMgtDao.updatePcmPcAsstDisuseMgt Contains: WITH clause, LISTAGG, CONNECT BY hierarchical query, SYS_CONNECT_BY_PATH, LEVEL, SYSDATE
-- 테이블 하단에 변환 예제 4개를 Source(빨간 테두리)과 Target(초록 테두리) 코드 박스로 나란히 표시
+Exceptions(테이블형태) :
+SQLID 변환 현황표의 숫자가 맞지 않으면 TARGET_SQL_MAPPER_FOLDER쪽에서 어떤 부분이 누락 되었는지 파악해서 세부 내용을 표로 정리
 
+SQL유형별 리스트 (카드형태)
+  - SOURCE_SQL_MAPPER_FOLDER의 XML,SQLID를 분석하여  Select, Insert, Delete, Update, PL/SQL, Procedure/Function 호출 로 표시
 
-변환 난이도가 높은 Source 기능들을 경고 색상으로 강조:
-- Hierarchical Query (CONNECT BY) - 매우 높음 → WITH RECURSIVE 구문으로 재작성 필요
-- Stored Procedure/Package Call - 매우 높음 → 저장 프로시저를 Target 함수로 변환
-- MERGE Statement - 높음 → INSERT ... ON CONFLICT 구문으로 변환
-- String Aggregation (LISTAGG) - 높음 → STRING_AGG() 함수로 변환
-- PL/SQL Block/Cursor - 매우 높음 → Target PL/pgSQL로 재작성
-- Database Link - 매우 높음 → 외부 데이터 래퍼(FDW) 사용 검토
-- LOB Data Types (CLOB/BLOB) - 중간 → TEXT/BYTEA 타입으로 변환
-- Table Function - 높음 → Target 함수로 재작성
-- DBMS_LOB Functions - 높음 → Target LOB 함수로 변환
-- Regular Expression Functions - 중간 → Target 정규식 함수 사용
+Transform 결과 표
+    - 테이블 구성표 : 변환항목, 빈도수, 난이도, $TARGET_DBMS_TYPE 변환 규칙
+        - 변환 항목 : 환경변수 TARGET_DBMS_TYPE=postgres 인경우 SQLTransformTarget-pg-rules.txt를 참조 하고, 환경변수 TARGET_DBMS_TYPE=mysql인 경우 SQLTransformTarget-mysql-rules.txt를 참조하여 변환 대상이 되는 함수, 문법을 참조하여 목록화
+        - 변환 규칙은 환경변수 TARGET_DBMS_TYPE=postgres 인경우 SQLTransformTarget-pg-rules.txt를 참조 하고, 환경변수 TARGET_DBMS_TYPE=mysql인 경우 SQLTransformTarget-mysql-rules.txt를 참조
 
-고난이도 변환 실제 예시 (테이블 하단에 추가):
-1. MERGE Statement 예시:
-2. Hierarchical Query 예시:
-3. LISTAGG 예시:
-4. LOB Data Types 예시:
-
-SQL 유형별 분포:
-SELECT, INSERT, UPDATE, DELETE 등의 분포 통계
-
-변환 결과 요약:
-주요 성과를 불릿 포인트로 정리
-
-3단계: 스타일링 및 테이블 구성
+참고: HTML 스타일링
+스타일링 및 테이블 구성
 - 모던한 반응형 디자인
 - 통계는 카드형 레이아웃
 - 실제 분석 예시는 코드 박스로 표시 (Source: 빨간색 테두리, Target: 초록색 테두리)
@@ -104,17 +56,6 @@ SELECT, INSERT, UPDATE, DELETE 등의 분포 통계
 - 예시 미리보기: 회색 배경, 좌측 파란 테두리, Courier New 폰트, 좌측 정렬
 - 툴팁 기능: cursor: help, title 속성 활용
 
-테이블 사용성 개선:
-- 긴 텍스트는 말줄임표(...) 처리
-- 중요 정보는 배지나 아이콘으로 시각화
-- 테이블 상단에 요약 통계 카드 배치
-- 모바일 반응형 고려 (최소 폭 설정)
-
-데이터 표시 우선순위:
-1. 핵심 정보만 테이블에 표시
-2. 상세 정보는 클릭/호버로 제공
-3. 실용적인 변환 예시를 별도 섹션으로 분리
-4. 시각적 구분을 통한 정보 계층화
 
 구체적인 CSS 클래스:
 .feature-count { /* 발견 횟수 배지 */ }
@@ -126,36 +67,6 @@ SELECT, INSERT, UPDATE, DELETE 등의 분포 통계
 .action-cell { /* 권장 조치사항 셀 */ }
 .conversion-pair { /* Source-Target 비교 */ }
 
-파일명 파싱 규칙:
-- Source: 파일명_src-번호-SQLType-SQLID.xml
-- Target: 파일명_tgt-번호-SQLType-SQLID.xml
+## 출력 파일
 
-출력 파일:
-1. src_sqls.csv (Source SQL 파일 목록)
-- 컬럼 : Folder, DBMS, XMLFile, Sequence, SQL Type, SQL ID
-
-- 예시.
-  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract/AccessLoggingDao_sqlMap_src-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
-  
-  Folder, DBMS, File Name, Sequence, SQL Type, SQL ID
-  classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract, src, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
-
-2. src_xml.lst (Source SQL 파일 목록)
-  - 예시.
-    /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/extract/AccessLoggingDao_sqlMap_src-01-insert-accessLoggingDao.insertAccessLog.xml
-  
-3. tgt_sqls.csv (Target SQL 파일 목록)
-- 컬럼 : Folder, DBMS, XMLFile, Sequence, SQL Type, SQL ID
-- 예시.
-   /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform/AccessLoggingDao_sqlMap_tgt-01-insert-accessLoggingDao.insertAccessLog.xml 인 경우 Folder명에서 기본 작업 디렉토리 값은 제거 하여 다음 처럼 구성
-   
-   Folder, DBMS, File Name, Sequence, SQL Type, SQL ID
-   classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform, pg, AccessLoggingDao_sqlMap, 01, insert, accessLoggingDao.insertAccessLog
-
-4. tgt_xml.lst (Source SQL 파일 목록)
-  - 예시.
-  /Users/changik/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/02.Application/Logs/SQLTransformTarget/mapper/classes/sqlmap/com/AccessLoggingDao_sqlMap_src/transform/AccessLoggingDao_sqlMap_tgt-01-insert-accessLoggingDao.insertAccessLog.xml
-
-5. Transform-Report.html (종합 보고서)
-
-이 요구사항에 따라 실제 데이터를 분석하여 변환 결과 보고서를 생성해주세요.
+1. Transform-Report.html - 종합 보고서

@@ -40,7 +40,7 @@ echo -e "${CYAN}├── oma_env_[프로젝트명].sh                        �
 echo -e "${CYAN}├── config/                                      프로젝트 설정 파일 디렉토리${NC}"
 echo -e "${CYAN}│   └── oma.properties                           - 환경 변수로 사용되는 설정 파일${NC}"
 echo -e "${CYAN}├── [프로젝트명]/                                  분석 및 변환 단위 : 애플리케이션명으로 구분${NC}"
-echo -e "${CYAN}│   ├── database/                                 - 데이터베이스 스키마 변환 결과${NC}"
+echo -e "${CYAN}│   ├── dbms/                                    - 데이터베이스 스키마 변환 결과${NC}"
 echo -e "${CYAN}│   ├── logs/                                    - 전체 프로세스 로그 디렉토리${NC}"
 echo -e "${CYAN}│   ├── application/                             - 애플리케이션 분석 및 변환 결과${NC}"
 echo -e "${CYAN}│   │   ├── *.csv                                - JNDI, Mapper 분석 결과 파일들${NC}"
@@ -225,17 +225,17 @@ execute_app_discovery() {
     sleep 3
     echo -e "${BLUE}${BOLD}애플리케이션 Discovery 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processappDiscovery.sh" ]; then
-        echo -e "${CYAN}processappDiscovery.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processAppDiscovery.sh" ]; then
+        echo -e "${CYAN}processAppDiscovery.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processappDiscovery.sh
+        ./processAppDiscovery.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}애플리케이션 Discovery가 완료되었습니다.${NC}"
         else
             echo -e "${RED}애플리케이션 Discovery 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processappDiscovery.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processAppDiscovery.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -289,6 +289,61 @@ execute_sql_unittest() {
     print_separator
 }
 
+# Post 변환 작업
+execute_post_transform() {
+    print_separator
+    echo -e "${BLUE}${BOLD}Post 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}Post 변환 작업은 아직 통합 되지 않았습니다...${NC}"
+    print_separator
+}
+
+# 변환 작업 보고서
+execute_transform_report() {
+    print_separator
+    echo -e "${BLUE}${BOLD}변환 작업 보고서를 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}변환 작업 보고서 스크립트 실행${NC}"
+    
+    if [ -f "$OMA_BASE_DIR/bin/processSQLTransformReport.sh" ]; then
+        echo -e "${CYAN}processSQLTransformReport.sh를 실행합니다...${NC}"
+        cd "$OMA_BASE_DIR/bin"
+        ./processSQLTransformReport.sh
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}변환 작업 보고서가 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}변환 작업 보고서 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTransformReport.sh 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
+# PostgreSQL 메타데이터 작성
+execute_postgresql_meta() {
+    print_separator
+    echo -e "${BLUE}${BOLD}PostgreSQL 데이터베이스 메타데이터 작성을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}PostgreSQL 메타데이터 작성 스크립트 실행${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/genPostgreSQLMeta.txt" ]; then
+        echo -e "${CYAN}genPostgreSQLMeta.txt를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSQLMeta.txt${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSQLMeta.txt"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSQLMeta.txt 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
 # Java Source 변환
 execute_java_transform() {
     print_separator
@@ -311,8 +366,9 @@ show_environment_menu() {
         echo -e "${CYAN}1. 환경 설정 다시 수행 (setEnv.sh)${NC}"
         echo -e "${CYAN}2. 현재 환경 변수 확인 (checkEnv.sh)${NC}"
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,b): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -324,6 +380,12 @@ show_environment_menu() {
                 ;;
             b|B)
                 return
+                ;;
+            q|Q)
+                print_separator
+                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                print_separator
+                exit 0
                 ;;
             *)
                 echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
@@ -341,8 +403,9 @@ show_database_menu() {
         echo -e "${MAGENTA}1. DB Schema 변환${NC}"
         echo -e "${YELLOW}   - Source → Target 스키마 변환 (DB 연결 필요)${NC}"
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,b): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -351,6 +414,12 @@ show_database_menu() {
                 ;;
             b|B)
                 return
+                ;;
+            q|Q)
+                print_separator
+                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                print_separator
+                exit 0
                 ;;
             *)
                 echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
@@ -367,13 +436,20 @@ show_application_menu() {
         print_separator
         echo -e "${CYAN}1. 애플리케이션 분석 및 SQL변환 대상 추출${NC}"
         echo -e "${YELLOW}   - JNDI, Mapper 파일 분석 → CSV 및 ApplicationReport.html 생성${NC}"
-        echo -e "${CYAN}2. 애플리케이션 SQL 변환 작업${NC}"
+        echo -e "${CYAN}2. (PostgreSQL) 데이터베이스 메타데이터 작성${NC}"
+        echo -e "${YELLOW}   - PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo -e "${CYAN}3. 애플리케이션 SQL 변환 작업${NC}"
         echo -e "${YELLOW}   - Source SQL → Target SQL 변환 (전체/재시도 모드)${NC}"
-        echo -e "${CYAN}3. 애플리케이션 Java Source 변환 작업${NC}"
+        echo -e "${CYAN}4. Post 변환 작업${NC}"
+        echo -e "${YELLOW}   - 변환 후 후처리 작업 (미구현)${NC}"
+        echo -e "${CYAN}5. 변환 작업 보고서${NC}"
+        echo -e "${YELLOW}   - SQL 변환 결과 보고서 생성${NC}"
+        echo -e "${CYAN}6. 애플리케이션 Java Source 변환 작업${NC}"
         echo -e "${YELLOW}   - Java 소스 코드 내 Source 관련 코드 변환 (미구현)${NC}"
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,b): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,6,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -381,13 +457,28 @@ show_application_menu() {
                 execute_app_discovery
                 ;;
             2)
-                execute_sql_transform
+                execute_postgresql_meta
                 ;;
             3)
+                execute_sql_transform
+                ;;
+            4)
+                execute_post_transform
+                ;;
+            5)
+                execute_transform_report
+                ;;
+            6)
                 execute_java_transform
                 ;;
             b|B)
                 return
+                ;;
+            q|Q)
+                print_separator
+                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                print_separator
+                exit 0
                 ;;
             *)
                 echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
@@ -405,8 +496,9 @@ show_test_menu() {
         echo -e "${CYAN}1. 애플리케이션 SQL Unit Test${NC}"
         echo -e "${YELLOW}   - 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
+        echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,b): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -415,6 +507,12 @@ show_test_menu() {
                 ;;
             b|B)
                 return
+                ;;
+            q|Q)
+                print_separator
+                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                print_separator
+                exit 0
                 ;;
             *)
                 echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
