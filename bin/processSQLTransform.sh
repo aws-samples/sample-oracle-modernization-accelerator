@@ -64,15 +64,6 @@ process_sql_transform() {
     print_separator
     echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
     echo -e "${YELLOW}오류 정보는 Assessment/SQLTransformFailure.csv에 리스팅되었습니다.${NC}"
-    print_separator
-    echo -e "${BLUE}${BOLD}SQL Transform 작업 결과 보고서를 작성합니다.${NC}"
-    sleep 1
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/SQLTransformReport.txt ${NC}"
-    q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/SQLTransformReport.txt
-    sleep 1
-    print_separator
-    echo -e "${GREEN}SQL 변환 작업 보고서가 작성되었습니다.${NC}"
-    echo -e "${YELLOW}${BOLD}$APP_TOOLS_FOLDER 에서 확인 가능합니다.${NC}"
 }
 
 # 메인 실행
