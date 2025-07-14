@@ -8,7 +8,7 @@
 #              a dictionary of database column values.
 #
 # Functionality:
-# - Scans SQL files in the 'orcl_sql_extract' directory
+# - Scans SQL files in the 'src_sql_extract' directory
 # - Extracts bind variables (both :variable and #{variable} formats)
 # - Determines the likely data type of each variable based on:
 #   * Matching against column names in the dictionary
@@ -80,7 +80,7 @@ def get_paths():
     test_folder = os.environ.get('TEST_FOLDER', os.getcwd())
     
     return {
-        'sql_dir': os.path.join(test_folder, 'orcl_sql_extract'),
+        'sql_dir': os.path.join(test_folder, 'src_sql_extract'),
         'dictionary_file': os.path.join(test_folder, 'dictionary', 'all_dictionary.json'),
         'output_dir': os.path.join(test_folder, 'sampler')
     }
@@ -128,11 +128,11 @@ def get_sql_files():
     
     if not os.path.exists(sql_dir):
         print(f"오류: SQL 디렉토리가 존재하지 않습니다: {sql_dir}")
-        print("먼저 XMLToSQL.py를 실행하여 SQL 파일들을 생성하세요.")
+        print("먼저 XMLToSQL.py를 실행하여 소스 SQL 파일들을 생성하세요.")
         return []
     
     sql_files = [os.path.join(sql_dir, f) for f in os.listdir(sql_dir) if f.endswith('.sql')]
-    print(f"SQL 파일 디렉토리: {sql_dir}")
+    print(f"소스 SQL 파일 디렉토리: {sql_dir}")
     print(f"발견된 SQL 파일 수: {len(sql_files)}")
     
     return sql_files
@@ -561,7 +561,7 @@ def main():
     # 경로 설정
     paths = get_paths()
     
-    print(f"SQL 파일 디렉토리: {paths['sql_dir']}")
+    print(f"소스 SQL 파일 디렉토리: {paths['sql_dir']}")
     print(f"딕셔너리 파일: {paths['dictionary_file']}")
     print(f"출력 디렉토리: {paths['output_dir']}")
     print()

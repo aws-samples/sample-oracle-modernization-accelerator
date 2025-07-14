@@ -16,11 +16,18 @@
 #   python3 DB03.XMLToSQL.py [xml_list_file]
 #
 # Arguments:
-#   xml_list_file   Optional. XML list file to process (orcl_xml.lst or pg_xml.lst)
-#                   If not provided, processes both Oracle and PostgreSQL lists
+#   xml_list_file   Optional. XML list file to process (src, tgt, or specific DBMS type)
+#                   If not provided, processes both source and target lists
+#
+# Environment Variables:
+#   SOURCE_DBMS_TYPE    Source database type (default: oracle)
+#   TARGET_DBMS_TYPE    Target database type (default: postgres)
+#   TEST_FOLDER         Base directory for processing (default: current directory)
+#   TEST_LOGS_FOLDER    Log directory (default: TEST_FOLDER)
+#   APP_TRANSFORM_FOLDER XML list file search directory (default: current directory)
 #
 # Output:
-#   Individual SQL files in orcl_sql_extract/ and pg_sql_extract/ directories
+#   Individual SQL files in src_sql_extract/ and tgt_sql_extract/ directories
 #############################################################################
 
 import os
@@ -44,7 +51,9 @@ def check_environment_variables():
     recommended_env_vars = [
         'TEST_FOLDER',
         'TEST_LOGS_FOLDER',
-        'APP_TRANSFORM_FOLDER'
+        'APP_TRANSFORM_FOLDER',
+        'SOURCE_DBMS_TYPE',
+        'TARGET_DBMS_TYPE'
     ]
     
     print("권장 환경 변수 확인 (설정되지 않으면 기본값 사용):")
@@ -59,6 +68,10 @@ def check_environment_variables():
                 print(f"- {var}: 설정되지 않음 (기본값: TEST_FOLDER)")
             elif var == 'APP_TRANSFORM_FOLDER':
                 print(f"- {var}: 설정되지 않음 (기본값: 현재 작업 디렉토리)")
+            elif var == 'SOURCE_DBMS_TYPE':
+                print(f"- {var}: 설정되지 않음 (기본값: oracle)")
+            elif var == 'TARGET_DBMS_TYPE':
+                print(f"- {var}: 설정되지 않음 (기본값: postgres)")
     
     print("\n환경 변수 확인 완료.")
     print("=" * 60)
@@ -68,12 +81,16 @@ def get_paths():
     """환경변수를 기반으로 경로들을 반환합니다."""
     test_folder = os.environ.get('TEST_FOLDER', os.getcwd())
     test_logs_folder = os.environ.get('TEST_LOGS_FOLDER', test_folder)
+    source_dbms = os.environ.get('SOURCE_DBMS_TYPE', 'oracle').lower()
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
     
     return {
         'xmllist_dir': os.path.join(test_folder, 'xmllist'),
-        'orcl_sql_extract_dir': os.path.join(test_folder, 'orcl_sql_extract'),
-        'pg_sql_extract_dir': os.path.join(test_folder, 'pg_sql_extract'),
-        'logs_dir': test_logs_folder
+        'src_sql_extract_dir': os.path.join(test_folder, 'src_sql_extract'),
+        'tgt_sql_extract_dir': os.path.join(test_folder, 'tgt_sql_extract'),
+        'logs_dir': test_logs_folder,
+        'source_dbms': source_dbms,
+        'target_dbms': target_dbms
     }
 
 # 로깅 설정
@@ -111,8 +128,8 @@ def setup_directories():
     
     directories = [
         paths['xmllist_dir'],
-        paths['orcl_sql_extract_dir'],
-        paths['pg_sql_extract_dir']
+        paths['src_sql_extract_dir'],
+        paths['tgt_sql_extract_dir']
     ]
     
     for directory in directories:
@@ -125,15 +142,18 @@ def manage_xml_list_files():
     """XML 리스트 파일들을 xmllist 디렉토리로 복사하고 관리합니다."""
     paths = get_paths()
     xmllist_dir = paths['xmllist_dir']
+    source_dbms = paths['source_dbms']
+    target_dbms = paths['target_dbms']
     
     logger.info("XML 리스트 파일 관리 시작")
     
     # APP_TRANSFORM_FOLDER 환경변수에서 XML 리스트 파일 찾기 (파라미터가 없는 경우)
     app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER', os.getcwd())
-    source_files = ['orcl_xml.lst', 'pg_xml.lst']
+    source_files = [f'{source_dbms}_xml.lst', f'{target_dbms}_xml.lst']
     copied_files = {}
     
     logger.info(f"XML 리스트 파일 검색 위치: {app_transform_folder}")
+    logger.info(f"소스 DBMS: {source_dbms}, 타겟 DBMS: {target_dbms}")
     
     for source_name in source_files:
         # 먼저 현재 디렉토리에서 찾기 (기존 동작 유지)
@@ -170,8 +190,8 @@ def manage_xml_list_files():
     if not copied_files:
         logger.error("처리할 XML 리스트 파일이 없습니다.")
         logger.info("다음 명령으로 XML 리스트 파일을 먼저 생성하세요:")
-        logger.info("  python3 FindXMLFiles.py /path/to/xml/files --orcl")
-        logger.info("  python3 FindXMLFiles.py /path/to/xml/files --pg")
+        logger.info(f"  python3 FindXMLFiles.py /path/to/xml/files --{source_dbms}")
+        logger.info(f"  python3 FindXMLFiles.py /path/to/xml/files --{target_dbms}")
         logger.info(f"생성된 파일을 다음 위치 중 하나에 배치하세요:")
         logger.info(f"  - 현재 디렉토리: {os.getcwd()}")
         logger.info(f"  - APP_TRANSFORM_FOLDER: {app_transform_folder}")
@@ -185,13 +205,15 @@ def backup_xml_list_files():
     paths = get_paths()
     xmllist_dir = paths['xmllist_dir']
     backup_dir = os.path.join(xmllist_dir, 'backup')
+    source_dbms = paths['source_dbms']
+    target_dbms = paths['target_dbms']
     
     os.makedirs(backup_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_count = 0
     
-    for filename in ['orcl_xml.lst', 'pg_xml.lst']:
+    for filename in [f'{source_dbms}_xml.lst', f'{target_dbms}_xml.lst']:
         source_path = os.path.join(xmllist_dir, filename)
         if os.path.exists(source_path):
             backup_filename = f"{filename}.{timestamp}"
@@ -209,12 +231,21 @@ def backup_xml_list_files():
     
     return backup_count
 
-def read_xml_list_file(list_type='orcl'):
+def read_xml_list_file(list_type='src'):
     """xmllist 디렉토리에서 XML 리스트 파일을 읽습니다."""
     paths = get_paths()
     xmllist_dir = paths['xmllist_dir']
     
-    filename = f"{list_type}_xml.lst"
+    # list_type에 따라 적절한 DBMS 타입 결정
+    if list_type == 'src':
+        dbms_type = paths['source_dbms']
+    elif list_type == 'tgt':
+        dbms_type = paths['target_dbms']
+    else:
+        # 하위 호환성을 위해 기존 방식도 지원
+        dbms_type = list_type
+    
+    filename = f"{dbms_type}_xml.lst"
     filepath = os.path.join(xmllist_dir, filename)
     
     if not os.path.exists(filepath):
@@ -236,13 +267,15 @@ def validate_xml_list_files():
     """XML 리스트 파일의 유효성을 검증합니다."""
     paths = get_paths()
     xmllist_dir = paths['xmllist_dir']
+    source_dbms = paths['source_dbms']
+    target_dbms = paths['target_dbms']
     
     validation_results = {}
     
     logger.info("XML 리스트 파일 유효성 검증 시작")
     
-    for list_type in ['orcl', 'pg']:
-        filename = f"{list_type}_xml.lst"
+    for list_type, dbms_type in [('src', source_dbms), ('tgt', target_dbms)]:
+        filename = f"{dbms_type}_xml.lst"
         filepath = os.path.join(xmllist_dir, filename)
         
         if os.path.exists(filepath):
@@ -260,7 +293,8 @@ def validate_xml_list_files():
                 'total': len(xml_files),
                 'valid': len(valid_files),
                 'invalid': len(invalid_files),
-                'invalid_files': invalid_files
+                'invalid_files': invalid_files,
+                'dbms_type': dbms_type
             }
             
             logger.info(f"{filename}: {len(valid_files)}/{len(xml_files)} 파일 유효")
@@ -272,7 +306,7 @@ def validate_xml_list_files():
                 if len(invalid_files) > 5:
                     logger.warning(f"  ... 외 {len(invalid_files) - 5}개 파일")
         else:
-            validation_results[list_type] = {'error': 'File not found'}
+            validation_results[list_type] = {'error': 'File not found', 'dbms_type': dbms_type}
             logger.error(f"{filename} 파일을 찾을 수 없습니다.")
     
     logger.info("XML 리스트 파일 유효성 검증 완료")
@@ -545,13 +579,17 @@ def main():
     target_list = None
     if len(sys.argv) > 1:
         arg = sys.argv[1].lower()
-        if arg in ['orcl_xml.lst', 'orcl']:
-            target_list = 'orcl'
-        elif arg in ['pg_xml.lst', 'pg']:
-            target_list = 'pg'
+        paths = get_paths()
+        source_dbms = paths['source_dbms']
+        target_dbms = paths['target_dbms']
+        
+        if arg in [f'{source_dbms}_xml.lst', source_dbms, 'src']:
+            target_list = 'src'
+        elif arg in [f'{target_dbms}_xml.lst', target_dbms, 'tgt']:
+            target_list = 'tgt'
         else:
             logger.warning(f"알 수 없는 인수: {sys.argv[1]}")
-            logger.info("사용법: python3 XMLToSQL.py [orcl|pg]")
+            logger.info(f"사용법: python3 XMLToSQL.py [src|tgt|{source_dbms}|{target_dbms}]")
     
     # 디렉토리 설정
     setup_directories()
@@ -560,8 +598,8 @@ def main():
     paths = get_paths()
     logger.info("경로 설정:")
     logger.info(f"  XML 리스트 디렉토리: {paths['xmllist_dir']}")
-    logger.info(f"  Oracle SQL 출력: {paths['orcl_sql_extract_dir']}")
-    logger.info(f"  PostgreSQL SQL 출력: {paths['pg_sql_extract_dir']}")
+    logger.info(f"  소스 SQL 출력 ({paths['source_dbms']}): {paths['src_sql_extract_dir']}")
+    logger.info(f"  타겟 SQL 출력 ({paths['target_dbms']}): {paths['tgt_sql_extract_dir']}")
     logger.info(f"  로그 디렉토리: {paths['logs_dir']}")
     
     # XML 리스트 파일 관리
@@ -589,7 +627,7 @@ def main():
             return
     else:
         # 모든 유효한 리스트 처리
-        for list_type in ['orcl', 'pg']:
+        for list_type in ['src', 'tgt']:
             if list_type in validation_results and 'error' not in validation_results[list_type]:
                 if validation_results[list_type]['valid'] > 0:
                     lists_to_process.append(list_type)
@@ -604,7 +642,8 @@ def main():
     processing_results = {}
     
     for list_type in lists_to_process:
-        logger.info(f"{list_type.upper()} XML 파일 처리 시작")
+        dbms_type = validation_results[list_type]['dbms_type']
+        logger.info(f"{list_type.upper()} ({dbms_type.upper()}) XML 파일 처리 시작")
         
         # XML 파일 목록 로드
         xml_files = read_xml_list_file(list_type)
@@ -614,14 +653,15 @@ def main():
             continue
         
         # 출력 디렉토리 결정
-        if list_type == 'orcl':
-            output_dir = paths['orcl_sql_extract_dir']
+        if list_type == 'src':
+            output_dir = paths['src_sql_extract_dir']
         else:
-            output_dir = paths['pg_sql_extract_dir']
+            output_dir = paths['tgt_sql_extract_dir']
         
         # XML 파일들 처리
-        result = process_xml_files(xml_files, output_dir, list_type.upper())
+        result = process_xml_files(xml_files, output_dir, f"{list_type.upper()} ({dbms_type.upper()})")
         processing_results[list_type] = result
+        processing_results[list_type]['dbms_type'] = dbms_type
     
     # 처리 결과 요약
     if processing_results:
@@ -634,7 +674,8 @@ def main():
         total_sql = 0
         
         for list_type, result in processing_results.items():
-            logger.info(f"{list_type.upper()} 결과:")
+            dbms_type = result.get('dbms_type', 'unknown')
+            logger.info(f"{list_type.upper()} ({dbms_type.upper()}) 결과:")
             logger.info(f"  XML 파일: {result['processed_files']}/{result['total_xml_files']} 처리")
             logger.info(f"  SQL 파일: {result['total_sql_files']}개 생성")
             logger.info(f"  성공률: {result['processed_files']/result['total_xml_files']*100:.1f}%")
@@ -657,10 +698,10 @@ def main():
         
         # 다음 단계 안내
         logger.info("다음 단계:")
-        if 'orcl' in processing_results:
-            logger.info(f"  Oracle SQL 파일들: {paths['orcl_sql_extract_dir']}")
-        if 'pg' in processing_results:
-            logger.info(f"  PostgreSQL SQL 파일들: {paths['pg_sql_extract_dir']}")
+        if 'src' in processing_results:
+            logger.info(f"  소스 SQL 파일들 ({paths['source_dbms']}): {paths['src_sql_extract_dir']}")
+        if 'tgt' in processing_results:
+            logger.info(f"  타겟 SQL 파일들 ({paths['target_dbms']}): {paths['tgt_sql_extract_dir']}")
         logger.info("  다음 실행: python3 GetDictionary.py (데이터베이스 딕셔너리 생성)")
         
     else:

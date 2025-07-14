@@ -7,7 +7,7 @@
 #              sample values to create executable SQL statements.
 #
 # Functionality:
-# - Processes SQL files from both Oracle and PostgreSQL extract directories
+# - Processes SQL files from both source and target extract directories
 # - For each SQL file, looks for a corresponding JSON file in the 'sampler' directory
 #   created by DB06.BindSampler.py
 # - Replaces bind variables in the SQL with their sample values:
@@ -19,13 +19,13 @@
 #   * Numbers are inserted as-is
 # - Saves the modified SQL files to the respective 'done' directories
 # - If no bind variables are found or no sample values exist, copies the file unchanged
-# - PostgreSQL files use Oracle sampler files (same bind variables, different SQL syntax)
+# - Target files use source sampler files (same bind variables, different SQL syntax)
 #
 # Usage:
 #   python3 DB07.BindMapper.py
 #
 # Output:
-#   Modified SQL files in 'orcl_sql_done' and 'pg_sql_done' directories
+#   Modified SQL files in 'src_sql_done' and 'tgt_sql_done' directories
 #############################################################################
 
 import os
@@ -70,10 +70,10 @@ def get_paths():
     test_logs_folder = os.environ.get('TEST_LOGS_FOLDER', test_folder)
     
     return {
-        'orcl_sql_dir': os.path.join(test_folder, 'orcl_sql_extract'),
-        'pg_sql_dir': os.path.join(test_folder, 'pg_sql_extract'),
-        'orcl_sql_done_dir': os.path.join(test_folder, 'orcl_sql_done'),
-        'pg_sql_done_dir': os.path.join(test_folder, 'pg_sql_done'),
+        'src_sql_dir': os.path.join(test_folder, 'src_sql_extract'),
+        'tgt_sql_dir': os.path.join(test_folder, 'tgt_sql_extract'),
+        'src_sql_done_dir': os.path.join(test_folder, 'src_sql_done'),
+        'tgt_sql_done_dir': os.path.join(test_folder, 'tgt_sql_done'),
         'sampler_dir': os.path.join(test_folder, 'sampler'),
         'logs_dir': test_logs_folder
     }
@@ -116,8 +116,8 @@ def ensure_directories():
     paths = get_paths()
     
     directories = [
-        paths['orcl_sql_done_dir'],
-        paths['pg_sql_done_dir']
+        paths['src_sql_done_dir'],
+        paths['tgt_sql_done_dir']
     ]
     
     for directory in directories:
@@ -417,8 +417,8 @@ def process_sql_files(source_dir, target_dir, db_type):
             # Even if no bind variables, still clean the SQL content
             output_file = os.path.join(target_dir, file_name)
             try:
-                # Oracle SQL인 경우 구문 종료 문자 추가
-                if db_type.lower() == "oracle" and not '_pg-' in file_name:
+                # 소스 SQL인 경우 구문 종료 문자 추가 (Oracle SQL)
+                if db_type.lower() == "source" and not '_pg-' in file_name:
                     cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
                     logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
                 
@@ -439,8 +439,8 @@ def process_sql_files(source_dir, target_dir, db_type):
             # If no bind values found, save cleaned SQL
             output_file = os.path.join(target_dir, file_name)
             try:
-                # Oracle SQL인 경우 구문 종료 문자 추가
-                if db_type.lower() == "oracle" and not '_pg-' in file_name:
+                # 소스 SQL인 경우 구문 종료 문자 추가 (Oracle SQL)
+                if db_type.lower() == "source" and not '_pg-' in file_name:
                     cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
                     logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
                 
@@ -460,8 +460,8 @@ def process_sql_files(source_dir, target_dir, db_type):
         else:
             modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "oracle")
         
-        # Oracle SQL인 경우 구문 종료 문자 추가
-        if db_type.lower() == "oracle" and not '_pg-' in file_name:
+        # Oracle SQL인 경우 구문 종료 문자 추가 (소스 SQL 디렉토리에서 온 파일)
+        if db_type.lower() == "source" and not '_pg-' in file_name:
             modified_sql = add_oracle_terminator(modified_sql)
             logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
         
@@ -487,39 +487,39 @@ def main():
     
     # 경로 정보 출력
     logger.info("경로 설정:")
-    logger.info(f"  Oracle SQL 입력: {paths['orcl_sql_dir']}")
-    logger.info(f"  PostgreSQL SQL 입력: {paths['pg_sql_dir']}")
+    logger.info(f"  소스 SQL 입력: {paths['src_sql_dir']}")
+    logger.info(f"  타겟 SQL 입력: {paths['tgt_sql_dir']}")
     logger.info(f"  샘플러 입력: {paths['sampler_dir']}")
-    logger.info(f"  Oracle SQL 출력: {paths['orcl_sql_done_dir']}")
-    logger.info(f"  PostgreSQL SQL 출력: {paths['pg_sql_done_dir']}")
+    logger.info(f"  소스 SQL 출력: {paths['src_sql_done_dir']}")
+    logger.info(f"  타겟 SQL 출력: {paths['tgt_sql_done_dir']}")
     logger.info(f"  로그 디렉토리: {paths['logs_dir']}")
     
     # 출력 디렉토리 생성
     ensure_directories()
     
-    # Oracle SQL 파일 처리
-    orcl_processed, orcl_skipped = process_sql_files(
-        paths['orcl_sql_dir'], 
-        paths['orcl_sql_done_dir'], 
-        "Oracle"
+    # 소스 SQL 파일 처리
+    src_processed, src_skipped = process_sql_files(
+        paths['src_sql_dir'], 
+        paths['src_sql_done_dir'], 
+        "Source"
     )
     
-    # PostgreSQL SQL 파일 처리
-    pg_processed, pg_skipped = process_sql_files(
-        paths['pg_sql_dir'], 
-        paths['pg_sql_done_dir'], 
-        "PostgreSQL"
+    # 타겟 SQL 파일 처리
+    tgt_processed, tgt_skipped = process_sql_files(
+        paths['tgt_sql_dir'], 
+        paths['tgt_sql_done_dir'], 
+        "Target"
     )
     
     # 최종 결과 출력
-    total_processed = orcl_processed + pg_processed
-    total_skipped = orcl_skipped + pg_skipped
+    total_processed = src_processed + tgt_processed
+    total_skipped = src_skipped + tgt_skipped
     
     logger.info("=" * 60)
     logger.info("BindMapper 실행 완료")
     logger.info("=" * 60)
-    logger.info(f"Oracle SQL: {orcl_processed}개 처리, {orcl_skipped}개 복사")
-    logger.info(f"PostgreSQL SQL: {pg_processed}개 처리, {pg_skipped}개 복사")
+    logger.info(f"소스 SQL: {src_processed}개 처리, {src_skipped}개 복사")
+    logger.info(f"타겟 SQL: {tgt_processed}개 처리, {tgt_skipped}개 복사")
     logger.info(f"전체: {total_processed}개 처리, {total_skipped}개 복사")
     logger.info("=" * 60)
 

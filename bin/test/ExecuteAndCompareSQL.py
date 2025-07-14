@@ -42,22 +42,44 @@ def check_environment_variables():
     print("환경 변수 확인 중...")
     print("=" * 60)
     
-    # 필수 환경 변수 목록
+    # TARGET_DBMS_TYPE 확인
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+    print(f"타겟 DBMS 타입: {target_dbms}")
+    
+    # 필수 환경 변수 목록 (소스는 항상 Oracle, 타겟은 TARGET_DBMS_TYPE에 따라)
     required_env_vars = [
         'ORACLE_SVC_USER',
         'ORACLE_SVC_PASSWORD',
-        'ORACLE_SVC_CONNECT_STRING',
-        'PGHOST',
-        'PGPORT', 
-        'PGDATABASE',
-        'PGUSER',
-        'PGPASSWORD'
+        'ORACLE_SVC_CONNECT_STRING'
     ]
+    
+    # 타겟 DBMS에 따른 환경 변수 추가
+    if target_dbms in ['postgres', 'postgresql']:
+        required_env_vars.extend([
+            'PGHOST',
+            'PGPORT', 
+            'PGDATABASE',
+            'PGUSER',
+            'PGPASSWORD'
+        ])
+    elif target_dbms == 'mysql':
+        required_env_vars.extend([
+            'MYSQL_HOST',
+            'MYSQL_PORT',
+            'MYSQL_DATABASE',
+            'MYSQL_USER',
+            'MYSQL_PASSWORD'
+        ])
+    else:
+        print(f"지원하지 않는 타겟 DBMS 타입: {target_dbms}")
+        print("지원되는 타입: postgres, postgresql, mysql")
+        sys.exit(1)
     
     # 권장 환경 변수 목록
     recommended_env_vars = [
         'TEST_FOLDER',
-        'TEST_LOGS_FOLDER'
+        'TEST_LOGS_FOLDER',
+        'TARGET_DBMS_TYPE'
     ]
     
     # 선택적 환경 변수 목록
@@ -94,6 +116,8 @@ def check_environment_variables():
                 print(f"- {var}: 설정되지 않음 (기본값: 현재 작업 디렉토리)")
             elif var == 'TEST_LOGS_FOLDER':
                 print(f"- {var}: 설정되지 않음 (기본값: TEST_FOLDER)")
+            elif var == 'TARGET_DBMS_TYPE':
+                print(f"- {var}: 설정되지 않음 (기본값: postgres)")
     
     print("\n선택적 환경 변수 확인:")
     for var in optional_env_vars:
@@ -131,8 +155,8 @@ def get_paths():
         'csv_dir': os.path.join(test_folder, 'sql_results', 'csv'),
         'summary_dir': os.path.join(test_folder, 'sql_results', 'summary'),
         'temp_dir': os.path.join(test_folder, 'sql_results', 'temp'),
-        'oracle_temp_dir': os.path.join(test_folder, 'sql_results', 'temp', 'oracle'),
-        'pg_temp_dir': os.path.join(test_folder, 'sql_results', 'temp', 'postgresql'),
+        'src_temp_dir': os.path.join(test_folder, 'sql_results', 'temp', 'src'),
+        'tgt_temp_dir': os.path.join(test_folder, 'sql_results', 'temp', 'tgt'),
         'cleanup_dir': os.path.join(test_folder, 'sql_results', 'temp', 'cleanup'),
         'archive_dir': os.path.join(test_folder, 'sql_results', 'archive'),
         'logs_dir': test_logs_folder
@@ -204,8 +228,8 @@ def setup_directories():
         paths['csv_dir'],
         paths['summary_dir'],
         paths['temp_dir'],
-        paths['oracle_temp_dir'],
-        paths['pg_temp_dir'],
+        paths['src_temp_dir'],
+        paths['tgt_temp_dir'],
         paths['cleanup_dir'],
         paths['archive_dir']
     ]
@@ -226,18 +250,18 @@ STMT_TYPES = {
     'O': 'Other'
 }
 
-def save_timeout_list(timeout_sqls, db_type='oracle'):
+def save_timeout_list(timeout_sqls, db_type='src'):
     """타임아웃 발생한 SQL 목록을 파일에 저장합니다."""
     if not timeout_sqls:
         return
     
     paths = get_paths()
-    if db_type == 'oracle':
-        timeout_file = os.path.join(paths['sql_results_dir'], 'timeout_orcl.lst')
-        db_name = 'Oracle'
+    if db_type == 'src':
+        timeout_file = os.path.join(paths['sql_results_dir'], 'timeout_src.lst')
+        db_name = '소스'
     else:
-        timeout_file = os.path.join(paths['sql_results_dir'], 'timeout_pg.lst')
-        db_name = 'PostgreSQL'
+        timeout_file = os.path.join(paths['sql_results_dir'], 'timeout_tgt.lst')
+        db_name = '타겟'
     
     try:
         with open(timeout_file, 'w', encoding='utf-8') as f:
@@ -309,11 +333,11 @@ def execute_oracle_sql(sql_id, sql):
         sql = '\n'.join(lines).strip()
     
     paths = get_paths()
-    oracle_temp_dir = paths['oracle_temp_dir']
+    src_temp_dir = paths['src_temp_dir']
     
     # 임시 파일 경로 생성
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    temp_sql_path = os.path.join(oracle_temp_dir, f"temp_sql_{sql_id}_{timestamp}.sql")
+    temp_sql_path = os.path.join(src_temp_dir, f"temp_sql_{sql_id}_{timestamp}.sql")
     temp_result_path = f"{temp_sql_path}_result.csv"
     
     temp_files = [temp_sql_path, temp_result_path]
@@ -419,18 +443,64 @@ def execute_oracle_sql(sql_id, sql):
         # 임시 파일 정리
         cleanup_temp_files(temp_files)
 
-def execute_postgres_sql(sql_id, sql):
+def execute_target_sql(sql_id, sql):
     """
-    PostgreSQL에서 SQL을 실행하고 결과를 반환합니다.
+    TARGET_DBMS_TYPE에 따라 타겟 데이터베이스에서 SQL을 실행하고 결과를 반환합니다.
     환경 변수에서 연결 정보를 가져옵니다.
     """
     debug_logger = logging.getLogger('debug')
     error_logger = logging.getLogger('error')
     perf_logger = logging.getLogger('performance')
     
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+    
     start_time = time.time()
-    logger.info(f"PostgreSQL SQL 실행 시작: {sql_id}")
-    debug_logger.debug(f"PostgreSQL SQL 내용: {sql[:200]}...")
+    logger.info(f"타겟 {target_dbms.upper()} SQL 실행 시작: {sql_id}")
+    debug_logger.debug(f"타겟 {target_dbms.upper()} SQL 내용: {sql[:200]}...")
+    
+    # SQL 문 정리
+    sql = sql.strip()
+    
+    # Oracle PL/SQL 블록 종료 문자 '/' 제거 (줄의 시작에 있는 경우만)
+    lines = sql.split('\n')
+    if lines and lines[-1].strip() == '/':
+        lines = lines[:-1]
+        sql = '\n'.join(lines).strip()
+    
+    paths = get_paths()
+    tgt_temp_dir = paths['tgt_temp_dir']
+    
+    # 임시 파일 경로 생성
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    temp_sql_path = os.path.join(tgt_temp_dir, f"temp_sql_{sql_id}_{timestamp}.sql")
+    
+    temp_files = [temp_sql_path]
+    
+    try:
+        if target_dbms in ['postgres', 'postgresql']:
+            return execute_postgresql_sql(sql_id, sql, temp_sql_path, temp_files)
+        elif target_dbms == 'mysql':
+            return execute_mysql_sql(sql_id, sql, temp_sql_path, temp_files)
+        else:
+            error_msg = f"지원하지 않는 타겟 DBMS 타입: {target_dbms}"
+            error_logger.error(f"{sql_id}: {error_msg}")
+            return f"ERROR: {error_msg}"
+            
+    except Exception as e:
+        error_msg = f"타겟 {target_dbms.upper()} SQL 실행 중 예외 발생: {str(e)}"
+        error_logger.error(f"{sql_id}: {error_msg}")
+        return f"ERROR: {error_msg}"
+    finally:
+        # 임시 파일 정리
+        cleanup_temp_files(temp_files)
+
+def execute_postgresql_sql(sql_id, sql, temp_sql_path, temp_files):
+    """PostgreSQL에서 SQL을 실행합니다."""
+    debug_logger = logging.getLogger('debug')
+    error_logger = logging.getLogger('error')
+    perf_logger = logging.getLogger('performance')
+    
+    start_time = time.time()
     
     # 환경 변수에서 PostgreSQL 연결 정보 가져오기
     pg_user = os.environ.get('PGUSER')
@@ -444,28 +514,9 @@ def execute_postgres_sql(sql_id, sql):
         error_logger.error(f"{sql_id}: {error_msg}")
         return f"ERROR: {error_msg}"
     
-    # SQL 문 정리
-    sql = sql.strip()
-    
-    # Oracle PL/SQL 블록 종료 문자 '/' 제거 (줄의 시작에 있는 경우만)
-    # 주석의 일부인 '*/' 는 제거하지 않음
-    lines = sql.split('\n')
-    if lines and lines[-1].strip() == '/':
-        lines = lines[:-1]
-        sql = '\n'.join(lines).strip()
-    
     # SQL 문 끝에 세미콜론이 없으면 추가
     if not sql.endswith(';'):
         sql = sql + ';'
-    
-    paths = get_paths()
-    pg_temp_dir = paths['pg_temp_dir']
-    
-    # 임시 파일 경로 생성
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    temp_sql_path = os.path.join(pg_temp_dir, f"temp_sql_{sql_id}_{timestamp}.sql")
-    
-    temp_files = [temp_sql_path]
     
     try:
         # 임시 SQL 파일 생성
@@ -527,33 +578,122 @@ def execute_postgres_sql(sql_id, sql):
         error_msg = "PostgreSQL SQL 실행 타임아웃 (10초 초과)"
         error_logger.error(f"{sql_id}: {error_msg}")
         return f"TIMEOUT: {error_msg}"
-    except Exception as e:
-        error_msg = f"PostgreSQL SQL 실행 중 예외 발생: {str(e)}"
+
+def execute_mysql_sql(sql_id, sql, temp_sql_path, temp_files):
+    """MySQL에서 SQL을 실행합니다."""
+    debug_logger = logging.getLogger('debug')
+    error_logger = logging.getLogger('error')
+    perf_logger = logging.getLogger('performance')
+    
+    start_time = time.time()
+    
+    # 환경 변수에서 MySQL 연결 정보 가져오기
+    mysql_user = os.environ.get('MYSQL_USER')
+    mysql_password = os.environ.get('MYSQL_PASSWORD')
+    mysql_host = os.environ.get('MYSQL_HOST')
+    mysql_port = os.environ.get('MYSQL_PORT')
+    mysql_database = os.environ.get('MYSQL_DATABASE')
+    
+    if not all([mysql_user, mysql_password, mysql_host, mysql_port, mysql_database]):
+        error_msg = "MySQL 연결 정보가 환경 변수에 설정되어 있지 않습니다."
         error_logger.error(f"{sql_id}: {error_msg}")
         return f"ERROR: {error_msg}"
-    finally:
-        # 임시 파일 정리
-        cleanup_temp_files(temp_files)
-def update_results(conn, sql_id, app_name, stmt_type, orcl_result, pg_result):
+    
+    # SQL 문 정리 (세미콜론 제거)
+    sql = sql.strip()
+    if sql.endswith(';'):
+        sql = sql[:-1]
+    
+    # CSV 출력 파일 경로 생성
+    paths = get_paths()
+    tgt_temp_dir = paths['tgt_temp_dir']
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    csv_output_path = os.path.join(tgt_temp_dir, f"mysql_result_{sql_id}_{timestamp}.csv")
+    temp_files.append(csv_output_path)
+    
+    try:
+        # SELECT ... INTO OUTFILE을 사용한 CSV 출력 SQL 생성
+        csv_sql = f"""
+{sql}
+INTO OUTFILE '{csv_output_path}'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+ESCAPED BY '\\\\'
+LINES TERMINATED BY '\\n';
+"""
+        
+        # 임시 SQL 파일 생성
+        with open(temp_sql_path, 'w', encoding='utf-8', newline='\n') as temp_sql:
+            temp_sql.write(csv_sql)
+        
+        debug_logger.debug(f"MySQL 임시 SQL 파일 생성: {temp_sql_path}")
+        debug_logger.debug(f"MySQL CSV 출력 파일: {csv_output_path}")
+        
+        # MySQL SQL 실행
+        env = os.environ.copy()
+        cmd = f"mysql -h {mysql_host} -P {mysql_port} -u {mysql_user} -p{mysql_password} -D {mysql_database} < {temp_sql_path}"
+        
+        process = subprocess.run(cmd, shell=True, stderr=subprocess.PIPE, 
+                               stdout=subprocess.PIPE, env=env, timeout=10)
+        
+        execution_time = time.time() - start_time
+        perf_logger.info(f"MySQL SQL 실행 시간: {sql_id} - {execution_time:.2f}초")
+        
+        # stderr 확인
+        stderr_result = process.stderr.decode('utf-8', errors='replace').strip()
+        
+        # stderr에 오류가 있는 경우
+        if stderr_result and ('ERROR' in stderr_result or 'FATAL' in stderr_result):
+            error_logger.error(f"MySQL SQL 실행 오류 (stderr): {sql_id} - {stderr_result}")
+            return f"ERROR: {stderr_result}"
+        
+        # return code가 0이 아닌 경우
+        if process.returncode != 0:
+            error_msg = stderr_result if stderr_result else f"Process returned {process.returncode}"
+            error_logger.error(f"MySQL SQL 실행 오류 (returncode): {sql_id} - {error_msg}")
+            return f"ERROR: {error_msg}"
+        
+        # CSV 파일에서 결과 읽기
+        if os.path.exists(csv_output_path):
+            with open(csv_output_path, 'r', encoding='utf-8', errors='replace') as f:
+                result = f.read().strip()
+            
+            logger.info(f"MySQL SQL 실행 성공: {sql_id}")
+            debug_logger.debug(f"MySQL 결과 길이: {len(result)} 문자")
+            return result
+        else:
+            error_msg = f"MySQL CSV 출력 파일이 생성되지 않았습니다: {csv_output_path}"
+            error_logger.error(f"{sql_id}: {error_msg}")
+            return f"ERROR: {error_msg}"
+        
+    except subprocess.TimeoutExpired:
+        error_msg = "MySQL SQL 실행 타임아웃 (10초 초과)"
+        error_logger.error(f"{sql_id}: {error_msg}")
+        return f"TIMEOUT: {error_msg}"
+    except Exception as e:
+        error_msg = f"MySQL SQL 실행 중 예외 발생: {str(e)}"
+        error_logger.error(f"{sql_id}: {error_msg}")
+        return f"ERROR: {error_msg}"
+def update_results(conn, sql_id, app_name, stmt_type, src_result, tgt_result):
     """
     sqllist 테이블에 실행 결과를 업데이트합니다.
     """
     try:
         # 결과 비교
-        same = 'Y' if orcl_result == pg_result else 'N'
+        same = 'Y' if src_result == tgt_result else 'N'
         
         # 오류가 있는 경우 무조건 다름으로 처리
-        if orcl_result.startswith("ERROR:") or pg_result.startswith("ERROR:"):
+        if src_result.startswith("ERROR:") or tgt_result.startswith("ERROR:"):
             same = 'N'
         
         with conn.cursor() as cursor:
             cursor.execute(
                 """
                 UPDATE sqllist 
-                SET orcl_result = %s, pg_result = %s, same = %s
+                SET src_result = %s, tgt_result = %s, same = %s
                 WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
                 """,
-                (orcl_result, pg_result, same, sql_id, app_name, stmt_type)
+                (src_result, tgt_result, same, sql_id, app_name, stmt_type)
             )
         
         logger.debug(f"결과 업데이트 완료: {sql_id} - 동일: {same}")
@@ -563,111 +703,112 @@ def update_results(conn, sql_id, app_name, stmt_type, orcl_result, pg_result):
         conn.rollback()
         return False, 'N'
 
-def update_pg_only_results(conn, sql_id, app_name, stmt_type, pg_result):
+def update_tgt_only_results(conn, sql_id, app_name, stmt_type, tgt_result):
     """
-    PostgreSQL 전용 모드에서 sqllist 테이블에 PostgreSQL 결과만 업데이트합니다.
-    """
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE sqllist 
-                SET pg_result = %s
-                WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
-                """,
-                (pg_result, sql_id, app_name, stmt_type)
-            )
-        
-        logger.debug(f"PostgreSQL 결과 업데이트 완료: {sql_id}")
-        return True, 'N/A'
-    except Exception as e:
-        logger.error(f"PostgreSQL 결과 업데이트 중 오류 발생: {sql_id} - {str(e)}")
-        conn.rollback()
-        return False, 'N/A'
-
-def update_oracle_only_results(conn, sql_id, app_name, stmt_type, orcl_result):
-    """
-    Oracle 전용 모드에서 sqllist 테이블에 Oracle 결과만 업데이트합니다.
+    타겟 전용 모드에서 sqllist 테이블에 타겟 결과만 업데이트합니다.
     """
     try:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
                 UPDATE sqllist 
-                SET orcl_result = %s
+                SET tgt_result = %s
                 WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
                 """,
-                (orcl_result, sql_id, app_name, stmt_type)
+                (tgt_result, sql_id, app_name, stmt_type)
             )
         
-        logger.debug(f"Oracle 결과 업데이트 완료: {sql_id}")
+        logger.debug(f"타겟 결과 업데이트 완료: {sql_id}")
         return True, 'N/A'
     except Exception as e:
-        logger.error(f"Oracle 결과 업데이트 중 오류 발생: {sql_id} - {str(e)}")
+        logger.error(f"타겟 결과 업데이트 중 오류 발생: {sql_id} - {str(e)}")
         conn.rollback()
         return False, 'N/A'
 
-def generate_summary_report(results, execution_time, type_filter=None, oracle_only=False, pg_only=False):
+def update_src_only_results(conn, sql_id, app_name, stmt_type, src_result):
+    """
+    소스 전용 모드에서 sqllist 테이블에 소스 결과만 업데이트합니다.
+    """
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE sqllist 
+                SET src_result = %s
+                WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
+                """,
+                (src_result, sql_id, app_name, stmt_type)
+            )
+        
+        logger.debug(f"소스 결과 업데이트 완료: {sql_id}")
+        return True, 'N/A'
+    except Exception as e:
+        logger.error(f"소스 결과 업데이트 중 오류 발생: {sql_id} - {str(e)}")
+        conn.rollback()
+        return False, 'N/A'
+
+def generate_summary_report(results, execution_time, type_filter=None, src_only=False, tgt_only=False):
     """실행 요약 보고서를 생성합니다."""
     paths = get_paths()
     summary_dir = paths['summary_dir']
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').upper()
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     type_suffix = f"_{type_filter.replace(',', '')}" if type_filter else ""
     db_suffix = ""
-    if oracle_only:
-        db_suffix = "_oracle_only"
-    elif pg_only:
-        db_suffix = "_pg_only"
+    if src_only:
+        db_suffix = "_src_only"
+    elif tgt_only:
+        db_suffix = "_tgt_only"
     
     # 텍스트 요약 보고서
     summary_file = os.path.join(summary_dir, f"execution_summary{type_suffix}{db_suffix}_{timestamp}.txt")
     
     with open(summary_file, 'w', encoding='utf-8') as f:
         f.write("=" * 60 + "\n")
-        if oracle_only:
-            f.write("Oracle SQL 실행 요약 보고서\n")
-        elif pg_only:
-            f.write("PostgreSQL SQL 실행 요약 보고서\n")
+        if src_only:
+            f.write("소스 SQL 실행 요약 보고서\n")
+        elif tgt_only:
+            f.write(f"타겟 {target_dbms} SQL 실행 요약 보고서\n")
         else:
-            f.write("SQL 실행 및 비교 요약 보고서\n")
+            f.write(f"SQL 실행 및 비교 요약 보고서 (타겟: {target_dbms})\n")
         f.write("=" * 60 + "\n")
         f.write(f"실행 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"총 소요 시간: {execution_time:.2f}초\n")
         f.write(f"총 실행 SQL 수: {len(results)}\n")
         if type_filter:
             f.write(f"필터링된 타입: {type_filter}\n")
-        if oracle_only:
-            f.write("실행 모드: Oracle 전용\n")
-        elif pg_only:
-            f.write("실행 모드: PostgreSQL 전용\n")
+        if src_only:
+            f.write("실행 모드: 소스 전용\n")
+        elif tgt_only:
+            f.write(f"실행 모드: 타겟 {target_dbms} 전용\n")
         f.write("\n")
         
         # 성공/실패 통계
         f.write("실행 결과 통계:\n")
         f.write("-" * 30 + "\n")
         
-        if not pg_only:
-            oracle_success = sum(1 for r in results if r.get('orcl_status') == 'SUCCESS')
-            oracle_timeout = sum(1 for r in results if r.get('orcl_status') == 'TIMEOUT')
-            oracle_error = sum(1 for r in results if r.get('orcl_status') == 'ERROR')
+        if not tgt_only:
+            src_success = sum(1 for r in results if r.get('src_status') == 'SUCCESS')
+            src_timeout = sum(1 for r in results if r.get('src_status') == 'TIMEOUT')
+            src_error = sum(1 for r in results if r.get('src_status') == 'ERROR')
             
-            f.write(f"Oracle 성공: {oracle_success}/{len(results)} ({oracle_success/len(results)*100:.1f}%)\n")
-            f.write(f"Oracle 타임아웃: {oracle_timeout}/{len(results)} ({oracle_timeout/len(results)*100:.1f}%)\n")
-            f.write(f"Oracle 오류: {oracle_error}/{len(results)} ({oracle_error/len(results)*100:.1f}%)\n")
+            f.write(f"소스 성공: {src_success}/{len(results)} ({src_success/len(results)*100:.1f}%)\n")
+            f.write(f"소스 타임아웃: {src_timeout}/{len(results)} ({src_timeout/len(results)*100:.1f}%)\n")
+            f.write(f"소스 오류: {src_error}/{len(results)} ({src_error/len(results)*100:.1f}%)\n")
         
-        if not oracle_only:
-            pg_success = sum(1 for r in results if r.get('pg_status') == 'SUCCESS')
-            pg_timeout = sum(1 for r in results if r.get('pg_status') == 'TIMEOUT')
-            pg_error = sum(1 for r in results if r.get('pg_status') == 'ERROR')
+        if not src_only:
+            tgt_success = sum(1 for r in results if r.get('tgt_status') == 'SUCCESS')
+            tgt_timeout = sum(1 for r in results if r.get('tgt_status') == 'TIMEOUT')
+            tgt_error = sum(1 for r in results if r.get('tgt_status') == 'ERROR')
             
-            f.write(f"PostgreSQL 성공: {pg_success}/{len(results)} ({pg_success/len(results)*100:.1f}%)\n")
-            f.write(f"PostgreSQL 타임아웃: {pg_timeout}/{len(results)} ({pg_timeout/len(results)*100:.1f}%)\n")
-            f.write(f"PostgreSQL 오류: {pg_error}/{len(results)} ({pg_error/len(results)*100:.1f}%)\n")
+            f.write(f"타겟 {target_dbms} 성공: {tgt_success}/{len(results)} ({tgt_success/len(results)*100:.1f}%)\n")
+            f.write(f"타겟 {target_dbms} 타임아웃: {tgt_timeout}/{len(results)} ({tgt_timeout/len(results)*100:.1f}%)\n")
+            f.write(f"타겟 {target_dbms} 오류: {tgt_error}/{len(results)} ({tgt_error/len(results)*100:.1f}%)\n")
         
-        if not oracle_only and not pg_only:
+        if not src_only and not tgt_only:
             same_results = sum(1 for r in results if r.get('same') == 'Y')
-            both_success = sum(1 for r in results if r.get('orcl_status') == 'SUCCESS' and r.get('pg_status') == 'SUCCESS')
+            both_success = sum(1 for r in results if r.get('src_status') == 'SUCCESS' and r.get('tgt_status') == 'SUCCESS')
             f.write(f"양쪽 모두 성공: {both_success}/{len(results)} ({both_success/len(results)*100:.1f}%)\n")
             f.write(f"결과 일치: {same_results}/{len(results)} ({same_results/len(results)*100:.1f}%)\n")
         
@@ -858,53 +999,105 @@ def parse_arguments():
     """
     명령줄 인수를 파싱합니다.
     """
-    parser = argparse.ArgumentParser(description='Oracle과 PostgreSQL에서 SQL을 실행하고 결과를 비교합니다.')
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').upper()
+    
+    parser = argparse.ArgumentParser(description=f'소스(Oracle)와 타겟({target_dbms})에서 SQL을 실행하고 결과를 비교합니다.')
     parser.add_argument('-t', '--type', 
                         help='실행할 SQL 문의 타입 (S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block, O: Other). '
                              '여러 타입을 지정하려면 쉼표로 구분 (예: S,U,I)')
-    parser.add_argument('--oracle-only', action='store_true',
-                        help='Oracle에서만 SQL을 실행합니다 (PostgreSQL 실행 생략)')
-    parser.add_argument('--pg-only', action='store_true',
-                        help='PostgreSQL에서만 SQL을 실행합니다 (Oracle 실행 생략)')
+    parser.add_argument('--src-only', action='store_true',
+                        help='소스(Oracle)에서만 SQL을 실행합니다 (타겟 실행 생략)')
+    parser.add_argument('--tgt-only', action='store_true',
+                        help=f'타겟({target_dbms})에서만 SQL을 실행합니다 (소스 실행 생략)')
     
     args = parser.parse_args()
     
     # 상호 배타적 옵션 검증
-    if args.oracle_only and args.pg_only:
-        parser.error("--oracle-only와 --pg-only 옵션은 동시에 사용할 수 없습니다.")
+    if args.src_only and args.tgt_only:
+        parser.error("--src-only와 --tgt-only 옵션은 동시에 사용할 수 없습니다.")
     
     return args
 
 def get_db_connection():
     """
-    PostgreSQL 데이터베이스 연결을 생성합니다.
+    TARGET_DBMS_TYPE에 따라 데이터베이스 연결을 생성합니다.
     환경 변수에서 연결 정보를 가져옵니다.
     """
     try:
-        # 환경 변수에서 연결 정보 가져오기
-        pg_user = os.environ.get('PGUSER')
-        pg_password = os.environ.get('PGPASSWORD')
-        pg_host = os.environ.get('PGHOST')
-        pg_port = os.environ.get('PGPORT')
-        pg_database = os.environ.get('PGDATABASE')
+        target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
         
-        # 연결 정보 확인
-        if not all([pg_host, pg_port, pg_database, pg_user, pg_password]):
-            logger.error("PostgreSQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
-            logger.error(f"PGHOST: {pg_host}, PGPORT: {pg_port}, PGDATABASE: {pg_database}, PGUSER: {pg_user}")
+        if target_dbms in ['postgres', 'postgresql']:
+            # PostgreSQL 연결
+            import psycopg2
+            
+            # 환경 변수에서 연결 정보 가져오기
+            pg_user = os.environ.get('PGUSER')
+            pg_password = os.environ.get('PGPASSWORD')
+            pg_host = os.environ.get('PGHOST')
+            pg_port = os.environ.get('PGPORT')
+            pg_database = os.environ.get('PGDATABASE')
+            
+            # 연결 정보 확인
+            if not all([pg_host, pg_port, pg_database, pg_user, pg_password]):
+                logger.error("PostgreSQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
+                logger.error(f"PGHOST: {pg_host}, PGPORT: {pg_port}, PGDATABASE: {pg_database}, PGUSER: {pg_user}")
+                sys.exit(1)
+            
+            # 데이터베이스 연결
+            conn = psycopg2.connect(
+                host=pg_host,
+                port=pg_port,
+                database=pg_database,
+                user=pg_user,
+                password=pg_password
+            )
+            
+            logger.info(f"PostgreSQL 연결 성공: {pg_host}:{pg_port}/{pg_database}")
+            return conn
+            
+        elif target_dbms == 'mysql':
+            # MySQL 연결
+            import mysql.connector
+            
+            # 환경 변수에서 연결 정보 가져오기
+            mysql_host = os.environ.get('MYSQL_HOST')
+            mysql_port = os.environ.get('MYSQL_PORT')
+            mysql_database = os.environ.get('MYSQL_DATABASE')
+            mysql_user = os.environ.get('MYSQL_USER')
+            mysql_password = os.environ.get('MYSQL_PASSWORD')
+            
+            # 연결 정보 확인
+            if not all([mysql_host, mysql_port, mysql_database, mysql_user, mysql_password]):
+                logger.error("MySQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
+                logger.error(f"MYSQL_HOST: {mysql_host}, MYSQL_PORT: {mysql_port}, MYSQL_DATABASE: {mysql_database}, MYSQL_USER: {mysql_user}")
+                sys.exit(1)
+            
+            # 데이터베이스 연결
+            conn = mysql.connector.connect(
+                host=mysql_host,
+                port=int(mysql_port),
+                database=mysql_database,
+                user=mysql_user,
+                password=mysql_password,
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
+            
+            logger.info(f"MySQL 연결 성공: {mysql_host}:{mysql_port}/{mysql_database}")
+            return conn
+            
+        else:
+            logger.error(f"지원하지 않는 타겟 DBMS 타입: {target_dbms}")
+            logger.error("지원되는 타입: postgres, postgresql, mysql")
             sys.exit(1)
-        
-        # 데이터베이스 연결
-        conn = psycopg2.connect(
-            host=pg_host,
-            port=pg_port,
-            database=pg_database,
-            user=pg_user,
-            password=pg_password
-        )
-        
-        logger.info(f"PostgreSQL 연결 성공: {pg_host}:{pg_port}/{pg_database}")
-        return conn
+            
+    except ImportError as e:
+        logger.error(f"데이터베이스 드라이버 import 오류: {e}")
+        if target_dbms in ['postgres', 'postgresql']:
+            logger.error("PostgreSQL 드라이버를 설치하세요: pip install psycopg2-binary")
+        elif target_dbms == 'mysql':
+            logger.error("MySQL 드라이버를 설치하세요: pip install mysql-connector-python")
+        sys.exit(1)
     except Exception as e:
         logger.error(f"데이터베이스 연결 오류: {e}")
         sys.exit(1)
@@ -981,18 +1174,18 @@ def main():
             
             # SQL 쿼리 구성
             query = """
-                SELECT sql_id, app_name, stmt_type, orcl_file_path, pg_file_path, orcl, pg
+                SELECT sql_id, app_name, stmt_type, src_file_path, tgt_file_path, src, tgt
                 FROM sqllist
                 WHERE 1=1
             """
             
             # 실행 모드에 따른 조건 추가
-            if args.oracle_only:
-                query += " AND orcl IS NOT NULL"
-            elif args.pg_only:
-                query += " AND pg IS NOT NULL"
+            if args.src_only:
+                query += " AND src IS NOT NULL"
+            elif args.tgt_only:
+                query += " AND tgt IS NOT NULL"
             else:
-                query += " AND orcl IS NOT NULL AND pg IS NOT NULL"
+                query += " AND src IS NOT NULL AND tgt IS NOT NULL"
             
             # 타입 필터링이 있는 경우 WHERE 절에 추가
             if args.type:

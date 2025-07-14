@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 #############################################################################
 # Script: DB08.SaveSQLToDB.py
-# Description: This script reads SQL files from pg_sql_done and orcl_sql_done
+# Description: This script reads SQL files from tgt_sql_done and src_sql_done
 #              directories and saves them to the sqllist table in PostgreSQL.
 #
 # Functionality:
 # - Creates the sqllist table in PostgreSQL if it doesn't exist
-# - Reads SQL files from pg_sql_done and orcl_sql_done directories
+# - Reads SQL files from src_sql_done and tgt_sql_done directories
 # - Extracts SQL ID, application name, and statement type from file names and content
 # - Inserts the data into the sqllist table
 # - Exports sqllist table data to CSV files in TEST_FOLDER/sqllist directory
@@ -28,6 +28,8 @@ import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
+# MySQL 드라이버는 필요시 동적으로 import
+
 def check_environment_variables():
     """
     환경 변수가 설정되어 있는지 확인합니다.
@@ -36,19 +38,37 @@ def check_environment_variables():
     print("환경 변수 확인 중...")
     print("=" * 60)
     
-    # 필수 환경 변수 목록
-    required_env_vars = [
-        'PGHOST',
-        'PGPORT', 
-        'PGDATABASE',
-        'PGUSER',
-        'PGPASSWORD'
-    ]
+    # TARGET_DBMS_TYPE 확인
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+    print(f"타겟 DBMS 타입: {target_dbms}")
+    
+    # 필수 환경 변수 목록 (DBMS 타입별)
+    if target_dbms in ['postgres', 'postgresql']:
+        required_env_vars = [
+            'PGHOST',
+            'PGPORT', 
+            'PGDATABASE',
+            'PGUSER',
+            'PGPASSWORD'
+        ]
+    elif target_dbms == 'mysql':
+        required_env_vars = [
+            'MYSQL_HOST',
+            'MYSQL_PORT',
+            'MYSQL_DATABASE', 
+            'MYSQL_USER',
+            'MYSQL_PASSWORD'
+        ]
+    else:
+        print(f"지원하지 않는 DBMS 타입: {target_dbms}")
+        print("지원되는 타입: postgres, postgresql, mysql")
+        sys.exit(1)
     
     # 권장 환경 변수 목록
     recommended_env_vars = [
         'TEST_FOLDER',
-        'TEST_LOGS_FOLDER'
+        'TEST_LOGS_FOLDER',
+        'TARGET_DBMS_TYPE'
     ]
     
     missing_vars = []
@@ -76,6 +96,8 @@ def check_environment_variables():
                 print(f"- {var}: 설정되지 않음 (기본값: 현재 작업 디렉토리)")
             elif var == 'TEST_LOGS_FOLDER':
                 print(f"- {var}: 설정되지 않음 (기본값: TEST_FOLDER)")
+            elif var == 'TARGET_DBMS_TYPE':
+                print(f"- {var}: 설정되지 않음 (기본값: postgres)")
     
     if missing_vars:
         print(f"\n오류: 다음 필수 환경 변수들이 설정되지 않았습니다:")
@@ -94,8 +116,8 @@ def get_paths():
     test_logs_folder = os.environ.get('TEST_LOGS_FOLDER', test_folder)
     
     return {
-        'orcl_sql_done_dir': os.path.join(test_folder, 'orcl_sql_done'),
-        'pg_sql_done_dir': os.path.join(test_folder, 'pg_sql_done'),
+        'src_sql_done_dir': os.path.join(test_folder, 'src_sql_done'),
+        'tgt_sql_done_dir': os.path.join(test_folder, 'tgt_sql_done'),
         'sqllist_output_dir': os.path.join(test_folder, 'sqllist'),
         'logs_dir': test_logs_folder
     }
@@ -145,76 +167,150 @@ SQL_TYPE_MAP = {
 
 def get_db_connection():
     """
-    PostgreSQL 데이터베이스 연결을 생성합니다.
+    TARGET_DBMS_TYPE에 따라 데이터베이스 연결을 생성합니다.
     환경 변수에서 연결 정보를 가져옵니다.
     """
     try:
-        # 환경 변수에서 연결 정보 가져오기
-        host = os.environ.get('PGHOST')
-        port = os.environ.get('PGPORT')
-        database = os.environ.get('PGDATABASE')
-        user = os.environ.get('PGUSER')
-        password = os.environ.get('PGPASSWORD')
+        target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
         
-        # 연결 정보 확인
-        if not all([host, port, database, user, password]):
-            logger.error("PostgreSQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
-            logger.error(f"PGHOST: {host}, PGPORT: {port}, PGDATABASE: {database}, PGUSER: {user}")
+        if target_dbms in ['postgres', 'postgresql']:
+            # PostgreSQL 연결
+            import psycopg2
+            
+            # 환경 변수에서 연결 정보 가져오기
+            host = os.environ.get('PGHOST')
+            port = os.environ.get('PGPORT')
+            database = os.environ.get('PGDATABASE')
+            user = os.environ.get('PGUSER')
+            password = os.environ.get('PGPASSWORD')
+            
+            # 연결 정보 확인
+            if not all([host, port, database, user, password]):
+                logger.error("PostgreSQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
+                logger.error(f"PGHOST: {host}, PGPORT: {port}, PGDATABASE: {database}, PGUSER: {user}")
+                sys.exit(1)
+            
+            # 데이터베이스 연결
+            conn = psycopg2.connect(
+                host=host,
+                port=port,
+                database=database,
+                user=user,
+                password=password
+            )
+            
+            logger.info(f"PostgreSQL 연결 성공: {host}:{port}/{database}")
+            return conn
+            
+        elif target_dbms == 'mysql':
+            # MySQL 연결
+            import mysql.connector
+            
+            # 환경 변수에서 연결 정보 가져오기
+            host = os.environ.get('MYSQL_HOST')
+            port = os.environ.get('MYSQL_PORT')
+            database = os.environ.get('MYSQL_DATABASE')
+            user = os.environ.get('MYSQL_USER')
+            password = os.environ.get('MYSQL_PASSWORD')
+            
+            # 연결 정보 확인
+            if not all([host, port, database, user, password]):
+                logger.error("MySQL 연결 정보가 환경 변수에 설정되어 있지 않습니다.")
+                logger.error(f"MYSQL_HOST: {host}, MYSQL_PORT: {port}, MYSQL_DATABASE: {database}, MYSQL_USER: {user}")
+                sys.exit(1)
+            
+            # 데이터베이스 연결
+            conn = mysql.connector.connect(
+                host=host,
+                port=int(port),
+                database=database,
+                user=user,
+                password=password,
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
+            
+            logger.info(f"MySQL 연결 성공: {host}:{port}/{database}")
+            return conn
+            
+        else:
+            logger.error(f"지원하지 않는 DBMS 타입: {target_dbms}")
+            logger.error("지원되는 타입: postgres, postgresql, mysql")
             sys.exit(1)
-        
-        # 데이터베이스 연결
-        conn = psycopg2.connect(
-            host=host,
-            port=port,
-            database=database,
-            user=user,
-            password=password
-        )
-        
-        logger.info(f"PostgreSQL 연결 성공: {host}:{port}/{database}")
-        return conn
+            
+    except ImportError as e:
+        logger.error(f"데이터베이스 드라이버 import 오류: {e}")
+        if target_dbms in ['postgres', 'postgresql']:
+            logger.error("PostgreSQL 드라이버를 설치하세요: pip install psycopg2-binary")
+        elif target_dbms == 'mysql':
+            logger.error("MySQL 드라이버를 설치하세요: pip install mysql-connector-python")
+        sys.exit(1)
     except Exception as e:
         logger.error(f"데이터베이스 연결 오류: {e}")
         sys.exit(1)
 
 def create_sqllist_table(conn):
     """
-    sqllist 테이블을 생성합니다.
+    TARGET_DBMS_TYPE에 따라 sqllist 테이블을 생성합니다.
     """
     try:
+        target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+        
         with conn.cursor() as cursor:
-            # 테이블이 존재하는지 확인
-            cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sqllist')")
-            table_exists = cursor.fetchone()[0]
+            # 테이블 존재 여부 확인 쿼리 (DBMS별 분기)
+            if target_dbms in ['postgres', 'postgresql']:
+                cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sqllist')")
+                table_exists = cursor.fetchone()[0]
+            elif target_dbms == 'mysql':
+                cursor.execute("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'sqllist'")
+                table_exists = cursor.fetchone()[0] > 0
             
             if not table_exists:
                 logger.info("sqllist 테이블을 생성합니다...")
                 
-                # 테이블 생성 SQL
-                create_table_sql = """
-                CREATE TABLE sqllist (
-                  sql_id          varchar(200) not null,
-                  app_name        varchar(100) not null,
-                  stmt_type       char(1) not null,
-                  orcl_file_path  varchar(300),
-                  pg_file_path    varchar(300),
-                  orcl            text,
-                  pg              text, 
-                  orcl_result     text,
-                  pg_result       text,
-                  same            char(1),
-                  PRIMARY KEY (sql_id, app_name, stmt_type)
-                );
+                # 테이블 생성 SQL (DBMS별 분기)
+                if target_dbms in ['postgres', 'postgresql']:
+                    create_table_sql = """
+                    CREATE TABLE sqllist (
+                      sql_id          varchar(200) not null,
+                      app_name        varchar(100) not null,
+                      stmt_type       char(1) not null,
+                      src_file_path   varchar(300),
+                      tgt_file_path   varchar(300),
+                      src             text,
+                      tgt             text, 
+                      src_result      text,
+                      tgt_result      text,
+                      same            char(1),
+                      PRIMARY KEY (sql_id, app_name, stmt_type)
+                    );
 
-                COMMENT ON COLUMN sqllist.sql_id IS 'Unique SQL statement ID. File_Name.ID';
-                COMMENT ON COLUMN sqllist.app_name IS 'Application name';
-                COMMENT ON COLUMN sqllist.stmt_type IS 'SQL statement type. S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block';
-                COMMENT ON COLUMN sqllist.orcl_file_path IS 'Oracle XML file path of this SQL statement';
-                COMMENT ON COLUMN sqllist.pg_file_path IS 'PostgreSQL XML file path of this SQL statement';
-                COMMENT ON COLUMN sqllist.orcl IS 'Origin Oracle statement';
-                COMMENT ON COLUMN sqllist.pg IS 'Transformed to Postgres statement';
-                COMMENT ON COLUMN sqllist.same IS 'Is it same orcl_result and pg_result? Y: same, N: different';
-                """
+                    COMMENT ON COLUMN sqllist.sql_id IS 'Unique SQL statement ID. File_Name.ID';
+                    COMMENT ON COLUMN sqllist.app_name IS 'Application name';
+                    COMMENT ON COLUMN sqllist.stmt_type IS 'SQL statement type. S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block';
+                    COMMENT ON COLUMN sqllist.src_file_path IS 'Source SQL file path of this SQL statement';
+                    COMMENT ON COLUMN sqllist.tgt_file_path IS 'Target SQL file path of this SQL statement';
+                    COMMENT ON COLUMN sqllist.src IS 'Origin source statement';
+                    COMMENT ON COLUMN sqllist.tgt IS 'Transformed to target statement';
+                    COMMENT ON COLUMN sqllist.same IS 'Is it same src_result and tgt_result? Y: same, N: different';
+                    """
+                elif target_dbms == 'mysql':
+                    create_table_sql = """
+                    CREATE TABLE sqllist (
+                      sql_id          VARCHAR(200) NOT NULL,
+                      app_name        VARCHAR(100) NOT NULL,
+                      stmt_type       CHAR(1) NOT NULL,
+                      src_file_path   VARCHAR(300),
+                      tgt_file_path   VARCHAR(300),
+                      src             LONGTEXT,
+                      tgt             LONGTEXT, 
+                      src_result      LONGTEXT,
+                      tgt_result      LONGTEXT,
+                      same            CHAR(1),
+                      PRIMARY KEY (sql_id, app_name, stmt_type)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                    COMMENT='SQL statement list for migration analysis';
+                    """
                 
                 cursor.execute(create_table_sql)
                 conn.commit()
@@ -286,7 +382,7 @@ def extract_app_name(filename):
     """
     파일 이름에서 어플리케이션 이름을 추출합니다.
     파일 이름의 첫 번째 부분이 어플리케이션 이름입니다.
-    Oracle과 PostgreSQL 파일명의 차이점(orcl/pg)을 제거하여 동일한 app_name을 생성합니다.
+    소스와 타겟 파일명의 차이점(orcl/pg)을 제거하여 동일한 app_name을 생성합니다.
     """
     # 파일 이름에서 확장자 제거
     base_name = os.path.basename(filename)
@@ -307,7 +403,7 @@ def extract_sql_id(filename):
     """
     파일 이름에서 SQL ID를 추출합니다.
     파일 이름에서 .sql 확장자를 제외한 부분입니다.
-    Oracle과 PostgreSQL 파일명의 차이점(orcl/pg)을 제거하여 동일한 SQL ID를 생성합니다.
+    소스와 타겟 파일명의 차이점(orcl/pg)을 제거하여 동일한 SQL ID를 생성합니다.
     """
     # 파일 이름에서 확장자 제거
     base_name = os.path.basename(filename)
@@ -325,7 +421,7 @@ def extract_sql_id(filename):
     
     return sql_id_normalized
 
-def process_sql_file(file_path, is_oracle):
+def process_sql_file(file_path, is_source):
     """
     SQL 파일을 처리하여 필요한 정보를 추출합니다.
     """
@@ -344,12 +440,12 @@ def process_sql_file(file_path, is_oracle):
         stmt_type = determine_sql_type(sql_content)
         
         # 파일 경로 설정
-        orcl_file_path = os.path.abspath(file_path) if is_oracle else None
-        pg_file_path = os.path.abspath(file_path) if not is_oracle else None
+        src_file_path = os.path.abspath(file_path) if is_source else None
+        tgt_file_path = os.path.abspath(file_path) if not is_source else None
         
         # SQL 내용 설정
-        orcl_content = sql_content if is_oracle else None
-        pg_content = sql_content if not is_oracle else None
+        src_content = sql_content if is_source else None
+        tgt_content = sql_content if not is_source else None
         
         logger.debug(f"파일 처리 완료: {os.path.basename(file_path)} - {app_name}.{sql_id} ({stmt_type})")
         
@@ -357,10 +453,10 @@ def process_sql_file(file_path, is_oracle):
             'sql_id': sql_id,
             'app_name': app_name,
             'stmt_type': stmt_type,
-            'orcl_file_path': orcl_file_path,
-            'pg_file_path': pg_file_path,
-            'orcl': orcl_content,
-            'pg': pg_content
+            'src_file_path': src_file_path,
+            'tgt_file_path': tgt_file_path,
+            'src': src_content,
+            'tgt': tgt_content
         }
     except Exception as e:
         logger.error(f"파일 처리 오류 ({file_path}): {e}")
@@ -368,9 +464,11 @@ def process_sql_file(file_path, is_oracle):
 
 def insert_or_update_sql_data(conn, sql_data):
     """
-    SQL 데이터를 sqllist 테이블에 삽입하거나 업데이트합니다.
+    TARGET_DBMS_TYPE에 따라 SQL 데이터를 sqllist 테이블에 삽입하거나 업데이트합니다.
     """
     try:
+        target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+        
         with conn.cursor() as cursor:
             # 기존 레코드 확인
             cursor.execute(
@@ -380,23 +478,33 @@ def insert_or_update_sql_data(conn, sql_data):
             existing_record = cursor.fetchone()
             
             if existing_record:
-                # 기존 레코드 업데이트
-                update_query = """
-                UPDATE sqllist
-                SET orcl_file_path = COALESCE(%s, orcl_file_path),
-                    pg_file_path = COALESCE(%s, pg_file_path),
-                    orcl = COALESCE(%s, orcl),
-                    pg = COALESCE(%s, pg)
-                WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
-                """
+                # 기존 레코드 업데이트 (DBMS별 분기)
+                if target_dbms in ['postgres', 'postgresql']:
+                    update_query = """
+                    UPDATE sqllist
+                    SET src_file_path = COALESCE(%s, src_file_path),
+                        tgt_file_path = COALESCE(%s, tgt_file_path),
+                        src = COALESCE(%s, src),
+                        tgt = COALESCE(%s, tgt)
+                    WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
+                    """
+                elif target_dbms == 'mysql':
+                    update_query = """
+                    UPDATE sqllist
+                    SET src_file_path = IFNULL(%s, src_file_path),
+                        tgt_file_path = IFNULL(%s, tgt_file_path),
+                        src = IFNULL(%s, src),
+                        tgt = IFNULL(%s, tgt)
+                    WHERE sql_id = %s AND app_name = %s AND stmt_type = %s
+                    """
                 
                 cursor.execute(
                     update_query,
                     (
-                        sql_data['orcl_file_path'],
-                        sql_data['pg_file_path'],
-                        sql_data['orcl'],
-                        sql_data['pg'],
+                        sql_data['src_file_path'],
+                        sql_data['tgt_file_path'],
+                        sql_data['src'],
+                        sql_data['tgt'],
                         sql_data['sql_id'],
                         sql_data['app_name'],
                         sql_data['stmt_type']
@@ -404,10 +512,10 @@ def insert_or_update_sql_data(conn, sql_data):
                 )
                 logger.debug(f"레코드 업데이트: {sql_data['app_name']}.{sql_data['sql_id']}")
             else:
-                # 새 레코드 삽입
+                # 새 레코드 삽입 (모든 DBMS 동일)
                 insert_query = """
                 INSERT INTO sqllist (
-                    sql_id, app_name, stmt_type, orcl_file_path, pg_file_path, orcl, pg
+                    sql_id, app_name, stmt_type, src_file_path, tgt_file_path, src, tgt
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
                 
@@ -417,10 +525,10 @@ def insert_or_update_sql_data(conn, sql_data):
                         sql_data['sql_id'],
                         sql_data['app_name'],
                         sql_data['stmt_type'],
-                        sql_data['orcl_file_path'],
-                        sql_data['pg_file_path'],
-                        sql_data['orcl'],
-                        sql_data['pg']
+                        sql_data['src_file_path'],
+                        sql_data['tgt_file_path'],
+                        sql_data['src'],
+                        sql_data['tgt']
                     )
                 )
                 logger.debug(f"레코드 삽입: {sql_data['app_name']}.{sql_data['sql_id']}")
@@ -431,7 +539,7 @@ def insert_or_update_sql_data(conn, sql_data):
         logger.error(f"데이터 삽입/업데이트 오류: {e}")
         conn.rollback()
         return False
-def process_directory(directory, is_oracle, conn):
+def process_directory(directory, is_source, conn):
     """
     지정된 디렉토리의 모든 SQL 파일을 처리합니다.
     """
@@ -443,7 +551,7 @@ def process_directory(directory, is_oracle, conn):
         logger.warning(f"{directory} 디렉토리에 SQL 파일이 없습니다.")
         return 0
     
-    db_type = "Oracle" if is_oracle else "PostgreSQL"
+    db_type = "소스" if is_source else "타겟"
     logger.info(f"{db_type} SQL 파일 처리 시작: {directory} ({total_files}개 파일)")
     
     success_count = 0
@@ -452,7 +560,7 @@ def process_directory(directory, is_oracle, conn):
     # 병렬 처리
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         # 작업 제출
-        future_to_file = {executor.submit(process_sql_file, file_path, is_oracle): file_path for file_path in sql_files}
+        future_to_file = {executor.submit(process_sql_file, file_path, is_source): file_path for file_path in sql_files}
         
         # 결과 처리
         for i, future in enumerate(as_completed(future_to_file), 1):
@@ -483,10 +591,11 @@ def process_directory(directory, is_oracle, conn):
 
 def export_sqllist_to_csv(conn):
     """
-    sqllist 테이블 데이터를 CSV 파일로 내보냅니다.
+    TARGET_DBMS_TYPE에 따라 sqllist 테이블 데이터를 CSV 파일로 내보냅니다.
     """
     paths = get_paths()
     output_dir = paths['sqllist_output_dir']
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
     
     # 출력 디렉토리 생성
     os.makedirs(output_dir, exist_ok=True)
@@ -495,8 +604,8 @@ def export_sqllist_to_csv(conn):
         with conn.cursor() as cursor:
             # 전체 데이터 조회
             cursor.execute("""
-                SELECT sql_id, app_name, stmt_type, orcl_file_path, pg_file_path, 
-                       orcl, pg, orcl_result, pg_result, same
+                SELECT sql_id, app_name, stmt_type, src_file_path, tgt_file_path, 
+                       src, tgt, src_result, tgt_result, same
                 FROM sqllist 
                 ORDER BY app_name, sql_id, stmt_type
             """)
@@ -516,8 +625,8 @@ def export_sqllist_to_csv(conn):
                 
                 # 헤더 작성
                 writer.writerow([
-                    'sql_id', 'app_name', 'stmt_type', 'orcl_file_path', 'pg_file_path',
-                    'orcl', 'pg', 'orcl_result', 'pg_result', 'same'
+                    'sql_id', 'app_name', 'stmt_type', 'src_file_path', 'tgt_file_path',
+                    'src', 'tgt', 'src_result', 'tgt_result', 'same'
                 ])
                 
                 # 데이터 작성
@@ -533,15 +642,25 @@ def export_sqllist_to_csv(conn):
                 f.write("SQLList 요약 정보\n")
                 f.write("=" * 60 + "\n")
                 f.write(f"생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"타겟 DBMS: {target_dbms.upper()}\n")
                 f.write(f"총 레코드 수: {len(rows)}\n\n")
                 
-                # 애플리케이션별 통계
-                cursor.execute("""
-                    SELECT app_name, COUNT(*) as count
-                    FROM sqllist 
-                    GROUP BY app_name 
-                    ORDER BY app_name
-                """)
+                # 애플리케이션별 통계 (DBMS별 분기)
+                if target_dbms in ['postgres', 'postgresql']:
+                    cursor.execute("""
+                        SELECT app_name, COUNT(*) as count
+                        FROM sqllist 
+                        GROUP BY app_name 
+                        ORDER BY app_name
+                    """)
+                elif target_dbms == 'mysql':
+                    cursor.execute("""
+                        SELECT app_name, COUNT(*) as count
+                        FROM sqllist 
+                        GROUP BY app_name 
+                        ORDER BY app_name
+                    """)
+                
                 app_stats = cursor.fetchall()
                 
                 f.write("애플리케이션별 SQL 수:\n")
@@ -549,13 +668,22 @@ def export_sqllist_to_csv(conn):
                 for app_name, count in app_stats:
                     f.write(f"{app_name}: {count}개\n")
                 
-                # SQL 유형별 통계
-                cursor.execute("""
-                    SELECT stmt_type, COUNT(*) as count
-                    FROM sqllist 
-                    GROUP BY stmt_type 
-                    ORDER BY stmt_type
-                """)
+                # SQL 유형별 통계 (DBMS별 분기)
+                if target_dbms in ['postgres', 'postgresql']:
+                    cursor.execute("""
+                        SELECT stmt_type, COUNT(*) as count
+                        FROM sqllist 
+                        GROUP BY stmt_type 
+                        ORDER BY stmt_type
+                    """)
+                elif target_dbms == 'mysql':
+                    cursor.execute("""
+                        SELECT stmt_type, COUNT(*) as count
+                        FROM sqllist 
+                        GROUP BY stmt_type 
+                        ORDER BY stmt_type
+                    """)
+                
                 type_stats = cursor.fetchall()
                 
                 f.write("\nSQL 유형별 통계:\n")
@@ -577,8 +705,8 @@ def main():
     
     # 경로 정보 출력
     logger.info("경로 설정:")
-    logger.info(f"  Oracle SQL 입력: {paths['orcl_sql_done_dir']}")
-    logger.info(f"  PostgreSQL SQL 입력: {paths['pg_sql_done_dir']}")
+    logger.info(f"  소스 SQL 입력: {paths['src_sql_done_dir']}")
+    logger.info(f"  타겟 SQL 입력: {paths['tgt_sql_done_dir']}")
     logger.info(f"  SQLList 출력: {paths['sqllist_output_dir']}")
     logger.info(f"  로그 디렉토리: {paths['logs_dir']}")
     
@@ -590,23 +718,23 @@ def main():
         create_sqllist_table(conn)
         
         # 디렉토리 경로 설정
-        orcl_dir = paths['orcl_sql_done_dir']
-        pg_dir = paths['pg_sql_done_dir']
+        src_dir = paths['src_sql_done_dir']
+        tgt_dir = paths['tgt_sql_done_dir']
         
-        total_orcl_count = 0
-        total_pg_count = 0
+        total_src_count = 0
+        total_tgt_count = 0
         
-        # Oracle SQL 파일 처리
-        if os.path.isdir(orcl_dir):
-            total_orcl_count = process_directory(orcl_dir, True, conn)
+        # 소스 SQL 파일 처리
+        if os.path.isdir(src_dir):
+            total_src_count = process_directory(src_dir, True, conn)
         else:
-            logger.warning(f"Oracle SQL 디렉토리가 존재하지 않습니다: {orcl_dir}")
+            logger.warning(f"소스 SQL 디렉토리가 존재하지 않습니다: {src_dir}")
         
-        # PostgreSQL SQL 파일 처리
-        if os.path.isdir(pg_dir):
-            total_pg_count = process_directory(pg_dir, False, conn)
+        # 타겟 SQL 파일 처리
+        if os.path.isdir(tgt_dir):
+            total_tgt_count = process_directory(tgt_dir, False, conn)
         else:
-            logger.warning(f"PostgreSQL SQL 디렉토리가 존재하지 않습니다: {pg_dir}")
+            logger.warning(f"타겟 SQL 디렉토리가 존재하지 않습니다: {tgt_dir}")
         
         # 처리 결과 요약
         elapsed_time = time.time() - start_time
@@ -617,21 +745,21 @@ def main():
             cursor.execute("SELECT COUNT(*) FROM sqllist")
             total_records = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE orcl IS NOT NULL AND pg IS NOT NULL")
+            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE src IS NOT NULL AND tgt IS NOT NULL")
             matched_records = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE orcl IS NOT NULL AND pg IS NULL")
-            orcl_only = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE src IS NOT NULL AND tgt IS NULL")
+            src_only = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE orcl IS NULL AND pg IS NOT NULL")
-            pg_only = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM sqllist WHERE src IS NULL AND tgt IS NOT NULL")
+            tgt_only = cursor.fetchone()[0]
             
             logger.info("=" * 60)
             logger.info("통계 정보:")
             logger.info(f"  총 SQL 문 수: {total_records}")
-            logger.info(f"  Oracle과 PostgreSQL 모두 있는 SQL 문 수: {matched_records}")
-            logger.info(f"  Oracle만 있는 SQL 문 수: {orcl_only}")
-            logger.info(f"  PostgreSQL만 있는 SQL 문 수: {pg_only}")
+            logger.info(f"  소스와 타겟 모두 있는 SQL 문 수: {matched_records}")
+            logger.info(f"  소스만 있는 SQL 문 수: {src_only}")
+            logger.info(f"  타겟만 있는 SQL 문 수: {tgt_only}")
             logger.info("=" * 60)
         
         # CSV로 내보내기
