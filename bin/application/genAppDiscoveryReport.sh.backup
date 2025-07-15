@@ -37,8 +37,8 @@ if [ ! -f "$APP_TOOLS_FOLDER/appDiscovery-template.html" ]; then
 fi
 
 # Check if optional utility scripts exist
-if [ ! -f "$APP_TOOLS_FOLDER/appDiscovery-utils.sh" ]; then
-    echo "Info: appDiscovery-utils.sh not found (optional utility for advanced pattern analysis)"
+if [ ! -f "$APP_TOOLS_FOLDER/appDiscoveryUtils.sh" ]; then
+    echo "Info: appDiscoveryUtils.sh not found (optional utility for advanced pattern analysis)"
 fi
 
 echo "Environment Check:"
@@ -50,10 +50,10 @@ echo ""
 echo "File Check:"
 echo "  ✅ appDiscovery.txt - Main AI analysis prompt"
 echo "  ✅ appDiscovery-template.html - CSS template"
-if [ -f "$APP_TOOLS_FOLDER/appDiscovery-utils.sh" ]; then
-    echo "  📋 appDiscovery-utils.sh - Oracle pattern analysis utilities (available)"
+if [ -f "$APP_TOOLS_FOLDER/appDiscoveryUtils.sh" ]; then
+    echo "  📋 appDiscoveryUtils.sh - Oracle pattern analysis utilities (available)"
 else
-    echo "  📋 appDiscovery-utils.sh - Oracle pattern analysis utilities (not found, using built-in analysis)"
+    echo "  📋 appDiscoveryUtils.sh - Oracle pattern analysis utilities (not found, using built-in analysis)"
 fi
 echo ""
 
@@ -116,8 +116,8 @@ if [ $? -eq 0 ]; then
         echo "  ✅ JNDI.csv ($file_size) - JNDI configuration analysis"
     fi
     
-    if [ -f "$APPLICATION_FOLDER/MapperAndJndi.csv" ]; then
-        file_size=$(ls -lh "$APPLICATION_FOLDER/MapperAndJndi.csv" | awk '{print $5}')
+    if [ -f "$APPLICATION_FOLDER/discovery/MapperAndJndi.csv" ]; then
+        file_size=$(ls -lh "$APPLICATION_FOLDER/discovery/MapperAndJndi.csv" | awk '{print $5}')
         echo "  ✅ MapperAndJndi.csv ($file_size) - Mapper-JNDI associations"
     fi
     

@@ -1,7 +1,0 @@
-=== Environment Context ===
-Source Database Type : $SOURCE_DBMS_TYPE
-Target Databse Type : $TARGET_DBMS_TYPE 
-Database connection information is configured in environment variables, with source/target environments determined dynamically.
-You can use Oracle,postgreSQL,mysql clients : sqlplus, psql, mysql
-All Application Java sources are in $JAVA_SOURCE_FOLDER.
-Temp Directory : /tmp

@@ -1,6 +1,6 @@
 # File Information
 
-## genDepartedXMLs.sh
+## genDepartedXmls.sh
 
 ### 목적 (Purpose)
 MyBatis XML Mapper 파일을 개별 Level1 요소로 분리하여 생성하는 배치 스크립트입니다.
@@ -20,14 +20,14 @@ MyBatis XML Mapper 파일을 개별 Level1 요소로 분리하여 생성하는 �
 
 #### 기본 문법
 ```bash
-./genDepartedXMLs.sh [타입]
+./genDepartedXmls.sh [타입]
 ```
 
 #### 지원되는 타입과 동작
 
 ##### 1. source
 ```bash
-./genDepartedXMLs.sh source
+./genDepartedXmls.sh source
 ```
 **처리 흐름**: `SOURCE_SQL_MAPPER_FOLDER` → `origin` → `extract`
 
@@ -51,7 +51,7 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/UserDao/extract/
 
 ##### 2. target
 ```bash
-./genDepartedXMLs.sh target
+./genDepartedXmls.sh target
 ```
 **처리 흐름**: `TARGET_SQL_MAPPER_FOLDER` → `merge` → `transform`
 
@@ -75,7 +75,7 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/itsm/csr/CsrMainDao/transform/
 
 ##### 3. origin
 ```bash
-./genDepartedXMLs.sh origin
+./genDepartedXmls.sh origin
 ```
 **처리 흐름**: `origin` → `extract`
 
@@ -95,7 +95,7 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/LoginDao/extract/
 
 ##### 4. merge
 ```bash
-./genDepartedXMLs.sh merge
+./genDepartedXmls.sh merge
 ```
 **처리 흐름**: `merge` → `transform`
 

@@ -450,7 +450,7 @@ if [ -f "../config/oma.properties" ]; then
     # Alias 설정 추가
     echo "" >> "$ENV_FILE"
     echo "# Alias 설정" >> "$ENV_FILE"
-    echo "alias qlog='tail_latest_log.sh'" >> "$ENV_FILE"
+    echo "alias qlog='tailLatestlog.sh'" >> "$ENV_FILE"
 fi
 
 # 환경 변수 파일에 실행 권한 부여

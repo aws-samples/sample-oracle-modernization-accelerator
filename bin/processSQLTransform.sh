@@ -36,10 +36,11 @@ process_sql_transform() {
     echo -e "${CYAN}이 단계에서는 SQL 변환 작업을 수행합니다.${NC}"
     print_separator
     
-    # 재시도 옵션 확인
-    echo -e "${YELLOW}재시도 모드를 선택하세요:${NC}"
+    # 실행 모드 선택
+    echo -e "${YELLOW}실행 모드를 선택하세요:${NC}"
     echo -e "${CYAN}1. 재시도 - SQLTransformTargetFailure.csv의 항목만 재변환 (기존 오류 항목만 재작업)${NC}"
     echo -e "${CYAN}2. 전체 - SQLTransformTarget.csv의 모든 항목을 변환 (전체 작업 다시 수행)${NC}"
+    echo -e "${CYAN}3. 샘플 - SampleTransformTarget.csv의 샘플 항목만 변환 (테스트 목적)${NC}"
     echo -e "${CYAN}재작업이 필요한 경우 1. 재시도 선택이 효율적입니다.${NC}"
     read retry_mode
     retry_mode=${retry_mode:-1}  # 기본값 1
@@ -48,22 +49,34 @@ process_sql_transform() {
     if [ "$retry_mode" = "1" ]; then
         echo -e "${GREEN}재시도 모드로 실행합니다. SQLTransformTargetFailure.csv의 항목만 처리합니다.${NC}"
         retry_arg="--file $APP_TRANSFORM_FOLDER/SQLTransformTargetFailure.csv"
+    elif [ "$retry_mode" = "3" ]; then
+        echo -e "${GREEN}샘플 모드로 실행합니다. SampleTransformTarget.csv의 항목만 처리합니다.${NC}"
+        retry_arg="--file $APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"
     else
         echo -e "${GREEN}전체 모드로 실행합니다. SQLTransformTarget.csv의 모든 항목을 처리합니다.${NC}"
     fi
     
     echo -e "${BLUE}${BOLD}실행 명령:${NC}"
-    echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/SQLTransformTarget.py $retry_arg${NC}"
+    echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py $retry_arg${NC}"
     print_separator
 
     echo -e "${BLUE}${BOLD}작업을 수행하기 이전에 3초 대기 합니다.${NC}"
     sleep 3
 
-    python3 "$APP_TOOLS_FOLDER/SQLTransformTarget.py" $retry_arg
+    python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" $retry_arg
     print_separator
     print_separator
     echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
     echo -e "${YELLOW}오류 정보는 Assessment/SQLTransformFailure.csv에 리스팅되었습니다.${NC}"
+    print_separator
+    echo -e "${BLUE}${BOLD}SQL Transform 작업 결과 보고서를 작성합니다.${NC}"
+    sleep 1
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md ${NC}"
+    q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md
+    sleep 1
+    print_separator
+    echo -e "${GREEN}SQL 변환 작업 보고서가 작성되었습니다.${NC}"
+    echo -e "${YELLOW}${BOLD}$APP_TOOLS_FOLDER 에서 확인 가능합니다.${NC}"
 }
 
 # 메인 실행

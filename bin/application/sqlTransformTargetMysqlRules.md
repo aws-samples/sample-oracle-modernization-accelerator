@@ -14,7 +14,7 @@ MANDATORY SELF-CHECK BEFORE EACH FILE:
 
 IF ANY ANSWER IS "NO" - PAUSE, ACKNOWLEDGE, AND CORRECT APPROACH
 
-Reference: Apply environment information from environment_context.txt
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
 
 Database-specific rules:
 - This file is specifically designed for Oracle to MySQL conversion
@@ -164,7 +164,7 @@ B. Task Progression Steps:
 
   Step 2. Analyze SQL for all {MAPPER_SRCL1_DIR}/*{ORIGIN_SUFFIX}*.xml files
 
-    Detailed execution instructions are documented in SQLTransformTargetAnalysis.txt. Currently skip this step to improve conversion performance
+    Detailed execution instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetAnalysis.md. Currently skip this step to improve conversion performance
 
   Step 3. Smart SQL Detection and Oracle to MySQL Conversion (MAIN PROCESS)
 
@@ -400,7 +400,7 @@ B. Task Progression Steps:
             - Purpose: Confirm list of files for validation
 
     3. XML Validation Process:
-        Detailed instructions are documented in SQLTransformTargetXMLValidation.txt, but currently this step should be skipped and not performed
+        Detailed instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetXmlValidation.md, but currently this step should be skipped and not performed
 
     4. Completion:
         4.1 Status Update:
@@ -612,8 +612,38 @@ TO_CHAR(date, 'HH24:MI:SS') → TIME_FORMAT(date, '%H:%i:%s')
 ```
 
 ### Sequence Handling (MySQL AUTO_INCREMENT)
-- `SEQ_NAME.NEXTVAL` → Use AUTO_INCREMENT column or `LAST_INSERT_ID()`
-- `SEQ_NAME.CURRVAL` → `LAST_INSERT_ID()`
+
+#### **Context-Aware NEXTVAL Conversion Rules**
+
+**1. INSERT Statement Context (Auto-Convert):**
+- `INSERT ... VALUES (SEQ_NAME.NEXTVAL, ...)` → `INSERT ... VALUES (...)` (remove NEXTVAL column)
+- `INSERT ... (id, name) VALUES (SEQ_NAME.NEXTVAL, #{name})` → `INSERT ... (name) VALUES (#{name})` (remove id column)
+
+**2. SELECT Statement Context (Manual Review Required):**
+- `SELECT SEQ_NAME.NEXTVAL FROM DUAL` → Add TODO comment for manual review
+- Comment format: `-- TODO: NEXTVAL conversion required - Original: SELECT SEQ_NAME.NEXTVAL FROM DUAL`
+- Add guidance: `-- MySQL alternatives: AUTO_INCREMENT table, sequence function, or application-level generation`
+
+**3. MyBatis selectKey Context (Auto-Convert):**
+```xml
+<!-- Oracle BEFORE selectKey -->
+<selectKey keyProperty="id" resultType="long" order="BEFORE">
+    SELECT SEQ_NAME.NEXTVAL FROM DUAL
+</selectKey>
+<insert>INSERT INTO table (id, name) VALUES (#{id}, #{name})</insert>
+
+<!-- MySQL conversion: use useGeneratedKeys -->
+<insert useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO table (name) VALUES (#{name})
+</insert>
+```
+
+**4. CURRVAL Handling:**
+- `SEQ_NAME.CURRVAL` → `LAST_INSERT_ID()` (only valid after AUTO_INCREMENT insert)
+
+**5. Legacy Compatibility:**
+- For backward compatibility: `SEQ_NAME.NEXTVAL` → `LAST_INSERT_ID()` (basic fallback)
+- Note: This assumes prior INSERT with AUTO_INCREMENT occurred
 
 #### SelectKey Pattern Processing
 ```xml

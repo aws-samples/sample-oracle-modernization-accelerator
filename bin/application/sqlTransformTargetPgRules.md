@@ -14,7 +14,7 @@ MANDATORY SELF-CHECK BEFORE EACH FILE:
 
 IF ANY ANSWER IS "NO" - PAUSE, ACKNOWLEDGE, AND CORRECT APPROACH
 
-Reference: Apply environment information from environment_context.txt
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
 
 Database-specific rules:
 - This file is specifically designed for Oracle to PostgreSQL conversion
@@ -164,7 +164,7 @@ B. Task Progression Steps:
 
   Step 2. Analyze SQL for all {MAPPER_SRCL1_DIR}/*{ORIGIN_SUFFIX}*.xml files
 
-    Detailed execution instructions are documented in SQLTransformTargetAnalysis.txt. Currently skip this step to improve conversion performance
+    Detailed execution instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetAnalysis.md. Currently skip this step to improve conversion performance
 
   Step 3. Smart SQL Detection and Oracle to PostgreSQL Conversion (MAIN PROCESS)
 
@@ -405,7 +405,7 @@ B. Task Progression Steps:
             - Purpose: Confirm list of files for validation
 
     3. XML Validation Process:
-        Detailed instructions are documented in SQLTransformTargetXMLValidation.txt, but currently this step should be skipped and not performed
+        Detailed instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetXmlValidation.md, but currently this step should be skipped and not performed
 
     4. Completion:
         4.1 Status Update:

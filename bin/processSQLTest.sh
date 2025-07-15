@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# processSQLTest.sh - Oracle Modernization SQL Test Processing Script
+# processSqlTest.sh - Oracle Modernization SQL Test Processing Script
 # This script executes a series of test scripts in a specific order
 
 set -e  # Exit on any error (will be overridden for validateEnv.sh)

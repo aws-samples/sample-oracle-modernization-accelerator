@@ -5,7 +5,7 @@
 # MyBatis XML Mapper 파일에서 select, insert, update, delete, sql 등의 요소를 개별 파일로 추출
 # 진행 상황 추적 및 상세 요약 제공
 #
-# 사용법: ./genDepartedXMLs.sh [타입]
+# 사용법: ./genDepartedXmls.sh [타입]
 # 지원되는 타입과 동작:
 #   - source  : SOURCE_SQL_MAPPER_FOLDER → origin → extract (외부 소스를 복사 후 분리)
 #   - target  : TARGET_SQL_MAPPER_FOLDER → merge → transform (외부 타겟을 복사 후 분리)

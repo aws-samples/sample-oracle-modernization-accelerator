@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# genSQLTransformReport.sh
+# genSqlTransformReport.sh
 # SQL Transform Report 생성 스크립트
 
 set -e  # 에러 발생 시 스크립트 종료
@@ -60,9 +60,9 @@ check_environment() {
         exit 1
     fi
     
-    # SQLTransformReport.txt 파일 존재 여부 확인
-    if [[ ! -f "$APP_TOOLS_FOLDER/SQLTransformReport.txt" ]]; then
-        log_error "SQLTransformReport.txt 파일이 존재하지 않습니다: $APP_TOOLS_FOLDER/SQLTransformReport.txt"
+    # sqlTransformReport.md 파일 존재 여부 확인
+    if [[ ! -f "$APP_TOOLS_FOLDER/sqlTransformReport.md" ]]; then
+        log_error "sqlTransformReport.md 파일이 존재하지 않습니다: $APP_TOOLS_FOLDER/sqlTransformReport.md"
         exit 1
     fi
     
@@ -86,10 +86,10 @@ check_q_command() {
 # 메인 실행 함수
 run_sql_transform_report() {
     log_info "SQL Transform Report 생성을 시작합니다..."
-    log_info "입력 파일: $APP_TOOLS_FOLDER/SQLTransformReport.txt"
+    log_info "입력 파일: $APP_TOOLS_FOLDER/sqlTransformReport.md"
     
     # q chat 명령어 실행
-    if q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/SQLTransformReport.txt"; then
+    if q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"; then
         log_info "SQL Transform Report 생성이 완료되었습니다."
     else
         log_error "SQL Transform Report 생성 중 오류가 발생했습니다."

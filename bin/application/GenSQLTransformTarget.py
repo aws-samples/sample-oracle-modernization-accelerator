@@ -38,7 +38,7 @@ GenSQLTransformTarget.py - XML 매퍼 파일에서 시작하여 부모 DAO 클�
        --debug: 디버그 모드 활성화
 
    3.4 결과 파일:
-       - Assesments/MapperAndJndi.csv: 모든 매퍼 파일 및 JNDI 매핑 정보
+       - discovery/MapperAndJndi.csv: 모든 매퍼 파일 및 JNDI 매핑 정보
        - Transform/SQLTransformTarget.csv: DBMS 변환이 필요한 SQL 매퍼 목록
 """
 
@@ -52,11 +52,13 @@ SOURCE_DIR = os.getenv('JAVA_SOURCE_FOLDER')
 APPLICATION_FOLDER = os.getenv('APPLICATION_FOLDER')
 APP_TRANSFORM_FOLDER = os.getenv('APP_TRANSFORM_FOLDER')
 APP_LOGS_FOLDER = os.getenv('APP_LOGS_FOLDER')
-MAPPER_DIR = os.path.join(os.path.dirname(SOURCE_DIR), 'main/resources/mapper')
+MAPPER_DIR = os.getenv('SOURCE_SQL_MAPPER_FOLDER')
 
 # 결과 파일 경로
-MAPPER_AND_JNDI_CSV = os.path.join(APPLICATION_FOLDER, 'MapperAndJndi.csv')
+MAPPER_AND_JNDI_CSV = os.path.join(APPLICATION_FOLDER, 'discovery', 'MapperAndJndi.csv')
 SQL_TRANSFORM_TARGET_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SQLTransformTarget.csv')
+SAMPLE_TRANSFORM_TARGET_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SampleTransformTarget.csv')
+SAMPLE_MAPPER_LIST_CSV = os.path.join(APPLICATION_FOLDER, 'discovery', 'SampleMapperlist.csv')
 
 # =============================================================================
 # 로깅 설정
@@ -111,6 +113,8 @@ def check_required_env_vars():
         missing_vars.append('JAVA_SOURCE_FOLDER')
     if not APPLICATION_FOLDER:
         missing_vars.append('APPLICATION_FOLDER')
+    if not MAPPER_DIR:
+        missing_vars.append('SOURCE_SQL_MAPPER_FOLDER')
 
     if missing_vars:
         logger.error("The following environment variables are not set:")
@@ -377,14 +381,99 @@ def read_mapper_list(mapper_list_file):
     try:
         with open(mapper_list_file, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
-            return [row['FileName'] for row in reader if row['FileName'].strip()]
+            file_list = []
+            for row in reader:
+                if row['FileName'].strip():
+                    full_filename = row['FileName'].strip()
+                    # 파일 경로에서 실제 파일명만 추출
+                    filename = os.path.basename(full_filename)
+                    
+                    # MAPPER_DIR 하위에서 재귀적으로 파일 찾기
+                    found_path = None
+                    for root, dirs, files in os.walk(MAPPER_DIR):
+                        if filename in files:
+                            found_path = os.path.join(root, filename)
+                            break
+                    
+                    if found_path:
+                        file_list.append(found_path)
+                    else:
+                        logger.warning(f"XML file not found in MAPPER_DIR: {full_filename} (looking for: {filename})")
+            
+            logger.info(f"Found {len(file_list)} XML files out of total entries in Mapperlist.csv")
+            return file_list
     except Exception as e:
         logger.error(f"Error reading Mapperlist.csv file: {e}")
         return []
 
-# =============================================================================
-# 결과 처리 함수
-# =============================================================================
+
+def create_sample_transform_target():
+    """SampleMapperlist.csv를 읽어서 SQLTransformTarget.csv에서 일치하는 파일명을 찾아 SampleTransformTarget.csv를 생성합니다."""
+    try:
+        # SampleMapperlist.csv 파일 존재 확인
+        if not os.path.exists(SAMPLE_MAPPER_LIST_CSV):
+            logger.warning(f"SampleMapperlist.csv file does not exist: {SAMPLE_MAPPER_LIST_CSV}")
+            return
+        
+        # SQLTransformTarget.csv 파일 존재 확인
+        if not os.path.exists(SQL_TRANSFORM_TARGET_CSV):
+            logger.warning(f"SQLTransformTarget.csv file does not exist: {SQL_TRANSFORM_TARGET_CSV}")
+            return
+        
+        logger.info(f"Creating SampleTransformTarget.csv from SampleMapperlist.csv")
+        
+        # SampleMapperlist.csv에서 파일명 목록 읽기
+        sample_filenames = set()
+        with open(SAMPLE_MAPPER_LIST_CSV, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                filename = row.get('FileName', '').strip()
+                if filename:
+                    # 파일명만 추출 (경로 제거)
+                    filename = os.path.basename(filename)
+                    sample_filenames.add(filename)
+        
+        logger.info(f"Found {len(sample_filenames)} sample files in SampleMapperlist.csv")
+        logger.debug(f"Sample filenames: {sample_filenames}")
+        
+        # SQLTransformTarget.csv에서 일치하는 행 찾기
+        matching_rows = []
+        header = None
+        
+        with open(SQL_TRANSFORM_TARGET_CSV, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            header = next(reader)  # 헤더 읽기
+            
+            for row in reader:
+                if len(row) >= 2:  # 최소 2개 컬럼 필요 (No., Filename)
+                    filename = row[1].strip()  # Filename 컬럼
+                    # 파일명만 추출 (경로 제거)
+                    filename = os.path.basename(filename)
+                    
+                    if filename in sample_filenames:
+                        matching_rows.append(row)
+                        logger.debug(f"Matching file found: {filename}")
+        
+        logger.info(f"Found {len(matching_rows)} matching transform targets")
+        
+        # SampleTransformTarget.csv 생성
+        with open(SAMPLE_TRANSFORM_TARGET_CSV, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)  # 헤더 작성
+            
+            # 일치하는 행들을 번호 순서대로 다시 정렬하여 작성
+            for idx, row in enumerate(matching_rows, 1):
+                # 첫 번째 컬럼(No.)을 새로운 순번으로 업데이트
+                row[0] = str(idx)
+                writer.writerow(row)
+        
+        logger.info(f"SampleTransformTarget.csv created successfully: {SAMPLE_TRANSFORM_TARGET_CSV}")
+        logger.info(f"Total {len(matching_rows)} sample transform targets saved")
+        
+    except Exception as e:
+        logger.error(f"Error creating SampleTransformTarget.csv: {e}")
+        raise
+
 def write_results_to_csv(results, output_file, hierarchy, only_transform_target=False):
     """결과를 CSV 파일로 저장합니다.
     
@@ -406,6 +495,10 @@ def write_results_to_csv(results, output_file, hierarchy, only_transform_target=
             
             row_count = 0
             for idx, (mapper_file, dao_classes, is_target) in targets:
+                # dao_classes가 None인 경우 빈 리스트로 처리
+                if dao_classes is None:
+                    dao_classes = []
+                
                 # 부모 DAO 정보 가져오기
                 parent_dao = ''
                 for dao_class in dao_classes:
@@ -450,6 +543,7 @@ def main(xml_files=None):
     logger.info(f"{'=' * 100}")
     logger.info(f"TRANSFORM_RELATED_CLASS: {TRANSFORM_CLASSES}")
     logger.info(f"SOURCE_DIR: {SOURCE_DIR}")
+    logger.info(f"MAPPER_DIR: {MAPPER_DIR}")
     logger.info(f"APPLICATION_FOLDER: {APPLICATION_FOLDER}")
     
     # 필수 환경 변수 및 디렉토리 확인
@@ -476,7 +570,7 @@ def main(xml_files=None):
             if result:
                 results.append(result)
     else:
-        mapper_list_file = os.path.join(APPLICATION_FOLDER, 'Mapperlist.csv')
+        mapper_list_file = os.path.join(APPLICATION_FOLDER, 'discovery', 'Mapperlist.csv')
         logger.info(f"\n")
         logger.info(f"{'=' * 100}")
         logger.info(f"Reading file list from: {mapper_list_file}")
@@ -500,6 +594,9 @@ def main(xml_files=None):
         
         # 변환 대상만 저장
         write_results_to_csv(results, SQL_TRANSFORM_TARGET_CSV, hierarchy, only_transform_target=True)
+        
+        # SampleTransformTarget.csv 생성
+        create_sample_transform_target()
         
         logger.info(f"Total {len(results)} files processed")
     else:

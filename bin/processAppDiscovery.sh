@@ -33,32 +33,63 @@ process_mybatis_info() {
     print_separator
     echo -e "${BLUE}${BOLD}Step 2: MyBatis 기반 Java 애플리케이션의 JNDI와 XML Mapper정보 확인 및 리스트화${NC}"
     print_separator
-    echo -e "${CYAN}이 단계에서는 다음 작업을 수행합니다:${NC}"
-    echo -e "${CYAN}1. 애플리케이션 기본 정보 수집 및 기술 스택 분석${NC}"
-    echo -e "${CYAN}2. MyBatis 설정 파일 분석 및 Mapper 파일 목록 생성${NC}"
+    echo -e "${CYAN}이 단계에서는 다음 작업을 순차적으로 수행합니다:${NC}"
+    echo -e "${CYAN}1. 애플리케이션 분석 데이터 생성 (appAnalysis.md)${NC}"
+    echo -e "${CYAN}2. HTML 리포트 생성 (appReporting.md)${NC}"
     echo -e "${CYAN}3. JNDI 정보 추출 및 매핑 정보 생성${NC}"
     echo -e "${CYAN}4. SQL 패턴 발견 및 분석${NC}"
     echo -e "${CYAN}5. 통합 분석 리포트 (DiscoveryReport.html) 생성${NC}"
     print_separator
-    echo -e "${BLUE}${BOLD}실행 예시:${NC}"
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+    echo -e "${BLUE}${BOLD}실행 순서:${NC}"
+    echo -e "${BLUE}${BOLD}1. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
+    echo -e "${BLUE}${BOLD}2. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
 
-    # appDiscovery.txt 실행 (통합된 분석 작업)
-    if [ -f "$APP_TOOLS_FOLDER/appDiscovery.txt" ]; then
-        echo -e "${CYAN}애플리케이션 분석 및 MyBatis 정보 추출 중...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
+    # 1. appAnalysis.md 실행 (분석 데이터 생성)
+    if [ -f "$APP_TOOLS_FOLDER/appAnalysis.md" ]; then
+        echo -e "${CYAN}1. 애플리케이션 분석 데이터 생성 중...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}오류: appAnalysis.md 실행 중 오류가 발생했습니다.${NC}"
+            return 1
+        fi
     else
-        echo -e "${RED}오류: appDiscovery.txt 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+        echo -e "${RED}오류: appAnalysis.md 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
         return 1
     fi
 
+    # 2. appReporting.md 실행 (HTML 리포트 생성)
+    if [ -f "$APP_TOOLS_FOLDER/appReporting.md" ]; then
+        echo -e "${CYAN}2. HTML 리포트 생성 중...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}오류: appReporting.md 실행 중 오류가 발생했습니다.${NC}"
+            return 1
+        fi
+    else
+        echo -e "${RED}오류: appReporting.md 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appReporting.md${NC}"
+        return 1
+    fi
+
+    # 기존 q 호출 방식 (주석 처리)
+    # if [ -f "$APP_TOOLS_FOLDER/appDiscovery.txt" ]; then
+    #     echo -e "${CYAN}애플리케이션 분석 및 MyBatis 정보 추출 중...${NC}"
+    #     echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+    #     q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
+    # else
+    #     echo -e "${RED}오류: appDiscovery.txt 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+    #     return 1
+    # fi
+
     # JNDI와 Mapper 파일 조합 생성 (후속 처리)
     echo -e "${BLUE}${BOLD}JNDI와 Mapper 파일 조합을 생성중입니다.${NC}"
-    if [ -f "$APP_TOOLS_FOLDER/GenSQLTransformTarget.py" ]; then
-        python3 "$APP_TOOLS_FOLDER/GenSQLTransformTarget.py"
+    if [ -f "$APP_TOOLS_FOLDER/genSqlTransformTarget.py" ]; then
+        python3 "$APP_TOOLS_FOLDER/genSqlTransformTarget.py"
     else
-        echo -e "${YELLOW}경고: GenSQLTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${YELLOW}경고: genSqlTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
     fi
     
     # SQL Mapper Report 생성 (주석 처리된 부분 - 필요시 활성화)

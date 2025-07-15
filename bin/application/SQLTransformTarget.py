@@ -499,12 +499,12 @@ def main():
         # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
         target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
         if target_dbms_type == 'postgres':
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
         elif target_dbms_type == 'mysql':
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-mysql-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMysqlRules.md")
         else:
             # 기본값으로 postgres 사용
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
             logger.warning(f"Unknown TARGET_DBMS_TYPE: {target_dbms_type}, using postgres rules")
         
         log_level_str = 'DEBUG'
@@ -523,12 +523,12 @@ def main():
         # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
         target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
         if target_dbms_type == 'postgres':
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
         elif target_dbms_type == 'mysql':
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-mysql-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMysqlRules.md")
         else:
             # 기본값으로 postgres 사용
-            prompt_file = os.path.join(app_tools_folder, "SQLTransformTarget-pg-rules.txt")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
         
         java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
         source_sql_mapper_folder = os.environ.get('SOURCE_SQL_MAPPER_FOLDER')
@@ -591,8 +591,8 @@ def main():
     if not os.path.exists(prompt_file):
         logger.error(f"Prompt file not found: {prompt_file}")
         logger.error("Please ensure the appropriate transformation rules file exists:")
-        logger.error("- For PostgreSQL: SQLTransformTarget-pg-rules.txt")
-        logger.error("- For MySQL: SQLTransformTarget-mysql-rules.txt")
+        logger.error("- For PostgreSQL: sqlTransformTargetPgRules.md")
+        logger.error("- For MySQL: sqlTransformTargetMysqlRules.md")
         sys.exit(1)
     else:
         logger.info(f"Using transformation rules file: {os.path.basename(prompt_file)}")
