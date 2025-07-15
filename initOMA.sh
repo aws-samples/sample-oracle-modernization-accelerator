@@ -202,17 +202,17 @@ execute_db_schema() {
     sleep 3
     echo -e "${BLUE}${BOLD}DB Schema 변환 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processDBSchema.sh" ]; then
-        echo -e "${CYAN}processDBSchema.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processDbSchema.sh" ]; then
+        echo -e "${CYAN}processDbSchema.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processDBSchema.sh
+        ./processDbSchema.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}DB Schema 변환이 완료되었습니다.${NC}"
         else
             echo -e "${RED}DB Schema 변환 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processDBSchema.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processDbSchema.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -250,17 +250,17 @@ execute_sql_transform() {
     sleep 3
     echo -e "${BLUE}${BOLD}SQL 변환 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processSQLTransform.sh" ]; then
-        echo -e "${CYAN}processSQLTransform.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processSqlTransform.sh" ]; then
+        echo -e "${CYAN}processSqlTransform.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processSQLTransform.sh
+        ./processSqlTransform.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
         else
             echo -e "${RED}SQL 변환 작업 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTransform.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTransform.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -273,17 +273,17 @@ execute_sql_unittest() {
     sleep 3
     echo -e "${BLUE}${BOLD}SQL Unit Test 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processSQLTest.sh" ]; then
-        echo -e "${CYAN}processSQLTest.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processSqlTest.sh" ]; then
+        echo -e "${CYAN}processSqlTest.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processSQLTest.sh
+        ./processSqlTest.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}애플리케이션 SQL Unit Test가 완료되었습니다.${NC}"
         else
             echo -e "${RED}애플리케이션 SQL Unit Test 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTest.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTest.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -305,17 +305,17 @@ execute_transform_report() {
     sleep 3
     echo -e "${BLUE}${BOLD}변환 작업 보고서 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processSQLTransformReport.sh" ]; then
-        echo -e "${CYAN}processSQLTransformReport.sh를 실행합니다...${NC}"
+    if [ -f "$OMA_BASE_DIR/bin/processSqlTransformReport.sh" ]; then
+        echo -e "${CYAN}processSqlTransformReport.sh를 실행합니다...${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processSQLTransformReport.sh
+        ./processSqlTransformReport.sh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}변환 작업 보고서가 완료되었습니다.${NC}"
         else
             echo -e "${RED}변환 작업 보고서 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSQLTransformReport.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTransformReport.sh 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -328,17 +328,17 @@ execute_postgresql_meta() {
     sleep 3
     echo -e "${BLUE}${BOLD}PostgreSQL 메타데이터 작성 스크립트 실행${NC}"
     
-    if [ -f "$APP_TOOLS_FOLDER/genPostgreSQLMeta.txt" ]; then
-        echo -e "${CYAN}genPostgreSQLMeta.txt를 사용하여 Amazon Q chat을 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSQLMeta.txt${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSQLMeta.txt"
+    if [ -f "$APP_TOOLS_FOLDER/genPostgreSQLMeta.md" ]; then
+        echo -e "${CYAN}genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSQLMeta.md${NC}"
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSQLMeta.md"
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
         else
             echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSQLMeta.txt 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSQLMeta.md 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
