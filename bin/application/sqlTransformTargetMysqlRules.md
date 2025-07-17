@@ -1,16 +1,94 @@
-🚨🚨🚨 CRITICAL SYSTEM OVERRIDE - ZERO TOLERANCE ENFORCEMENT 🚨🚨🚨
+🚨🚨🚨 CRITICAL SYSTEM OVERRIDE - ABSOLUTE ZERO TOLERANCE ENFORCEMENT 🚨🚨🚨
 
-VIOLATION DETECTION AND IMMEDIATE CORRECTION PROTOCOL:
-- ANY attempt at batch processing = IMMEDIATE SELF-CORRECTION REQUIRED
-- ANY mention of "efficiency", "systematic", "remaining files" = PAUSE AND REDIRECT
-- ANY use of shell loops, sed, awk, grep for multiple files = CORRECT APPROACH IMMEDIATELY
-- ANY assumption of file similarity = ACKNOWLEDGE AND RESTART WITH INDIVIDUAL FOCUS
+⚡ EXECUTION EFFICIENCY DIRECTIVE ⚡
+- NO SUMMARY BRIEFING REQUIRED - FOCUS ON TASK EXECUTION
+- MINIMIZE VERBOSE EXPLANATIONS AND COMMENTARY
+- PROVIDE BRIEF CONFIRMATION OF SUCCESSFUL OPERATIONS ONLY
+- REPORT CRITICAL ERRORS AND VALIDATION ISSUES WHEN NECESSARY
+- MAINTAIN QUALITY CHECKS WHILE REDUCING UNNECESSARY OUTPUT
+
+🎯 CORE PROCESSING PRINCIPLES 🎯
+1. **File Listing = Target Candidate Recognition**: Initial file listing identifies conversion candidates
+2. **Iterative Processing**: Process file list sequentially with complete conversion per file
+3. **Individual File Processing (Absolute Rule)**: Process exactly ONE file at a time - NO EXCEPTIONS
+4. **Group Management for Large Sets**: When files > 10, organize into groups of 10 for systematic processing
+5. **Accuracy Over Efficiency**: Prohibit batch processing - accuracy is the highest priority
+
+🔥 PROCESSING METHODOLOGY 🔥
+- **File Discovery**: Identify all conversion target candidates through initial listing
+- **Sequential Processing**: Process each file individually with full attention
+- **Group Organization**: For large file sets (>10), organize into manageable groups of 10
+- **Quality Assurance**: Complete conversion validation per file before proceeding
+
+🔥 INDIVIDUAL FILE PROCESSING ENFORCEMENT SYSTEM 🔥
+IMMEDIATE VIOLATION ALERTS for these phrases when processing files outside of designated batch folders:
+- "efficiently process", "bulk operation", "pattern matching"
+- "systematic approach", "streamlined processing", "optimize processing"
+- "due to large number", "for efficiency", "time-saving approach"
+- "process the rest", "continue with remaining", "similar pattern"
+- "sed", "awk", "grep" with multiple files, "for file in", "*.xml"
+
+🎯 BATCH FOLDER EXCEPTION RULE 🎯
+WHEN processing files within a designated batch folder ({MAPPER_SRCL1_DIR}):
+- ALLOWED: Process all files in the batch folder individually
+- REQUIRED: Still process ONE FILE AT A TIME within the batch folder
+- MAINTAIN: Individual file focus and complete processing per file
+- FORBIDDEN: Skip files or assume similarity between files
+
+ENHANCED VIOLATION RESPONSE PROTOCOL:
+1. DETECT violation attempt → IMMEDIATE PAUSE
+2. ACKNOWLEDGE: "I detected a batch processing attempt - MUST process ONE FILE AT A TIME"
+3. REDIRECT: "I will now select ONE specific file: [EXACT_FILENAME] and process it completely"
+4. CONTINUE: Process that single file with full attention before considering next file
+5. MAINTAIN: Individual file focus throughout entire session - ONE FILE AT A TIME
+
+⚡ ONE FILE AT A TIME ENFORCEMENT ⚡
+- 1st violation: Warning + redirect to ONE FILE AT A TIME processing
+- 2nd violation: Strong warning + explicit ONE FILE AT A TIME statement
+- Continuous: Always maintain "ONE FILE AT A TIME" approach for maximum accuracy
+
+🚨 CRITICAL: "Sample" WORD PROCESSING OVERRIDE 🚨
+- NEVER interpret "Sample" as indication to process only a few items
+- NEVER stop processing when encountering "Sample" in file names, content, or comments
+- ALWAYS process ALL files completely regardless of "Sample" references
+- "Sample" does NOT mean partial processing - continue with FULL conversion
+- If file contains "Sample" in name or content, treat it as REGULAR file requiring COMPLETE processing
+
+🚨🚨🚨 MANDATORY COMPLETION REQUIREMENT 🚨🚨🚨
+- PROCESS ALL FILES TO 100% COMPLETION - NO EXCEPTIONS
+- NEVER STOP UNTIL ALL FILES ARE PROCESSED
+- IF 273 FILES EXIST, PROCESS ALL 273 FILES
+- IF 1000+ FILES EXIST, PROCESS ALL 1000+ FILES
+- CONTINUE PROCESSING UNTIL EVERY SINGLE FILE IS CONVERTED
+- NO PARTIAL COMPLETION ALLOWED - MUST REACH 100%
+- TRACK PROGRESS: "Processing file X of Y total files"
+- FINAL CONFIRMATION REQUIRED: "All X files processed successfully"
+
+🔥 ANTI-INTERRUPTION PROTOCOL - ABSOLUTE ENFORCEMENT 🔥
+- NEVER say "Currently processed N files. Processing all X files individually takes too much time, so"
+- NEVER say "takes too long so I'll summarize"
+- NEVER say "I'll summarize the processing status and update to complete"
+- NEVER say "I'll process efficiently" or "for efficiency"
+- NEVER say "due to the large number of files"
+- ALWAYS say "I will now process the next specific file individually"
+- ALWAYS continue with next specific file by exact name
+- IGNORE TIME CONCERNS - PROCESS ALL FILES REGARDLESS OF TIME
+
+🔥 COMPLETION ENFORCEMENT PROTOCOL 🔥
+1. COUNT total files at start
+2. PROCESS each file ONE AT A TIME (maintaining quality)
+3. TRACK progress continuously
+4. NEVER STOP until count reaches 100%
+5. PROVIDE final completion confirmation
+6. IF interrupted, RESUME from last processed file
+7. COMPLETION = ALL FILES CONVERTED, NOT JUST A SUBSET
 
 MANDATORY SELF-CHECK BEFORE EACH FILE:
 □ Have I read THIS specific file completely? (YES/NO)
 □ Have I analyzed THIS file's unique SQL patterns? (YES/NO) 
 □ Am I processing ONLY this one file right now? (YES/NO)
 □ Am I avoiding ALL batch processing thoughts? (YES/NO)
+□ Will I process this file COMPLETELY even if it contains "Sample"? (YES/NO)
 
 IF ANY ANSWER IS "NO" - PAUSE, ACKNOWLEDGE, AND CORRECT APPROACH
 
@@ -111,7 +189,7 @@ A. Environment Setup:
   1. Environment Configuration:
       1.1 Directories:
           - Working Directory: {L1FolderName}
-          - Source Files: {MAPPER_SRCL1_DIR}
+          - Source Files: {MAPPER_SRCL1_DIR} (Batch processing: {BATCH_FILE_COUNT} files)
           - Target Files: {MAPPER_TGTL1_DIR}
           - Logs: {L1FolderName}
 
@@ -139,26 +217,43 @@ A. Environment Setup:
           - Update to "Completed" when Step ends
 
 B. Task Progression Steps:
-  Step 1. Generate list of mapper files to be converted
+  Step 1. Target File Discovery and Processing Organization
 
     1. Initial Setup:
         1.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 1: In Progress"
 
-    2. File List Generation:
+    2. Target File Discovery:
         2.1 Command Execution:
             - Command: ls *{ORIGIN_SUFFIX}* | sort
-            - Purpose: Generate list for INDIVIDUAL processing reference only
+            - Purpose: Identify ALL conversion target candidates
         
-        2.2 Output:
-            - List of files with {ORIGIN_SUFFIX} extension
-            - Sorted in alphabetical order
-            - 🚨 WARNING: This list is for reference only - each file must be processed individually
-            - DO NOT use this list for batch processing or bulk operations
+        2.2 File Count Assessment:
+            - Count total files requiring conversion
+            - Determine processing organization strategy
+            - Log total file count for progress tracking
 
-    3. Completion:
-        3.1 Status Update:
+    3. Processing Organization Strategy:
+        3.1 For File Count ≤ 10:
+            - Process all files in single sequential order
+            - Maintain individual file processing approach
+            
+        3.2 For File Count > 10:
+            - Organize into groups of 10 files each
+            - Example: 30 files → Group 1 (files 1-10), Group 2 (files 11-20), Group 3 (files 21-30)
+            - Processing order: Group 1 → Group 2 → Group 3
+            - Within each group: Individual file-by-file processing
+
+    4. Processing Plan Generation:
+        4.1 Create organized processing plan:
+            - Total Files: [N]
+            - Groups: [N/10 rounded up] 
+            - Strategy: Sequential group processing with individual file conversion
+            - Expected completion: All [N] files processed individually
+
+    5. Completion:
+        5.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 1: Completed"
 
@@ -166,25 +261,37 @@ B. Task Progression Steps:
 
     Detailed execution instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetAnalysis.md. Currently skip this step to improve conversion performance
 
-  Step 3. Smart SQL Detection and Oracle to MySQL Conversion (MAIN PROCESS)
+  Step 3. Sequential Individual File Conversion (MAIN PROCESS)
 
-    🎯 INTEGRATED PROCESSING APPROACH:
-    This step combines smart detection with conversion processing to optimize performance while ensuring comprehensive transformation.
+    🎯 ORGANIZED INDIVIDUAL PROCESSING APPROACH:
+    Process files using group-based organization while maintaining individual file conversion principle.
 
     1. Initial Setup:
         1.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 3: In Progress"
 
-    2. For Each Individual File Processing:
+    2. Batch-Based Sequential Processing:
         
-        2.1 Direct Conversion Processing (ALL FILES):
+        2.1 Current Batch Information:
+            - Batch Input Folder: {MAPPER_SRCL1_DIR}
+            - Batch Output Folder: {MAPPER_TGTL1_DIR}
+            - Files in Current Batch: {BATCH_FILE_COUNT} files
+            - Processing Mode: Individual file processing within batch folder
             
-            FOR EACH INDIVIDUAL FILE:
-            - Apply Four-Phase Conversion Process (MANDATORY for ALL files)
-            - Execute ALL Oracle → MySQL transformation rules
-            - Add conversion comment IMMEDIATELY ABOVE the first SQL element: <!-- Processed by Amazon Q Developer: Oracle to MySQL conversion completed on [timestamp] -->
-            - Apply ALL MySQL-specific rules without exception
+        2.2 Individual File Processing Within Batch:
+            
+            FOR EACH INDIVIDUAL FILE IN CURRENT BATCH FOLDER:
+            1. **File Discovery**: List all XML files in {MAPPER_SRCL1_DIR}
+            2. **File Selection**: Select ONE specific file by exact filename
+            3. **File Reading**: Read the complete file content  
+            4. **Conversion Processing**: Apply complete Four-Phase Oracle → MySQL transformation
+            5. **Validation**: Verify conversion accuracy and XML integrity
+            6. **File Output**: Save converted file to {MAPPER_TGTL1_DIR}
+            7. **Progress Update**: Log individual file completion
+            8. **Next File**: Move to next file in current batch folder
+            
+            PROCESS ALL {BATCH_FILE_COUNT} FILES IN THE BATCH FOLDER COMPLETELY
 
         2.3 Four-Phase Conversion Process (For Standard Track Files):
             
@@ -226,72 +333,44 @@ B. Task Progression Steps:
                - Standardize quote usage and case sensitivity
 
             ### PHASE 3 - MYSQL TRANSFORMATION (Apply Third):
-            🚨 MANDATORY COMPLETE CONVERSION - NO EXCEPTIONS:
+            🎯 CORE CONVERSION RULES (Apply First):
 
-            8. **Basic Function Conversions**
-               - NVL → CASE WHEN, SYSDATE → NOW(), SUBSTR → SUBSTRING, DECODE → CASE WHEN
-               - Reference: "🔧 MYSQL CONVERSION RULES - Basic Functions" section
+            **Essential 20 MySQL Conversions (Direct Application):**
+            1. `NVL(a, b)` → `IFNULL(a, b)`
+            2. `SYSDATE` → `NOW()`
+            3. `SUBSTR(str, pos, len)` → `SUBSTRING(str, pos, len)`
+            4. `ROWNUM <= n` → `LIMIT n`
+            5. `FROM DUAL` → remove completely
+            6. `(+)` outer join → `LEFT JOIN` or `RIGHT JOIN`
+            7. `{call PROC()}` → `CALL PROC()`
+            8. `SEQ.NEXTVAL` → `AUTO_INCREMENT` or `LAST_INSERT_ID()`
+            9. `INSTR(str, substr)` → `LOCATE(substr, str)`
+            10. `TO_DATE('str', 'format')` → `STR_TO_DATE('str', 'mysql_format')`
+            11. `DECODE(expr, val1, res1, val2, res2, default)` → `CASE WHEN expr=val1 THEN res1 WHEN expr=val2 THEN res2 ELSE default END`
+            12. `ADD_MONTHS(date, n)` → `DATE_ADD(date, INTERVAL n MONTH)`
+            13. `MONTHS_BETWEEN(d1, d2)` → `TIMESTAMPDIFF(MONTH, d2, d1)`
+            14. `TRUNC(date)` → `DATE(date)`
+            15. `TO_CHAR(num)` → `CAST(num AS CHAR)`
+            16. `TO_NUMBER(str)` → `CAST(str AS DECIMAL)`
+            17. `USER` → `USER()`
+            18. `SYS_GUID()` → `UUID()`
+            19. `LISTAGG(col, delim)` → `GROUP_CONCAT(col SEPARATOR delim)`
+            20. Oracle hints `/*+ ... */` → remove completely
 
-            9. **Date/Time Function Conversions**
-                - ADD_MONTHS, MONTHS_BETWEEN, LAST_DAY, TRUNC, TO_DATE conversions
-                - Reference: "🔧 MYSQL CONVERSION RULES - Date Functions" section
-
-            10. **String Function Conversions**
-                - INSTR → LOCATE, LPAD, TO_CHAR → CAST AS CHAR, TO_NUMBER → CAST AS DECIMAL
-                - String concatenation with NULL handling
-                - Reference: "🔧 MYSQL CONVERSION RULES - String Functions" section
-
-            11. **Sequence and Pagination Conversions**
-                - SEQ.NEXTVAL → AUTO_INCREMENT/LAST_INSERT_ID(), SEQ.CURRVAL → LAST_INSERT_ID()
-                - ROWNUM → LIMIT/OFFSET patterns
-                - Reference: "🔧 MYSQL CONVERSION RULES - Sequence/Pagination" sections
-
-            12. **DUAL Table Removal**
-                - SELECT 'Hello' FROM DUAL → SELECT 'Hello'
-                - SELECT #{variable} FROM DUAL → SELECT #{variable}
-                - Reference: "🔧 MYSQL CONVERSION RULES - DUAL Table Removal" section
-
-            13. **Oracle System Function Conversions**
-                - USER → CURRENT_USER(), SYS_CONTEXT → USER(), SYS_GUID → UUID()
-                - Reference: "🔧 MYSQL CONVERSION RULES - Oracle System Functions" section
-
-            14. **Advanced NULL Handling**
-                - NVL2 → CASE WHEN, Empty string vs NULL behavior differences
-                - Mixed type IFNULL with proper casting
-                - Reference: "🔧 MYSQL CONVERSION RULES - Advanced NULL Handling" section
-
-            15. **Regular Expression Conversions**
-                - REGEXP_LIKE → REGEXP, REGEXP_REPLACE with MySQL syntax
-                - Reference: "🔧 MYSQL CONVERSION RULES - Regular Expressions" section
-
-            16. **Date Literal Conversions**
-                - DATE '2023-01-01' → '2023-01-01'
-                - TIMESTAMP '2023-01-01 12:00:00' → '2023-01-01 12:00:00'
-                - Reference: "🔧 MYSQL CONVERSION RULES - Oracle Date Literals" section
-
-            17. **Additional Oracle to MySQL Conversions**
-                - LISTAGG → GROUP_CONCAT, CHR functions, v$session → information_schema
-                - Oracle hint removal, ORDER BY cleanup for aggregates
-                - Reference: "🔧 MYSQL CONVERSION RULES - Additional Critical Oracle Functions" section
-
-            18. **Stored Procedure Enhancement**
-                - Type casting for procedure parameters, OUT parameter handling
-                - Reference: "🔧 MYSQL CONVERSION RULES - Stored Procedure Enhancement" section
-
-            19. **PL/SQL DECLARE Section Processing**
-                - Convert DECLARE blocks to MySQL stored procedure format
-                - Variable declarations, initialization handling
-                - Reference: "🔧 MYSQL STORED PROCEDURE PROCESSING" section
-
-            20. **ResultMap and JDBC Type Processing**
-                - Convert Oracle JDBC types to MySQL equivalents
-                - Column name case sensitivity, Java type conversions
-                - Reference: "🗺️ RESULTMAP PROCESSING" section
-
-            21. **Advanced Conversions** (Apply expert knowledge when needed)
-                - CONNECT BY → Recursive CTE, MERGE → INSERT ON CONFLICT
-                - Complex ROWNUM patterns, hierarchical queries
-                - Reference: "🔬 ADVANCED CONVERSIONS" and "🎯 EXPERT-LEVEL CONVERSION GUIDANCE" sections
+            **Post-Conversion Validation:**
+            After applying core rules, scan for:
+            - Remaining Oracle-specific functions
+            - MySQL syntax errors
+            - Unconverted Oracle constructs
+            
+            **If Issues Found:**
+            Reference detailed conversion sections below for specific patterns:
+            - Complex date functions → "🔧 MYSQL CONVERSION RULES - Date Functions"
+            - String manipulation → "🔧 MYSQL CONVERSION RULES - String Functions"
+            - Advanced NULL handling → "🔧 MYSQL CONVERSION RULES - Advanced NULL Handling"
+            - Stored procedures → "🔧 MYSQL STORED PROCEDURE PROCESSING"
+            - ResultMap issues → "🗺️ RESULTMAP PROCESSING"
+            - Complex queries → "🔬 ADVANCED CONVERSIONS"
 
             ### PHASE 4 - FINAL VALIDATION AND CORRECTION (Apply Last):
             23. **XML Structure Validation**
@@ -307,55 +386,64 @@ B. Task Progression Steps:
                 - MyBatis bind variable preservation check
                 - Functional integrity verification
 
-        2.4 Individual File Processing Rules (FORCE COMPLETE CONVERSION):
+        2.3 Individual File Processing Rules:
             
-            🚨 CONVERSION ENFORCEMENT PROTOCOL:
-            - DISABLE complexity-based rule skipping  
-            - FORCE complete 4-phase processing for ALL files
+            🎯 CORE PROCESSING REQUIREMENTS:
+            - Process EXACTLY ONE file at a time with complete focus
+            - Read each file completely before making any changes
+            - Apply ALL conversion rules to the current file systematically
+            - Validate conversion before proceeding to next file
+            - Treat each file as unique (never assume similarity)
+            
+            🔥 MANDATORY CONVERSION APPROACH:
             - SCAN entire file content for ANY Oracle construct
             - APPLY transformation rules to EVERY Oracle pattern found
-            - NO EXCEPTIONS for "minor" or "compatible" constructs
+            - COMPLETE 4-phase processing for ALL files
+            - NO exceptions for "minor" or "compatible" constructs
+            - NO partial conversion allowed
 
-            ✅ MANDATORY SCANNING PATTERNS:
+            ✅ REQUIRED SCANNING PATTERNS:
             - Oracle functions: NVL, DECODE, SYSDATE, SUBSTR, ADD_MONTHS, etc.
             - Oracle syntax: ROWNUM, DUAL, (+) joins, {call}, etc.
             - Oracle types: DATE, NUMBER, VARCHAR2, etc.
             - Oracle constructs: CONNECT BY, MERGE, sequences, etc.
 
-            🔥 ZERO TOLERANCE ENFORCEMENT:
-            IF (ANY Oracle pattern detected) THEN
-              → Apply COMPLETE transformation rules
-              → NO partial conversion allowed
-              → NO "good enough" shortcuts
-            ENDIF
+        2.4 Progress Tracking Per File:
+            
+            📊 INDIVIDUAL FILE PROGRESS:
+            - Current Group: [X] of [Total Groups]
+            - Current File: [Y] of [Group Total] 
+            - Overall Progress: [Z] of [Total Files]
+            - File Name: [Exact Filename]
+            - Status: [Reading/Processing/Validating/Completed]
+            
+            📝 COMPLETION LOGGING:
+            - Log each file completion before moving to next
+            - Track conversion patterns applied per file
+            - Record any expert-level conversions used
+            - Maintain group completion status
 
         2.5 MySQL Conversion Rules Application:
             
-            🚨 CRITICAL MANDATE: Apply COMPLETE Oracle → MySQL conversion rules.
+            🎯 COMPREHENSIVE CONVERSION MANDATE:
+            Apply COMPLETE Oracle → MySQL conversion rules to each individual file.
             
-            **ZERO TOLERANCE FOR PARTIAL CONVERSION:**
-            - NEVER apply only "some" rules or "basic" transformations
-            - NEVER skip Oracle constructs thinking they're "minor"
-            - ALWAYS apply ALL transformation rules systematically
-            - ALWAYS convert EVERY Oracle-specific pattern found
-            
-            **MANDATORY COMPREHENSIVE COVERAGE:**
-            Key areas that MUST be transformed (no exceptions):
+            **MANDATORY TRANSFORMATION COVERAGE:**
             - ALL Oracle functions (NVL, DECODE, SYSDATE, SUBSTR, etc.)
-            - ALL sequence handling (NEXTVAL, CURRVAL)
+            - ALL sequence handling (NEXTVAL, CURRVAL → AUTO_INCREMENT)
             - ALL pagination conversion (ROWNUM → LIMIT/OFFSET)
-            - ALL DUAL table replacements (→ VALUES clause)
+            - ALL DUAL table replacements
             - ALL stored procedure syntax ({call} → CALL)
             - ALL JOIN syntax standardization
-            - ALL string and numeric functions
-            - ALL date/time functions
+            - ALL string, numeric, and date/time functions
             - ALL Oracle-specific constructs
             
-            **🎯 DATABASE EXPERT MODE:**
-            For Oracle constructs NOT explicitly documented in the rule files:
-            - Apply appropriate MySQL equivalents based on database expert knowledge
+            **DATABASE EXPERT MODE:**
+            For Oracle constructs NOT explicitly documented:
+            - Apply appropriate MySQL equivalents based on expert knowledge
             - Use industry best practices for Oracle-to-MySQL conversions
             - Ensure semantic equivalence and optimal performance
+            - Document expert-level transformations with comments
             - Document any expert-level transformations applied
 
         2.6 File Output:
@@ -382,10 +470,16 @@ B. Task Progression Steps:
             - Record classification accuracy
             - Monitor conversion success rate
 
-    4. Final Step:
-        4.1 Update Status:
+    3. Final Completion:
+        3.1 Processing Summary:
+            - Total Files Processed: [N] of [N] (100%)
+            - Groups Completed: [All Groups]
+            - Individual File Success Rate: [Success Count]/[Total Count]
+            
+        3.2 Update Status:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 3: Completed"
+            - Final Confirmation: "All [N] files processed individually with complete conversion"
 
   Step 4. Perform xmllint validation on all {MAPPER_TGTL1_DIR}/*{TRANSFORM_SUFFIX}*.xml files
 

@@ -267,91 +267,6 @@ def write_xmllint_result(results, output_file, logger):
         logger.error(f"Error writing XML validation results: {e}")
         return False
 
-def create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix='_src'):
-    """변환 실패 목록으로 CSV 파일을 생성합니다.
-    
-    매개변수:
-        failure_list (list): 변환에 실패한 파일 목록
-        app_transform_folder (str): 변환 폴더 경로
-        logger: 로거 인스턴스
-        origin_suffix (str): 원본 파일의 접미사 (기본값: _src)
-        
-    반환값:
-        bool: 성공 상태
-    """
-    try:
-        # 경로 정의
-        source_csv = os.path.join(app_transform_folder, 'SQLTransformTarget.csv')
-        output_file = os.path.join(app_transform_folder, 'SQLTransformTargetFailure.csv')
-        
-        # 기존 파일이 있으면 삭제
-        if os.path.exists(output_file):
-            os.remove(output_file)
-            logger.debug(f"Removed existing file: {output_file}")
-        
-        # 소스 CSV 읽기
-        if os.path.exists(source_csv):
-            with open(source_csv, 'r', encoding='utf-8') as f:
-                csv_reader = csv.reader(f)
-                header = next(csv_reader)
-                rows = list(csv_reader)
-            
-            # 출력 CSV 작성
-            with open(output_file, 'w', encoding='utf-8', newline='') as f:
-                csv_writer = csv.writer(f)
-                csv_writer.writerow(header)
-                
-                # 실패가 있으면 소스 CSV에서 일치하는 행 찾기
-                if failure_list:
-                    # 실패한 파일 이름에서 origin_suffix를 제거하여 기본 이름 추출
-                    failed_base_names = []
-                    for _, file_name, _ in failure_list:
-                        base_name = os.path.basename(file_name)
-                        if origin_suffix in base_name:
-                            # origin_suffix와 .xml 확장자 제거
-                            base_name = base_name.replace(origin_suffix, '')
-                        failed_base_names.append(base_name)
-                    
-                    logger.debug(f"Failed base names (without suffix): {failed_base_names}")
-                    
-                    # 실패 항목 카운터
-                    failure_count = 0
-                    
-                    for row in rows:
-                        if row and len(row) > 1:
-                            file_path = row[1].strip()
-                            file_name = os.path.basename(file_path)
-                            
-                            # 파일 이름에서 확장자 제거
-                            file_base_name = file_name
-                            if file_base_name.endswith('.xml'):
-                                file_base_name = file_base_name[:-4]  # .xml 제거
-                            
-                            for failed_name in failed_base_names:
-                                # 확장자 제거
-                                if failed_name.endswith('.xml'):
-                                    failed_name = failed_name[:-4]  # .xml 제거
-                                
-                                # 정확한 이름 비교
-                                if file_base_name == failed_name:
-                                    csv_writer.writerow(row)
-                                    failure_count += 1
-                                    logger.debug(f"Match found: {file_name} matches {failed_name}")
-                                    break
-                    
-                    logger.info(f"Failure CSV created at {output_file} with {failure_count} entries")
-                else:
-                    logger.info(f"Empty failure CSV (header only) created at {output_file}")
-            
-            return True
-        else:
-            logger.error(f"Source CSV file not found: {source_csv}")
-            return False
-    
-    except Exception as e:
-        logger.error(f"Error creating failure CSV: {e}")
-        return False
-
 def main():
     """메인 함수"""
     # 로그 레벨 선택 정의
@@ -445,9 +360,6 @@ def main():
     # 2. 검증 1: 변환 완전성 확인
     logger.info("Starting validation : Checking transformation completeness")
     failure_list = check_transformation_completeness(mapper_folder, origin_suffix, logger)
-    
-    # SQLTransformTargetFailure.csv 생성
-    create_failure_csv(failure_list, app_transform_folder, logger, origin_suffix)
     
     # 3. 검증 2: XML 구문 검증
     logger.info("Starting validation : Validating XML syntax")

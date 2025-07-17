@@ -57,6 +57,7 @@ MAPPER_DIR = os.getenv('SOURCE_SQL_MAPPER_FOLDER')
 # 결과 파일 경로
 MAPPER_AND_JNDI_CSV = os.path.join(APPLICATION_FOLDER, 'discovery', 'MapperAndJndi.csv')
 SQL_TRANSFORM_TARGET_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SQLTransformTarget.csv')
+SQL_TRANSFORM_TARGET_SELECTIVE_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SQLTransformTargetSelective.csv')
 SAMPLE_TRANSFORM_TARGET_CSV = os.path.join(APP_TRANSFORM_FOLDER, 'SampleTransformTarget.csv')
 SAMPLE_MAPPER_LIST_CSV = os.path.join(APPLICATION_FOLDER, 'discovery', 'SampleMapperlist.csv')
 
@@ -408,7 +409,8 @@ def read_mapper_list(mapper_list_file):
 
 
 def create_sample_transform_target():
-    """SampleMapperlist.csv를 읽어서 SQLTransformTarget.csv에서 일치하는 파일명을 찾아 SampleTransformTarget.csv를 생성합니다."""
+    """SampleMapperlist.csv를 읽어서 SQLTransformTarget.csv에서 일치하는 파일명을 찾아 SampleTransformTarget.csv를 생성합니다.
+    동시에 원본 SQLTransformTarget.csv의 해당 항목들의 Process 값을 'Sampled'로 업데이트합니다."""
     try:
         # SampleMapperlist.csv 파일 존재 확인
         if not os.path.exists(SAMPLE_MAPPER_LIST_CSV):
@@ -436,8 +438,9 @@ def create_sample_transform_target():
         logger.info(f"Found {len(sample_filenames)} sample files in SampleMapperlist.csv")
         logger.debug(f"Sample filenames: {sample_filenames}")
         
-        # SQLTransformTarget.csv에서 일치하는 행 찾기
+        # SQLTransformTarget.csv에서 일치하는 행 찾기 및 Process 값 업데이트
         matching_rows = []
+        all_rows = []
         header = None
         
         with open(SQL_TRANSFORM_TARGET_CSV, 'r', encoding='utf-8') as f:
@@ -450,21 +453,38 @@ def create_sample_transform_target():
                     # 파일명만 추출 (경로 제거)
                     filename = os.path.basename(filename)
                     
+                    # Process 컬럼이 없는 경우 추가
+                    if len(row) < 7:
+                        row.append('Not yet')
+                    
                     if filename in sample_filenames:
-                        matching_rows.append(row)
+                        # 샘플 파일인 경우 원본에서는 Process를 'Sampled'로 설정
+                        row[6] = 'Sampled'  # Process 컬럼 (7번째 컬럼, 인덱스 6)
+                        # 복사본을 위해 Process를 'Not Yet'으로 변경한 행 생성
+                        sample_row = row.copy()
+                        sample_row[6] = 'Not Yet'
+                        matching_rows.append(sample_row)
                         logger.debug(f"Matching file found: {filename}")
+                
+                all_rows.append(row)
         
         logger.info(f"Found {len(matching_rows)} matching transform targets")
+        
+        # 원본 SQLTransformTarget.csv 업데이트 (Process 값을 'Sampled'로 변경)
+        with open(SQL_TRANSFORM_TARGET_CSV, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)  # 헤더 작성
+            writer.writerows(all_rows)  # 업데이트된 모든 행 작성
+        
+        logger.info(f"Updated SQLTransformTarget.csv with 'Sampled' status for {len(matching_rows)} items")
         
         # SampleTransformTarget.csv 생성
         with open(SAMPLE_TRANSFORM_TARGET_CSV, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)  # 헤더 작성
             
-            # 일치하는 행들을 번호 순서대로 다시 정렬하여 작성
-            for idx, row in enumerate(matching_rows, 1):
-                # 첫 번째 컬럼(No.)을 새로운 순번으로 업데이트
-                row[0] = str(idx)
+            # 일치하는 행들을 원래 순번 그대로 작성
+            for row in matching_rows:
                 writer.writerow(row)
         
         logger.info(f"SampleTransformTarget.csv created successfully: {SAMPLE_TRANSFORM_TARGET_CSV}")
@@ -472,6 +492,28 @@ def create_sample_transform_target():
         
     except Exception as e:
         logger.error(f"Error creating SampleTransformTarget.csv: {e}")
+        raise
+
+
+def create_sql_transform_target_selective():
+    """SQLTransformTargetSelective.csv 파일을 생성합니다. 파일이 이미 존재하면 건너뜁니다."""
+    try:
+        # 파일이 이미 존재하는지 확인
+        if os.path.exists(SQL_TRANSFORM_TARGET_SELECTIVE_CSV):
+            logger.info(f"SQLTransformTargetSelective.csv already exists, skipping creation: {SQL_TRANSFORM_TARGET_SELECTIVE_CSV}")
+            return
+        
+        logger.info(f"Creating SQLTransformTargetSelective.csv: {SQL_TRANSFORM_TARGET_SELECTIVE_CSV}")
+        
+        # 헤더만 있는 CSV 파일 생성
+        with open(SQL_TRANSFORM_TARGET_SELECTIVE_CSV, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['No.', 'Filename', 'Namespace', 'DAO Class', 'Parent DAO Class', 'Transform Target', 'Process'])
+        
+        logger.info(f"SQLTransformTargetSelective.csv created successfully with header only")
+        
+    except Exception as e:
+        logger.error(f"Error creating SQLTransformTargetSelective.csv: {e}")
         raise
 
 def write_results_to_csv(results, output_file, hierarchy, only_transform_target=False):
@@ -487,7 +529,7 @@ def write_results_to_csv(results, output_file, hierarchy, only_transform_target=
         logger.info(f"Writing results to CSV file: {output_file}")
         with open(output_file, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            writer.writerow(['No.', 'Filename', 'Namespace', 'DAO Class', 'Parent DAO Class', 'Transform Target'])
+            writer.writerow(['No.', 'Filename', 'Namespace', 'DAO Class', 'Parent DAO Class', 'Transform Target', 'Process'])
             
             # 변환 대상 상태에 따라 필터링
             targets = [(idx, result) for idx, result in enumerate(results, 1) 
@@ -517,7 +559,8 @@ def write_results_to_csv(results, output_file, hierarchy, only_transform_target=
                     namespace,              # Namespace
                     dao_class,              # DAO Class
                     parent_dao,             # Parent DAO Class
-                    'Y' if is_target else 'N'  # Transform Target
+                    'Y' if is_target else 'N',  # Transform Target
+                    'Not yet'               # Process
                 ]
                 logger.debug(f"Writing row: {row}")
                 writer.writerow(row)
@@ -594,6 +637,9 @@ def main(xml_files=None):
         
         # 변환 대상만 저장
         write_results_to_csv(results, SQL_TRANSFORM_TARGET_CSV, hierarchy, only_transform_target=True)
+        
+        # SQLTransformTargetSelective.csv 생성 (헤더만)
+        create_sql_transform_target_selective()
         
         # SampleTransformTarget.csv 생성
         create_sample_transform_target()
