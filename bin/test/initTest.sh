@@ -85,11 +85,9 @@ echo "SQL 파일을 sqllist 테이블에 저장 중..."
 echo "SQL 실행 및 결과 비교 중..."
 ./ExecuteAndCompareSQL.py -t S
 
-# 8. Postgres 에러 유형 분석 (PostgreSQL인 경우에만)
-if [ "$TARGET_DBMS_TYPE" = "postgres" ] || [ "$TARGET_DBMS_TYPE" = "postgresql" ]; then
-    echo "PostgreSQL 에러 유형 분석 중..."
-    ./analyze_pg_errors.py
-fi
+# 8. 타겟 DB 에러 유형 분석
+echo "타겟 DB 에러 유형 분석 중..."
+./analyze_db_errors.py
 
 # 9. 오류 구문 자동 수정 (향후 구현)
 # ./pg_transform.py

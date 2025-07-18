@@ -60,20 +60,21 @@ WARNING_COUNT=0
 
 # 프로그램 목록과 필요한 환경변수 정의
 declare -A PROGRAM_ENV_VARS
-PROGRAM_ENV_VARS[GetDDL.sh]="ORACLE_ADM_USER,ORACLE_ADM_PASSWORD,ORACLE_SVC_USER,PGUSER,PGHOST,PGPORT,PGDATABASE,PGPASSWORD"
+PROGRAM_ENV_VARS[GetDDL.sh]="ORACLE_ADM_USER,ORACLE_ADM_PASSWORD,ORACLE_SVC_USER,TARGET_DBMS_TYPE"
 PROGRAM_ENV_VARS[XMLToSQL.py]="TEST_FOLDER,TEST_LOGS_FOLDER"
 PROGRAM_ENV_VARS[GetDictionary.py]="ORACLE_SVC_USER,ORACLE_SVC_PASSWORD,ORACLE_SVC_CONNECT_STRING,TEST_FOLDER,TEST_LOGS_FOLDER"
 PROGRAM_ENV_VARS[BindSampler.py]="TEST_FOLDER,TEST_LOGS_FOLDER"
 PROGRAM_ENV_VARS[BindMapper.py]="TEST_FOLDER,TEST_LOGS_FOLDER"
-PROGRAM_ENV_VARS[SaveSQLToDB.py]="PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,TEST_FOLDER,TEST_LOGS_FOLDER"
-PROGRAM_ENV_VARS[ExecuteAndCompareSQL.py]="ORACLE_SVC_USER,ORACLE_SVC_PASSWORD,ORACLE_SID,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,TEST_FOLDER,TEST_LOGS_FOLDER"
-PROGRAM_ENV_VARS[AnalyzeResult.py]="PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,TEST_FOLDER,TEST_LOGS_FOLDER"
+PROGRAM_ENV_VARS[SaveSQLToDB.py]="TARGET_DBMS_TYPE,TEST_FOLDER,TEST_LOGS_FOLDER"
+PROGRAM_ENV_VARS[ExecuteAndCompareSQL.py]="ORACLE_SVC_USER,ORACLE_SVC_PASSWORD,ORACLE_SID,TARGET_DBMS_TYPE,TEST_FOLDER,TEST_LOGS_FOLDER"
+PROGRAM_ENV_VARS[analyze_db_errors.py]="TARGET_DBMS_TYPE,TEST_FOLDER,TEST_LOGS_FOLDER"
 
 # 환경변수 분류
 ORACLE_VARS="ORACLE_ADM_USER,ORACLE_ADM_PASSWORD,ORACLE_SVC_USER,ORACLE_SVC_PASSWORD,ORACLE_SVC_CONNECT_STRING,ORACLE_SID"
 POSTGRES_VARS="PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD"
+MYSQL_VARS="MYSQL_HOST,MYSQL_PORT,MYSQL_DATABASE,MYSQL_USER,MYSQL_PASSWORD"
 FOLDER_VARS="TEST_FOLDER,TEST_LOGS_FOLDER"
-OPTIONAL_VARS="SQL_BATCH_SIZE,SQL_PARALLEL_EXECUTION,SQL_MAX_WORKERS,SQL_TEMP_CLEANUP,SQL_ARCHIVE_DAYS"
+OPTIONAL_VARS="SQL_BATCH_SIZE,SQL_PARALLEL_EXECUTION,SQL_MAX_WORKERS,SQL_TEMP_CLEANUP,SQL_ARCHIVE_DAYS,TARGET_DBMS_TYPE"
 
 # 함수 정의
 usage() {
@@ -257,26 +258,59 @@ validate_oracle_env_vars() {
     echo
 }
 
-validate_postgres_env_vars() {
-    log $LOG_INFO "${PURPLE}PostgreSQL 환경변수 검증${NC}"
-    echo "----------------------------------------"
+validate_target_db_env_vars() {
+    # TARGET_DBMS_TYPE 확인 
+    local target_dbms=$(echo "${TARGET_DBMS_TYPE:-postgres}" | tr '[:upper:]' '[:lower:]')
     
-    local postgres_vars_array
-    IFS=',' read -ra postgres_vars_array <<< "$POSTGRES_VARS"
-    
-    local postgres_missing=0
-    for var in "${postgres_vars_array[@]}"; do
-        if ! check_env_var "$var" true; then
-            ((postgres_missing++))
+    if [[ "$target_dbms" == "postgres" || "$target_dbms" == "postgresql" ]]; then
+        log $LOG_INFO "${PURPLE}PostgreSQL 환경변수 검증${NC}"
+        echo "----------------------------------------"
+        
+        local postgres_vars_array
+        IFS=',' read -ra postgres_vars_array <<< "$POSTGRES_VARS"
+        
+        local postgres_missing=0
+        for var in "${postgres_vars_array[@]}"; do
+            if ! check_env_var "$var" true; then
+                ((postgres_missing++))
+            fi
+        done
+        
+        if [ $postgres_missing -eq 0 ]; then
+            log $LOG_INFO "PostgreSQL 환경변수: 모두 설정됨"
+            VALIDATION_RESULTS+=("PostgreSQL 환경변수: ✓ 통과")
+        else
+            log $LOG_ERROR "PostgreSQL 환경변수: $postgres_missing개 누락"
+            VALIDATION_RESULTS+=("PostgreSQL 환경변수: ✗ $postgres_missing개 누락")
         fi
-    done
-    
-    if [ $postgres_missing -eq 0 ]; then
-        log $LOG_INFO "PostgreSQL 환경변수: 모두 설정됨"
-        VALIDATION_RESULTS+=("PostgreSQL 환경변수: ✓ 통과")
+        
+    elif [[ "$target_dbms" == "mysql" ]]; then
+        log $LOG_INFO "${PURPLE}MySQL 환경변수 검증${NC}"
+        echo "----------------------------------------"
+        
+        local mysql_vars_array
+        IFS=',' read -ra mysql_vars_array <<< "$MYSQL_VARS"
+        
+        local mysql_missing=0
+        for var in "${mysql_vars_array[@]}"; do
+            if ! check_env_var "$var" true; then
+                ((mysql_missing++))
+            fi
+        done
+        
+        if [ $mysql_missing -eq 0 ]; then
+            log $LOG_INFO "MySQL 환경변수: 모두 설정됨"
+            VALIDATION_RESULTS+=("MySQL 환경변수: ✓ 통과")
+        else
+            log $LOG_ERROR "MySQL 환경변수: $mysql_missing개 누락"
+            VALIDATION_RESULTS+=("MySQL 환경변수: ✗ $mysql_missing개 누락")
+        fi
+        
     else
-        log $LOG_ERROR "PostgreSQL 환경변수: $postgres_missing개 누락"
-        VALIDATION_RESULTS+=("PostgreSQL 환경변수: ✗ $postgres_missing개 누락")
+        log $LOG_ERROR "지원하지 않는 TARGET_DBMS_TYPE: $target_dbms"
+        log $LOG_ERROR "지원되는 타입: postgres, postgresql, mysql"
+        VALIDATION_RESULTS+=("타겟 DB 환경변수: ✗ 지원하지 않는 타입")
+        ((ERROR_COUNT++))
     fi
     echo
 }
@@ -660,9 +694,16 @@ check_program_dependencies() {
     local required_commands=(
         "python3:Python 3"
         "sqlplus:Oracle SQL*Plus"
-        "psql:PostgreSQL Client"
         "java:Java Runtime"
     )
+    
+    # 타겟 DB에 따른 클라이언트 추가
+    local target_dbms=$(echo "${TARGET_DBMS_TYPE:-postgres}" | tr '[:upper:]' '[:lower:]')
+    if [[ "$target_dbms" == "postgres" || "$target_dbms" == "postgresql" ]]; then
+        required_commands+=("psql:PostgreSQL Client")
+    elif [[ "$target_dbms" == "mysql" ]]; then
+        required_commands+=("mysql:MySQL Client")
+    fi
     
     # 선택적 명령어들
     local optional_commands=(
@@ -726,13 +767,19 @@ check_program_dependencies() {
     echo
     log $LOG_INFO "Python 패키지 확인:"
     local python_packages=(
-        "psycopg2:PostgreSQL 어댑터"
         "cx_Oracle:Oracle 어댑터"
         "lxml:XML 처리"
         "pandas:데이터 분석"
         "matplotlib:그래프 생성"
         "jinja2:템플릿 엔진"
     )
+    
+    # 타겟 DB에 따른 Python 패키지 추가
+    if [[ "$target_dbms" == "postgres" || "$target_dbms" == "postgresql" ]]; then
+        python_packages+=("psycopg2:PostgreSQL 어댑터")
+    elif [[ "$target_dbms" == "mysql" ]]; then
+        python_packages+=("mysql.connector:MySQL 어댑터")
+    fi
     
     local missing_packages=0
     for pkg_info in "${python_packages[@]}"; do
@@ -1006,7 +1053,7 @@ main() {
     echo "============================================"
     
     validate_oracle_env_vars
-    validate_postgres_env_vars
+    validate_target_db_env_vars
     validate_folder_env_vars
     validate_optional_env_vars
     validate_program_env_vars
