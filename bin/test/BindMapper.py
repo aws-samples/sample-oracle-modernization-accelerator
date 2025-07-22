@@ -15,7 +15,7 @@
 #   * #{variable} format (MyBatis style)
 # - Formats values appropriately based on their data type:
 #   * Strings are quoted
-#   * Dates are converted to TO_DATE() functions for Oracle, TO_TIMESTAMP() for PostgreSQL
+#   * Dates are converted to TO_DATE() functions for Oracle, TO_TIMESTAMP() for PostgreSQL, STR_TO_DATE() for MySQL
 #   * Numbers are inserted as-is
 # - Saves the modified SQL files to the respective 'done' directories
 # - If no bind variables are found or no sample values exist, copies the file unchanged
@@ -26,6 +26,11 @@
 #
 # Output:
 #   Modified SQL files in 'src_sql_done' and 'tgt_sql_done' directories
+#
+# Supported Databases:
+#   - Oracle (source): Uses TO_DATE() for dates, '/' terminator
+#   - PostgreSQL (target): Uses TO_TIMESTAMP() for dates, ';' terminator  
+#   - MySQL (target): Uses STR_TO_DATE() for dates, ';' terminator
 #############################################################################
 
 import os
@@ -46,7 +51,8 @@ def check_environment_variables():
     # 권장 환경 변수 목록
     recommended_env_vars = [
         'TEST_FOLDER',
-        'TEST_LOGS_FOLDER'
+        'TEST_LOGS_FOLDER',
+        'TARGET_DBMS_TYPE'
     ]
     
     print("권장 환경 변수 확인 (설정되지 않으면 기본값 사용):")
@@ -59,6 +65,8 @@ def check_environment_variables():
                 print(f"- {var}: 설정되지 않음 (기본값: 현재 작업 디렉토리)")
             elif var == 'TEST_LOGS_FOLDER':
                 print(f"- {var}: 설정되지 않음 (기본값: TEST_FOLDER)")
+            elif var == 'TARGET_DBMS_TYPE':
+                print(f"- {var}: 설정되지 않음 (기본값: postgres)")
     
     print("\n환경 변수 확인 완료.")
     print("=" * 60)
@@ -194,6 +202,11 @@ def load_bind_values(sql_file):
         oracle_base_name = base_name.replace('_pg-', '_orcl-')
         bind_file = os.path.join(sampler_dir, oracle_base_name.replace('.sql', '.json'))
         logger.debug(f"PostgreSQL 파일 {base_name}에 대해 Oracle 샘플 파일 사용: {oracle_base_name}")
+    elif '_mysql-' in base_name:
+        # MySQL 파일인 경우도 Oracle 샘플 파일을 찾도록 변환
+        oracle_base_name = base_name.replace('_mysql-', '_orcl-')
+        bind_file = os.path.join(sampler_dir, oracle_base_name.replace('.sql', '.json'))
+        logger.debug(f"MySQL 파일 {base_name}에 대해 Oracle 샘플 파일 사용: {oracle_base_name}")
     else:
         # Oracle 파일인 경우 그대로 사용
         bind_file = os.path.join(sampler_dir, base_name.replace('.sql', '.json'))
@@ -265,8 +278,16 @@ def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values, db_t
                         formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDD')"
                     else:  # YYYYMMDDHH24MISS or other formats
                         formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDDHH24MISS')"
+                elif db_type.lower() == "mysql":
+                    # MySQL STR_TO_DATE function
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m%d')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m%d%H%i%s')"
                 else:
-                    # Determine the appropriate format based on value length
+                    # Oracle - Determine the appropriate format based on value length
                     if len(str(value)) == 6:  # YYYYMM
                         formatted_value = f"TO_DATE('{value}', 'YYYYMM')"
                     elif len(str(value)) == 8:  # YYYYMMDD
@@ -343,8 +364,16 @@ def replace_bind_variables(sql_content, colon_vars, hash_vars, bind_values, db_t
                         formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDD')"
                     else:  # YYYYMMDDHH24MISS or other formats
                         formatted_value = f"TO_TIMESTAMP('{value}', 'YYYYMMDDHH24MISS')"
+                elif db_type.lower() == "mysql":
+                    # MySQL STR_TO_DATE function
+                    if len(str(value)) == 6:  # YYYYMM
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m')"
+                    elif len(str(value)) == 8:  # YYYYMMDD
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m%d')"
+                    else:  # YYYYMMDDHH24MISS or other formats
+                        formatted_value = f"STR_TO_DATE('{value}', '%Y%m%d%H%i%s')"
                 else:
-                    # Determine the appropriate format based on value length
+                    # Oracle - Determine the appropriate format based on value length
                     if len(str(value)) == 6:  # YYYYMM
                         formatted_value = f"TO_DATE('{value}', 'YYYYMM')"
                     elif len(str(value)) == 8:  # YYYYMMDD
@@ -391,6 +420,28 @@ def add_oracle_terminator(sql_content):
     
     return sql_content
 
+def add_mysql_terminator(sql_content):
+    """MySQL SQL에 구문 종료 문자 ';'를 추가합니다."""
+    # SQL 내용을 정리하고 마지막에 ';'가 없으면 추가
+    sql_content = sql_content.strip()
+    
+    # 이미 ';'로 끝나는지 확인
+    if not sql_content.endswith(';'):
+        # ';'가 없으면 추가
+        sql_content = sql_content + ';'
+    
+    return sql_content
+
+def get_target_db_type():
+    """TARGET_DBMS_TYPE 환경변수를 기반으로 타겟 DB 타입을 반환합니다."""
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+    if target_dbms in ['postgres', 'postgresql']:
+        return 'postgresql'
+    elif target_dbms == 'mysql':
+        return 'mysql'
+    else:
+        return 'postgresql'  # 기본값
+
 def process_sql_files(source_dir, target_dir, db_type):
     """소스 디렉토리의 SQL 파일들을 처리하여 타겟 디렉토리에 저장합니다."""
     logger.info(f"{db_type} SQL 파일 처리 시작: {source_dir} -> {target_dir}")
@@ -417,10 +468,15 @@ def process_sql_files(source_dir, target_dir, db_type):
             # Even if no bind variables, still clean the SQL content
             output_file = os.path.join(target_dir, file_name)
             try:
-                # 소스 SQL인 경우 구문 종료 문자 추가 (Oracle SQL)
-                if db_type.lower() == "source" and not '_pg-' in file_name:
+                # 데이터베이스별 구문 종료 문자 추가
+                if db_type.lower() == "source" and not '_pg-' in file_name and not '_mysql-' in file_name:
+                    # Oracle SQL
                     cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
                     logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
+                elif '_mysql-' in file_name:
+                    # MySQL SQL
+                    cleaned_sql_content = add_mysql_terminator(cleaned_sql_content)
+                    logger.debug(f"{file_name}: MySQL SQL에 구문 종료 문자 ';' 추가")
                 
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(cleaned_sql_content)
@@ -439,10 +495,15 @@ def process_sql_files(source_dir, target_dir, db_type):
             # If no bind values found, save cleaned SQL
             output_file = os.path.join(target_dir, file_name)
             try:
-                # 소스 SQL인 경우 구문 종료 문자 추가 (Oracle SQL)
-                if db_type.lower() == "source" and not '_pg-' in file_name:
+                # 데이터베이스별 구문 종료 문자 추가
+                if db_type.lower() == "source" and not '_pg-' in file_name and not '_mysql-' in file_name:
+                    # Oracle SQL
                     cleaned_sql_content = add_oracle_terminator(cleaned_sql_content)
                     logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
+                elif '_mysql-' in file_name:
+                    # MySQL SQL
+                    cleaned_sql_content = add_mysql_terminator(cleaned_sql_content)
+                    logger.debug(f"{file_name}: MySQL SQL에 구문 종료 문자 ';' 추가")
                 
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(cleaned_sql_content)
@@ -457,13 +518,20 @@ def process_sql_files(source_dir, target_dir, db_type):
         # Replace bind variables with appropriate database type
         if '_pg-' in file_name:
             modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "postgresql")
+        elif '_mysql-' in file_name:
+            modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "mysql")
         else:
             modified_sql = replace_bind_variables(cleaned_sql_content, colon_vars, hash_vars, bind_values, "oracle")
         
-        # Oracle SQL인 경우 구문 종료 문자 추가 (소스 SQL 디렉토리에서 온 파일)
-        if db_type.lower() == "source" and not '_pg-' in file_name:
+        # 데이터베이스별 구문 종료 문자 추가
+        if db_type.lower() == "source" and not '_pg-' in file_name and not '_mysql-' in file_name:
+            # Oracle SQL
             modified_sql = add_oracle_terminator(modified_sql)
             logger.debug(f"{file_name}: Oracle SQL에 구문 종료 문자 '/' 추가")
+        elif '_mysql-' in file_name:
+            # MySQL SQL
+            modified_sql = add_mysql_terminator(modified_sql)
+            logger.debug(f"{file_name}: MySQL SQL에 구문 종료 문자 ';' 추가")
         
         # Save modified SQL
         output_file = os.path.join(target_dir, file_name)
@@ -485,8 +553,10 @@ def main():
     """메인 실행 함수"""
     paths = get_paths()
     
-    # 경로 정보 출력
-    logger.info("경로 설정:")
+    # 설정 정보 출력
+    target_db_type = get_target_db_type()
+    logger.info("설정 정보:")
+    logger.info(f"  타겟 DBMS 타입: {target_db_type.upper()}")
     logger.info(f"  소스 SQL 입력: {paths['src_sql_dir']}")
     logger.info(f"  타겟 SQL 입력: {paths['tgt_sql_dir']}")
     logger.info(f"  샘플러 입력: {paths['sampler_dir']}")

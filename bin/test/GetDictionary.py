@@ -347,6 +347,138 @@ class DatabaseDictionaryExtractor:
         
         return columns
     
+    def get_table_constraints(self, table_name, service_user):
+        """
+        특정 테이블의 제약조건 정보를 가져옵니다 (PK, FK, UK).
+        
+        Args:
+            table_name (str): 테이블 이름
+            service_user (str): 서비스 사용자 이름
+            
+        Returns:
+            dict: 제약조건 정보 (primary_keys, foreign_keys, unique_keys)
+        """
+        sql = f"""
+        SET PAGESIZE 0
+        SET FEEDBACK OFF
+        SET HEADING OFF
+        SET ECHO OFF
+        SET VERIFY OFF
+        SET LINESIZE 1000
+        
+        SELECT 
+            ac.constraint_name,
+            ac.constraint_type,
+            acc.column_name,
+            ac.r_owner,
+            ac.r_constraint_name,
+            acc.position
+        FROM all_constraints ac
+        JOIN all_cons_columns acc ON ac.constraint_name = acc.constraint_name 
+        AND ac.owner = acc.owner
+        WHERE ac.table_name = '{table_name}'
+        AND ac.owner = '{service_user.upper()}'
+        AND ac.constraint_type IN ('P', 'R', 'U')
+        ORDER BY ac.constraint_name, acc.position;
+        
+        EXIT;
+        """
+        
+        result = self.execute_sql(sql)
+        constraints_data = [line.strip() for line in result.splitlines() if line.strip()]
+        
+        # SQLPlus 메시지 및 빈 줄 제거
+        constraints_data = [const for const in constraints_data if const and not const.startswith("SQL")]
+        
+        constraints = {
+            'primary_keys': [],
+            'foreign_keys': [],
+            'unique_keys': []
+        }
+        
+        for constraint_info in constraints_data:
+            parts = constraint_info.split()
+            if len(parts) >= 3:
+                constraint_name = parts[0]
+                constraint_type = parts[1]
+                column_name = parts[2]
+                
+                # 참조 정보 (FK인 경우)
+                r_owner = parts[3] if len(parts) > 3 and parts[3] != 'None' else None
+                r_constraint_name = parts[4] if len(parts) > 4 and parts[4] != 'None' else None
+                position = int(parts[5]) if len(parts) > 5 and parts[5].isdigit() else 1
+                
+                constraint_detail = {
+                    'constraint_name': constraint_name,
+                    'column_name': column_name,
+                    'position': position
+                }
+                
+                if constraint_type == 'P':  # Primary Key
+                    constraints['primary_keys'].append(constraint_detail)
+                elif constraint_type == 'R':  # Foreign Key (Referential)
+                    if r_owner and r_constraint_name:
+                        # 참조되는 테이블과 컬럼 정보 조회
+                        ref_info = self.get_referenced_table_info(r_owner, r_constraint_name)
+                        constraint_detail.update({
+                            'referenced_owner': r_owner,
+                            'referenced_constraint': r_constraint_name,
+                            'referenced_table': ref_info.get('table_name'),
+                            'referenced_column': ref_info.get('column_name')
+                        })
+                    constraints['foreign_keys'].append(constraint_detail)
+                elif constraint_type == 'U':  # Unique Key
+                    constraints['unique_keys'].append(constraint_detail)
+        
+        return constraints
+    
+    def get_referenced_table_info(self, r_owner, r_constraint_name):
+        """
+        참조되는 제약조건의 테이블과 컬럼 정보를 가져옵니다.
+        
+        Args:
+            r_owner (str): 참조되는 스키마 소유자
+            r_constraint_name (str): 참조되는 제약조건 이름
+            
+        Returns:
+            dict: 테이블명과 컬럼명
+        """
+        sql = f"""
+        SET PAGESIZE 0
+        SET FEEDBACK OFF
+        SET HEADING OFF
+        SET ECHO OFF
+        SET VERIFY OFF
+        SET LINESIZE 1000
+        
+        SELECT 
+            ac.table_name,
+            acc.column_name
+        FROM all_constraints ac
+        JOIN all_cons_columns acc ON ac.constraint_name = acc.constraint_name
+        AND ac.owner = acc.owner
+        WHERE ac.constraint_name = '{r_constraint_name}'
+        AND ac.owner = '{r_owner.upper()}'
+        AND ac.constraint_type = 'P'
+        ORDER BY acc.position;
+        
+        EXIT;
+        """
+        
+        result = self.execute_sql(sql)
+        ref_data = [line.strip() for line in result.splitlines() if line.strip()]
+        ref_data = [ref for ref in ref_data if ref and not ref.startswith("SQL")]
+        
+        if ref_data:
+            parts = ref_data[0].split()
+            if len(parts) >= 2:
+                return {
+                    'table_name': parts[0],
+                    'column_name': parts[1]
+                }
+        
+        return {'table_name': None, 'column_name': None}
+    
     def get_column_sample_values(self, table_name, column_name, data_type, service_user, sample_count=1):
         """
         특정 컬럼의 샘플 값을 가져옵니다.
@@ -479,9 +611,21 @@ class DatabaseDictionaryExtractor:
                 # 테이블의 컬럼 정보 가져오기
                 columns = self.get_table_columns(table_name, service_user)
                 
+                # 테이블의 제약조건 정보 가져오기
+                try:
+                    constraints = self.get_table_constraints(table_name, service_user)
+                    logger.debug(f"제약조건 정보: {service_user}.{table_name} - "
+                               f"PK: {len(constraints['primary_keys'])}, "
+                               f"FK: {len(constraints['foreign_keys'])}, "
+                               f"UK: {len(constraints['unique_keys'])}")
+                except Exception as e:
+                    logger.warning(f"제약조건 정보 수집 실패: {service_user}.{table_name} - {e}")
+                    constraints = {'primary_keys': [], 'foreign_keys': [], 'unique_keys': []}
+                
                 # 테이블 정보 저장
                 self.dictionary[service_user][table_name] = {
-                    'columns': {}
+                    'columns': {},
+                    'constraints': constraints
                 }
                 
                 # 각 컬럼의 샘플 데이터 추출

@@ -17,6 +17,13 @@
 # Options:
 #   -t, --type TYPE     SQL statement type to execute (S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block, O: Other)
 #                       Multiple types can be specified with commas (e.g., S,U,I)
+#   --src-only          Execute SQL only on source database (skip target)
+#   --tgt-only          Execute SQL only on target database (skip source)
+#
+# Environment Variables:
+#   SQL_BATCH_SIZE      Number of SQLs to process per batch (default: 100)
+#   SQL_INTERACTIVE_MODE Enable interactive mode with user prompts (default: true)
+#   SQL_AUTO_CONTINUE   Skip user prompts and continue automatically (default: false)
 #############################################################################
 
 import os
@@ -85,6 +92,8 @@ def check_environment_variables():
     # 선택적 환경 변수 목록
     optional_env_vars = [
         'SQL_BATCH_SIZE',
+        'SQL_INTERACTIVE_MODE',
+        'SQL_AUTO_CONTINUE',
         'SQL_PARALLEL_EXECUTION',
         'SQL_MAX_WORKERS',
         'SQL_TEMP_CLEANUP',
@@ -126,7 +135,9 @@ def check_environment_variables():
             print(f"✓ {var}: {value}")
         else:
             defaults = {
-                'SQL_BATCH_SIZE': '10',
+                'SQL_BATCH_SIZE': '100',
+                'SQL_INTERACTIVE_MODE': 'true',
+                'SQL_AUTO_CONTINUE': 'false',
                 'SQL_PARALLEL_EXECUTION': 'false',
                 'SQL_MAX_WORKERS': '4',
                 'SQL_TEMP_CLEANUP': 'true',
@@ -1001,7 +1012,24 @@ def parse_arguments():
     """
     target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').upper()
     
-    parser = argparse.ArgumentParser(description=f'소스(Oracle)와 타겟({target_dbms})에서 SQL을 실행하고 결과를 비교합니다.')
+    parser = argparse.ArgumentParser(
+        description=f'소스(Oracle)와 타겟({target_dbms})에서 SQL을 실행하고 결과를 비교합니다.',
+        epilog='''
+환경 변수 설정:
+  SQL_BATCH_SIZE: 배치당 처리할 SQL 개수 (기본값: 100)
+  SQL_INTERACTIVE_MODE: 대화형 모드 활성화 (true/false, 기본값: true)
+  SQL_AUTO_CONTINUE: 자동 진행 모드 (true/false, 기본값: false)
+
+대화형 모드에서는 각 배치 완료 후 진행 여부를 확인합니다.
+자동 모드로 실행하려면: export SQL_INTERACTIVE_MODE=false
+
+예시:
+  python3 ExecuteAndCompareSQL.py -t S              # Select 문만 실행
+  python3 ExecuteAndCompareSQL.py --src-only        # 소스만 실행
+  python3 ExecuteAndCompareSQL.py -t S,U,I          # 여러 타입 실행
+        ''',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument('-t', '--type', 
                         help='실행할 SQL 문의 타입 (S: Select, I: Insert, U: Update, D: Delete, P: PL/SQL Block, O: Other). '
                              '여러 타입을 지정하려면 쉼표로 구분 (예: S,U,I)')
@@ -1101,6 +1129,91 @@ def get_db_connection():
     except Exception as e:
         logger.error(f"데이터베이스 연결 오류: {e}")
         sys.exit(1)
+def wait_for_user_input():
+    """사용자 입력을 기다립니다."""
+    try:
+        response = input("계속 진행하시겠습니까? (y/yes/계속 또는 n/no/중단): ").strip().lower()
+        return response in ['y', 'yes', '계속', 'continue']
+    except (EOFError, KeyboardInterrupt):
+        return False
+
+def display_batch_summary(batch_num, batch_size, current_results, total_rows, src_only=False, tgt_only=False):
+    """배치 완료 후 중간 통계를 표시합니다."""
+    target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').upper()
+    
+    print("\n" + "=" * 60)
+    print(f"배치 #{batch_num} 완료 ({batch_size}개 SQL 처리)")
+    print(f"전체 진행률: {len(current_results)}/{total_rows} ({len(current_results)/total_rows*100:.1f}%)")
+    print("=" * 60)
+    
+    if not current_results:
+        print("처리된 결과가 없습니다.")
+        return
+    
+    # 현재 배치의 통계
+    batch_results = current_results[-batch_size:] if len(current_results) >= batch_size else current_results
+    
+    print(f"현재 배치 ({len(batch_results)}개):")
+    
+    if not tgt_only:
+        src_success = sum(1 for r in batch_results if r.get('src_status') == 'SUCCESS')
+        src_timeout = sum(1 for r in batch_results if r.get('src_status') == 'TIMEOUT') 
+        src_error = sum(1 for r in batch_results if r.get('src_status') == 'ERROR')
+        
+        print(f"  소스 성공: {src_success}/{len(batch_results)} ({src_success/len(batch_results)*100:.1f}%)")
+        print(f"  소스 타임아웃: {src_timeout}/{len(batch_results)} ({src_timeout/len(batch_results)*100:.1f}%)")
+        print(f"  소스 오류: {src_error}/{len(batch_results)} ({src_error/len(batch_results)*100:.1f}%)")
+    
+    if not src_only:
+        tgt_success = sum(1 for r in batch_results if r.get('tgt_status') == 'SUCCESS')
+        tgt_timeout = sum(1 for r in batch_results if r.get('tgt_status') == 'TIMEOUT')
+        tgt_error = sum(1 for r in batch_results if r.get('tgt_status') == 'ERROR')
+        
+        print(f"  타겟 {target_dbms} 성공: {tgt_success}/{len(batch_results)} ({tgt_success/len(batch_results)*100:.1f}%)")
+        print(f"  타겟 {target_dbms} 타임아웃: {tgt_timeout}/{len(batch_results)} ({tgt_timeout/len(batch_results)*100:.1f}%)")
+        print(f"  타겟 {target_dbms} 오류: {tgt_error}/{len(batch_results)} ({tgt_error/len(batch_results)*100:.1f}%)")
+    
+    if not src_only and not tgt_only:
+        same_results = sum(1 for r in batch_results if r.get('same') == 'Y')
+        print(f"  결과 일치: {same_results}/{len(batch_results)} ({same_results/len(batch_results)*100:.1f}%)")
+    
+    # 누적 통계
+    print(f"\n누적 통계 ({len(current_results)}개):")
+    
+    if not tgt_only:
+        total_src_success = sum(1 for r in current_results if r.get('src_status') == 'SUCCESS')
+        total_src_timeout = sum(1 for r in current_results if r.get('src_status') == 'TIMEOUT')
+        total_src_error = sum(1 for r in current_results if r.get('src_status') == 'ERROR')
+        
+        print(f"  소스 성공: {total_src_success}/{len(current_results)} ({total_src_success/len(current_results)*100:.1f}%)")
+        print(f"  소스 타임아웃: {total_src_timeout}/{len(current_results)} ({total_src_timeout/len(current_results)*100:.1f}%)")
+        print(f"  소스 오류: {total_src_error}/{len(current_results)} ({total_src_error/len(current_results)*100:.1f}%)")
+    
+    if not src_only:
+        total_tgt_success = sum(1 for r in current_results if r.get('tgt_status') == 'SUCCESS')
+        total_tgt_timeout = sum(1 for r in current_results if r.get('tgt_status') == 'TIMEOUT')
+        total_tgt_error = sum(1 for r in current_results if r.get('tgt_status') == 'ERROR')
+        
+        print(f"  타겟 {target_dbms} 성공: {total_tgt_success}/{len(current_results)} ({total_tgt_success/len(current_results)*100:.1f}%)")
+        print(f"  타겟 {target_dbms} 타임아웃: {total_tgt_timeout}/{len(current_results)} ({total_tgt_timeout/len(current_results)*100:.1f}%)")
+        print(f"  타겟 {target_dbms} 오류: {total_tgt_error}/{len(current_results)} ({total_tgt_error/len(current_results)*100:.1f}%)")
+    
+    if not src_only and not tgt_only:
+        total_same_results = sum(1 for r in current_results if r.get('same') == 'Y')
+        print(f"  결과 일치: {total_same_results}/{len(current_results)} ({total_same_results/len(current_results)*100:.1f}%)")
+    
+    print("=" * 60)
+
+def should_continue_processing():
+    """처리를 계속할지 확인합니다."""
+    interactive_mode = os.environ.get('SQL_INTERACTIVE_MODE', 'true').lower() == 'true'
+    auto_continue = os.environ.get('SQL_AUTO_CONTINUE', 'false').lower() == 'true'
+    
+    if not interactive_mode or auto_continue:
+        return True
+    
+    return wait_for_user_input()
+
 def main():
     """메인 실행 함수"""
     # 명령줄 인수 파싱
@@ -1148,26 +1261,33 @@ def main():
     conn = get_db_connection()
     
     # 환경변수에서 배치 크기 가져오기
-    batch_size = int(os.environ.get('SQL_BATCH_SIZE', '10'))
+    batch_size = int(os.environ.get('SQL_BATCH_SIZE', '100'))
+    
+    # 대화형 모드 설정
+    interactive_mode = os.environ.get('SQL_INTERACTIVE_MODE', 'true').lower() == 'true'
+    if interactive_mode:
+        logger.info(f"대화형 모드로 실행합니다 (배치 크기: {batch_size})")
+    else:
+        logger.info(f"자동 모드로 실행합니다 (배치 크기: {batch_size})")
     
     start_time = time.time()
     results = []
-    oracle_timeout_sqls = []  # Oracle 타임아웃 발생한 SQL 목록
-    pg_timeout_sqls = []      # PostgreSQL 타임아웃 발생한 SQL 목록
+    src_timeout_sqls = []  # 소스 타임아웃 발생한 SQL 목록
+    tgt_timeout_sqls = []  # 타겟 타임아웃 발생한 SQL 목록
     
     try:
         # CSV 결과 파일 생성
         with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
-            if args.oracle_only:
-                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'orcl_file_path', 
-                             'orcl_result_status', 'execution_time', 'orcl_error']
-            elif args.pg_only:
-                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'pg_file_path', 
-                             'pg_result_status', 'execution_time', 'pg_error']
+            if args.src_only:
+                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'src_file_path', 
+                             'src_result_status', 'execution_time', 'src_error']
+            elif args.tgt_only:
+                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'tgt_file_path', 
+                             'tgt_result_status', 'execution_time', 'tgt_error']
             else:
-                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'orcl_file_path', 'pg_file_path', 
-                             'orcl_result_status', 'pg_result_status', 'same', 'execution_time',
-                             'orcl_error', 'pg_error']
+                fieldnames = ['sql_id', 'app_name', 'stmt_type', 'src_file_path', 'tgt_file_path', 
+                             'src_result_status', 'tgt_result_status', 'same', 'execution_time',
+                             'src_error', 'tgt_error']
             
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -1211,62 +1331,66 @@ def main():
                 
                 logger.info(f"총 {total_rows}개의 SQL 문을 실행합니다.")
                 
+                # 배치 처리를 위한 변수
+                batch_num = 0
+                current_batch = []
+                
                 for i, row in enumerate(rows, 1):
                     sql_id = row['sql_id']
                     app_name = row['app_name']
                     stmt_type = row['stmt_type']
-                    orcl_sql = row['orcl']
-                    pg_sql = row['pg']
+                    src_sql = row['src']
+                    tgt_sql = row['tgt']
                     
                     logger.info(f"[{i}/{total_rows}] SQL ID: {sql_id}, App: {app_name} (타입: {stmt_type} - {STMT_TYPES.get(stmt_type, '알 수 없음')}) 처리 중...")
                     
                     sql_start_time = time.time()
                     
-                    # Oracle SQL 실행 (PostgreSQL 전용 모드가 아닌 경우에만)
-                    if args.pg_only:
-                        orcl_result = None
-                        orcl_status = "SKIPPED"
-                        orcl_error = ""
+                    # 소스 SQL 실행 (타겟 전용 모드가 아닌 경우에만)
+                    if args.tgt_only:
+                        src_result = None
+                        src_status = "SKIPPED"
+                        src_error = ""
                     else:
-                        orcl_result = execute_oracle_sql(sql_id, orcl_sql)
-                        orcl_status = "SUCCESS" if not orcl_result.startswith("ERROR:") and not orcl_result.startswith("TIMEOUT:") else "ERROR"
-                        orcl_error = orcl_result if orcl_status == "ERROR" else ""
+                        src_result = execute_oracle_sql(sql_id, src_sql)
+                        src_status = "SUCCESS" if not src_result.startswith("ERROR:") and not src_result.startswith("TIMEOUT:") else "ERROR"
+                        src_error = src_result if src_status == "ERROR" else ""
                         
-                        # Oracle 타임아웃 발생한 경우 목록에 추가
-                        if orcl_result.startswith("TIMEOUT:"):
-                            oracle_timeout_sqls.append({
+                        # 소스 타임아웃 발생한 경우 목록에 추가
+                        if src_result.startswith("TIMEOUT:"):
+                            src_timeout_sqls.append({
                                 'sql_id': sql_id,
                                 'app_name': app_name,
                                 'stmt_type': stmt_type,
-                                'file_path': row['orcl_file_path']
+                                'file_path': row['src_file_path']
                             })
-                            orcl_status = "TIMEOUT"
+                            src_status = "TIMEOUT"
                     
-                    # PostgreSQL SQL 실행 (Oracle 전용 모드가 아닌 경우에만)
-                    if args.oracle_only:
-                        pg_result = None
-                        pg_status = "SKIPPED"
-                        pg_error = ""
+                    # 타겟 SQL 실행 (소스 전용 모드가 아닌 경우에만)
+                    if args.src_only:
+                        tgt_result = None
+                        tgt_status = "SKIPPED"
+                        tgt_error = ""
                         same = "N/A"
                     else:
-                        pg_result = execute_postgres_sql(sql_id, pg_sql)
-                        pg_status = "SUCCESS" if not pg_result.startswith("ERROR:") and not pg_result.startswith("TIMEOUT:") else "ERROR"
-                        pg_error = pg_result if pg_status == "ERROR" else ""
+                        tgt_result = execute_target_sql(sql_id, tgt_sql)
+                        tgt_status = "SUCCESS" if not tgt_result.startswith("ERROR:") and not tgt_result.startswith("TIMEOUT:") else "ERROR"
+                        tgt_error = tgt_result if tgt_status == "ERROR" else ""
                         
-                        # PostgreSQL 타임아웃 발생한 경우 목록에 추가
-                        if pg_result.startswith("TIMEOUT:"):
-                            pg_timeout_sqls.append({
+                        # 타겟 타임아웃 발생한 경우 목록에 추가
+                        if tgt_result.startswith("TIMEOUT:"):
+                            tgt_timeout_sqls.append({
                                 'sql_id': sql_id,
                                 'app_name': app_name,
                                 'stmt_type': stmt_type,
-                                'file_path': row['pg_file_path']
+                                'file_path': row['tgt_file_path']
                             })
-                            pg_status = "TIMEOUT"
+                            tgt_status = "TIMEOUT"
                         
                         # 결과 비교 (둘 다 성공한 경우에만, 비교 모드일 때만)
-                        if not args.oracle_only and not args.pg_only:
-                            if orcl_status == "SUCCESS" and pg_status == "SUCCESS":
-                                same = 'Y' if orcl_result == pg_result else 'N'
+                        if not args.src_only and not args.tgt_only:
+                            if src_status == "SUCCESS" and tgt_status == "SUCCESS":
+                                same = 'Y' if src_result == tgt_result else 'N'
                             else:
                                 same = 'N'
                         else:
@@ -1276,15 +1400,15 @@ def main():
                     sql_execution_time = time.time() - sql_start_time
                     
                     # 결과 업데이트
-                    if not args.oracle_only and not args.pg_only:
+                    if not args.src_only and not args.tgt_only:
                         # 비교 모드: 양쪽 결과 모두 업데이트
-                        update_success, same = update_results(conn, sql_id, app_name, stmt_type, orcl_result, pg_result)
-                    elif args.pg_only:
-                        # PostgreSQL 전용 모드: PostgreSQL 결과만 업데이트
-                        update_success, same = update_pg_only_results(conn, sql_id, app_name, stmt_type, pg_result)
-                    elif args.oracle_only:
-                        # Oracle 전용 모드: Oracle 결과만 업데이트
-                        update_success, same = update_oracle_only_results(conn, sql_id, app_name, stmt_type, orcl_result)
+                        update_success, same = update_results(conn, sql_id, app_name, stmt_type, src_result, tgt_result)
+                    elif args.tgt_only:
+                        # 타겟 전용 모드: 타겟 결과만 업데이트
+                        update_success, same = update_tgt_only_results(conn, sql_id, app_name, stmt_type, tgt_result)
+                    elif args.src_only:
+                        # 소스 전용 모드: 소스 결과만 업데이트
+                        update_success, same = update_src_only_results(conn, sql_id, app_name, stmt_type, src_result)
                     
                     # 결과 저장
                     result_data = {
@@ -1294,21 +1418,21 @@ def main():
                         'execution_time': f"{sql_execution_time:.2f}"
                     }
                     
-                    if not args.pg_only:
+                    if not args.tgt_only:
                         result_data.update({
-                            'orcl_file_path': row['orcl_file_path'],
-                            'orcl_status': orcl_status,
-                            'orcl_error': orcl_error
+                            'src_file_path': row['src_file_path'],
+                            'src_status': src_status,
+                            'src_error': src_error
                         })
                     
-                    if not args.oracle_only:
+                    if not args.src_only:
                         result_data.update({
-                            'pg_file_path': row['pg_file_path'],
-                            'pg_status': pg_status,
-                            'pg_error': pg_error
+                            'tgt_file_path': row['tgt_file_path'],
+                            'tgt_status': tgt_status,
+                            'tgt_error': tgt_error
                         })
                     
-                    if not args.oracle_only and not args.pg_only:
+                    if not args.src_only and not args.tgt_only:
                         result_data['same'] = same
                     
                     results.append(result_data)
@@ -1321,55 +1445,126 @@ def main():
                         'execution_time': f"{sql_execution_time:.2f}"
                     }
                     
-                    if not args.pg_only:
+                    if not args.tgt_only:
                         csv_row.update({
-                            'orcl_file_path': row['orcl_file_path'],
-                            'orcl_result_status': orcl_status,
-                            'orcl_error': orcl_error
+                            'src_file_path': row['src_file_path'],
+                            'src_result_status': src_status,
+                            'src_error': src_error
                         })
                     
-                    if not args.oracle_only:
+                    if not args.src_only:
                         csv_row.update({
-                            'pg_file_path': row['pg_file_path'],
-                            'pg_result_status': pg_status,
-                            'pg_error': pg_error
+                            'tgt_file_path': row['tgt_file_path'],
+                            'tgt_result_status': tgt_status,
+                            'tgt_error': tgt_error
                         })
                     
-                    if not args.oracle_only and not args.pg_only:
+                    if not args.src_only and not args.tgt_only:
                         csv_row['same'] = same
                     
                     writer.writerow(csv_row)
                     
                     # 진행 상황 출력
-                    if args.oracle_only:
-                        logger.info(f"[{i}/{total_rows}] 처리 완료 - Oracle: {orcl_status}, 시간: {sql_execution_time:.2f}초")
-                    elif args.pg_only:
-                        logger.info(f"[{i}/{total_rows}] 처리 완료 - PostgreSQL: {pg_status}, 시간: {sql_execution_time:.2f}초")
+                    if args.src_only:
+                        logger.info(f"[{i}/{total_rows}] 처리 완료 - 소스: {src_status}, 시간: {sql_execution_time:.2f}초")
+                    elif args.tgt_only:
+                        logger.info(f"[{i}/{total_rows}] 처리 완료 - 타겟: {tgt_status}, 시간: {sql_execution_time:.2f}초")
                     else:
-                        logger.info(f"[{i}/{total_rows}] 처리 완료 - Oracle: {orcl_status}, PostgreSQL: {pg_status}, 같음: {same}, 시간: {sql_execution_time:.2f}초")
+                        logger.info(f"[{i}/{total_rows}] 처리 완료 - 소스: {src_status}, 타겟: {tgt_status}, 같음: {same}, 시간: {sql_execution_time:.2f}초")
                     
-                    # 배치 커밋
-                    if i % batch_size == 0:
+                    # 배치 처리 로직
+                    current_batch.append(result_data)
+                    
+                    # 배치가 완료되거나 마지막 행인 경우
+                    if i % batch_size == 0 or i == total_rows:
+                        batch_num += 1
                         conn.commit()
-                        logger.info(f"배치 커밋 완료: {i}/{total_rows}")
+                        logger.info(f"배치 #{batch_num} 커밋 완료: {i}/{total_rows}")
+                        
+                        # 배치 요약 표시
+                        display_batch_summary(batch_num, len(current_batch), results, total_rows, args.src_only, args.tgt_only)
+                        
+                        # 마지막 배치가 아니라면 사용자 확인
+                        if i < total_rows:
+                            if not should_continue_processing():
+                                logger.info("사용자에 의해 처리가 중단되었습니다.")
+                                # 중간 중단 시 부분 결과 보고서 생성
+                                partial_execution_time = time.time() - start_time
+                                logger.info(f"부분 처리 시간: {partial_execution_time:.2f}초")
+                                logger.info(f"처리 완료: {len(results)}/{total_rows} ({len(results)/total_rows*100:.1f}%)")
+                                
+                                # 부분 요약 보고서 생성 (파일명에 'partial' 추가)
+                                paths = get_paths()
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                type_suffix = f"_{args.type.replace(',', '')}" if args.type else ""
+                                db_suffix = ""
+                                if args.src_only:
+                                    db_suffix = "_src_only"
+                                elif args.tgt_only:
+                                    db_suffix = "_tgt_only"
+                                
+                                partial_summary_file = os.path.join(paths['summary_dir'], 
+                                    f"execution_summary{type_suffix}{db_suffix}_partial_{timestamp}.txt")
+                                
+                                with open(partial_summary_file, 'w', encoding='utf-8') as f:
+                                    f.write("=" * 60 + "\n")
+                                    f.write("부분 SQL 실행 요약 보고서 (중간 중단)\n")
+                                    f.write("=" * 60 + "\n")
+                                    f.write(f"중단 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                                    f.write(f"처리 시간: {partial_execution_time:.2f}초\n")
+                                    f.write(f"처리 완료: {len(results)}/{total_rows} ({len(results)/total_rows*100:.1f}%)\n")
+                                    f.write(f"중단된 배치: #{batch_num}\n")
+                                    if args.type:
+                                        f.write(f"필터링된 타입: {args.type}\n")
+                                    
+                                    # 부분 통계
+                                    if not args.tgt_only and results:
+                                        src_success = sum(1 for r in results if r.get('src_status') == 'SUCCESS')
+                                        src_timeout = sum(1 for r in results if r.get('src_status') == 'TIMEOUT')
+                                        src_error = sum(1 for r in results if r.get('src_status') == 'ERROR')
+                                        f.write(f"\n소스 결과:\n")
+                                        f.write(f"  성공: {src_success}/{len(results)} ({src_success/len(results)*100:.1f}%)\n")
+                                        f.write(f"  타임아웃: {src_timeout}/{len(results)} ({src_timeout/len(results)*100:.1f}%)\n")
+                                        f.write(f"  오류: {src_error}/{len(results)} ({src_error/len(results)*100:.1f}%)\n")
+                                    
+                                    if not args.src_only and results:
+                                        tgt_success = sum(1 for r in results if r.get('tgt_status') == 'SUCCESS')
+                                        tgt_timeout = sum(1 for r in results if r.get('tgt_status') == 'TIMEOUT')
+                                        tgt_error = sum(1 for r in results if r.get('tgt_status') == 'ERROR')
+                                        f.write(f"\n타겟 결과:\n")
+                                        f.write(f"  성공: {tgt_success}/{len(results)} ({tgt_success/len(results)*100:.1f}%)\n")
+                                        f.write(f"  타임아웃: {tgt_timeout}/{len(results)} ({tgt_timeout/len(results)*100:.1f}%)\n")
+                                        f.write(f"  오류: {tgt_error}/{len(results)} ({tgt_error/len(results)*100:.1f}%)\n")
+                                    
+                                    if not args.src_only and not args.tgt_only and results:
+                                        same_results = sum(1 for r in results if r.get('same') == 'Y')
+                                        f.write(f"\n결과 비교:\n")
+                                        f.write(f"  일치: {same_results}/{len(results)} ({same_results/len(results)*100:.1f}%)\n")
+                                    
+                                    f.write(f"\n참고: 처리가 중간에 중단되었습니다. 전체 결과를 보려면 스크립트를 다시 실행하세요.\n")
+                                
+                                logger.info(f"부분 요약 보고서 생성: {partial_summary_file}")
+                                break
+                        
+                        current_batch = []
                 
                 # 최종 커밋
                 conn.commit()
         
         # 타임아웃 목록 저장
-        if oracle_timeout_sqls:
-            save_timeout_list(oracle_timeout_sqls, 'oracle')
-        if pg_timeout_sqls:
-            save_timeout_list(pg_timeout_sqls, 'postgresql')
+        if src_timeout_sqls:
+            save_timeout_list(src_timeout_sqls, 'src')
+        if tgt_timeout_sqls:
+            save_timeout_list(tgt_timeout_sqls, 'tgt')
         
         # 총 실행 시간 계산
         total_execution_time = time.time() - start_time
         
         logger.info("=" * 60)
-        if args.oracle_only:
-            logger.info("Oracle SQL 실행 완료")
-        elif args.pg_only:
-            logger.info("PostgreSQL SQL 실행 완료")
+        if args.src_only:
+            logger.info("소스 SQL 실행 완료")
+        elif args.tgt_only:
+            logger.info("타겟 SQL 실행 완료")
         else:
             logger.info("SQL 실행 및 비교 완료")
         logger.info("=" * 60)
@@ -1377,7 +1572,7 @@ def main():
         logger.info(f"CSV 결과 파일: {csv_file}")
         
         # 요약 보고서 생성
-        summary_file, json_file = generate_summary_report(results, total_execution_time, args.type, args.oracle_only, args.pg_only)
+        summary_file, json_file = generate_summary_report(results, total_execution_time, args.type, args.src_only, args.tgt_only)
         logger.info(f"요약 보고서: {summary_file}")
         logger.info(f"상세 분석: {json_file}")
         
@@ -1386,26 +1581,26 @@ def main():
         logger.info("최종 통계:")
         logger.info(f"  총 SQL 수: {len(results)}")
         
-        if not args.pg_only:
-            oracle_success = sum(1 for r in results if r.get('orcl_status') == 'SUCCESS')
-            oracle_timeout = sum(1 for r in results if r.get('orcl_status') == 'TIMEOUT')
-            logger.info(f"  Oracle 성공: {oracle_success} ({oracle_success/len(results)*100:.1f}%)")
-            logger.info(f"  Oracle 타임아웃: {oracle_timeout} ({oracle_timeout/len(results)*100:.1f}%)")
+        if not args.tgt_only:
+            src_success = sum(1 for r in results if r.get('src_status') == 'SUCCESS')
+            src_timeout = sum(1 for r in results if r.get('src_status') == 'TIMEOUT')
+            logger.info(f"  소스 성공: {src_success} ({src_success/len(results)*100:.1f}%)")
+            logger.info(f"  소스 타임아웃: {src_timeout} ({src_timeout/len(results)*100:.1f}%)")
         
-        if not args.oracle_only:
-            pg_success = sum(1 for r in results if r.get('pg_status') == 'SUCCESS')
-            pg_timeout = sum(1 for r in results if r.get('pg_status') == 'TIMEOUT')
-            logger.info(f"  PostgreSQL 성공: {pg_success} ({pg_success/len(results)*100:.1f}%)")
-            logger.info(f"  PostgreSQL 타임아웃: {pg_timeout} ({pg_timeout/len(results)*100:.1f}%)")
+        if not args.src_only:
+            tgt_success = sum(1 for r in results if r.get('tgt_status') == 'SUCCESS')
+            tgt_timeout = sum(1 for r in results if r.get('tgt_status') == 'TIMEOUT')
+            logger.info(f"  타겟 성공: {tgt_success} ({tgt_success/len(results)*100:.1f}%)")
+            logger.info(f"  타겟 타임아웃: {tgt_timeout} ({tgt_timeout/len(results)*100:.1f}%)")
         
-        if not args.oracle_only and not args.pg_only:
+        if not args.src_only and not args.tgt_only:
             same_results = sum(1 for r in results if r.get('same') == 'Y')
             logger.info(f"  결과 일치: {same_results} ({same_results/len(results)*100:.1f}%)")
         
-        if oracle_timeout_sqls:
-            logger.info(f"  Oracle 타임아웃 목록: timeout_orcl.lst ({len(oracle_timeout_sqls)}개)")
-        if pg_timeout_sqls:
-            logger.info(f"  PostgreSQL 타임아웃 목록: timeout_pg.lst ({len(pg_timeout_sqls)}개)")
+        if src_timeout_sqls:
+            logger.info(f"  소스 타임아웃 목록: timeout_src.lst ({len(src_timeout_sqls)}개)")
+        if tgt_timeout_sqls:
+            logger.info(f"  타겟 타임아웃 목록: timeout_tgt.lst ({len(tgt_timeout_sqls)}개)")
         
         logger.info("=" * 60)
         

@@ -35,6 +35,7 @@ import re
 import json
 import random
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 def check_environment_variables():
     """
@@ -51,7 +52,8 @@ def check_environment_variables():
     
     # 선택적 환경 변수 목록
     optional_env_vars = [
-        'DB_ASSESSMENTS_FOLDER'
+        'DB_ASSESSMENTS_FOLDER',
+        'BIND_SAMPLING_MODE'
     ]
     
     print("권장 환경 변수 확인 (설정되지 않으면 기본값 사용):")
@@ -67,9 +69,20 @@ def check_environment_variables():
     for var in optional_env_vars:
         value = os.environ.get(var)
         if value:
-            print(f"✓ {var}: {value}")
+            if var == 'BIND_SAMPLING_MODE':
+                print(f"✓ {var}: {value}")
+                if value.lower() in ['relational', 'relation', 'smart']:
+                    print("    -> 관계형 샘플링 모드 활성화")
+                else:
+                    print("    -> 기본 샘플링 모드")
+            else:
+                print(f"✓ {var}: {value}")
         else:
-            print(f"- {var}: 설정되지 않음 (선택사항)")
+            if var == 'BIND_SAMPLING_MODE':
+                print(f"- {var}: 설정되지 않음 (기본값: basic)")
+                print("    사용 가능한 값: basic (기본), relational (관계형)")
+            else:
+                print(f"- {var}: 설정되지 않음 (선택사항)")
     
     print("\n환경 변수 확인 완료.")
     print("=" * 60)
@@ -149,6 +162,463 @@ def extract_bind_variables(sql_content):
     bind_vars = [var for var in all_matches if var not in oracle_date_formats]
     
     return bind_vars
+
+class SQLRelationshipAnalyzer:
+    """SQL 문을 분석하여 테이블 관계와 바인드 변수 연관성을 분석하는 클래스"""
+    
+    def __init__(self):
+        self.table_patterns = [
+            r'FROM\s+([A-Za-z_][A-Za-z0-9_]*)\s*([A-Za-z_][A-Za-z0-9_]*)?',
+            r'JOIN\s+([A-Za-z_][A-Za-z0-9_]*)\s*([A-Za-z_][A-Za-z0-9_]*)?'
+        ]
+        
+    def analyze_sql_structure(self, sql_content):
+        """
+        SQL 구조를 분석하여 테이블, JOIN, WHERE 조건 정보를 추출합니다.
+        
+        Args:
+            sql_content (str): 분석할 SQL 문
+            
+        Returns:
+            dict: 분석 결과 (tables, joins, conditions)
+        """
+        sql_upper = sql_content.upper()
+        
+        # 테이블과 alias 추출
+        tables = self._extract_tables(sql_upper)
+        
+        # JOIN 조건 추출
+        joins = self._extract_join_conditions(sql_upper)
+        
+        # WHERE 절 조건 추출
+        conditions = self._extract_where_conditions(sql_upper)
+        
+        return {
+            'tables': tables,
+            'joins': joins,
+            'conditions': conditions,
+            'primary_table': self._identify_primary_table(tables, joins)
+        }
+    
+    def _extract_tables(self, sql_upper):
+        """테이블명과 alias를 추출합니다."""
+        tables = {}
+        
+        for pattern in self.table_patterns:
+            matches = re.findall(pattern, sql_upper, re.IGNORECASE)
+            for match in matches:
+                table_name = match[0].strip()
+                alias = match[1].strip() if len(match) > 1 and match[1].strip() else table_name
+                tables[alias] = table_name
+                
+        return tables
+    
+    def _extract_join_conditions(self, sql_upper):
+        """JOIN 조건을 추출합니다."""
+        joins = []
+        
+        # ON 절에서 조건 추출
+        join_pattern = r'JOIN\s+([A-Za-z_][A-Za-z0-9_]*)\s*([A-Za-z_][A-Za-z0-9_]*)?\s+ON\s+([^)]+?)(?=\s+(?:JOIN|WHERE|GROUP|ORDER|HAVING|$))'
+        matches = re.findall(join_pattern, sql_upper, re.IGNORECASE | re.DOTALL)
+        
+        for match in matches:
+            table_name = match[0].strip()
+            alias = match[1].strip() if match[1].strip() else table_name
+            condition = match[2].strip()
+            
+            # 조건에서 컬럼 관계 추출
+            column_relations = self._parse_join_condition(condition)
+            
+            joins.append({
+                'table': table_name,
+                'alias': alias,
+                'condition': condition,
+                'column_relations': column_relations
+            })
+            
+        return joins
+    
+    def _parse_join_condition(self, condition):
+        """JOIN 조건을 파싱하여 컬럼 관계를 추출합니다."""
+        relations = []
+        
+        # 등호(=) 조건 추출: table1.col1 = table2.col2
+        equality_pattern = r'([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)'
+        matches = re.findall(equality_pattern, condition)
+        
+        for match in matches:
+            relations.append({
+                'left_table': match[0],
+                'left_column': match[1],
+                'right_table': match[2],
+                'right_column': match[3],
+                'operator': '='
+            })
+            
+        return relations
+    
+    def _extract_where_conditions(self, sql_upper):
+        """WHERE 절의 조건을 추출합니다."""
+        conditions = []
+        
+        # WHERE 절 전체 추출
+        where_match = re.search(r'WHERE\s+(.+?)(?=\s+(?:GROUP|ORDER|HAVING|$))', sql_upper, re.IGNORECASE | re.DOTALL)
+        if not where_match:
+            return conditions
+            
+        where_clause = where_match.group(1).strip()
+        
+        # 바인드 변수를 포함하는 조건 추출
+        bind_conditions = re.findall(r'([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)\s*(=|!=|<>|<|>|<=|>=|LIKE|IN)\s*(:[A-Za-z_][A-Za-z0-9_]*|#{[A-Za-z_][A-Za-z0-9_]*})', where_clause, re.IGNORECASE)
+        
+        for condition in bind_conditions:
+            column = condition[0].strip()
+            operator = condition[1].strip()
+            bind_var = condition[2].strip()
+            
+            # 바인드 변수 정규화 (: 또는 #{} 제거)
+            clean_bind_var = re.sub(r'[:#{}]', '', bind_var)
+            
+            conditions.append({
+                'column': column,
+                'operator': operator,
+                'bind_variable': clean_bind_var,
+                'raw_condition': f"{column} {operator} {bind_var}"
+            })
+            
+        return conditions
+    
+    def _identify_primary_table(self, tables, joins):
+        """주요 테이블을 식별합니다 (FROM 절의 첫 번째 테이블)."""
+        # FROM 절에서 첫 번째로 나오는 테이블을 주요 테이블로 간주
+        for alias, table_name in tables.items():
+            return {'alias': alias, 'table': table_name}
+        return None
+    
+    def build_variable_dependency_graph(self, bind_vars, sql_analysis, dictionary):
+        """
+        바인드 변수 간 의존성 그래프를 구성합니다.
+        
+        Args:
+            bind_vars (list): 바인드 변수 목록
+            sql_analysis (dict): SQL 분석 결과
+            dictionary (dict): 데이터베이스 딕셔너리
+            
+        Returns:
+            dict: 변수 그룹과 의존성 정보
+        """
+        # 바인드 변수를 테이블별로 그룹화
+        variable_groups = defaultdict(list)
+        
+        # WHERE 조건에서 바인드 변수와 컬럼 매핑
+        for condition in sql_analysis['conditions']:
+            bind_var = condition['bind_variable']
+            column = condition['column']
+            
+            if bind_var in bind_vars:
+                # 컬럼이 어느 테이블에 속하는지 확인
+                table_info = self._resolve_column_table(column, sql_analysis['tables'], dictionary)
+                if table_info:
+                    variable_groups[table_info['table']].append({
+                        'variable': bind_var,
+                        'column': table_info['column'],
+                        'table': table_info['table'],
+                        'condition': condition
+                    })
+        
+        # JOIN 조건을 통한 테이블 간 관계 정의
+        table_relationships = self._build_table_relationships(sql_analysis['joins'])
+        
+        return {
+            'variable_groups': dict(variable_groups),
+            'table_relationships': table_relationships,
+            'primary_table': sql_analysis['primary_table']
+        }
+    
+    def _resolve_column_table(self, column, tables, dictionary):
+        """컬럼이 어느 테이블에 속하는지 확인합니다."""
+        # 컬럼이 이미 table.column 형태인지 확인
+        if '.' in column:
+            parts = column.split('.')
+            if len(parts) == 2:
+                alias_or_table = parts[0]
+                column_name = parts[1]
+                
+                # alias인지 실제 테이블명인지 확인
+                if alias_or_table in tables:
+                    return {
+                        'table': tables[alias_or_table],
+                        'column': column_name,
+                        'alias': alias_or_table
+                    }
+        else:
+            # alias 없이 컬럼명만 있는 경우, 딕셔너리에서 해당 컬럼을 가진 테이블 찾기
+            for schema_name, schema_data in dictionary.items():
+                for table_name, table_data in schema_data.items():
+                    if 'columns' in table_data and column in table_data['columns']:
+                        # SQL에서 사용된 테이블인지 확인
+                        for alias, sql_table in tables.items():
+                            if sql_table == table_name:
+                                return {
+                                    'table': table_name,
+                                    'column': column,
+                                    'alias': alias
+                                }
+        
+        return None
+    
+    def _build_table_relationships(self, joins):
+        """JOIN 조건을 통해 테이블 간 관계를 구성합니다."""
+        relationships = []
+        
+        for join in joins:
+            for relation in join['column_relations']:
+                relationships.append({
+                    'left_table': relation['left_table'],
+                    'left_column': relation['left_column'],
+                    'right_table': relation['right_table'],
+                    'right_column': relation['right_column'],
+                    'relationship_type': 'join'
+                })
+                
+        return relationships
+
+
+class RelationalBindSampler:
+    """
+    관계형 데이터베이스의 제약조건을 고려하여 일관성 있는 바인드 변수 샘플 값을 생성하는 클래스
+    """
+    
+    def __init__(self, dictionary):
+        """
+        Args:
+            dictionary (dict): 데이터베이스 딕셔너리 (제약조건 정보 포함)
+        """
+        self.dictionary = dictionary
+        self.analyzer = SQLRelationshipAnalyzer()
+        self.sampled_values = {}  # 이미 샘플링된 값들을 캐시
+        
+    def generate_consistent_samples(self, bind_vars, sql_content):
+        """
+        SQL 구조와 제약조건을 분석하여 일관성 있는 바인드 변수 샘플을 생성합니다.
+        
+        Args:
+            bind_vars (list): 바인드 변수 목록
+            sql_content (str): SQL 문 내용
+            
+        Returns:
+            list: 일관성 있는 샘플 값 목록
+        """
+        print(f"관계형 샘플링 시작: {len(bind_vars)}개 변수")
+        
+        # SQL 구조 분석
+        sql_analysis = self.analyzer.analyze_sql_structure(sql_content)
+        print(f"SQL 분석 완료: {len(sql_analysis['tables'])}개 테이블, {len(sql_analysis['conditions'])}개 조건")
+        
+        # 바인드 변수 의존성 그래프 생성
+        dependency_graph = self.analyzer.build_variable_dependency_graph(
+            bind_vars, sql_analysis, self.dictionary
+        )
+        
+        # 관계형 샘플링 수행
+        samples = self._perform_relational_sampling(bind_vars, dependency_graph, sql_content)
+        
+        print(f"관계형 샘플링 완료: {len(samples)}개 샘플 생성")
+        return samples
+        
+    def _perform_relational_sampling(self, bind_vars, dependency_graph, sql_content):
+        """실제 관계형 샘플링을 수행합니다."""
+        samples = []
+        variable_groups = dependency_graph['variable_groups']
+        table_relationships = dependency_graph['table_relationships']
+        
+        # 처리된 변수 추적
+        processed_vars = set()
+        
+        # 1. 주 테이블부터 시작하여 샘플링
+        primary_table = dependency_graph.get('primary_table')
+        if primary_table:
+            primary_table_name = primary_table['table']
+            if primary_table_name in variable_groups:
+                print(f"주 테이블 {primary_table_name} 샘플링 시작")
+                table_samples = self._sample_table_variables(
+                    variable_groups[primary_table_name], 
+                    primary_table_name,
+                    sql_content
+                )
+                samples.extend(table_samples)
+                processed_vars.update(var['variable'] for var in table_samples)
+        
+        # 2. 관계가 있는 다른 테이블들 순차 처리
+        for relationship in table_relationships:
+            left_table = relationship['left_table']
+            right_table = relationship['right_table']
+            
+            # 아직 처리되지 않은 테이블의 변수들을 처리
+            for table_name in [left_table, right_table]:
+                if table_name in variable_groups:
+                    table_vars = variable_groups[table_name]
+                    unprocessed_vars = [
+                        var_info for var_info in table_vars 
+                        if var_info['variable'] not in processed_vars
+                    ]
+                    
+                    if unprocessed_vars:
+                        print(f"관련 테이블 {table_name} 샘플링 시작")
+                        table_samples = self._sample_related_table_variables(
+                            unprocessed_vars, 
+                            table_name,
+                            relationship,
+                            sql_content
+                        )
+                        samples.extend(table_samples)
+                        processed_vars.update(var['variable'] for var in table_samples)
+        
+        # 3. 독립적인 변수들 처리 (어떤 테이블에도 매핑되지 않은 변수들)
+        for var in bind_vars:
+            if var not in processed_vars:
+                print(f"독립 변수 {var} 샘플링")
+                var_type = guess_variable_type(var, self.dictionary)
+                sample_value = get_sample_value(var_type, var, self.dictionary, sql_content)
+                
+                samples.append({
+                    "variable": var,
+                    "type": var_type,
+                    "sample_value": sample_value
+                })
+                processed_vars.add(var)
+        
+        return samples
+        
+    def _sample_table_variables(self, table_vars, table_name, sql_content):
+        """특정 테이블의 변수들을 일관성 있게 샘플링합니다."""
+        samples = []
+        
+        # 해당 테이블에서 하나의 일관성 있는 레코드를 선택
+        consistent_record = self._get_consistent_record(table_name)
+        
+        for var_info in table_vars:
+            var = var_info['variable']
+            column = var_info['column']
+            
+            # 제약조건 정보 확인
+            constraints = self._get_column_constraints(table_name, column)
+            
+            # 일관성 있는 값 생성
+            sample_value = self._generate_consistent_value(
+                var, column, table_name, constraints, consistent_record, sql_content
+            )
+            
+            var_type = guess_variable_type(var, self.dictionary)
+            samples.append({
+                "variable": var,
+                "type": var_type,
+                "sample_value": sample_value
+            })
+            
+            # 생성된 값을 캐시에 저장
+            self.sampled_values[f"{table_name}.{column}"] = sample_value
+            
+        return samples
+        
+    def _sample_related_table_variables(self, table_vars, table_name, relationship, sql_content):
+        """관련 테이블의 변수들을 참조 무결성을 고려하여 샘플링합니다."""
+        samples = []
+        
+        for var_info in table_vars:
+            var = var_info['variable']
+            column = var_info['column']
+            
+            # 관계에 따른 일관성 있는 값 생성
+            sample_value = self._generate_related_value(
+                var, column, table_name, relationship, sql_content
+            )
+            
+            var_type = guess_variable_type(var, self.dictionary)
+            samples.append({
+                "variable": var,
+                "type": var_type,
+                "sample_value": sample_value
+            })
+            
+            # 생성된 값을 캐시에 저장
+            self.sampled_values[f"{table_name}.{column}"] = sample_value
+            
+        return samples
+        
+    def _get_consistent_record(self, table_name):
+        """테이블에서 일관성 있는 하나의 레코드를 선택합니다."""
+        # 딕셔너리에서 해당 테이블의 데이터 찾기
+        for schema_name, schema_data in self.dictionary.items():
+            if table_name in schema_data:
+                table_data = schema_data[table_name]
+                if 'columns' in table_data:
+                    # 모든 컬럼에서 첫 번째 샘플 값을 사용 (일관성 보장)
+                    consistent_record = {}
+                    for col_name, col_data in table_data['columns'].items():
+                        if 'sample_values' in col_data and col_data['sample_values']:
+                            consistent_record[col_name] = col_data['sample_values'][0]
+                    return consistent_record
+        return {}
+        
+    def _get_column_constraints(self, table_name, column_name):
+        """컬럼의 제약조건 정보를 반환합니다."""
+        for schema_name, schema_data in self.dictionary.items():
+            if table_name in schema_data:
+                table_data = schema_data[table_name]
+                if 'constraints' in table_data:
+                    # 해당 컬럼과 관련된 제약조건 찾기
+                    column_constraints = []
+                    for constraint in table_data['constraints']:
+                        if column_name in constraint.get('columns', []):
+                            column_constraints.append(constraint)
+                    return column_constraints
+        return []
+        
+    def _generate_consistent_value(self, var, column, table_name, constraints, consistent_record, sql_content):
+        """제약조건을 고려하여 일관성 있는 값을 생성합니다."""
+        # 이미 샘플링된 값이 있는지 확인
+        cache_key = f"{table_name}.{column}"
+        if cache_key in self.sampled_values:
+            return self.sampled_values[cache_key]
+            
+        # 일관성 있는 레코드에서 값 가져오기
+        if column in consistent_record:
+            value = consistent_record[column]
+            
+            # 제약조건에 따른 값 조정
+            for constraint in constraints:
+                if constraint['constraint_type'] == 'P':  # Primary Key
+                    # PK는 고유해야 하므로 약간의 변형 추가
+                    if isinstance(value, (int, float)):
+                        value = int(value) + 1  # 숫자는 1 증가
+                    elif isinstance(value, str) and value.isdigit():
+                        value = str(int(value) + 1)
+                        
+            return value
+            
+        # 일관성 있는 레코드에서 값을 찾을 수 없는 경우 기본 방법 사용
+        var_type = guess_variable_type(var, self.dictionary)
+        return get_sample_value(var_type, var, self.dictionary, sql_content)
+        
+    def _generate_related_value(self, var, column, table_name, relationship, sql_content):
+        """관계에 따른 일관성 있는 값을 생성합니다."""
+        # 관계의 참조 컬럼에서 이미 생성된 값 찾기
+        left_key = f"{relationship['left_table']}.{relationship['left_column']}"
+        right_key = f"{relationship['right_table']}.{relationship['right_column']}"
+        
+        current_key = f"{table_name}.{column}"
+        
+        # FK 관계인 경우 참조되는 PK 값 사용
+        if current_key == right_key and left_key in self.sampled_values:
+            return self.sampled_values[left_key]
+        elif current_key == left_key and right_key in self.sampled_values:
+            return self.sampled_values[right_key]
+            
+        # 관련 값을 찾을 수 없는 경우 기본 방법 사용
+        var_type = guess_variable_type(var, self.dictionary)
+        return get_sample_value(var_type, var, self.dictionary, sql_content)
+
 
 def camel_to_snake(name):
     """Convert camelCase to SNAKE_CASE"""
@@ -557,6 +1027,14 @@ def get_sample_value(var_type, var_name, dictionary, sql_content=None):
         else:
             return default_values.get(var_type, "SAMPLE_VALUE")
 
+def get_sampling_mode():
+    """환경변수를 통해 샘플링 모드를 결정합니다."""
+    mode = os.environ.get('BIND_SAMPLING_MODE', 'basic').lower()
+    if mode in ['relational', 'relation', 'smart']:
+        return 'relational'
+    else:
+        return 'basic'
+
 def main():
     # 경로 설정
     paths = get_paths()
@@ -564,6 +1042,10 @@ def main():
     print(f"소스 SQL 파일 디렉토리: {paths['sql_dir']}")
     print(f"딕셔너리 파일: {paths['dictionary_file']}")
     print(f"출력 디렉토리: {paths['output_dir']}")
+    
+    # 샘플링 모드 확인
+    sampling_mode = get_sampling_mode()
+    print(f"샘플링 모드: {sampling_mode.upper()}")
     print()
     
     dictionary = load_dictionary()
@@ -577,6 +1059,17 @@ def main():
         return
     
     results = {}
+    
+    # 관계형 샘플러 초기화 (필요한 경우)
+    relational_sampler = None
+    if sampling_mode == 'relational':
+        try:
+            relational_sampler = RelationalBindSampler(dictionary)
+            print("관계형 바인드 샘플러 초기화 완료")
+        except Exception as e:
+            print(f"관계형 샘플러 초기화 실패: {str(e)}")
+            print("기본 샘플링 모드로 전환합니다.")
+            sampling_mode = 'basic'
     
     for sql_file in sql_files:
         try:
@@ -594,21 +1087,56 @@ def main():
             
             if unique_bind_vars:
                 file_name = os.path.basename(sql_file)
-                results[file_name] = []
-                
                 print(f"처리 중: {file_name} ({len(unique_bind_vars)}개 바인드 변수)")
                 
-                for var in unique_bind_vars:
-                    var_type = guess_variable_type(var, dictionary)
-                    sample_value = get_sample_value(var_type, var, dictionary, sql_content)
+                # 샘플링 모드에 따른 처리
+                if sampling_mode == 'relational' and relational_sampler:
+                    try:
+                        # 관계형 샘플링 수행
+                        file_samples = relational_sampler.generate_consistent_samples(
+                            unique_bind_vars, sql_content
+                        )
+                        results[file_name] = file_samples
+                        
+                        # 결과 출력
+                        for sample in file_samples:
+                            print(f"  - {sample['variable']}: {sample['type']} = {sample['sample_value']} (관계형)")
+                            
+                    except Exception as e:
+                        print(f"관계형 샘플링 실패: {str(e)}")
+                        print("기본 샘플링으로 폴백합니다.")
+                        
+                        # 폴백: 기본 샘플링
+                        file_samples = []
+                        for var in unique_bind_vars:
+                            var_type = guess_variable_type(var, dictionary)
+                            sample_value = get_sample_value(var_type, var, dictionary, sql_content)
+                            
+                            file_samples.append({
+                                "variable": var,
+                                "type": var_type,
+                                "sample_value": sample_value
+                            })
+                            
+                            print(f"  - {var}: {var_type} = {sample_value} (기본)")
+                        
+                        results[file_name] = file_samples
+                else:
+                    # 기본 샘플링
+                    file_samples = []
+                    for var in unique_bind_vars:
+                        var_type = guess_variable_type(var, dictionary)
+                        sample_value = get_sample_value(var_type, var, dictionary, sql_content)
+                        
+                        file_samples.append({
+                            "variable": var,
+                            "type": var_type,
+                            "sample_value": sample_value
+                        })
+                        
+                        print(f"  - {var}: {var_type} = {sample_value}")
                     
-                    results[file_name].append({
-                        "variable": var,
-                        "type": var_type,
-                        "sample_value": sample_value
-                    })
-                    
-                    print(f"  - {var}: {var_type} = {sample_value}")
+                    results[file_name] = file_samples
     
         except Exception as e:
             print(f"Error processing {sql_file}: {str(e)}")
@@ -623,6 +1151,7 @@ def main():
             json.dump(bind_vars, f, indent=2, ensure_ascii=False)
     
     print(f"\n처리 완료:")
+    print(f"- 샘플링 모드: {sampling_mode.upper()}")
     print(f"- 처리된 SQL 파일: {len(sql_files)}개")
     print(f"- 바인드 변수가 있는 파일: {len(results)}개")
     print(f"- 생성된 JSON 파일 위치: {output_dir}")

@@ -21,7 +21,7 @@
 #
 # Environment Variables:
 #   SOURCE_DBMS_TYPE    Source database type (default: oracle)
-#   TARGET_DBMS_TYPE    Target database type (default: postgres)
+#   TARGET_DBMS_TYPE    Target database type (default: postgres, mysql)
 #   TEST_FOLDER         Base directory for processing (default: current directory)
 #   TEST_LOGS_FOLDER    Log directory (default: TEST_FOLDER)
 #   APP_TRANSFORM_FOLDER XML list file search directory (default: current directory)
@@ -72,6 +72,7 @@ def check_environment_variables():
                 print(f"- {var}: 설정되지 않음 (기본값: oracle)")
             elif var == 'TARGET_DBMS_TYPE':
                 print(f"- {var}: 설정되지 않음 (기본값: postgres)")
+                print("      지원되는 타겟 DB: postgres, mysql")
     
     print("\n환경 변수 확인 완료.")
     print("=" * 60)
@@ -83,6 +84,14 @@ def get_paths():
     test_logs_folder = os.environ.get('TEST_LOGS_FOLDER', test_folder)
     source_dbms = os.environ.get('SOURCE_DBMS_TYPE', 'oracle').lower()
     target_dbms = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
+    
+    # 타겟 DBMS 정규화
+    if target_dbms in ['pg', 'postgresql']:
+        target_dbms = 'postgres'
+    elif target_dbms in ['mysql', 'mariadb']:
+        target_dbms = 'mysql'
+    elif target_dbms not in ['postgres', 'mysql']:
+        target_dbms = 'postgres'  # 기본값
     
     return {
         'xmllist_dir': os.path.join(test_folder, 'xmllist'),
@@ -192,6 +201,8 @@ def manage_xml_list_files():
         logger.info("다음 명령으로 XML 리스트 파일을 먼저 생성하세요:")
         logger.info(f"  python3 FindXMLFiles.py /path/to/xml/files --{source_dbms}")
         logger.info(f"  python3 FindXMLFiles.py /path/to/xml/files --{target_dbms}")
+        if target_dbms == 'mysql':
+            logger.info(f"  MySQL 타겟의 경우 --mysql 옵션을 사용하세요.")
         logger.info(f"생성된 파일을 다음 위치 중 하나에 배치하세요:")
         logger.info(f"  - 현재 디렉토리: {os.getcwd()}")
         logger.info(f"  - APP_TRANSFORM_FOLDER: {app_transform_folder}")
@@ -334,6 +345,107 @@ def clean_sql_content(sql_content):
     
     return '\n'.join(cleaned_lines)
 
+def convert_sql_for_target_db(sql_content, target_db_type):
+    """타겟 데이터베이스에 맞게 SQL을 변환합니다."""
+    if target_db_type.lower() in ['postgres', 'postgresql']:
+        return convert_to_postgresql(sql_content)
+    elif target_db_type.lower() in ['mysql', 'mariadb']:
+        return convert_to_mysql(sql_content)
+    else:
+        return sql_content  # Oracle이거나 변환이 필요 없는 경우
+
+def convert_to_postgresql(sql_content):
+    """Oracle SQL을 PostgreSQL용으로 변환"""
+    # 기본적인 변환 규칙들
+    conversions = [
+        # 날짜 함수 변환
+        (r'TO_DATE\s*\(\s*([^,]+)\s*,\s*[\'"][^\'\"]*[\'\"]\s*\)', r'TO_TIMESTAMP(\1, \'YYYY-MM-DD\')'),
+        (r'SYSDATE', 'CURRENT_TIMESTAMP'),
+        (r'SYSTIMESTAMP', 'CURRENT_TIMESTAMP'),
+        
+        # NULL 처리 함수
+        (r'NVL\s*\(', 'COALESCE('),
+        (r'NVL2\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)', r'CASE WHEN \1 IS NOT NULL THEN \2 ELSE \3 END'),
+        
+        # 문자열 함수
+        (r'INSTR\s*\(', 'POSITION('),
+        (r'SUBSTR\s*\(', 'SUBSTRING('),
+        (r'LENGTH\s*\(', 'CHAR_LENGTH('),
+        
+        # 기타 함수
+        (r'ROWNUM', 'ROW_NUMBER() OVER ()'),
+        (r'DUAL\b', '(SELECT 1) AS dual'),
+        
+        # 데이터 타입 변환
+        (r'\bVARCHAR2\b', 'VARCHAR'),
+        (r'\bNUMBER\b', 'NUMERIC'),
+        (r'\bDATE\b', 'TIMESTAMP'),
+        
+        # 시퀀스 관련
+        (r'(\w+)\.NEXTVAL', r'nextval(''\1'')'),
+        (r'(\w+)\.CURRVAL', r'currval(''\1'')'),
+    ]
+    
+    modified_sql = sql_content
+    for pattern, replacement in conversions:
+        modified_sql = re.sub(pattern, replacement, modified_sql, flags=re.IGNORECASE)
+    
+    return modified_sql
+
+def convert_to_mysql(sql_content):
+    """Oracle SQL을 MySQL용으로 변환"""
+    # 기본적인 변환 규칙들
+    conversions = [
+        # 날짜 함수 변환
+        (r'TO_DATE\s*\(\s*([^,]+)\s*,\s*[\'"]YYYY-?MM-?DD[HH24MISS]*[\'\"]\s*\)', r'STR_TO_DATE(\1, \'%Y-%m-%d\')'),
+        (r'TO_DATE\s*\(\s*([^,]+)\s*,\s*[\'"]YYYY-?MM[\'\"]\s*\)', r'STR_TO_DATE(\1, \'%Y-%m\')'),
+        (r'TO_DATE\s*\(\s*([^,]+)\s*,\s*[\'"]YYYYMMDD[\'\"]\s*\)', r'STR_TO_DATE(\1, \'%Y%m%d\')'),
+        (r'TO_DATE\s*\(\s*([^,]+)\s*,\s*[\'"]YYYYMM[\'\"]\s*\)', r'STR_TO_DATE(\1, \'%Y%m\')'),
+        (r'SYSDATE', 'NOW()'),
+        (r'SYSTIMESTAMP', 'NOW()'),
+        
+        # NULL 처리 함수 (MySQL은 IFNULL 사용)
+        (r'NVL\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)', r'IFNULL(\1, \2)'),
+        (r'NVL2\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)', r'IF(\1 IS NOT NULL, \2, \3)'),
+        
+        # 문자열 함수 (MySQL과 Oracle이 유사함)
+        (r'SUBSTR\s*\(', 'SUBSTRING('),
+        (r'LENGTH\s*\(', 'CHAR_LENGTH('),
+        
+        # ROWNUM을 ROW_NUMBER()로 변환
+        (r'ROWNUM\s*<=\s*(\d+)', r'ROW_NUMBER() OVER () <= \1'),
+        (r'ROWNUM\s*<\s*(\d+)', r'ROW_NUMBER() OVER () < \1'),
+        (r'ROWNUM\s*=\s*(\d+)', r'ROW_NUMBER() OVER () = \1'),
+        (r'ROWNUM', 'ROW_NUMBER() OVER ()'),
+        
+        # DUAL 테이블
+        (r'FROM\s+DUAL\b', 'FROM (SELECT 1) AS dual'),
+        (r'DUAL\b', '(SELECT 1) AS dual'),
+        
+        # 데이터 타입 변환
+        (r'\bVARCHAR2\s*\(\s*(\d+)\s*\)', r'VARCHAR(\1)'),
+        (r'\bNUMBER\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)', r'DECIMAL(\1,\2)'),
+        (r'\bNUMBER\s*\(\s*(\d+)\s*\)', r'DECIMAL(\1,0)'),
+        (r'\bNUMBER\b', 'DECIMAL(10,0)'),
+        (r'\bDATE\b', 'DATETIME'),
+        
+        # 시퀀스를 AUTO_INCREMENT로 변환 (제한적)
+        (r'(\w+)\.NEXTVAL', r'AUTO_INCREMENT'),
+        
+        # 연결 연산자
+        (r'\|\|', 'CONCAT'),
+        
+        # DECODE 함수를 CASE WHEN으로 변환 (간단한 경우)
+        (r'DECODE\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)', 
+         r'CASE WHEN \1 = \2 THEN \3 ELSE \4 END'),
+    ]
+    
+    modified_sql = sql_content
+    for pattern, replacement in conversions:
+        modified_sql = re.sub(pattern, replacement, modified_sql, flags=re.IGNORECASE)
+    
+    return modified_sql
+
 def extract_sql_from_element(element, namespace=''):
     """XML 엘리먼트에서 SQL을 추출합니다."""
     sql_statements = []
@@ -436,7 +548,7 @@ def parse_xml_file(xml_file_path):
         logger.error(f"XML 파일 처리 중 예외 발생: {xml_file_path} - {e}")
         return []
 
-def generate_sql_filename(xml_file_path, sql_id, sql_type):
+def generate_sql_filename(xml_file_path, sql_id, sql_type, db_type='oracle'):
     """SQL 파일명을 생성합니다."""
     # XML 파일명에서 확장자 제거
     xml_basename = os.path.basename(xml_file_path)
@@ -446,8 +558,18 @@ def generate_sql_filename(xml_file_path, sql_id, sql_type):
     xml_name = re.sub(r'[^\w\-_.]', '_', xml_name)
     sql_id = re.sub(r'[^\w\-_.]', '_', sql_id)
     
-    # SQL 파일명 생성: {xml_name}.{sql_id}.sql
-    sql_filename = f"{xml_name}.{sql_id}.sql"
+    # 데이터베이스 타입별 접미사 추가
+    if db_type.lower() in ['postgres', 'postgresql', 'pg']:
+        db_suffix = '_pg'
+    elif db_type.lower() in ['mysql', 'mariadb']:
+        db_suffix = '_mysql'
+    elif db_type.lower() in ['oracle', 'orcl']:
+        db_suffix = '_orcl'
+    else:
+        db_suffix = ''  # 기본값
+    
+    # SQL 파일명 생성: {xml_name}.{sql_id}{db_suffix}.sql
+    sql_filename = f"{xml_name}.{sql_id}{db_suffix}.sql"
     
     return sql_filename
 
@@ -467,13 +589,21 @@ def save_sql_file(sql_content, output_path):
         logger.error(f"SQL 파일 저장 실패: {output_path} - {e}")
         return False
 
-def process_xml_files(xml_files, output_dir, db_type):
+def process_xml_files(xml_files, output_dir, db_type, target_dbms=None):
     """XML 파일들을 처리하여 SQL 파일들을 생성합니다."""
     logger.info(f"{db_type} XML 파일 처리 시작: {len(xml_files)}개 파일")
     
     total_sql_count = 0
     processed_files = 0
     error_files = 0
+    
+    # DB 타입 정보 추출 (예: "TGT (MYSQL)" -> "mysql")
+    actual_db_type = 'oracle'  # 기본값
+    if target_dbms:
+        actual_db_type = target_dbms.lower()
+    elif '(' in db_type:
+        # "TGT (MYSQL)" 형태에서 "mysql" 추출
+        actual_db_type = db_type.split('(')[1].split(')')[0].strip().lower()
     
     for i, xml_file in enumerate(xml_files, 1):
         logger.info(f"[{i}/{len(xml_files)}] 처리 중: {os.path.basename(xml_file)}")
@@ -489,16 +619,26 @@ def process_xml_files(xml_files, output_dir, db_type):
             # 각 SQL 문을 개별 파일로 저장
             file_sql_count = 0
             for sql_stmt in sql_statements:
-                sql_filename = generate_sql_filename(xml_file, sql_stmt['id'], sql_stmt['type'])
+                # DB 타입에 맞는 파일명 생성
+                sql_filename = generate_sql_filename(xml_file, sql_stmt['id'], sql_stmt['type'], actual_db_type)
                 sql_output_path = os.path.join(output_dir, sql_filename)
+                
+                # SQL 내용 변환 (타겟 DB용)
+                original_sql = sql_stmt['content']
+                if actual_db_type != 'oracle':
+                    converted_sql = convert_sql_for_target_db(original_sql, actual_db_type)
+                    logger.debug(f"SQL 변환 적용: {sql_stmt['id']} -> {actual_db_type.upper()}")
+                else:
+                    converted_sql = original_sql
                 
                 # SQL 내용에 주석 추가
                 sql_content = f"""-- Source XML: {xml_file}
 -- SQL ID: {sql_stmt['id']}
 -- SQL Type: {sql_stmt['type']}
+-- Target DB: {actual_db_type.upper()}
 -- Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-{sql_stmt['content']}
+{converted_sql}
 """
                 
                 if save_sql_file(sql_content, sql_output_path):
@@ -507,7 +647,7 @@ def process_xml_files(xml_files, output_dir, db_type):
             
             if file_sql_count > 0:
                 processed_files += 1
-                logger.info(f"  완료: {file_sql_count}개 SQL 추출")
+                logger.info(f"  완료: {file_sql_count}개 SQL 추출 ({actual_db_type.upper()})")
             else:
                 logger.warning(f"  SQL 저장 실패: {xml_file}")
                 error_files += 1
@@ -590,6 +730,7 @@ def main():
         else:
             logger.warning(f"알 수 없는 인수: {sys.argv[1]}")
             logger.info(f"사용법: python3 XMLToSQL.py [src|tgt|{source_dbms}|{target_dbms}]")
+            logger.info(f"지원되는 데이터베이스: oracle, postgres, mysql")
     
     # 디렉토리 설정
     setup_directories()
@@ -659,7 +800,7 @@ def main():
             output_dir = paths['tgt_sql_extract_dir']
         
         # XML 파일들 처리
-        result = process_xml_files(xml_files, output_dir, f"{list_type.upper()} ({dbms_type.upper()})")
+        result = process_xml_files(xml_files, output_dir, f"{list_type.upper()} ({dbms_type.upper()})", dbms_type)
         processing_results[list_type] = result
         processing_results[list_type]['dbms_type'] = dbms_type
     
