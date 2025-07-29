@@ -119,9 +119,11 @@ config/setup.sh
 ### **OMA 환경 설정**
 
 **OMA 프로젝트 초기화**
+
 OMABox (EC2)가 생성되면 Application Source 코드를 준비하고 GitHub에서 OMA 프로젝트 코드를 동기화한 후 환경 설정을 진행합니다.
 
 **Application Source 코드 준비**
+
 마이그레이션 작업을 위해 Source와 Target용 두 개의 폴더에 동일한 애플리케이션 소스 코드를 복사합니다. 디렉토리명으로 Source/Target을 구분할 수 있도록 구성합니다.
 
 ```bash
@@ -137,6 +139,7 @@ cp -r /path/to/original/source/* /home/ec2-user/workspace/chalee/postgres-itsm/
 ```
 
 **OMA 도구 설치**
+
 ```bash
 # workspace 디렉토리 생성 및 이동
 mkdir -p ~/workspace
@@ -150,6 +153,7 @@ cd ~/workspace/oma
 ```
 
 **설정 파일 (oma.properties) 구성**
+
 ⚠️ **중요**: initOMA.sh 실행 전에 반드시 설정 파일을 구성해야 합니다.
 
 - **파일 위치**: `config/oma.properties`
@@ -157,6 +161,7 @@ cd ~/workspace/oma
 - **사용**: `setEnv.sh` 실행 시 이 파일을 기반으로 프로젝트별 환경 변수 파일 생성
 
 **환경 설정 실행**
+
 설정 파일 구성이 완료된 후 환경 설정을 실행합니다.
 
 ```bash
