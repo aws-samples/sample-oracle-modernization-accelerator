@@ -1,50 +1,13 @@
 ---
-layout: splash
+layout: home
 title: "Oracle Modernization Accelerator (OMA)"
-excerpt: "Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션"
-header:
-  overlay_color: "#5e616c"
-  overlay_filter: 0.5
-  actions:
-    - label: "시작하기"
-      url: "/OMA-Introduction/"
-      btn_class: "btn--primary"
-    - label: "GitHub"
-      url: "https://github.com/aws-samples/sample-oracle-modernization-accelerator"
-      btn_class: "btn--inverse"
-
-feature_row:
-  - image_path: /assets/images/analysis-icon.png
-    alt: "애플리케이션 분석"
-    title: "🔍 애플리케이션 분석"
-    excerpt: "Java 소스 코드 및 MyBatis XML 파일을 자동으로 분석하여 변환 대상 SQL을 식별합니다."
-    url: "/1-1.processAppAnalysis/"
-    btn_label: "자세히 보기"
-    btn_class: "btn--primary"
-    
-  - image_path: /assets/images/transform-icon.png
-    alt: "자동 변환"
-    title: "⚡ 자동 변환"
-    excerpt: "Oracle SQL을 PostgreSQL/MySQL로 자동 변환하고 MyBatis XML 파일을 처리합니다."
-    url: "/2-1.processSqlTransform/"
-    btn_label: "자세히 보기"
-    btn_class: "btn--primary"
-    
-  - image_path: /assets/images/test-icon.png
-    alt: "검증 및 테스트"
-    title: "✅ 검증 및 테스트"
-    excerpt: "변환된 SQL의 동작을 검증하고 상세한 분석 보고서를 생성합니다."
-    url: "/3-1.sqlUnitTest/"
-    btn_label: "자세히 보기"
-    btn_class: "btn--primary"
-
-intro:
-  - excerpt: "AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코드 변환을 통해 효율적인 데이터베이스 현대화를 지원합니다."
 ---
 
-{% include feature_row id="intro" type="center" %}
+# Oracle Modernization Accelerator (OMA)
 
-{% include feature_row %}
+Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션입니다.
+
+AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코드 변환을 통해 효율적인 데이터베이스 현대화를 지원합니다.
 
 ## 🚀 빠른 시작
 
@@ -55,21 +18,18 @@ intro:
 
 ## 📁 주요 구성 요소
 
-### 1. 통합 제어 계층
+### 1. 🔍 애플리케이션 분석
+Java 소스 코드 및 MyBatis XML 파일을 자동으로 분석하여 변환 대상 SQL을 식별합니다.
+
+### 2. ⚡ 자동 변환
+Oracle SQL을 PostgreSQL/MySQL로 자동 변환하고 MyBatis XML 파일을 처리합니다.
+
+### 3. ✅ 검증 및 테스트
+변환된 SQL의 동작을 검증하고 상세한 분석 보고서를 생성합니다.
+
+### 4. 📊 통합 제어 계층
 - **initOMA.sh**: 메뉴 기반 통합 실행 스크립트
 - **환경 설정**: 프로젝트별 환경 변수 관리
-
-### 2. 분석 엔진
-- **애플리케이션 분석**: Java 소스 코드 및 MyBatis XML 파일 분석
-- **SQL 추출**: 변환 대상 SQL 식별 및 분류
-
-### 3. 변환 엔진
-- **SQL 변환**: Oracle SQL을 Target DBMS SQL로 자동 변환
-- **XML 처리**: MyBatis XML 파일 변환 및 병합
-
-### 4. 검증 엔진
-- **Unit 테스트**: 변환된 SQL 동작 검증
-- **보고서 생성**: 변환 결과 분석 및 HTML 보고서 생성
 
 ## 📖 문서 구조
 
@@ -103,4 +63,21 @@ intro:
 
 ---
 
+## 🌟 주요 특징
+
+- ✨ **자동화된 인프라 구성**: CloudFormation을 통한 AWS 리소스 자동 배포
+- 🤖 **AI 기반 코드 분석**: Amazon Q를 활용한 코드 분석 및 변환
+- 🔄 **데이터베이스 스키마 변환**: DMS Schema Conversion을 통한 자동 변환
+- ☕ **애플리케이션 코드 변환**: Java/MyBatis 코드 자동 변환
+
+## 🎯 지원 환경
+
+- **소스 데이터베이스**: Oracle Database
+- **타겟 데이터베이스**: Aurora PostgreSQL, Aurora MySQL
+- **애플리케이션**: Java, Spring Boot, MyBatis
+
+---
+
 **자세한 설치 가이드, 사용법, 단계별 매뉴얼은 각 문서에서 확인하세요.**
+
+[GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator){: .btn .btn-primary}

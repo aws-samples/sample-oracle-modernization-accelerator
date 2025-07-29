@@ -12,53 +12,17 @@ author:
   bio: "Oracle to PostgreSQL/MySQL Migration Experts"
   location: "AWS"
 
-# Theme
-remote_theme: mmistakes/minimal-mistakes
-
-# Skin (theme variant)
-minimal_mistakes_skin: "default" # "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
+# Theme - GitHub Pages 호환
+theme: minima
+# remote_theme: mmistakes/minimal-mistakes
 
 # Site Settings
 locale: "ko-KR"
 repository: "aws-samples/sample-oracle-modernization-accelerator"
 
-# Reading Files
-include:
-  - .htaccess
-  - _pages
-exclude:
-  - "*.sublime-project"
-  - "*.sublime-workspace"
-  - vendor
-  - .asset-cache
-  - .bundle
-  - .jekyll-assets-cache
-  - .sass-cache
-  - assets/js/plugins
-  - assets/js/_main.js
-  - assets/js/vendor
-  - Capfile
-  - CHANGELOG
-  - config
-  - Gemfile
-  - Gruntfile.js
-  - gulpfile.js
-  - LICENSE
-  - log
-  - node_modules
-  - package.json
-  - Rakefile
-  - README
-  - tmp
-
-# Conversion
+# Markdown Processing
 markdown: kramdown
 highlighter: rouge
-lsi: false
-excerpt_separator: "\n\n"
-incremental: false
-
-# Markdown Processing
 kramdown:
   input: GFM
   hard_wrap: false
@@ -67,60 +31,22 @@ kramdown:
   entity_output: as_char
   toc_levels: 1..6
   smart_quotes: lsquo,rsquo,ldquo,rdquo
-  enable_coderay: false
 
-# Collections
-collections:
-  docs:
-    output: true
-    permalink: /:collection/:name/
-
-# Defaults
-defaults:
-  # _posts
-  - scope:
-      path: ""
-      type: posts
-    values:
-      layout: single
-      author_profile: true
-      read_time: true
-      comments: true
-      share: true
-      related: true
-  # _pages
-  - scope:
-      path: "_pages"
-      type: pages
-    values:
-      layout: single
-      author_profile: true
-  # _docs
-  - scope:
-      path: ""
-      type: docs
-    values:
-      layout: single
-      read_time: false
-      author_profile: false
-      share: false
-      comments: false
-      sidebar:
-        nav: "docs"
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
 
 # Navigation
-navigation:
-  - title: "Home"
-    url: /
-  - title: "Documentation"
-    url: /docs/
-
-# Footer
-footer:
-  links:
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/aws-samples/sample-oracle-modernization-accelerator"
+header_pages:
+  - OMA-Introduction.md
+  - Pre-Requisites.md
+  - 0-1.setEnv.md
+  - 1-1.processAppAnalysis.md
+  - 2-1.processSqlTransform.md
+  - 3-1.sqlUnitTest.md
+  - useful-tools.md
 
 # Plugins
 plugins:
