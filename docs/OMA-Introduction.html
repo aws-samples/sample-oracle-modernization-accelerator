@@ -22,6 +22,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
+            font-size: 14px; /* 기본 폰트 크기를 14px로 줄임 */
         }
 
         .navbar {
@@ -77,11 +78,12 @@
             color: var(--primary-color);
             margin-bottom: 0.5rem;
             font-weight: 700;
+            font-size: 1.8rem; /* 2.4rem에서 1.8rem로 줄임 */
         }
 
         .content-header .description {
             color: #6c757d;
-            font-size: 1.1rem;
+            font-size: 1rem; /* 1.1rem에서 1rem로 줄임 */
             margin: 0;
         }
 
@@ -91,18 +93,35 @@
             padding-bottom: 0.5rem;
             margin-top: 2rem;
             margin-bottom: 1rem;
+            font-size: 1.4rem; /* 기본값에서 명시적으로 설정 */
         }
 
         .content-body h3 {
             color: var(--secondary-color);
             margin-top: 1.5rem;
             margin-bottom: 1rem;
+            font-size: 1.2rem; /* 기본값에서 명시적으로 설정 */
         }
 
         .content-body h4 {
             color: var(--primary-color);
             margin-top: 1.25rem;
             margin-bottom: 0.75rem;
+            font-size: 1.1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h5 {
+            color: var(--secondary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h6 {
+            color: var(--primary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem; /* 기본값에서 명시적으로 설정 */
         }
 
         .alert {
@@ -274,6 +293,28 @@
         .toc a:hover {
             color: var(--primary-color);
             padding-left: 1rem;
+        }
+
+        .content-body p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .content-body li {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-body ul ul li, 
+        .content-body ol ol li {
+            font-size: 13px;
+        }
+
+        .content-body ul ul ul li, 
+        .content-body ol ol ol li {
+            font-size: 12px;
         }
 
         @media (max-width: 768px) {
