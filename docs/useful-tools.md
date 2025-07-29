@@ -9,81 +9,6 @@ description: "OMA 프로젝트에서 활용할 수 있는 유용한 도구들"
 
 OMA 프로젝트 진행 시 활용할 수 있는 유용한 도구들을 소개합니다.
 
-### **OMA 상태 수집 도구 (gatherStatus.sh)**
-- **용도**: OMA 프로젝트의 전체 진행 상황 및 통계 정보 수집
-- **위치**: `$OMA_HOME/bin/gatherStatus.sh`
-- **주요 기능**:
-  - SQL 변환 작업 진행 상황 통계
-  - Extract/Transform XML 파일 개수 집계
-  - Process 상태별 분포 및 비율 분석
-  - 전체 작업 현황 요약 리포트
-
-#### **수집하는 정보**
-
-**1. SQLTransformTarget.csv Process 컬럼 통계:**
-- 총 레코드 수
-- Process 상태별 개수 및 비율
-- 완료/진행중/오류 상태 분포
-
-**2. Extract XML 파일 통계:**
-- Extract 단계에서 생성된 XML 파일 개수
-- 파일 위치: `$APP_LOGS_FOLDER/*/extract/*.xml`
-
-**3. Transform XML 파일 통계:**
-- Transform 단계에서 생성된 XML 파일 개수
-- 파일 위치: `$APP_LOGS_FOLDER/*/transform/*.xml`
-
-**4. 전체 요약:**
-- CSV 파일 위치 정보
-- 총 XML 파일 개수
-- 작업 진행률 개요
-
-#### **사용 방법**
-```bash
-# 환경 변수 설정
-source ./oma_env_<project_name>.sh
-
-# 상태 정보 수집 실행
-$OMA_HOME/bin/gatherStatus.sh
-
-# 결과를 파일로 저장
-$OMA_HOME/bin/gatherStatus.sh > status_report_$(date +%Y%m%d_%H%M%S).txt
-```
-
-#### **출력 예시**
-```
-=== 통계 자료 수집 시작 ===
-수집 시간: 2024-07-29 17:00:00
-
-=== SQLTransformTarget.csv Process 컬럼별 통계 ===
-파일 위치: /path/to/SQLTransformTarget.csv
-총 레코드 수: 1500
-
-Process 상태별 통계 및 비율:
-+---------------+-------+--------+
-| 상태          | 개수  | 비율   |
-+---------------+-------+--------+
-| COMPLETED     |   850 | 56.67% |
-| PROCESSING    |   400 | 26.67% |
-| ERROR         |   150 | 10.00% |
-| (빈값)        |   100 |  6.67% |
-+---------------+-------+--------+
-| 전체          |  1500 | 100.00% |
-+---------------+-------+--------+
-
-=== Extract XML 파일 통계 ===
-Extract XML 파일 개수: 850
-
-=== Transform XML 파일 통계 ===
-Transform XML 파일 개수: 750
-
-=== 전체 요약 ===
-CSV 파일: /path/to/SQLTransformTarget.csv
-Extract XML 파일: 850 개
-Transform XML 파일: 750 개
-총 XML 파일: 1600 개
-```
-
 ## 🚀 Batch 프로세싱
 
 ### **OMA 병렬 SQL 변환 처리**
@@ -160,6 +85,81 @@ $APP_TOOLS_FOLDER/../batch/run_single_background.sh 1
 # 계정2에서 프로세스 2,3 실행  
 $APP_TOOLS_FOLDER/../batch/run_single_background.sh 2
 $APP_TOOLS_FOLDER/../batch/run_single_background.sh 3
+```
+
+### **OMA 상태 수집 도구 (gatherStatus.sh)**
+- **용도**: OMA 프로젝트의 전체 진행 상황 및 통계 정보 수집
+- **위치**: `$OMA_HOME/bin/gatherStatus.sh`
+- **주요 기능**:
+  - SQL 변환 작업 진행 상황 통계
+  - Extract/Transform XML 파일 개수 집계
+  - Process 상태별 분포 및 비율 분석
+  - 전체 작업 현황 요약 리포트
+
+#### **수집하는 정보**
+
+**1. SQLTransformTarget.csv Process 컬럼 통계:**
+- 총 레코드 수
+- Process 상태별 개수 및 비율
+- 완료/진행중/오류 상태 분포
+
+**2. Extract XML 파일 통계:**
+- Extract 단계에서 생성된 XML 파일 개수
+- 파일 위치: `$APP_LOGS_FOLDER/*/extract/*.xml`
+
+**3. Transform XML 파일 통계:**
+- Transform 단계에서 생성된 XML 파일 개수
+- 파일 위치: `$APP_LOGS_FOLDER/*/transform/*.xml`
+
+**4. 전체 요약:**
+- CSV 파일 위치 정보
+- 총 XML 파일 개수
+- 작업 진행률 개요
+
+#### **사용 방법**
+```bash
+# 환경 변수 설정
+source ./oma_env_<project_name>.sh
+
+# 상태 정보 수집 실행
+$OMA_HOME/bin/gatherStatus.sh
+
+# 결과를 파일로 저장
+$OMA_HOME/bin/gatherStatus.sh > status_report_$(date +%Y%m%d_%H%M%S).txt
+```
+
+#### **출력 예시**
+```
+=== 통계 자료 수집 시작 ===
+수집 시간: 2024-07-29 17:00:00
+
+=== SQLTransformTarget.csv Process 컬럼별 통계 ===
+파일 위치: /path/to/SQLTransformTarget.csv
+총 레코드 수: 1500
+
+Process 상태별 통계 및 비율:
++---------------+-------+--------+
+| 상태          | 개수  | 비율   |
++---------------+-------+--------+
+| COMPLETED     |   850 | 56.67% |
+| PROCESSING    |   400 | 26.67% |
+| ERROR         |   150 | 10.00% |
+| (빈값)        |   100 |  6.67% |
++---------------+-------+--------+
+| 전체          |  1500 | 100.00% |
++---------------+-------+--------+
+
+=== Extract XML 파일 통계 ===
+Extract XML 파일 개수: 850
+
+=== Transform XML 파일 통계 ===
+Transform XML 파일 개수: 750
+
+=== 전체 요약 ===
+CSV 파일: /path/to/SQLTransformTarget.csv
+Extract XML 파일: 850 개
+Transform XML 파일: 750 개
+총 XML 파일: 1600 개
 ```
 
 ## 📊 Amazon Q Log Monitoring
@@ -282,151 +282,6 @@ q chat
 # 위의 프롬프트 예시를 복사하여 사용
 ```
 
-### **DBeaver**
-- **용도**: 범용 데이터베이스 클라이언트
-- **지원 DB**: Oracle, PostgreSQL, MySQL 등
-- **주요 기능**: 
-  - SQL 편집 및 실행
-  - 데이터베이스 스키마 비교
-  - 데이터 내보내기/가져오기
-- **다운로드**: [https://dbeaver.io/](https://dbeaver.io/)
-
-### **pgAdmin (PostgreSQL 전용)**
-- **용도**: PostgreSQL 전용 관리 도구
-- **주요 기능**:
-  - 웹 기반 관리 인터페이스
-  - 쿼리 실행 및 성능 모니터링
-  - 백업/복원 기능
-- **다운로드**: [https://www.pgadmin.org/](https://www.pgadmin.org/)
-
-### **MySQL Workbench (MySQL 전용)**
-- **용도**: MySQL 전용 관리 도구
-- **주요 기능**:
-  - 시각적 데이터베이스 설계
-  - SQL 개발 및 관리
-  - 서버 관리 기능
-- **다운로드**: [https://www.mysql.com/products/workbench/](https://www.mysql.com/products/workbench/)
-
-## 📊 데이터 비교 및 검증 도구
-
-### **AWS DMS Data Validation**
-- **용도**: 마이그레이션된 데이터 검증
-- **주요 기능**:
-  - 소스와 타겟 데이터 비교
-  - 자동화된 검증 리포트
-  - 불일치 데이터 식별
-
-### **DBUnit**
-- **용도**: 데이터베이스 단위 테스트
-- **주요 기능**:
-  - 테스트 데이터 준비
-  - 데이터베이스 상태 검증
-  - JUnit과 통합
-
-## 🔄 SQL 변환 도구
-
-### **AWS Schema Conversion Tool (SCT)**
-- **용도**: 데이터베이스 스키마 변환
-- **지원**: Oracle → PostgreSQL/MySQL
-- **주요 기능**:
-  - 자동 스키마 변환
-  - 변환 불가능한 항목 식별
-  - 변환 리포트 생성
-
-### **ora2pg**
-- **용도**: Oracle에서 PostgreSQL로 마이그레이션
-- **주요 기능**:
-  - 스키마 및 데이터 변환
-  - PL/SQL → PL/pgSQL 변환
-  - 커스터마이징 가능한 변환 규칙
-
-## 📝 코드 분석 도구
-
-### **SonarQube**
-- **용도**: 코드 품질 분석
-- **주요 기능**:
-  - 코드 복잡도 분석
-  - 보안 취약점 검사
-  - 기술 부채 측정
-
-### **Amazon Q Developer**
-- **용도**: AI 기반 코드 분석 및 변환
-- **주요 기능**:
-  - 코드 리팩토링 제안
-  - 자동 코드 생성
-  - 보안 스캔
-
-## 🚀 성능 모니터링 도구
-
-### **AWS CloudWatch**
-- **용도**: AWS 리소스 모니터링
-- **주요 기능**:
-  - 데이터베이스 성능 메트릭
-  - 로그 수집 및 분석
-  - 알람 설정
-
-### **AWS Performance Insights**
-- **용도**: 데이터베이스 성능 분석
-- **주요 기능**:
-  - 쿼리 성능 분석
-  - 대기 이벤트 모니터링
-  - 성능 병목 지점 식별
-
-## 📋 프로젝트 관리 도구
-
-### **Jira**
-- **용도**: 이슈 및 프로젝트 관리
-- **주요 기능**:
-  - 작업 추적 및 관리
-  - 스프린트 계획
-  - 리포팅 및 대시보드
-
-### **Confluence**
-- **용도**: 문서 협업 플랫폼
-- **주요 기능**:
-  - 기술 문서 작성
-  - 팀 협업
-  - 지식 베이스 구축
-
-## 🔍 로그 분석 도구
-
-### **AWS CloudTrail**
-- **용도**: AWS API 호출 로깅
-- **주요 기능**:
-  - 보안 감사
-  - 규정 준수 모니터링
-  - 문제 해결 지원
-
-### **ELK Stack (Elasticsearch, Logstash, Kibana)**
-- **용도**: 로그 수집, 분석, 시각화
-- **주요 기능**:
-  - 실시간 로그 분석
-  - 대시보드 생성
-  - 알림 설정
-
-## 💡 추천 사용법
-
-### **개발 단계별 도구 활용**
-
-1. **분석 단계**: SonarQube, Amazon Q Developer
-2. **변환 단계**: AWS SCT, ora2pg
-3. **테스트 단계**: DBUnit, DBeaver
-4. **검증 단계**: AWS DMS Data Validation
-5. **모니터링 단계**: CloudWatch, Performance Insights
-
-### **팀 협업을 위한 도구**
-
-- **문서화**: Confluence, GitHub Wiki
-- **이슈 관리**: Jira, GitHub Issues
-- **코드 리뷰**: GitHub Pull Request, GitLab MR
-
-## 📚 추가 리소스
-
-- [AWS Database Migration Service 사용자 가이드](https://docs.aws.amazon.com/dms/)
-- [PostgreSQL 공식 문서](https://www.postgresql.org/docs/)
-- [MySQL 공식 문서](https://dev.mysql.com/doc/)
-- [Oracle Database 마이그레이션 가이드](https://docs.aws.amazon.com/prescriptive-guidance/latest/migration-oracle-database/)
-
 ---
 
-💡 **팁**: 각 도구의 라이선스 정책을 확인하고, 프로젝트 요구사항에 맞는 도구를 선택하세요.
+💡 **팁**: 각 도구의 사용법을 숙지하고, 프로젝트 단계에 맞는 도구를 선택하여 효율적으로 작업하세요.
