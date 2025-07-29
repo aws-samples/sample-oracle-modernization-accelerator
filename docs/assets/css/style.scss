@@ -1,13 +1,27 @@
 ---
 ---
 
+// 전체 페이지에 적용되는 기본 스타일
+* {
+  box-sizing: border-box !important;
+}
+
 // 전체 폰트 크기 증가
-body {
+body, .site-content, .main-content-wrap, .main-content {
   font-size: 16px !important;
   line-height: 1.6 !important;
+}
+
+// 배경 스타일 - 모든 페이지에 적용
+body, html {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
   min-height: 100vh !important;
   padding-top: 60px !important; /* 북마크바 높이만큼 여백 */
+}
+
+// just-the-docs 테마의 기본 배경 덮어쓰기
+.site-content, .main-content-wrap {
+  background: transparent !important;
 }
 
 // 사이트 헤더가 북마크바에 가리지 않도록 상단 여백 대폭 증가
@@ -47,8 +61,8 @@ body {
   padding-top: 20px !important;
 }
 
-// 제목 폰트 크기 - 계층 구조에 맞게 조정하고 시각적 개선
-h1 {
+// 제목 폰트 크기 - 계층 구조에 맞게 조정하고 모든 페이지에 강력하게 적용
+.main-content h1, .site-content h1, h1 {
   font-size: 2.4em !important;
   margin-bottom: 1em !important;
   color: #2c3e50 !important;
@@ -62,7 +76,7 @@ h1 {
   background-clip: text !important;
 }
 
-h2 {
+.main-content h2, .site-content h2, h2 {
   font-size: 1.9em !important;
   margin-top: 1.5em !important;
   margin-bottom: 0.8em !important;
@@ -72,7 +86,7 @@ h2 {
   padding-left: 20px !important;
 }
 
-h2:before {
+.main-content h2:before, .site-content h2:before, h2:before {
   content: "▶" !important;
   color: #3498db !important;
   position: absolute !important;
@@ -80,7 +94,7 @@ h2:before {
   top: 0 !important;
 }
 
-h3 {
+.main-content h3, .site-content h3, h3 {
   font-size: 1.5em !important;
   margin-top: 1.2em !important;
   margin-bottom: 0.6em !important;
@@ -92,7 +106,8 @@ h3 {
   border-radius: 0 8px 8px 0 !important;
 }
 
-h4 {
+// 제목 폰트 크기 - 모든 페이지에 강력하게 적용
+.main-content h4, .site-content h4, h4 {
   font-size: 1.2em !important;
   margin-top: 1em !important;
   margin-bottom: 0.5em !important;
@@ -100,7 +115,7 @@ h4 {
   font-weight: 600 !important;
 }
 
-h5 {
+.main-content h5, .site-content h5, h5 {
   font-size: 1.2em !important;
   margin-top: 1em !important;
   margin-bottom: 0.5em !important;
@@ -108,7 +123,7 @@ h5 {
   font-weight: 600 !important;
 }
 
-h6 {
+.main-content h6, .site-content h6, h6 {
   font-size: 1.2em !important;
   margin-top: 1em !important;
   margin-bottom: 0.5em !important;
@@ -281,8 +296,8 @@ blockquote:before {
   font-size: 1.2em !important;
 }
 
-// 메인 컨텐츠 영역 개선 - 카드 스타일
-.main-content {
+// 메인 컨텐츠 영역 개선 - 모든 페이지에 카드 스타일 적용
+.main-content, .site-content .main-content, .main-content-wrap .main-content {
   max-width: none !important;
   padding: 2.5rem !important;
   background: white !important;
@@ -292,7 +307,7 @@ blockquote:before {
   position: relative !important;
 }
 
-.main-content:before {
+.main-content:before, .site-content .main-content:before, .main-content-wrap .main-content:before {
   content: "" !important;
   position: absolute !important;
   top: 0 !important;
