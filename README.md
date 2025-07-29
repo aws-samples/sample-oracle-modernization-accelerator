@@ -9,7 +9,7 @@ AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코�
 
 **전체 매뉴얼과 가이드는 GitHub Pages에서 확인하세요:**
 
-🔗 **[Oracle Modernization Accelerator 매뉴얼](https://glowing-adventure-w6pzenm.pages.github.io/)**
+🔗 **[Oracle Modernization Accelerator 매뉴얼](https://aws-samples.github.io/sample-oracle-modernization-accelerator/)**
 
 ## 📁 디렉토리 구조
 
@@ -43,4 +43,4 @@ oma/
 
 ---
 
-**자세한 설치 가이드, 사용법, 단계별 매뉴얼은 [공식 문서 사이트](https://glowing-adventure-w6pzenm.pages.github.io/)에서 확인하세요.**
+**자세한 설치 가이드, 사용법, 단계별 매뉴얼은 [공식 문서 사이트](https://aws-samples.github.io/sample-oracle-modernization-accelerator/)에서 확인하세요.**
