@@ -18,9 +18,9 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 
 ### 빠른 시작
 
-1. [사전 요구사항](documents/Pre-Requisites.md) - 인프라 구성 및 환경 설정
-2. [OMA 소개](documents/OMA-Introduction.md) - OMA 프로젝트 개요
-3. [환경 설정](documents/0-1.setEnv.md) - 프로젝트별 환경 변수 설정
+1. [사전 요구사항](docs/Pre-Requisites.md) - 인프라 구성 및 환경 설정
+2. [OMA 소개](docs/OMA-Introduction.md) - OMA 프로젝트 개요
+3. [환경 설정](docs/0-1.setEnv.md) - 프로젝트별 환경 변수 설정
 
 ### 주요 기능
 
@@ -42,39 +42,39 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 이 매뉴얼은 다음과 같이 구성되어 있습니다:
 
 ### 📋 사전 준비
-- **[OMA Introduction](documents/OMA-Introduction.md)**: 프로젝트 개요 및 아키텍처
-- **[Pre-Requisites](documents/Pre-Requisites.md)**: 인프라 구성 및 환경 설정
+- **[OMA Introduction](docs/OMA-Introduction.md)**: 프로젝트 개요 및 아키텍처
+- **[Pre-Requisites](docs/Pre-Requisites.md)**: 인프라 구성 및 환경 설정
 
 ### ⚙️ 환경 설정 (0단계)
-- **[0-1. 환경 설정 수행](documents/0-1.setEnv.md)**: 환경 변수 설정
-- **[0-2. 환경 설정 확인](documents/0-2.checkEnv.md)**: 환경 설정 확인
+- **[0-1. 환경 설정 수행](docs/0-1.setEnv.md)**: 환경 변수 설정
+- **[0-2. 환경 설정 확인](docs/0-2.checkEnv.md)**: 환경 설정 확인
 
 ### 🔍 애플리케이션 분석 (1단계)
-- **[1-1. 애플리케이션 분석](documents/1-1.processAppAnalysis.md)**: 애플리케이션 코드 분석
-- **[1-2. 분석 보고서 작성](documents/1-2.processAppReporting.md)**: 분석 결과 리포팅
-- **[1-3. 메타데이터 생성](documents/1-3.genPostgreSqlMeta.md)**: PostgreSQL/MySQL 메타데이터 생성
+- **[1-1. 애플리케이션 분석](docs/1-1.processAppAnalysis.md)**: 애플리케이션 코드 분석
+- **[1-2. 분석 보고서 작성](docs/1-2.processAppReporting.md)**: 분석 결과 리포팅
+- **[1-3. 메타데이터 생성](docs/1-3.genPostgreSqlMeta.md)**: PostgreSQL/MySQL 메타데이터 생성
 
 ### 🔄 코드 변환 (2단계)
-- **[2-1. SQL 변환 처리](documents/2-1.processSqlTransform.md)**: SQL 변환 처리
-- **[2-2. 변환 후 처리](documents/2-2.processPostTransform.md)**: 변환 후 처리
+- **[2-1. SQL 변환 처리](docs/2-1.processSqlTransform.md)**: SQL 변환 처리
+- **[2-2. 변환 후 처리](docs/2-2.processPostTransform.md)**: 변환 후 처리
 
 ### 🧪 SQL Unit Test (3단계)
-- **[3-1. SQL Unit Test](documents/3-1.sqlUnitTest.md)**: 변환된 SQL 구문의 단위 테스트
+- **[3-1. SQL Unit Test](docs/3-1.sqlUnitTest.md)**: 변환된 SQL 구문의 단위 테스트
 
 ### 📊 결과 통합 (4단계)
-- **[4-1. 변환 결과 병합](documents/4-1.processSqlTransformMerge.md)**: 변환 결과 병합
-- **[4-2. 최종 리포트 생성](documents/4-2.processSqlTransformReport.md)**: 최종 리포트 생성
-- **[4-3. Java Source 변환](documents/4-3.processJavaTransform.md)**: 애플리케이션 Java Source 변환 작업
+- **[4-1. 변환 결과 병합](docs/4-1.processSqlTransformMerge.md)**: 변환 결과 병합
+- **[4-2. 최종 리포트 생성](docs/4-2.processSqlTransformReport.md)**: 최종 리포트 생성
+- **[4-3. Java Source 변환](docs/4-3.processJavaTransform.md)**: 애플리케이션 Java Source 변환 작업
 
 ### 🔧 유용한 툴들
-- **[유용한 툴들](documents/useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
+- **[유용한 툴들](docs/useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
 
 ### 카테고리별 문서 인덱스
-- **[환경 설정](documents/environment-setup.md)**
-- **[애플리케이션 분석](documents/application-analysis.md)**
-- **[코드 변환](documents/code-transformation.md)**
-- **[SQL 단위 테스트](documents/sql-unit-test.md)**
-- **[결과 통합](documents/result-integration.md)**
+- **[환경 설정](docs/environment-setup.md)**
+- **[애플리케이션 분석](docs/application-analysis.md)**
+- **[코드 변환](docs/code-transformation.md)**
+- **[SQL 단위 테스트](docs/sql-unit-test.md)**
+- **[결과 통합](docs/result-integration.md)**
 
 ---
 
@@ -140,7 +140,7 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더 (OMA_BASE_
 ├── oma_env_[프로젝트명].sh                        # 프로젝트별 환경 변수 파일
 ├── config/                                       # 프로젝트 설정 파일 디렉토리
 │   └── oma.properties                            # 환경 변수로 사용되는 설정 파일
-├── documents/                                    # 상세 문서 디렉토리
+├── docs/                                         # 상세 문서 디렉토리
 ├── [프로젝트명]/                                   # 분석 및 변환 단위 (애플리케이션명으로 구분)
 │   ├── database/                                 # 데이터베이스 스키마 변환 결과
 │   ├── logs/                                     # 전체 프로세스 로그 디렉토리
