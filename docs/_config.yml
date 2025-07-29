@@ -1,52 +1,28 @@
 title: "OMA"
 description: "Oracle Modernization Accelerator - Oracle to PostgreSQL/MySQL Migration Guide"
-url: "https://glowing-adventure-w6pzenm.pages.github.io"
-baseurl: ""
 
-# Build timestamp to force refresh
-build_time: "2025-07-29-21:00"
+# Theme
+remote_theme: just-the-docs/just-the-docs
 
-# Site Author
-author:
-  name: "OMA Team"
-  bio: "Oracle to PostgreSQL/MySQL Migration Experts"
-  location: "AWS"
+# Enable search
+search_enabled: true
 
-# Theme - GitHub Pages 호환
-theme: minima
-# remote_theme: mmistakes/minimal-mistakes
+# Navigation structure
+nav_sort: case_insensitive
 
-# Site Settings
-locale: "ko-KR"
-repository: "aws-samples/sample-oracle-modernization-accelerator"
+# Footer
+footer_content: "Copyright &copy; 2024 OMA Project. Distributed by an <a href=\"https://github.com/aws-samples/\">AWS Samples</a> license."
 
-# Markdown Processing
-markdown: kramdown
-highlighter: rouge
-kramdown:
-  input: GFM
-  hard_wrap: false
-  auto_ids: true
-  footnote_nr: 1
-  entity_output: as_char
-  toc_levels: 1..6
-  smart_quotes: lsquo,rsquo,ldquo,rdquo
+# Color scheme
+color_scheme: light
+
+# Enable copy code button
+enable_copy_code_button: true
 
 # Plugins
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll-seo-tag
-
-# Navigation
-header_pages:
-  - OMA-Introduction.md
-  - Pre-Requisites.md
-  - 0-1.setEnv.md
-  - 1-1.processAppAnalysis.md
-  - 2-1.processSqlTransform.md
-  - 3-1.sqlUnitTest.md
-  - useful-tools.md
 
 # Plugins
 plugins:
