@@ -19,6 +19,10 @@ color_scheme: light
 # Enable copy code button
 enable_copy_code_button: true
 
+# Custom JavaScript
+head_custom: |
+  <script src="{{ '/assets/js/custom.js' | relative_url }}"></script>
+
 # Plugins
 plugins:
   - jekyll-feed

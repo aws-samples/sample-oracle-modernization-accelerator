@@ -242,17 +242,59 @@ div * li {
   line-height: 1.7 !important;
 }
 
-// h4, h5, h6 제목 크기 강제 적용 - 최고 우선순위
-* h4 {
+// h4, h5, h6 제목 크기 강제 적용 - 극강 우선순위
+* h4,
+*[class] h4,
+*[id] h4,
+html h4,
+html body h4,
+html body * h4,
+html body div h4,
+html body main h4,
+html body article h4,
+html body section h4 {
   font-size: 1.2em !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  color: #34495e !important;
 }
 
-* h5 {
+* h5,
+*[class] h5,
+*[id] h5,
+html h5,
+html body h5,
+html body * h5,
+html body div h5,
+html body main h5,
+html body article h5,
+html body section h5 {
   font-size: 1.2em !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  color: #2c3e50 !important;
 }
 
-* h6 {
+* h6,
+*[class] h6,
+*[id] h6,
+html h6,
+html body h6,
+html body * h6,
+html body div h6,
+html body main h6,
+html body article h6,
+html body section h6 {
   font-size: 1.2em !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  color: #34495e !important;
 }
 
 // 리스트 항목 호버 효과
