@@ -498,7 +498,7 @@ LEFT JOIN PROJECT P ON E.EMP_ID = P.EMP_ID AND P.STATUS = 'ACTIVE'
 
 **TRANSFORMATION MAPPING for ${TARGET_DBMS_TYPE}:**
 
-##### A. Outer Join Structure
+##### A. Outer Join Structure (Universal for all DBMS)
 - **Oracle**: `(+)` syntax → **Target**: `LEFT/RIGHT/FULL OUTER JOIN` (Standard SQL)
 - **Oracle**: `AA.PNR_SEQNO(+)=A.PNR_SEQNO` → **Target**: `LEFT JOIN ... ON AA.PNR_SEQNO=A.PNR_SEQNO`
 
@@ -557,30 +557,55 @@ LEFT JOIN PROJECT P ON E.EMP_ID = P.EMP_ID AND P.STATUS = 'ACTIVE'
 - **Maintain table aliases**: Preserve all table aliases (B1, B2, B3, etc.)
 - **Check join direction**: `A.ID = B.ID(+)` = LEFT JOIN, `A.ID(+) = B.ID` = RIGHT JOIN
 
-##### B. NULL Handling Functions
+##### B. NULL Handling Functions (DBMS-Specific)
 - **Oracle**: `NVL(expr1, expr2)` → 
   - **MySQL**: `IFNULL(expr1, expr2)`
   - **PostgreSQL**: `COALESCE(expr1, expr2)`
   - **SQL Server**: `ISNULL(expr1, expr2)`
 - **Oracle**: `NVL2(expr1, expr2, expr3)` → 
   - **MySQL**: `IF(expr1 IS NOT NULL, expr2, expr3)`
-  - **PostgreSQL/SQL Server**: `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
+  - **PostgreSQL**: `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
+  - **SQL Server**: `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
 
-##### C. Date/Time Functions
+##### C. Date/Time Functions (DBMS-Specific)
 - **Oracle**: `SYSDATE` → 
   - **MySQL**: `NOW()`
-  - **PostgreSQL**: `CURRENT_TIMESTAMP`
+  - **PostgreSQL**: `CURRENT_TIMESTAMP` or `NOW()`
   - **SQL Server**: `GETDATE()`
 - **Oracle**: `TO_DATE(str, fmt)` → 
-  - **MySQL**: `STR_TO_DATE(str, fmt)`
-  - **PostgreSQL**: `TO_DATE(str, fmt)` (same)
+  - **MySQL**: `STR_TO_DATE(str, fmt)` (format conversion needed)
+  - **PostgreSQL**: `TO_DATE(str, fmt)` (same syntax, format compatible)
   - **SQL Server**: `CONVERT(datetime, str, style)`
 - **Oracle**: `TO_CHAR(date, fmt)` → 
-  - **MySQL**: `DATE_FORMAT(date, fmt)`
-  - **PostgreSQL**: `TO_CHAR(date, fmt)` (same)
+  - **MySQL**: `DATE_FORMAT(date, fmt)` (format conversion needed)
+  - **PostgreSQL**: `TO_CHAR(date, fmt)` (same syntax, format compatible)
   - **SQL Server**: `FORMAT(date, fmt)`
+- **Oracle**: `ADD_MONTHS(date, n)` →
+  - **MySQL**: `DATE_ADD(date, INTERVAL n MONTH)` (positive) or `DATE_SUB(date, INTERVAL ABS(n) MONTH)` (negative)
+  - **PostgreSQL**: `date + INTERVAL 'n months'` or `date + (n || ' months')::INTERVAL`
+  - **SQL Server**: `DATEADD(MONTH, n, date)`
+- **Oracle**: `MONTHS_BETWEEN(date1, date2)` →
+  - **MySQL**: `TIMESTAMPDIFF(MONTH, date2, date1)`
+  - **PostgreSQL**: `EXTRACT(YEAR FROM AGE(date1, date2)) * 12 + EXTRACT(MONTH FROM AGE(date1, date2))`
+  - **SQL Server**: `DATEDIFF(MONTH, date2, date1)`
+- **Oracle**: `TRUNC(date)` →
+  - **MySQL**: `DATE(date)`
+  - **PostgreSQL**: `DATE_TRUNC('day', date)::DATE`
+  - **SQL Server**: `CAST(date AS DATE)`
+- **Oracle**: `TRUNC(date, 'MM')` →
+  - **MySQL**: `DATE_FORMAT(date, '%Y-%m-01')`
+  - **PostgreSQL**: `DATE_TRUNC('month', date)::DATE`
+  - **SQL Server**: `DATEFROMPARTS(YEAR(date), MONTH(date), 1)`
+- **Oracle**: `LAST_DAY(date)` →
+  - **MySQL**: `LAST_DAY(date)`
+  - **PostgreSQL**: `(DATE_TRUNC('month', date) + INTERVAL '1 month - 1 day')::DATE`
+  - **SQL Server**: `EOMONTH(date)`
+- **Oracle**: `EXTRACT(YEAR FROM date)` →
+  - **MySQL**: `YEAR(date)`
+  - **PostgreSQL**: `EXTRACT(YEAR FROM date)` (same syntax)
+  - **SQL Server**: `YEAR(date)`
 
-##### D. String Functions
+##### D. String Functions (DBMS-Specific)
 - **Oracle**: `SUBSTR(str, pos, len)` → 
   - **All Target DBMS**: `SUBSTRING(str, pos, len)`
 - **Oracle**: `INSTR(str, substr)` → 
@@ -588,34 +613,152 @@ LEFT JOIN PROJECT P ON E.EMP_ID = P.EMP_ID AND P.STATUS = 'ACTIVE'
   - **PostgreSQL**: `POSITION(substr IN str)`
   - **SQL Server**: `CHARINDEX(substr, str)`
 - **Oracle**: `||` (concatenation) → 
-  - **MySQL**: `CONCAT()`
-  - **PostgreSQL**: `||` (same) or `CONCAT()`
-  - **SQL Server**: `CONCAT()` or `+`
+  - **MySQL**: `CONCAT(str1, str2, ...)`
+  - **PostgreSQL**: `str1 || str2` (same) or `CONCAT(str1, str2, ...)`
+  - **SQL Server**: `CONCAT(str1, str2, ...)` or `str1 + str2`
+- **Oracle**: `LENGTH(str)` →
+  - **MySQL**: `CHAR_LENGTH(str)` or `LENGTH(str)`
+  - **PostgreSQL**: `LENGTH(str)` (same syntax)
+  - **SQL Server**: `LEN(str)`
+- **Oracle**: `LPAD(str, len, pad)` →
+  - **MySQL**: `LPAD(str, len, pad)` (same syntax)
+  - **PostgreSQL**: `LPAD(str, len, pad)` (same syntax)
+  - **SQL Server**: `RIGHT(REPLICATE(pad, len) + str, len)`
+- **Oracle**: `RPAD(str, len, pad)` →
+  - **MySQL**: `RPAD(str, len, pad)` (same syntax)
+  - **PostgreSQL**: `RPAD(str, len, pad)` (same syntax)
+  - **SQL Server**: `LEFT(str + REPLICATE(pad, len), len)`
+- **Oracle**: `INITCAP(str)` →
+  - **MySQL**: `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2)))`
+  - **PostgreSQL**: `INITCAP(str)` (same syntax)
+  - **SQL Server**: `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2,LEN(str))))`
+- **Oracle**: `TRANSLATE(str, from_chars, to_chars)` →
+  - **MySQL**: Complex `REPLACE()` chain (manual conversion needed)
+  - **PostgreSQL**: `TRANSLATE(str, from_chars, to_chars)` (same syntax)
+  - **SQL Server**: Complex `REPLACE()` chain (manual conversion needed)
 
-##### E. Conditional Functions
+##### E. Conditional Functions (Universal)
 - **Oracle**: `DECODE(expr, val1, res1, val2, res2, default)` → 
   - **All Target DBMS**: `CASE WHEN expr=val1 THEN res1 WHEN expr=val2 THEN res2 ELSE default END`
 
-##### F. Analytical Functions
+##### F. Analytical Functions (DBMS-Specific)
 - **Oracle**: `ROWNUM` → 
-  - **All Target DBMS**: `ROW_NUMBER() OVER(ORDER BY ...)`
+  - **MySQL**: `ROW_NUMBER() OVER(ORDER BY (SELECT NULL))` or `LIMIT n` (in subqueries)
+  - **PostgreSQL**: `ROW_NUMBER() OVER(ORDER BY (SELECT NULL))` or `LIMIT n` (in subqueries)
+  - **SQL Server**: `ROW_NUMBER() OVER(ORDER BY (SELECT NULL))` or `TOP n` (in subqueries)
 - **Oracle**: `DUAL` table → 
   - **MySQL**: Remove or use `SELECT ... FROM (SELECT 1) AS dual`
-  - **PostgreSQL/SQL Server**: Remove or use `SELECT ...`
+  - **PostgreSQL**: Remove (not needed)
+  - **SQL Server**: Remove (not needed)
 
-##### G. Aggregate Functions
+##### G. Aggregate Functions (DBMS-Specific)
 - **Oracle**: `LISTAGG(expr, delimiter) WITHIN GROUP (ORDER BY ...)` → 
   - **MySQL**: `GROUP_CONCAT(expr ORDER BY ... SEPARATOR delimiter)`
   - **PostgreSQL**: `STRING_AGG(expr, delimiter ORDER BY ...)`
   - **SQL Server**: `STRING_AGG(expr, delimiter) WITHIN GROUP (ORDER BY ...)`
+- **Oracle**: `WM_CONCAT(expr)` →
+  - **MySQL**: `GROUP_CONCAT(expr)`
+  - **PostgreSQL**: `STRING_AGG(expr, ',')`
+  - **SQL Server**: `STRING_AGG(expr, ',')`
 
-##### H. Numeric Functions
+##### H. Numeric Functions (DBMS-Specific)
 - **Oracle**: `TO_NUMBER(str)` → 
   - **MySQL**: `CAST(str AS DECIMAL)` or `CONVERT(str, DECIMAL)`
   - **PostgreSQL**: `CAST(str AS NUMERIC)` or `str::NUMERIC`
   - **SQL Server**: `CAST(str AS NUMERIC)` or `CONVERT(NUMERIC, str)`
+- **Oracle**: `TRUNC(num, digits)` →
+  - **MySQL**: `TRUNCATE(num, digits)`
+  - **PostgreSQL**: `TRUNC(num, digits)` (same syntax)
+  - **SQL Server**: `ROUND(num, digits, 1)`
+- **Oracle**: `CEIL(num)` →
+  - **MySQL**: `CEILING(num)`
+  - **PostgreSQL**: `CEIL(num)` (same syntax)
+  - **SQL Server**: `CEILING(num)`
+- **Oracle**: `MOD(num1, num2)` →
+  - **MySQL**: `MOD(num1, num2)` or `num1 % num2`
+  - **PostgreSQL**: `MOD(num1, num2)` or `num1 % num2`
+  - **SQL Server**: `num1 % num2`
+- **Oracle**: `POWER(base, exp)` →
+  - **MySQL**: `POWER(base, exp)` (same syntax)
+  - **PostgreSQL**: `POWER(base, exp)` (same syntax)
+  - **SQL Server**: `POWER(base, exp)` (same syntax)
+- **Oracle**: `SIGN(num)` →
+  - **MySQL**: `SIGN(num)` (same syntax)
+  - **PostgreSQL**: `SIGN(num)` (same syntax)
+  - **SQL Server**: `SIGN(num)` (same syntax)
 
 **Note**: Apply transformations based on current `${TARGET_DBMS_TYPE}` environment variable value.
+
+### PostgreSQL-Specific Advanced Functions (when TARGET_DBMS_TYPE=postgresql)
+
+##### I. Array Functions (PostgreSQL Only)
+- **Oracle**: `LISTAGG(col, ',')` → **PostgreSQL**: `ARRAY_TO_STRING(ARRAY_AGG(col), ',')`
+- **Oracle**: Custom array handling → **PostgreSQL**: 
+  - `ARRAY[val1, val2, val3]` for array literals
+  - `ARRAY_LENGTH(array_col, 1)` for array length
+  - `array_col[1]` for array element access
+  - `UNNEST(array_col)` to expand array to rows
+
+##### J. JSON/JSONB Functions (PostgreSQL Only)
+- **Oracle**: `JSON_VALUE(json_col, '$.key')` → **PostgreSQL**: `json_col->>'key'` or `json_col#>>'{key}'`
+- **Oracle**: `JSON_QUERY(json_col, '$.array')` → **PostgreSQL**: `json_col->'array'` or `json_col#>'{array}'`
+- **Oracle**: JSON manipulation → **PostgreSQL**:
+  - `JSONB_SET(jsonb_col, '{key}', '"value"')` for updates
+  - `JSONB_INSERT(jsonb_col, '{key}', '"value"')` for inserts
+  - `JSON_AGG(col)` for JSON aggregation
+  - `JSONB_PATH_QUERY(jsonb_col, '$.path')` for path queries
+
+##### K. Regular Expression Functions (PostgreSQL Enhanced)
+- **Oracle**: `REGEXP_LIKE(str, pattern)` → **PostgreSQL**: `str ~ pattern`
+- **Oracle**: `REGEXP_REPLACE(str, pattern, replacement)` → **PostgreSQL**: `REGEXP_REPLACE(str, pattern, replacement, 'g')`
+- **Oracle**: `REGEXP_SUBSTR(str, pattern)` → **PostgreSQL**: `(REGEXP_MATCH(str, pattern))[1]`
+- **Oracle**: Advanced regex → **PostgreSQL**:
+  - `REGEXP_MATCHES(str, pattern, 'g')` for all matches
+  - `REGEXP_SPLIT_TO_TABLE(str, pattern)` to split into rows
+  - `REGEXP_SPLIT_TO_ARRAY(str, pattern)` to split into array
+
+##### L. Full-Text Search Functions (PostgreSQL Only)
+- **Oracle**: `CONTAINS(col, 'search_term')` → **PostgreSQL**: `to_tsvector(col) @@ to_tsquery('search_term')`
+- **Oracle**: Text search → **PostgreSQL**:
+  - `TO_TSVECTOR('english', text_col)` for text vectorization
+  - `TO_TSQUERY('english', 'term1 & term2')` for query parsing
+  - `TS_RANK(vector, query)` for relevance ranking
+  - `TS_HEADLINE(text, query)` for highlighted excerpts
+
+##### M. Window Functions (PostgreSQL Enhanced)
+- **Oracle**: `FIRST_VALUE(col) OVER (...)` → **PostgreSQL**: `FIRST_VALUE(col) OVER (...)` (same syntax)
+- **Oracle**: `LAST_VALUE(col) OVER (...)` → **PostgreSQL**: `LAST_VALUE(col) OVER (...)` (same syntax)
+- **Oracle**: Advanced window functions → **PostgreSQL**:
+  - `PERCENT_RANK() OVER (...)` for percentile ranking
+  - `CUME_DIST() OVER (...)` for cumulative distribution
+  - `NTILE(n) OVER (...)` for n-tile distribution
+  - `LAG(col, offset, default) OVER (...)` for previous row values
+  - `LEAD(col, offset, default) OVER (...)` for next row values
+
+##### N. Data Type Conversion (PostgreSQL Specific)
+- **Oracle**: `TO_NUMBER(str, 'format')` → **PostgreSQL**: `str::NUMERIC` or `CAST(str AS NUMERIC)`
+- **Oracle**: `TO_TIMESTAMP(str, 'format')` → **PostgreSQL**: `TO_TIMESTAMP(str, 'format')` (same syntax)
+- **Oracle**: Type casting → **PostgreSQL**:
+  - `col::INTEGER` for integer casting
+  - `col::TEXT` for text casting
+  - `col::BOOLEAN` for boolean casting
+  - `col::UUID` for UUID casting
+  - `col::INET` for network address casting
+
+##### O. PostgreSQL-Specific Operators
+- **Oracle**: `||` (string concat) → **PostgreSQL**: `||` (same syntax, preferred over CONCAT)
+- **Oracle**: Custom operators → **PostgreSQL**:
+  - `@>` and `<@` for containment (arrays, JSON)
+  - `?` and `?&` and `?|` for JSON key existence
+  - `#>` and `#>>` for JSON path extraction
+  - `&&` for array overlap
+  - `<->` for distance calculations (PostGIS)
+
+**PostgreSQL Conversion Priority:**
+1. **Keep Oracle syntax if identical**: `TO_CHAR`, `TO_DATE`, `EXTRACT`, `TRANSLATE`, `INITCAP`
+2. **Use PostgreSQL-specific syntax**: `COALESCE` over `IFNULL`, `POSITION` over `LOCATE`
+3. **Leverage PostgreSQL advanced features**: Arrays, JSON, Full-text search when applicable
+4. **Maintain standard SQL compliance**: Use standard SQL functions when available
 
 #### 2. Context Analysis Rule
 **When Oracle syntax is detected, analyze the surrounding context to understand:**
@@ -798,95 +941,209 @@ SESSION_DURATION: [start_time - end_time]
 
 ---
 
-## Oracle to MySQL Function Mapping Reference
+## Oracle to ${TARGET_DBMS_TYPE} Function Mapping Reference
 **This section provides comprehensive conversion mappings referenced in Step 2 above.**
 
-### Date/Time Functions
-- **SYSDATE** → `NOW()` or `CURRENT_TIMESTAMP`
-- **TO_CHAR(date, 'YYYYMMDD')** → `DATE_FORMAT(date, '%Y%m%d')`
-- **TO_CHAR(date, 'YYYY-MM-DD')** → `DATE_FORMAT(date, '%Y-%m-%d')`
-- **TO_CHAR(date, 'YYYY-MM-DD HH24:MI:SS')** → `DATE_FORMAT(date, '%Y-%m-%d %H:%i:%s')`
-- **TO_DATE(str, 'YYYYMMDD')** → `STR_TO_DATE(str, '%Y%m%d')`
-- **TO_DATE(str, 'YYYY-MM-DD')** → `STR_TO_DATE(str, '%Y-%m-%d')`
-- **ADD_MONTHS(date, n)** → `DATE_ADD(date, INTERVAL n MONTH)` (positive n) or `DATE_SUB(date, INTERVAL ABS(n) MONTH)` (negative n)
-- **MONTHS_BETWEEN(date1, date2)** → `TIMESTAMPDIFF(MONTH, date2, date1)`
-- **TRUNC(date)** → `DATE(date)`
-- **TRUNC(date, 'MM')** → `DATE_FORMAT(date, '%Y-%m-01')`
-- **TRUNC(date, 'YYYY')** → `DATE_FORMAT(date, '%Y-01-01')`
-- **EXTRACT(YEAR FROM date)** → `YEAR(date)`
-- **EXTRACT(MONTH FROM date)** → `MONTH(date)`
-- **EXTRACT(DAY FROM date)** → `DAY(date)`
-- **LAST_DAY(date)** → `LAST_DAY(date)`
-- **NEXT_DAY(date, 'SUNDAY')** → `DATE_ADD(date, INTERVAL (1 + (7 - DAYOFWEEK(date))) % 7 DAY)`
+### Date/Time Functions (DBMS-Specific Mappings)
+- **SYSDATE** → 
+  - **MySQL**: `NOW()` or `CURRENT_TIMESTAMP`
+  - **PostgreSQL**: `CURRENT_TIMESTAMP` or `NOW()`
+- **TO_CHAR(date, 'YYYYMMDD')** → 
+  - **MySQL**: `DATE_FORMAT(date, '%Y%m%d')`
+  - **PostgreSQL**: `TO_CHAR(date, 'YYYYMMDD')` (same syntax)
+- **TO_CHAR(date, 'YYYY-MM-DD')** → 
+  - **MySQL**: `DATE_FORMAT(date, '%Y-%m-%d')`
+  - **PostgreSQL**: `TO_CHAR(date, 'YYYY-MM-DD')` (same syntax)
+- **TO_CHAR(date, 'YYYY-MM-DD HH24:MI:SS')** → 
+  - **MySQL**: `DATE_FORMAT(date, '%Y-%m-%d %H:%i:%s')`
+  - **PostgreSQL**: `TO_CHAR(date, 'YYYY-MM-DD HH24:MI:SS')` (same syntax)
+- **TO_DATE(str, 'YYYYMMDD')** → 
+  - **MySQL**: `STR_TO_DATE(str, '%Y%m%d')`
+  - **PostgreSQL**: `TO_DATE(str, 'YYYYMMDD')` (same syntax)
+- **TO_DATE(str, 'YYYY-MM-DD')** → 
+  - **MySQL**: `STR_TO_DATE(str, '%Y-%m-%d')`
+  - **PostgreSQL**: `TO_DATE(str, 'YYYY-MM-DD')` (same syntax)
+- **ADD_MONTHS(date, n)** → 
+  - **MySQL**: `DATE_ADD(date, INTERVAL n MONTH)` (positive n) or `DATE_SUB(date, INTERVAL ABS(n) MONTH)` (negative n)
+  - **PostgreSQL**: `date + INTERVAL 'n months'` or `date + (n || ' months')::INTERVAL`
+- **MONTHS_BETWEEN(date1, date2)** → 
+  - **MySQL**: `TIMESTAMPDIFF(MONTH, date2, date1)`
+  - **PostgreSQL**: `EXTRACT(YEAR FROM AGE(date1, date2)) * 12 + EXTRACT(MONTH FROM AGE(date1, date2))`
+- **TRUNC(date)** → 
+  - **MySQL**: `DATE(date)`
+  - **PostgreSQL**: `DATE_TRUNC('day', date)::DATE`
+- **TRUNC(date, 'MM')** → 
+  - **MySQL**: `DATE_FORMAT(date, '%Y-%m-01')`
+  - **PostgreSQL**: `DATE_TRUNC('month', date)::DATE`
+- **TRUNC(date, 'YYYY')** → 
+  - **MySQL**: `DATE_FORMAT(date, '%Y-01-01')`
+  - **PostgreSQL**: `DATE_TRUNC('year', date)::DATE`
+- **EXTRACT(YEAR FROM date)** → 
+  - **MySQL**: `YEAR(date)`
+  - **PostgreSQL**: `EXTRACT(YEAR FROM date)` (same syntax)
+- **EXTRACT(MONTH FROM date)** → 
+  - **MySQL**: `MONTH(date)`
+  - **PostgreSQL**: `EXTRACT(MONTH FROM date)` (same syntax)
+- **EXTRACT(DAY FROM date)** → 
+  - **MySQL**: `DAY(date)`
+  - **PostgreSQL**: `EXTRACT(DAY FROM date)` (same syntax)
+- **LAST_DAY(date)** → 
+  - **MySQL**: `LAST_DAY(date)`
+  - **PostgreSQL**: `(DATE_TRUNC('month', date) + INTERVAL '1 month - 1 day')::DATE`
+- **NEXT_DAY(date, 'SUNDAY')** → 
+  - **MySQL**: `DATE_ADD(date, INTERVAL (1 + (7 - DAYOFWEEK(date))) % 7 DAY)`
+  - **PostgreSQL**: `date + ((7 - EXTRACT(DOW FROM date)) % 7 + 1) * INTERVAL '1 day'`
 
-### NULL Handling Functions  
-- **NVL(expr1, expr2)** → `IFNULL(expr1, expr2)` or `COALESCE(expr1, expr2)`
-- **NVL2(expr, val1, val2)** → `CASE WHEN expr IS NOT NULL THEN val1 ELSE val2 END`
-- **NULLIF(expr1, expr2)** → `NULLIF(expr1, expr2)`
+### NULL Handling Functions (DBMS-Specific)
+- **NVL(expr1, expr2)** → 
+  - **MySQL**: `IFNULL(expr1, expr2)` or `COALESCE(expr1, expr2)`
+  - **PostgreSQL**: `COALESCE(expr1, expr2)` (preferred) or `CASE WHEN expr1 IS NULL THEN expr2 ELSE expr1 END`
+- **NVL2(expr, val1, val2)** → 
+  - **MySQL**: `IF(expr IS NOT NULL, val1, val2)`
+  - **PostgreSQL**: `CASE WHEN expr IS NOT NULL THEN val1 ELSE val2 END`
+- **NULLIF(expr1, expr2)** → 
+  - **MySQL**: `NULLIF(expr1, expr2)` (same syntax)
+  - **PostgreSQL**: `NULLIF(expr1, expr2)` (same syntax)
 
-### Conditional Functions
-- **DECODE(expr, val1, ret1, val2, ret2, default)** → `CASE WHEN expr=val1 THEN ret1 WHEN expr=val2 THEN ret2 ELSE default END`
-- **DECODE(expr, val1, ret1, default)** → `CASE WHEN expr=val1 THEN ret1 ELSE default END`
+### Conditional Functions (Universal)
+- **DECODE(expr, val1, ret1, val2, ret2, default)** → 
+  - **All DBMS**: `CASE WHEN expr=val1 THEN ret1 WHEN expr=val2 THEN ret2 ELSE default END`
+- **DECODE(expr, val1, ret1, default)** → 
+  - **All DBMS**: `CASE WHEN expr=val1 THEN ret1 ELSE default END`
 
-### String Functions
-- **SUBSTR(str, pos, len)** → `SUBSTRING(str, pos, len)`
-- **SUBSTR(str, pos)** → `SUBSTRING(str, pos)`
-- **LENGTH(str)** → `CHAR_LENGTH(str)` or `LENGTH(str)`
-- **INSTR(str, substr)** → `LOCATE(substr, str)`
-- **INSTR(str, substr, start)** → `LOCATE(substr, str, start)`
-- **LPAD(str, len, pad)** → `LPAD(str, len, pad)`
-- **RPAD(str, len, pad)** → `RPAD(str, len, pad)`
-- **LTRIM(str)** → `LTRIM(str)`
-- **RTRIM(str)** → `RTRIM(str)`
-- **LTRIM(str, chars)** → `TRIM(LEADING chars FROM str)`
-- **RTRIM(str, chars)** → `TRIM(TRAILING chars FROM str)`
-- **INITCAP(str)** → `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2)))`
-- **UPPER(str)** → `UPPER(str)`
-- **LOWER(str)** → `LOWER(str)`
-- **TRANSLATE(str, from_chars, to_chars)** → `REPLACE()` functions (complex conversion needed)
+### String Functions (DBMS-Specific)
+- **SUBSTR(str, pos, len)** → 
+  - **All DBMS**: `SUBSTRING(str, pos, len)`
+- **SUBSTR(str, pos)** → 
+  - **All DBMS**: `SUBSTRING(str, pos)`
+- **LENGTH(str)** → 
+  - **MySQL**: `CHAR_LENGTH(str)` or `LENGTH(str)`
+  - **PostgreSQL**: `LENGTH(str)` (same syntax)
+- **INSTR(str, substr)** → 
+  - **MySQL**: `LOCATE(substr, str)`
+  - **PostgreSQL**: `POSITION(substr IN str)`
+- **INSTR(str, substr, start)** → 
+  - **MySQL**: `LOCATE(substr, str, start)`
+  - **PostgreSQL**: `POSITION(substr IN SUBSTRING(str FROM start))`
+- **LPAD(str, len, pad)** → 
+  - **MySQL**: `LPAD(str, len, pad)` (same syntax)
+  - **PostgreSQL**: `LPAD(str, len, pad)` (same syntax)
+- **RPAD(str, len, pad)** → 
+  - **MySQL**: `RPAD(str, len, pad)` (same syntax)
+  - **PostgreSQL**: `RPAD(str, len, pad)` (same syntax)
+- **LTRIM(str)** → 
+  - **MySQL**: `LTRIM(str)` (same syntax)
+  - **PostgreSQL**: `LTRIM(str)` (same syntax)
+- **RTRIM(str)** → 
+  - **MySQL**: `RTRIM(str)` (same syntax)
+  - **PostgreSQL**: `RTRIM(str)` (same syntax)
+- **LTRIM(str, chars)** → 
+  - **MySQL**: `TRIM(LEADING chars FROM str)`
+  - **PostgreSQL**: `LTRIM(str, chars)` (same syntax)
+- **RTRIM(str, chars)** → 
+  - **MySQL**: `TRIM(TRAILING chars FROM str)`
+  - **PostgreSQL**: `RTRIM(str, chars)` (same syntax)
+- **INITCAP(str)** → 
+  - **MySQL**: `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2)))`
+  - **PostgreSQL**: `INITCAP(str)` (same syntax)
+- **UPPER(str)** → 
+  - **All DBMS**: `UPPER(str)` (same syntax)
+- **LOWER(str)** → 
+  - **All DBMS**: `LOWER(str)` (same syntax)
+- **TRANSLATE(str, from_chars, to_chars)** → 
+  - **MySQL**: `REPLACE()` functions (complex conversion needed)
+  - **PostgreSQL**: `TRANSLATE(str, from_chars, to_chars)` (same syntax)
 
-### Numeric Functions
-- **TO_NUMBER(str)** → `CAST(str AS DECIMAL)` or `CONVERT(str, DECIMAL)`
-- **TO_NUMBER(str, format)** → `CAST(str AS DECIMAL)` (format ignored in MySQL)
-- **ROUND(num, digits)** → `ROUND(num, digits)`
-- **TRUNC(num, digits)** → `TRUNCATE(num, digits)`
-- **CEIL(num)** → `CEILING(num)`
-- **FLOOR(num)** → `FLOOR(num)`
-- **MOD(num1, num2)** → `MOD(num1, num2)` or `num1 % num2`
-- **POWER(base, exp)** → `POWER(base, exp)`
-- **SQRT(num)** → `SQRT(num)`
-- **ABS(num)** → `ABS(num)`
-- **SIGN(num)** → `SIGN(num)`
+### Numeric Functions (DBMS-Specific)
+- **TO_NUMBER(str)** → 
+  - **MySQL**: `CAST(str AS DECIMAL)` or `CONVERT(str, DECIMAL)`
+  - **PostgreSQL**: `CAST(str AS NUMERIC)` or `str::NUMERIC`
+- **TO_NUMBER(str, format)** → 
+  - **MySQL**: `CAST(str AS DECIMAL)` (format ignored in MySQL)
+  - **PostgreSQL**: `TO_NUMBER(str, format)` (same syntax)
+- **ROUND(num, digits)** → 
+  - **All DBMS**: `ROUND(num, digits)` (same syntax)
+- **TRUNC(num, digits)** → 
+  - **MySQL**: `TRUNCATE(num, digits)`
+  - **PostgreSQL**: `TRUNC(num, digits)` (same syntax)
+- **CEIL(num)** → 
+  - **MySQL**: `CEILING(num)`
+  - **PostgreSQL**: `CEIL(num)` (same syntax)
+- **FLOOR(num)** → 
+  - **All DBMS**: `FLOOR(num)` (same syntax)
+- **MOD(num1, num2)** → 
+  - **MySQL**: `MOD(num1, num2)` or `num1 % num2`
+  - **PostgreSQL**: `MOD(num1, num2)` or `num1 % num2`
+- **POWER(base, exp)** → 
+  - **All DBMS**: `POWER(base, exp)` (same syntax)
+- **SQRT(num)** → 
+  - **All DBMS**: `SQRT(num)` (same syntax)
+- **ABS(num)** → 
+  - **All DBMS**: `ABS(num)` (same syntax)
+- **SIGN(num)** → 
+  - **All DBMS**: `SIGN(num)` (same syntax)
 
-### Analytical Functions
-- **ROWNUM = 1** → `LIMIT 1` (in subqueries)
-- **ROWNUM <= n** → `LIMIT n` (in subqueries)
-- **ROWNUM** → `ROW_NUMBER() OVER (ORDER BY (SELECT NULL))`
-- **ROW_NUMBER() OVER (...)** → `ROW_NUMBER() OVER (...)`
-- **RANK() OVER (...)** → `RANK() OVER (...)`
-- **DENSE_RANK() OVER (...)** → `DENSE_RANK() OVER (...)`
+### Analytical Functions (DBMS-Specific)
+- **ROWNUM = 1** → 
+  - **MySQL**: `LIMIT 1` (in subqueries)
+  - **PostgreSQL**: `LIMIT 1` (in subqueries)
+- **ROWNUM <= n** → 
+  - **MySQL**: `LIMIT n` (in subqueries)
+  - **PostgreSQL**: `LIMIT n` (in subqueries)
+- **ROWNUM** → 
+  - **MySQL**: `ROW_NUMBER() OVER (ORDER BY (SELECT NULL))`
+  - **PostgreSQL**: `ROW_NUMBER() OVER (ORDER BY (SELECT NULL))`
+- **ROW_NUMBER() OVER (...)** → 
+  - **All DBMS**: `ROW_NUMBER() OVER (...)` (same syntax)
+- **RANK() OVER (...)** → 
+  - **All DBMS**: `RANK() OVER (...)` (same syntax)
+- **DENSE_RANK() OVER (...)** → 
+  - **All DBMS**: `DENSE_RANK() OVER (...)` (same syntax)
 
-### Aggregate Functions
-- **LISTAGG(col, delimiter)** → `GROUP_CONCAT(col SEPARATOR delimiter)`
-- **LISTAGG(col, delimiter) WITHIN GROUP (ORDER BY ...)** → `GROUP_CONCAT(col ORDER BY ... SEPARATOR delimiter)`
-- **WM_CONCAT(col)** → `GROUP_CONCAT(col)`
+### Aggregate Functions (DBMS-Specific)
+- **LISTAGG(col, delimiter)** → 
+  - **MySQL**: `GROUP_CONCAT(col SEPARATOR delimiter)`
+  - **PostgreSQL**: `STRING_AGG(col, delimiter)`
+- **LISTAGG(col, delimiter) WITHIN GROUP (ORDER BY ...)** → 
+  - **MySQL**: `GROUP_CONCAT(col ORDER BY ... SEPARATOR delimiter)`
+  - **PostgreSQL**: `STRING_AGG(col, delimiter ORDER BY ...)`
+- **WM_CONCAT(col)** → 
+  - **MySQL**: `GROUP_CONCAT(col)`
+  - **PostgreSQL**: `STRING_AGG(col, ',')`
 
-### Join Syntax
-- **Oracle Outer Join (+)** → `LEFT JOIN` or `RIGHT JOIN`
-- **table1.col = table2.col(+)** → `table1 LEFT JOIN table2 ON table1.col = table2.col`
-- **table1.col(+) = table2.col** → `table1 RIGHT JOIN table2 ON table1.col = table2.col`
+### Join Syntax (Universal)
+- **Oracle Outer Join (+)** → 
+  - **All DBMS**: `LEFT JOIN` or `RIGHT JOIN`
+- **table1.col = table2.col(+)** → 
+  - **All DBMS**: `table1 LEFT JOIN table2 ON table1.col = table2.col`
+- **table1.col(+) = table2.col** → 
+  - **All DBMS**: `table1 RIGHT JOIN table2 ON table1.col = table2.col`
 
-### String Concatenation
-- **str1 || str2** → `CONCAT(str1, str2)`
-- **str1 || str2 || str3** → `CONCAT(str1, str2, str3)`
+### String Concatenation (DBMS-Specific)
+- **str1 || str2** → 
+  - **MySQL**: `CONCAT(str1, str2)`
+  - **PostgreSQL**: `str1 || str2` (same syntax, preferred)
+- **str1 || str2 || str3** → 
+  - **MySQL**: `CONCAT(str1, str2, str3)`
+  - **PostgreSQL**: `str1 || str2 || str3` (same syntax, preferred)
 
-### Special Tables and Operators
-- **FROM DUAL** → Remove `FROM DUAL` or use `SELECT ... FROM (SELECT 1) AS dual`
-- **MINUS** → `EXCEPT` (MySQL 8.0+) or `NOT EXISTS`
-- **INTERSECT** → `INTERSECT` (MySQL 8.0+) or `EXISTS`
+### Special Tables and Operators (DBMS-Specific)
+- **FROM DUAL** → 
+  - **MySQL**: Remove `FROM DUAL` or use `SELECT ... FROM (SELECT 1) AS dual`
+  - **PostgreSQL**: Remove `FROM DUAL` (not needed)
+- **MINUS** → 
+  - **MySQL**: `EXCEPT` (MySQL 8.0+) or `NOT EXISTS`
+  - **PostgreSQL**: `EXCEPT` (standard SQL)
+- **INTERSECT** → 
+  - **MySQL**: `INTERSECT` (MySQL 8.0+) or `EXISTS`
+  - **PostgreSQL**: `INTERSECT` (standard SQL)
 
-### Sequence Functions
-- **sequence_name.NEXTVAL** → `AUTO_INCREMENT` or custom sequence table
-- **sequence_name.CURRVAL** → `LAST_INSERT_ID()` or custom sequence table
+### Sequence Functions (DBMS-Specific)
+- **sequence_name.NEXTVAL** → 
+  - **MySQL**: `AUTO_INCREMENT` or custom sequence table
+  - **PostgreSQL**: `NEXTVAL('sequence_name')` or `DEFAULT` with `SERIAL`/`BIGSERIAL`
+- **sequence_name.CURRVAL** → 
+  - **MySQL**: `LAST_INSERT_ID()` or custom sequence table
+  - **PostgreSQL**: `CURRVAL('sequence_name')` or `LASTVAL()`
 
-**Note**: This mapping reference can be extended as needed for ${TARGET_DBMS_TYPE} and other target DBMS types.
+**Note**: This mapping reference is dynamically applied based on `${TARGET_DBMS_TYPE}` environment variable value.

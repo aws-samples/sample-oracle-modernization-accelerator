@@ -1,16 +1,146 @@
-# OMA (Oracle Modernization Accelerator) 프로젝트 실행 가이드
+---
+layout: default
+title: Home
+nav_order: 1
+description: "OMA (Oracle Modernization Accelerator) Manual - Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드"
+permalink: /
+---
 
-## 프로젝트 개요
-OMA는 Oracle 데이터베이스와 애플리케이션을 PostgreSQL로 현대화하는 도구입니다.
-AWS 환경에서 사전 구성된 상태에서 DB/Application 변환을 수행합니다.
+# OMA (Oracle Modernization Accelerator) Manual
+
+Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드
+
+[빠른 시작](#빠른-시작) | [GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator)
+
+---
+
+## Getting started
+
+### 빠른 시작
+
+1. [사전 요구사항](documents/Pre-Requisites.md) - 인프라 구성 및 환경 설정
+2. [OMA 소개](documents/OMA-Introduction.md) - OMA 프로젝트 개요
+3. [환경 설정](documents/0-1.setEnv.md) - 프로젝트별 환경 변수 설정
+
+### 주요 기능
+
+- **자동화된 인프라 구성**: CloudFormation을 통한 AWS 리소스 자동 배포
+- **AI 기반 코드 분석**: Amazon Q를 활용한 코드 분석 및 변환
+- **데이터베이스 스키마 변환**: DMS Schema Conversion을 통한 자동 변환
+- **애플리케이션 코드 변환**: Java/MyBatis 코드 자동 변환
+
+### 지원 환경
+
+- **소스 데이터베이스**: Oracle Database
+- **타겟 데이터베이스**: Aurora PostgreSQL, Aurora MySQL
+- **애플리케이션**: Java, Spring Boot, MyBatis
+
+---
+
+## 문서 구조
+
+이 매뉴얼은 다음과 같이 구성되어 있습니다:
+
+### 📋 사전 준비
+- **[OMA Introduction](documents/OMA-Introduction.md)**: 프로젝트 개요 및 아키텍처
+- **[Pre-Requisites](documents/Pre-Requisites.md)**: 인프라 구성 및 환경 설정
+
+### ⚙️ 환경 설정 (0단계)
+- **[0-1. 환경 설정 수행](documents/0-1.setEnv.md)**: 환경 변수 설정
+- **[0-2. 환경 설정 확인](documents/0-2.checkEnv.md)**: 환경 설정 확인
+
+### 🔍 애플리케이션 분석 (1단계)
+- **[1-1. 애플리케이션 분석](documents/1-1.processAppAnalysis.md)**: 애플리케이션 코드 분석
+- **[1-2. 분석 보고서 작성](documents/1-2.processAppReporting.md)**: 분석 결과 리포팅
+- **[1-3. 메타데이터 생성](documents/1-3.genPostgreSqlMeta.md)**: PostgreSQL/MySQL 메타데이터 생성
+
+### 🔄 코드 변환 (2단계)
+- **[2-1. SQL 변환 처리](documents/2-1.processSqlTransform.md)**: SQL 변환 처리
+- **[2-2. 변환 후 처리](documents/2-2.processPostTransform.md)**: 변환 후 처리
+
+### 🧪 SQL Unit Test (3단계)
+- **[3-1. SQL Unit Test](documents/3-1.sqlUnitTest.md)**: 변환된 SQL 구문의 단위 테스트
+
+### 📊 결과 통합 (4단계)
+- **[4-1. 변환 결과 병합](documents/4-1.processSqlTransformMerge.md)**: 변환 결과 병합
+- **[4-2. 최종 리포트 생성](documents/4-2.processSqlTransformReport.md)**: 최종 리포트 생성
+- **[4-3. Java Source 변환](documents/4-3.processJavaTransform.md)**: 애플리케이션 Java Source 변환 작업
+
+### 🔧 유용한 툴들
+- **[유용한 툴들](documents/useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
+
+### 카테고리별 문서 인덱스
+- **[환경 설정](documents/environment-setup.md)**
+- **[애플리케이션 분석](documents/application-analysis.md)**
+- **[코드 변환](documents/code-transformation.md)**
+- **[SQL 단위 테스트](documents/sql-unit-test.md)**
+- **[결과 통합](documents/result-integration.md)**
+
+---
+
+## 실행 가이드
+
+### 통합 실행 스크립트
+```bash
+# 메인 실행 스크립트 - 메뉴 기반 단계별 선택 실행
+./initOMA.sh
+```
+
+### 메뉴 구조
+```
+0. 환경 설정 및 확인
+   1. 환경 설정 다시 수행 (setEnv.sh)
+   2. 현재 환경 변수 확인 (checkEnv.sh)
+
+1. 애플리케이션 분석
+   1. 애플리케이션 분석
+   2. 분석 보고서 작성 및 SQL변환 대상 추출
+   3. (PostgreSQL Only) 데이터베이스 메타데이터 작성
+
+2. 애플리케이션 변환
+   1. 애플리케이션 SQL 변환 작업 : SQLID별 변환
+   2. Post 변환 작업
+
+3. SQL 테스트 수행
+   1. XML List 생성
+   2. 애플리케이션 SQL Unit Test
+
+4. 변환 작업 완료
+   1. XML Merge 작업 - SQLID to XML
+   2. 변환 작업 보고서
+   3. 애플리케이션 Java Source 변환 작업
+```
+
+### 개별 단계 실행
+```bash
+# Step 1: 환경 설정
+./bin/setEnv.sh
+source ./oma_env_프로젝트명.sh
+
+# Step 2: DB Schema 변환
+./bin/processDBSchema.sh
+
+# Step 3: 애플리케이션 Discovery
+./bin/processappDiscovery.sh
+
+# Step 4: SQL 변환
+./bin/processSQLTransform.sh
+
+# Step 5: SQL Unit Test
+./bin/processSQLTest.sh
+```
+
+---
 
 ## 디렉토리 구조
+
 ```
 sample-oracle-modernization-accelerator/          # OMA 루트 폴더 (OMA_BASE_DIR)
 ├── initOMA.sh                                    # 메인 실행 스크립트 (통합 진입점)
 ├── oma_env_[프로젝트명].sh                        # 프로젝트별 환경 변수 파일
 ├── config/                                       # 프로젝트 설정 파일 디렉토리
 │   └── oma.properties                            # 환경 변수로 사용되는 설정 파일
+├── documents/                                    # 상세 문서 디렉토리
 ├── [프로젝트명]/                                   # 분석 및 변환 단위 (애플리케이션명으로 구분)
 │   ├── database/                                 # 데이터베이스 스키마 변환 결과
 │   ├── logs/                                     # 전체 프로세스 로그 디렉토리
@@ -32,249 +162,8 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더 (OMA_BASE_
     └── test/                                     # 테스트 템플릿
 ```
 
-## 실행 순서 및 의미
+---
 
-### 1. 환경 설정 (사전 준비)
-```bash
-# 통합 실행 스크립트로 환경 설정 (권장)
-./initOMA.sh
-# → 메뉴에서 "0. 환경 설정 및 확인" 선택
-# → "1. 환경 설정 다시 수행 (setEnv.sh)" 선택
+## 지원 및 기여
 
-# 또는 직접 환경 설정
-./bin/setEnv.sh
-
-# 환경 변수 로드 (생성된 파일 사용)
-source ./oma_env_프로젝트명.sh
-
-# 환경 변수 확인
-./bin/checkEnv.sh
-```
-
-### 2. 통합 실행 (권장)
-```bash
-# 메인 실행 스크립트 - 메뉴 기반 단계별 선택 실행
-./initOMA.sh
-
-# 메뉴 구조:
-# 0. 환경 설정 및 확인
-#    1. 환경 설정 다시 수행 (setEnv.sh)
-#    2. 현재 환경 변수 확인 (checkEnv.sh)
-# 1. 데이터베이스 변환
-#    1. DB Schema 변환
-# 2. 애플리케이션 변환
-#    1. 애플리케이션 분석 및 SQL변환 대상 추출
-#    2. 애플리케이션 SQL 변환 작업
-#    3. 애플리케이션 Java Source 변환 작업 (미구현)
-# 3. SQL 테스트 수행
-#    1. 애플리케이션 SQL Unit Test
-```
-
-### 3. 개별 단계 실행 (선택사항)
-```bash
-# Step 1: DB Schema 변환 (Oracle → PostgreSQL)
-./bin/processDBSchema.sh
-
-# Step 2: 애플리케이션 Discovery (JNDI, Mapper 분석)
-./bin/processappDiscovery.sh
-
-# Step 3: SQL 변환 (Oracle SQL → PostgreSQL SQL)
-./bin/processSQLTransform.sh
-
-# Step 4: SQL Unit Test (변환된 SQL 테스트)
-./bin/processSQLTest.sh
-```
-
-## 변환 작업 단계별 의미
-
-### Step 1: DB Schema 변환
-- **목적**: Oracle 데이터베이스 스키마를 PostgreSQL로 변환
-- **입력**: Oracle 데이터베이스 연결 정보
-- **출력**: `[프로젝트명]/database/` 디렉토리에 변환된 스키마 파일
-- **요구사항**: Source Oracle 시스템과의 연결 필요
-
-### Step 2: 애플리케이션 Discovery
-- **목적**: Java 애플리케이션에서 SQL 사용 패턴 분석 및 SQL변환 대상 추출
-- **분석 대상**: JNDI 설정, MyBatis Mapper 파일 등
-- **출력**: 
-  - `[프로젝트명]/application/*.csv` - 분석 결과 데이터
-  - `[프로젝트명]/application/Discovery-Report.html` - 분석 리포트
-- **요구사항**: 애플리케이션 소스 코드 경로 설정
-
-### Step 3: 애플리케이션 SQL 변환
-- **목적**: Oracle SQL을 PostgreSQL SQL로 변환
-- **입력**: Step 2에서 추출된 SQL 목록
-- **출력**: `[프로젝트명]/application/transform/` 디렉토리에 변환 결과
-- **특징**: AI 기반 변환, 전체/재시도 모드 지원
-
-### Step 4: 애플리케이션 Java Source 변환 (미구현)
-- **목적**: Java 소스 코드의 Oracle 관련 코드를 PostgreSQL용으로 변환
-- **상태**: 현재 미구현 상태
-
-### Step 5: SQL Unit Test
-- **목적**: 변환된 SQL의 정확성 검증
-- **테스트 방법**: 원본 Oracle과 변환된 PostgreSQL 결과 비교
-- **출력**: `[프로젝트명]/test/` 디렉토리에 테스트 결과
-- **요구사항**: Oracle 및 PostgreSQL 데이터베이스 연결 필요
-
-## 주요 특징
-
-### 환경 변수 기반 설정
-- `OMA_BASE_DIR`: OMA 프로젝트 루트 디렉토리
-- `APPLICATION_NAME`: 변환 대상 애플리케이션명
-- 프로젝트별 독립적인 환경 설정 지원
-
-### AWS 환경 통합
-- AWS 서비스와 연동된 변환 작업
-- 클라우드 기반 AI 모델 활용
-- 확장 가능한 아키텍처
-
-### 단계별 실행 지원
-- 전체 프로세스 통합 실행
-- 개별 단계별 실행 가능
-- 실패 지점부터 재시작 지원
-
-## 설정 파일 (oma.properties)
-
-### 파일 위치 및 역할
-- **경로**: `config/oma.properties`
-- **역할**: OMA 프로젝트의 모든 환경 변수와 설정값을 중앙 관리
-- **사용**: `setEnv.sh` 실행 시 이 파일을 기반으로 프로젝트별 환경 변수 파일 생성
-
-### 주요 설정 섹션
-
-#### [COMMON] - 공통 설정
-```properties
-OMA_BASE_DIR=/Users/changik/workspace/sample-oracle-modernization-accelerator
-
-# 프로젝트별 디렉토리 구조 정의
-DBMS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/database
-APPLICATION_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/application
-TEST_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/test
-```
-
-#### [프로젝트명] - 프로젝트별 설정 (예: [example])
-
-**애플리케이션 설정**
-```properties
-APPLICATION_NAME=example                    # 프로젝트명 (디렉토리명으로 사용)
-JAVA_SOURCE_FOLDER=/path/to/java/source    # Java 소스 코드 경로
-SOURCE_SQL_MAPPER_FOLDER=/path/to/mapper   # MyBatis Mapper 파일 경로
-TARGET_SQL_MAPPER_FOLDER=/path/to/target   # 변환된 xml 위치 (변환된 Mapper 저장 경로)
-TRANSFORM_JNDI=jdbc                        # JNDI 변환 대상
-TRANSFORM_RELATED_CLASS=_ALL_              # 변환 대상 클래스 (_ALL_ 또는 특정 클래스명)
-```
-
-**데이터베이스 타입 설정**
-```properties
-SOURCE_DBMS_TYPE=orcl                      # 소스 DB 타입 (orcl, mysql 등)
-TARGET_DBMS_TYPE=pg                        # 타겟 DB 타입 (Target DB유형에 따라서 변환 프롬프트 가변 실행)
-```
-
-**Oracle 데이터베이스 연결 설정**
-```properties
-# 관리자 계정 (스키마 변환용)
-ORACLE_ADM_USER=system
-ORACLE_ADM_PASSWORD=password
-ORACLE_HOST=oracle-host.com
-ORACLE_PORT=1521
-ORACLE_SID=ORCL
-
-# 서비스 계정 (애플리케이션용)
-ORACLE_SVC_USER=app_user
-ORACLE_SVC_PASSWORD=app_password
-ORACLE_SVC_CONNECT_STRING=orcl
-
-# 변환 대상 스키마 목록
-ORACLE_SVC_USER_LIST="SCHEMA1,SCHEMA2,SCHEMA3"
-```
-
-**PostgreSQL 데이터베이스 연결 설정**
-```properties
-# 관리자 계정
-PG_ADM_USER=postgres
-PG_ADM_PASSWORD=postgres_password
-PGHOST=postgres-host.com
-PGPORT=5432
-PGDATABASE=postgresdb
-
-# 서비스 계정
-PG_SVC_USER=app_user
-PG_SVC_PASSWORD=app_password
-PGUSER=postgres
-PGPASSWORD=postgres_password
-```
-
-### 설정 파일 사용 방법
-
-1. **초기 설정**
-   ```bash
-   # config/oma.properties 파일 편집
-   vi config/oma.properties
-   
-   # 프로젝트별 섹션 추가 또는 수정
-   [your_project_name]
-   APPLICATION_NAME=your_project_name
-   # ... 기타 설정값들
-   ```
-
-2. **환경 변수 생성**
-   ```bash
-   # setEnv.sh 실행하여 환경 변수 파일 생성
-   ./bin/setEnv.sh
-   # → oma_env_your_project_name.sh 파일 생성됨
-   ```
-
-3. **환경 변수 로드**
-   ```bash
-   # 생성된 환경 변수 파일 로드
-   source ./oma_env_your_project_name.sh
-   ```
-
-### 주의사항
-- **보안**: 데이터베이스 패스워드 등 민감한 정보 포함
-- **권한**: 파일 권한 설정 주의 (`chmod 600 config/oma.properties` 권장)
-- **백업**: 설정 변경 전 백업 필수
-- **프로젝트별 구분**: `[프로젝트명]` 섹션으로 여러 프로젝트 관리 가능
-- **TARGET_DBMS_TYPE 중요성**: 타겟 DB 유형에 따라 AI 변환 프롬프트가 다르게 적용됨
-- **TARGET_SQL_MAPPER_FOLDER**: 변환된 MyBatis XML 파일이 저장되는 최종 위치
-
-## 주의사항
-
-### 사전 요구사항
-- AWS 환경 구성 (DB 연결 관련 작업 시)
-- Oracle 및 PostgreSQL 데이터베이스 연결 정보
-- Java 애플리케이션 소스 코드 경로
-
-### 데이터베이스 연결이 필요한 작업
-- **Step 1**: DB Schema 변환 - Oracle 연결 필요
-- **Step 5**: SQL Unit Test - Oracle 및 PostgreSQL 연결 필요
-
-### 실행 권한
-- 모든 `.sh` 스크립트에 실행 권한 필요
-- `chmod +x *.sh` 명령으로 권한 설정
-
-## 문제 해결
-
-### 환경 변수 미설정 오류
-```bash
-# 환경 변수 파일 확인
-ls -la oma_env_*.sh
-
-# 환경 변수 로드
-source ./oma_env_프로젝트명.sh
-```
-
-### 스크립트 실행 오류
-```bash
-# 실행 권한 확인 및 설정
-chmod +x initOMA.sh
-chmod +x bin/*.sh
-```
-
-### 로그 확인
-```bash
-# 프로젝트별 로그 디렉토리 확인
-ls -la [프로젝트명]/logs/
-```
-
+문제가 발생하거나 개선 사항이 있으시면 [GitHub Issues](https://github.com/aws-samples/sample-oracle-modernization-accelerator/issues)를 통해 알려주세요.

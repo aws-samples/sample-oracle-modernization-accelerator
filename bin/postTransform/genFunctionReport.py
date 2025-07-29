@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Function 문법 테스트 결과 보고서 생성기
-sqlTestResult.json 파일을 분석하여 HTML 보고서를 생성합니다.
+Function Syntax Test Result Report Generator
+Analyzes $APP_TRANSFORM_FOLDER/sqlTestResult.json file and generates HTML report.
 
-사용법: python3 genFunctionReport.py
-입력: sqlTestResult.json
-출력: function_test_report.html
+Usage: python3 genFunctionReport.py
+Input: $APP_TRANSFORM_FOLDER/sqlTestResult.json
+Output: $APP_TRANSFORM_FOLDER/../function_test_report.html
 """
 
 import json
@@ -705,8 +705,10 @@ def generate_html_report(stats, data):
 
 def main():
     """메인 함수"""
-    json_file = 'sqlTestResult.json'
-    output_file = 'function_test_report.html'
+    # Get paths from environment variables
+    app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER', '/tmp')
+    json_file = os.path.join(app_transform_folder, 'sqlTestResult.json')
+    output_file = os.path.join(app_transform_folder, '..', 'function_test_report.html')
     
     print("=" * 60)
     print("Function 문법 테스트 결과 보고서 생성기")
@@ -715,6 +717,7 @@ def main():
     if not os.path.exists(json_file):
         print(f"❌ Error: {json_file} 파일을 찾을 수 없습니다.")
         print(f"현재 디렉토리: {os.getcwd()}")
+        print(f"APP_TRANSFORM_FOLDER: {app_transform_folder}")
         return
     
     try:
@@ -734,7 +737,8 @@ def main():
         print("=" * 60)
         print("✅ Function 문법 테스트 결과 보고서 생성 완료!")
         print("=" * 60)
-        print(f"📄 출력 파일: {output_file}")
+        print(f"📄 출력 파일: {os.path.abspath(output_file)}")
+        print(f"📁 입력 파일: {os.path.abspath(json_file)}")
         print(f"📈 총 파일 수: {stats['total_files']:,}개")
         print(f"🎯 성공한 파일: {stats['success_count']:,}개")
         print(f"📊 성공률: {stats['success_rate']:.1f}%")

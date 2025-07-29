@@ -33,6 +33,38 @@ def setup_logging():
     )
     return logging.getLogger(__name__)
 
+def get_oracle_functions_file(script_dir):
+    """Target DB에 따른 함수 파일 경로 반환"""
+    target_db = os.environ.get('TARGET_DBMS_TYPE', '').lower()
+    print(f"Target DBMS Type: {target_db}")
+    
+    # Target DB별 파일 우선 확인
+    if target_db in ['postgres', 'postgresql']:
+        target_file = script_dir / "expression" / "oracle_functions_postgres.txt"
+        if target_file.exists():
+            print(f"PostgreSQL 전용 함수 파일 사용: {target_file}")
+            return target_file
+    elif target_db == 'mysql':
+        target_file = script_dir / "expression" / "oracle_functions_mysql.txt"
+        if target_file.exists():
+            print(f"MySQL 전용 함수 파일 사용: {target_file}")
+            return target_file
+    
+    # 공통 파일 확인
+    common_file = script_dir / "expression" / "oracle_functions_common.txt"
+    if common_file.exists():
+        print(f"공통 함수 파일 사용: {common_file}")
+        return common_file
+    
+    # 기존 파일 fallback
+    legacy_file = script_dir / "expression" / "oracle_functions.txt"
+    if legacy_file.exists():
+        print(f"기존 함수 파일 사용: {legacy_file}")
+        return legacy_file
+    
+    # 파일이 없으면 오류
+    raise FileNotFoundError("Oracle functions 파일을 찾을 수 없습니다.")
+
 def main():
     logger = setup_logging()
     
@@ -40,8 +72,8 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     print(f"스크립트 실행 위치: {script_dir}")
     
-    # 필요한 파일 경로 설정
-    oracle_functions_file = script_dir / "expression" / "oracle_functions.txt"
+    # Target DB에 따른 함수 파일 선택
+    oracle_functions_file = get_oracle_functions_file(script_dir)
     prompt_file = script_dir / "expression" / "postTransCheckSource.md"
     
     # 로그 디렉토리 생성
