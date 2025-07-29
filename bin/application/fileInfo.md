@@ -124,7 +124,7 @@ APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/transform/
 
 #### 환경변수 설정 예시
 ```bash
-export APP_LOGS_FOLDER="/home/ec2-user/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/logs/application"
+export APP_LOGS_FOLDER="/home/ec2-user/workspace/sample-oracle-modernization-accelerator/your-project/logs/application"
 export SOURCE_SQL_MAPPER_FOLDER="/external/source/mappers"
 export TARGET_SQL_MAPPER_FOLDER="/external/target/mappers"
 ```
