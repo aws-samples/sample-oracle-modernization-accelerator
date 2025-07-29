@@ -17,10 +17,20 @@ body {
   z-index: 1000 !important;
 }
 
-// 사이트 제목 상단 여백 추가
+// 사이트 제목 상단 여백 추가 및 스타일링 개선
 .site-title {
   margin-top: 1.5rem !important;
   padding-top: 1.5rem !important;
+  font-size: 2.2em !important;
+  font-weight: bold !important;
+  color: #2c3e50 !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1) !important;
+  letter-spacing: 2px !important;
+}
+
+.site-title:hover {
+  color: #3498db !important;
+  transition: color 0.3s ease !important;
 }
 
 // 메인 컨텐츠 상단 여백 추가
@@ -96,20 +106,97 @@ p {
   margin-bottom: 1.2em !important;
 }
 
-// 리스트 항목 개선 - 본문과 동일한 크기, 모든 레벨에서 동일한 크기 유지
-li {
+// 리스트 항목 개선 - 더 예쁜 스타일링과 함께 모든 레벨에서 동일한 크기 강제 적용
+* li {
   font-size: 14px !important;
-  line-height: 1.6 !important;
-  margin-bottom: 0.4em !important;
+  line-height: 1.7 !important;
+  margin-bottom: 0.6em !important;
+  padding-left: 0.5em !important;
+  position: relative !important;
 }
 
-// 중첩된 리스트도 동일한 크기 유지
+// 번호 리스트 스타일링 개선
+ol {
+  counter-reset: item !important;
+  padding-left: 0 !important;
+}
+
+ol li {
+  display: block !important;
+  margin-bottom: 0.8em !important;
+  padding-left: 2em !important;
+  position: relative !important;
+}
+
+ol li:before {
+  content: counter(item) "." !important;
+  counter-increment: item !important;
+  font-weight: bold !important;
+  color: #3498db !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  min-width: 1.5em !important;
+}
+
+// 불릿 리스트 스타일링 개선
+ul li {
+  position: relative !important;
+  padding-left: 1.5em !important;
+}
+
+ul li:before {
+  content: "•" !important;
+  color: #3498db !important;
+  font-weight: bold !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
+// 중첩된 리스트 들여쓰기 개선
+ul ul, ol ol, ul ol, ol ul {
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
+  padding-left: 1.5em !important;
+}
+
+// 모든 가능한 리스트 조합에 대해 강제 적용
+ul li, ol li,
 ul ul li, ol ol li,
 ul ul ul li, ol ol ol li,
 ul ul ul ul li, ol ol ol ol li,
-ul ul ul ul ul li, ol ol ol ol ol li {
+ul ul ul ul ul li, ol ol ol ol ol li,
+ul ol li, ol ul li,
+ul ul ol li, ol ol ul li,
+ul ol ol li, ol ul ul li {
   font-size: 14px !important;
-  line-height: 1.6 !important;
+  line-height: 1.7 !important;
+}
+
+// 컨테이너별 강제 적용
+.main-content * li,
+.main-content-wrap * li,
+.page-content * li,
+article * li,
+div * li {
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+// Jekyll 테마 특정 클래스들 덮어쓰기
+.markdown-body li,
+.content li,
+.post-content li {
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+// 리스트 항목 호버 효과
+li:hover {
+  background-color: rgba(52, 152, 219, 0.05) !important;
+  border-radius: 4px !important;
+  transition: background-color 0.2s ease !important;
 }
 
 // 링크 스타일 개선
@@ -200,15 +287,46 @@ pre {
     font-size: 0.9em !important;
   }
   
-  p, li {
-    font-size: 14px !important;
-  }
-  
-  ul ul li, ol ol li {
+  p {
     font-size: 13px !important;
   }
   
-  ul ul ul li, ol ol ol li {
-    font-size: 12px !important;
+  * li {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 0.5em !important;
+  }
+  
+  ul li, ol li,
+  ul ul li, ol ol li,
+  ul ul ul li, ol ol ol li,
+  ul ul ul ul li, ol ol ol ol li,
+  ul ul ul ul ul li, ol ol ol ol ol li,
+  ul ol li, ol ul li,
+  ul ul ol li, ol ol ul li,
+  ul ol ol li, ol ul ul li {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+  }
+  
+  .main-content * li,
+  .main-content-wrap * li,
+  .page-content * li,
+  article * li,
+  div * li {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+  }
+  
+  .markdown-body li,
+  .content li,
+  .post-content li {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+  }
+  
+  .site-title {
+    font-size: 1.8em !important;
+    letter-spacing: 1px !important;
   }
 }

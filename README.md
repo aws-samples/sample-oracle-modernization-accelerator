@@ -14,7 +14,7 @@ AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코�
 ## 📁 디렉토리 구조
 
 ```
-sample-oracle-modernization-accelerator/
+oma/
 ├── README.md                                     # 프로젝트 개요 (현재 파일)
 ├── initOMA.sh                                    # 메인 실행 스크립트
 ├── bin/                                          # 실행 스크립트 및 도구
