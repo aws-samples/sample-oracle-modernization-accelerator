@@ -10,7 +10,7 @@ description: "OMA Infrastructure 구성"
 ## 목적
 OMA(Oracle Modernization Accelerator) 프로젝트 실행을 위한 필수 인프라 환경을 구성하고, 데이터베이스 마이그레이션 작업을 위한 기반 환경을 준비합니다.
 
-## AWS CLI 환경 구성 (사전 요구사항)
+## (사전 요구사항) AWS CLI 환경 구성 
 
 인프라 구성 전에 AWS CLI 환경이 설정되어 있어야 합니다:
 
@@ -34,11 +34,11 @@ config/setup.sh
       → initOMA.sh 실행 안내
 ```
 
-## 상세 분석
+## 상세 절차
 
 ### **인프라 구성**
 
-#### **인프라 배포**
+**인프라 배포**
 OMA 프로젝트에서 `config/setup.sh`를 실행하면, `setup/deploy-omabox.sh`를 통해 Secret Manager를 우선 생성하고, CloudFormation을 통해 필요한 인프라를 생성합니다.
 
 ```bash
@@ -50,9 +50,9 @@ config/setup.sh
 └── 완료 후 initOMA.sh 실행 안내
 ```
 
-#### **생성되는 인프라 구성요소**
+**인프라 구성요소**
 
-##### **🏗️ 네트워킹 인프라**
+**🏗️ 네트워킹 인프라**
 
 | 구성 요소 | 세부 사항 | 설명 |
 |----------|----------|------|
@@ -63,7 +63,7 @@ config/setup.sh
 | **NAT Gateway** | Public Subnet 1에 위치 | Private 리소스 아웃바운드 통신 |
 | **Route Tables** | Public/Private 분리 | 네트워크 라우팅 관리 |
 
-##### **🔐 보안 및 암호화**
+**🔐 보안 및 암호화**
 
 | 구성 요소 | 세부 사항 | 용도 |
 |----------|----------|------|
@@ -71,7 +71,7 @@ config/setup.sh
 | **Security Groups** | OMABox용<br>VPC Endpoint용<br>Database용 | EC2 인스턴스 보안<br>HTTPS 443 포트<br>DB 포트 (5432, 3306, 1521) |
 | **IAM Roles** | EC2 인스턴스용<br>DMS용<br>DMS Schema Conversion용 | SSM, CloudWatch, S3, Secrets Manager 권한<br>VPC 관리, CloudWatch 로그<br>S3, Secrets Manager 접근 |
 
-##### **🔌 VPC Endpoints (Private 통신용)**
+**🔌 VPC Endpoints (Private 통신용)**
 
 | Endpoint 유형 | 용도 |
 |--------------|------|
@@ -80,14 +80,14 @@ config/setup.sh
 | **EC2 Messages Endpoint** | EC2 메시징 |
 | **Secrets Manager Endpoint** | 데이터베이스 자격증명 접근 |
 
-##### **🗄️ 데이터베이스 인프라**
+**🗄️ 데이터베이스 인프라**
 
 | 구성 요소 | 세부 사항 | 설명 |
 |----------|----------|------|
 | **Aurora Database Cluster** | Engine: aurora-postgresql 15.7 또는 aurora-mysql 8.0<br>Instance Class: db.r6g.large<br>암호화 활성화 (KMS)<br>백업 보존 기간: 7일 | PostgreSQL 또는 MySQL 선택 가능 |
 | **DB Subnet Group** | Private Subnet에서 Aurora 실행 | 데이터베이스 네트워크 격리 |
 
-##### **🔄 DMS (Database Migration Service)**
+**🔄 DMS (Database Migration Service)**
 
 | 구성 요소 | 세부 사항 | 설명 |
 |----------|----------|------|
@@ -95,7 +95,7 @@ config/setup.sh
 | **DMS Endpoints** | Source: Oracle 데이터베이스 연결<br>Target: Aurora PostgreSQL 또는 MySQL 연결 | 소스/타겟 DB 연결 |
 | **DMS Schema Conversion** | Migration Project 생성<br>S3 버킷 (변환 결과 저장)<br>Data Providers (Oracle ↔ PostgreSQL/MySQL) | 스키마 변환 도구 |
 
-##### **💻 EC2 인스턴스 (OMABox)**
+**💻 EC2 인스턴스 (OMABox)**
 
 | 항목 | 세부 사항 | 설명 |
 |------|----------|------|
@@ -104,7 +104,7 @@ config/setup.sh
 | **위치** | Private Subnet | 인터넷 직접 접근 불가 |
 | **접속 방법** | AWS Systems Manager Session Manager | 보안 접속 |
 
-##### **📦 사전 설치 소프트웨어**
+**📦 사전 설치 소프트웨어**
 
 | 소프트웨어 | 버전/설명 |
 |-----------|----------|
@@ -115,20 +115,13 @@ config/setup.sh
 | **Amazon Q CLI** | AI 기반 개발 도구 |
 | **기타 도구** | jq, wget, unzip, libaio, libnsl |
 
-##### **🌍 환경 변수 자동 설정**
-
-| 환경 카테고리 | 주요 변수 | 설명 |
-|-------------|----------|------|
-| **Oracle 환경** | `ORACLE_HOME`, `ORACLE_SID`, `ORACLE_ADM_USER` 등<br>Secrets Manager에서 자격증명 자동 로드 | Oracle 클라이언트 설정 |
-| **PostgreSQL/MySQL 환경** | `PGHOST` (Aurora 엔드포인트), `PGUSER`, `PGPASSWORD` 등<br>`MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD` 등<br>Aurora 연결 정보 자동 구성 | 타겟 DB 연결 설정 |
-| **OMA 환경** | `OMA_HOME`, `DB_ASSESSMENTS_FOLDER` 등 | OMA 도구 환경 설정 |
 
 ### **OMA 환경 설정**
 
-#### **OMA 프로젝트 초기화**
+**OMA 프로젝트 초기화**
 OMABox (EC2)가 생성되면 Application Source 코드를 준비하고 GitHub에서 OMA 프로젝트 코드를 동기화한 후 환경 설정을 진행합니다.
 
-##### **Application Source 코드 Location**
+**Application Source 코드 준비**
 마이그레이션 작업을 위해 Source와 Target용 두 개의 폴더에 동일한 애플리케이션 소스 코드를 복사합니다. 디렉토리명으로 Source/Target을 구분할 수 있도록 구성합니다.
 
 ```bash
@@ -143,7 +136,7 @@ cp -r /path/to/original/source/* /home/ec2-user/workspace/chalee/orcl-itsm/
 cp -r /path/to/original/source/* /home/ec2-user/workspace/chalee/postgres-itsm/
 ```
 
-##### **OMA 도구 설치**
+**OMA 도구 설치**
 ```bash
 # workspace 디렉토리 생성 및 이동
 mkdir -p ~/workspace
@@ -156,14 +149,14 @@ git clone https://github.com/aws-samples/sample-oracle-modernization-accelerator
 cd ~/workspace/oma
 ```
 
-#### **설정 파일 (oma.properties) 구성**
+**설정 파일 (oma.properties) 구성**
 ⚠️ **중요**: initOMA.sh 실행 전에 반드시 설정 파일을 구성해야 합니다.
 
 - **파일 위치**: `config/oma.properties`
 - **역할**: OMA 프로젝트의 모든 환경 변수와 설정값을 중앙 관리
 - **사용**: `setEnv.sh` 실행 시 이 파일을 기반으로 프로젝트별 환경 변수 파일 생성
 
-#### **환경 설정 실행**
+**환경 설정 실행**
 설정 파일 구성이 완료된 후 환경 설정을 실행합니다.
 
 ```bash
@@ -183,7 +176,6 @@ source ./oma_env_<project_name>.sh
 
 ### **타겟 데이터베이스 생성**
 
-#### **타겟 데이터베이스 생성**
 Aurora PostgreSQL 또는 MySQL에 타겟 DB `<target_database_name>`을 생성합니다.
 
 ⚠️ **MySQL 타겟 DB 사용 시 주의사항**

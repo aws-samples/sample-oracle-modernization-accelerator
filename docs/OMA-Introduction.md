@@ -11,7 +11,6 @@ description: "Oracle Modernization Accelerator 시스템 소개"
 
 OMA는 Oracle 기반 시스템을 PostgreSQL/MySQL 등의 오픈소스 데이터베이스로 마이그레이션하기 위한 자동화 도구입니다.
 
-### 주요 목적
 - Oracle 데이터베이스를 PostgreSQL/MySQL로 변환
 - MyBatis 기반 Java 애플리케이션의 SQL 자동 변환
 - 마이그레이션 작업의 자동화 및 효율성 향상
@@ -35,7 +34,7 @@ OMA는 Oracle 기반 시스템을 PostgreSQL/MySQL 등의 오픈소스 데이터
 
 ## OMA Structure
 
-### 디렉토리 구조
+디렉토리 구조
 ```
 sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 ├── initOMA.sh                                    # 메인 실행 스크립트 (통합 진입점)
@@ -60,28 +59,28 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 
 ### 핵심 구성 요소
 
-#### **1. 통합 제어 계층**
+**1. 통합 제어 계층**
 
 | 구성 요소 | 설명 |
 |----------|------|
 | **initOMA.sh** | 메뉴 기반 통합 실행 스크립트 |
 | **환경 설정** | 프로젝트별 환경 변수 관리 |
 
-#### **2. 분석 엔진**
+**2. 분석 엔진**
 
 | 구성 요소 | 설명 |
 |----------|------|
 | **애플리케이션 분석** | Java 소스 코드 및 MyBatis XML 파일 분석 |
 | **SQL 추출** | 변환 대상 SQL 식별 및 분류 |
 
-#### **3. 변환 엔진**
+ **3. 변환 엔진**
 
 | 구성 요소 | 설명 |
 |----------|------|
 | **SQL 변환** | Oracle SQL을 Target DBMS SQL로 자동 변환 |
 | **XML 처리** | MyBatis XML 파일 변환 및 병합 |
 
-#### **4. 검증 엔진**
+**4. 검증 엔진**
 
 | 구성 요소 | 설명 |
 |----------|------|
@@ -95,7 +94,7 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 
 ### 설정 구조
 
-#### **[COMMON] 섹션**
+**[COMMON] 섹션**
 모든 프로젝트에서 공통으로 사용되는 기본 설정들을 정의합니다.
 
 | 설정 카테고리 | 주요 설정 항목 | 설명 |
@@ -105,7 +104,7 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 | **애플리케이션 변환** | `APPLICATION_FOLDER`<br>`APP_TOOLS_FOLDER`<br>`APP_TRANSFORM_FOLDER`<br>`APP_LOGS_FOLDER` | 애플리케이션 변환 폴더<br>변환 도구 폴더<br>변환 결과 폴더<br>애플리케이션 로그 폴더 |
 | **테스트** | `TEST_FOLDER`<br>`TEST_LOGS_FOLDER` | 테스트 관련 폴더<br>테스트 로그 폴더 |
 
-#### **[프로젝트명] 섹션**
+**[프로젝트명] 섹션**
 각 프로젝트마다 고유한 설정들을 정의합니다.
 
 | 설정 카테고리 | 주요 설정 항목 | 설명 | 예시 값 |
@@ -115,13 +114,16 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 | **변환 필터링** | `TRANSFORM_JNDI`<br>`TRANSFORM_RELATED_CLASS` | 변환 대상 JNDI 필터<br>변환 대상 클래스 필터 | `jdbc`<br>`_ALL_` |
 | **데이터베이스 타입** | `SOURCE_DBMS_TYPE`<br>`TARGET_DBMS_TYPE` | 원본 DB 타입<br>대상 DB 타입 | `orcl`<br>`postgres` |
 
-# Oracle 연결 정보 (Source DB)
+**Oracle 연결 정보 (Source DB)**
+```
 ORACLE_HOST=hostname
 ORACLE_PORT=1522
 ORACLE_SVC_USER=username
 ORACLE_SVC_PASSWORD=password
+```
 
-# PostgreSQL 연결 정보 (Target DB)
+**PostgreSQL 연결 정보 (Target DB)**
+```
 PGHOST=hostname
 PGPORT=5432
 PGUSER=username
@@ -130,7 +132,7 @@ PGPASSWORD=password
 
 ### 주요 설정 항목
 
-#### **경로 설정**
+**경로 설정**
 
 | 설정 항목 | 설명 |
 |----------|------|
@@ -139,21 +141,21 @@ PGPASSWORD=password
 | **TARGET_SQL_MAPPER_FOLDER** | 변환된 XML 파일 저장 위치 |
 | **APP_TOOLS_FOLDER** | 변환 도구 및 스크립트 위치 |
 
-#### **변환 대상 필터링 설정**
+**변환 대상 필터링 설정**
 
 | 설정 항목 | 설명 | 예시 |
 |----------|------|------|
 | **TRANSFORM_JNDI** | 변환 대상 JNDI를 선별할 때 사용하는 필터 | `jdbc` - jdbc라는 JNDI를 사용하는 SQL만 변환<br>`jdbc,jdbc/primary,jdbc/secondary` - 여러 JNDI 지정 |
 | **TRANSFORM_RELATED_CLASS** | 변환 대상 클래스를 선별할 때 사용하는 필터 | `_ALL_` - 모든 클래스의 SQL을 변환 대상으로 설정<br>`com.example.UserDao` - UserDao 클래스 관련 SQL만 변환 |
 
-#### **변환 설정**
+**변환 설정**
 
 | 설정 항목 | 설명 | 값 |
 |----------|------|-----|
 | **SOURCE_DBMS_TYPE** | 원본 데이터베이스 타입 | `orcl` |
 | **TARGET_DBMS_TYPE** | 대상 데이터베이스 타입 | `postgres` / `mysql` |
 
-#### **데이터베이스 연결**
+**데이터베이스 연결**
 
 | 데이터베이스 | 주요 설정 항목 |
 |-------------|---------------|
