@@ -3,7 +3,7 @@
 # 새로 생성되는 로그 파일을 자동으로 tail -f하는 스크립트
 
 # 로그 디렉토리 설정
-LOG_DIR="$APP_LOGS_FOLDER/SQLTransformTarget/qlogs"
+LOG_DIR="$APP_LOGS_FOLDER/qlogs"
 
 echo "로그 파일 모니터링을 시작합니다..."
 echo "모니터링 경로: $LOG_DIR"

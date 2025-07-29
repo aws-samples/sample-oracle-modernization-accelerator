@@ -1,6 +1,6 @@
 # Application Discovery and Oracle Migration Analysis
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 ## Overview
 This discovery process has been split into two phases for better maintainability and reusability:

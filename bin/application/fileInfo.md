@@ -34,7 +34,7 @@ MyBatis XML Mapper 파일을 개별 Level1 요소로 분리하여 생성하는 �
 **상세 동작**:
 1. `SOURCE_SQL_MAPPER_FOLDER`의 모든 XML 파일을 검색
 2. 각 파일을 `{파일명}_src.xml`로 이름 변경
-3. `APP_LOGS_FOLDER/SQLTransformTarget/mapper/{경로}/{파일명}/origin/` 폴더에 복사
+3. `APP_LOGS_FOLDER/mapper/{경로}/{파일명}/origin/` 폴더에 복사
 4. 복사된 파일들을 xmlExtractor.py로 처리하여 개별 요소로 분리
 5. 분리된 요소들을 `extract` 폴더에 저장
 
@@ -42,9 +42,9 @@ MyBatis XML Mapper 파일을 개별 Level1 요소로 분리하여 생성하는 �
 ```
 SOURCE_SQL_MAPPER_FOLDER/com/UserDao.xml
 ↓ 복사 및 이름 변경
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/UserDao/origin/UserDao_src.xml
+APP_LOGS_FOLDER/mapper/com/UserDao/origin/UserDao_src.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/UserDao/extract/
+APP_LOGS_FOLDER/mapper/com/UserDao/extract/
 ├── UserDao_src-01-select-userDao.getUser.xml
 └── UserDao_src-02-insert-userDao.insertUser.xml
 ```
@@ -58,7 +58,7 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/UserDao/extract/
 **상세 동작**:
 1. `TARGET_SQL_MAPPER_FOLDER`의 모든 XML 파일을 검색
 2. 각 파일을 `{파일명}_tgt.xml`로 이름 변경
-3. `APP_LOGS_FOLDER/SQLTransformTarget/mapper/{경로}/{파일명}/merge/` 폴더에 복사
+3. `APP_LOGS_FOLDER/mapper/{경로}/{파일명}/merge/` 폴더에 복사
 4. 복사된 파일들을 xmlExtractor.py로 처리하여 개별 요소로 분리
 5. 분리된 요소들을 `transform` 폴더에 저장
 
@@ -66,9 +66,9 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/UserDao/extract/
 ```
 TARGET_SQL_MAPPER_FOLDER/itsm/csr/CsrMainDao.xml
 ↓ 복사 및 이름 변경
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/itsm/csr/CsrMainDao/merge/CsrMainDao_tgt.xml
+APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/merge/CsrMainDao_tgt.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/itsm/csr/CsrMainDao/transform/
+APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/transform/
 ├── CsrMainDao_tgt-01-select-csrMainDao.getMainInfo.xml
 └── CsrMainDao_tgt-02-update-csrMainDao.updateStatus.xml
 ```
@@ -80,15 +80,15 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/itsm/csr/CsrMainDao/transform/
 **처리 흐름**: `origin` → `extract`
 
 **상세 동작**:
-1. `APP_LOGS_FOLDER/SQLTransformTarget/mapper/*/origin/` 폴더의 모든 XML 파일을 검색
+1. `APP_LOGS_FOLDER/mapper/*/origin/` 폴더의 모든 XML 파일을 검색
 2. 각 파일을 xmlExtractor.py로 처리하여 개별 요소로 분리
 3. 분리된 요소들을 해당하는 `extract` 폴더에 저장
 
 **예시**:
 ```
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/LoginDao/origin/LoginDao_src.xml
+APP_LOGS_FOLDER/mapper/com/LoginDao/origin/LoginDao_src.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/LoginDao/extract/
+APP_LOGS_FOLDER/mapper/com/LoginDao/extract/
 ├── LoginDao_src-01-select-loginDao.checkLogin.xml
 └── LoginDao_src-02-update-loginDao.updateLastLogin.xml
 ```
@@ -100,15 +100,15 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/com/LoginDao/extract/
 **처리 흐름**: `merge` → `transform`
 
 **상세 동작**:
-1. `APP_LOGS_FOLDER/SQLTransformTarget/mapper/*/merge/` 폴더의 모든 XML 파일을 검색
+1. `APP_LOGS_FOLDER/mapper/*/merge/` 폴더의 모든 XML 파일을 검색
 2. 각 파일을 xmlExtractor.py로 처리하여 개별 요소로 분리
 3. 분리된 요소들을 해당하는 `transform` 폴더에 저장
 
 **예시**:
 ```
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/mro/sys/SysAuthDao/merge/SysAuthDao_tgt.xml
+APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/merge/SysAuthDao_tgt.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/mro/sys/SysAuthDao/transform/
+APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/transform/
 ├── SysAuthDao_tgt-01-select-sysAuthDao.getAuthInfo.xml
 └── SysAuthDao_tgt-02-update-sysAuthDao.updateAuth.xml
 ```
@@ -145,7 +145,7 @@ export TARGET_SQL_MAPPER_FOLDER="/external/target/mappers"
 
 #### source/target 타입 (복사 후 분리)
 ```
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/
+APP_LOGS_FOLDER/mapper/
 └── {경로}/
     └── {파일명}/
         ├── origin/ 또는 merge/
@@ -158,7 +158,7 @@ APP_LOGS_FOLDER/SQLTransformTarget/mapper/
 
 #### origin/merge 타입 (기존 파일 분리)
 ```
-APP_LOGS_FOLDER/SQLTransformTarget/mapper/
+APP_LOGS_FOLDER/mapper/
 └── {경로}/
     ├── origin/ 또는 merge/
     │   └── {기존파일}.xml
@@ -240,5 +240,5 @@ origin 폴더의 모든 *src.xml 파일들을 처리하여 extract 폴더에 개
 ```
 
 ### 처리 대상
-- 경로: `APP_LOGS_FOLDER/SQLTransformTarget/mapper/*/origin/*src.xml`
+- 경로: `APP_LOGS_FOLDER/mapper/*/origin/*src.xml`
 - 출력: 해당하는 extract 폴더

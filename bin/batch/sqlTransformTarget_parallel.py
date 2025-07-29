@@ -78,6 +78,7 @@ import threading
 import queue
 import time
 import json
+import fcntl  # 파일 잠금용
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from datetime import datetime
@@ -621,52 +622,158 @@ def copy_file(source, destination, logger, use_sudo=False):
             return copy_file(source, destination, logger, use_sudo=True)
         return False
 
-def update_csv_process_status(csv_file_path, xml_file_path, new_status, logger):
-    """CSV 파일의 Process 컬럼을 업데이트합니다."""
-    try:
-        rows = []
-        with open(csv_file_path, 'r', encoding='utf-8') as f:
-            csv_reader = csv.reader(f)
-            rows = list(csv_reader)
-        
-        if not rows:
-            logger.error(f"CSV file is empty: {csv_file_path}")
-            return False
-        
-        header = rows[0]
-        if len(header) < 7:
-            logger.error(f"CSV file does not have enough columns: {csv_file_path}")
-            return False
-        
-        updated = False
-        for i, row in enumerate(rows[1:], start=1):
-            if len(row) > 1 and row[1].strip() == xml_file_path.strip():
-                if len(row) > 6:
-                    old_status = row[6].strip()
-                    row[6] = new_status
-                    logger.info(f"Updated CSV: {xml_file_path} Process: '{old_status}' → '{new_status}'")
-                    updated = True
-                    break
+def safe_csv_update(csv_file_path, xml_file_path, new_status, logger):
+    """파일 잠금을 사용한 안전한 CSV 업데이트 (재시도 5번)"""
+    max_retries = 5
+    retry_delay = 1
+    
+    for attempt in range(max_retries):
+        try:
+            with open(csv_file_path, 'r+', encoding='utf-8') as f:
+                # 배타적 잠금 (다른 프로세스 차단)
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                
+                # CSV 읽기 및 수정
+                f.seek(0)
+                csv_reader = csv.reader(f)
+                rows = list(csv_reader)
+                
+                if not rows:
+                    logger.error(f"CSV file is empty: {csv_file_path}")
+                    return False
+                
+                header = rows[0]
+                if len(header) < 7:
+                    logger.error(f"CSV file does not have enough columns: {csv_file_path}")
+                    return False
+                
+                # 해당 row 찾아서 수정
+                updated = False
+                for i, row in enumerate(rows[1:], start=1):
+                    if len(row) > 1 and row[1].strip() == xml_file_path.strip():
+                        if len(row) > 6:
+                            old_status = row[6].strip()
+                            row[6] = new_status
+                            logger.info(f"[SAFE UPDATE] Updated CSV: {xml_file_path} Process: '{old_status}' → '{new_status}'")
+                            updated = True
+                            break
+                        else:
+                            logger.error(f"Row {i} does not have Process column: {row}")
+                
+                if not updated:
+                    logger.warning(f"File not found in CSV for status update: {xml_file_path}")
+                    return False
+                
+                # 파일 처음부터 다시 쓰기
+                f.seek(0)
+                f.truncate()
+                csv_writer = csv.writer(f)
+                csv_writer.writerows(rows)
+                f.flush()
+                
+                logger.debug(f"Successfully updated CSV file with lock: {csv_file_path}")
+                return True
+                
+        except (IOError, OSError) as e:
+            if "Resource temporarily unavailable" in str(e) or "already locked" in str(e).lower():
+                if attempt < max_retries - 1:
+                    logger.warning(f"CSV update attempt {attempt + 1}/{max_retries} failed (file locked), retrying in {retry_delay}s")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # 지수 백오프: 1→2→4→8→16초
                 else:
-                    logger.error(f"Row {i} does not have Process column: {row}")
-        
-        if not updated:
-            logger.warning(f"File not found in CSV for status update: {xml_file_path}")
+                    logger.error(f"Failed to update CSV after {max_retries} attempts (file locked)")
+                    return False
+            else:
+                logger.error(f"Failed to update CSV file {csv_file_path}: {e}")
+                return False
+    
+    return False
+
+def safe_record_transform_result(xml_basename, merge_file, final_file, logger, original_file_path=None):
+    """파일 잠금을 사용한 안전한 결과 기록 (재시도 5번)"""
+    try:
+        # APP_TRANSFORM_FOLDER 환경변수 가져오기
+        app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER')
+        if not app_transform_folder:
+            logger.warning("APP_TRANSFORM_FOLDER environment variable not set")
             return False
         
-        with open(csv_file_path, 'w', encoding='utf-8', newline='') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerows(rows)
+        result_csv_path = os.path.join(app_transform_folder, 'SQLTransformResult.csv')
         
-        logger.debug(f"Successfully updated CSV file: {csv_file_path}")
-        return True
+        # CSV 헤더 정의
+        fieldnames = ['XMLBasename', 'OriginalFilePath', 'MergeFilePath', 'FinalFilePath', 'CompletedTime', 'Status']
+        
+        max_retries = 5
+        retry_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                # 파일이 없으면 생성
+                if not os.path.exists(result_csv_path):
+                    with open(result_csv_path, 'w', encoding='utf-8', newline='') as f:
+                        writer = csv.DictWriter(f, fieldnames=fieldnames)
+                        writer.writeheader()
+                
+                with open(result_csv_path, 'r+', encoding='utf-8') as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    
+                    # 기존 데이터 읽기
+                    f.seek(0)
+                    reader = csv.DictReader(f)
+                    existing_data = list(reader)
+                    
+                    # 중복 제거 및 새 데이터 추가
+                    filtered_data = [row for row in existing_data if row.get('XMLBasename') != xml_basename]
+                    new_record = {
+                        'XMLBasename': xml_basename,
+                        'OriginalFilePath': original_file_path or '',
+                        'MergeFilePath': merge_file,
+                        'FinalFilePath': final_file,
+                        'CompletedTime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'Status': 'Completed'
+                    }
+                    filtered_data.append(new_record)
+                    
+                    # 파일 다시 쓰기
+                    f.seek(0)
+                    f.truncate()
+                    writer = csv.DictWriter(f, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(filtered_data)
+                    f.flush()
+                    
+                    if xml_basename in [row.get('XMLBasename') for row in existing_data]:
+                        logger.info(f"[SAFE RECORD] Transform result updated (duplicate removed) in {result_csv_path}")
+                    else:
+                        logger.info(f"[SAFE RECORD] Transform result recorded in {result_csv_path}")
+                    
+                    return True
+                    
+            except (IOError, OSError) as e:
+                if "Resource temporarily unavailable" in str(e) or "already locked" in str(e).lower():
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Result recording attempt {attempt + 1}/{max_retries} failed (file locked), retrying in {retry_delay}s")
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # 지수 백오프: 1→2→4→8→16초
+                    else:
+                        logger.error(f"Failed to record result after {max_retries} attempts (file locked)")
+                        return False
+                else:
+                    logger.error(f"Failed to record transform result: {e}")
+                    return False
+        
+        return False
         
     except Exception as e:
-        logger.error(f"Failed to update CSV file {csv_file_path}: {e}")
+        logger.error(f"Failed to record transform result: {e}")
         return False
 
-def read_transform_target_list(file_path, logger, mode='all'):
-    """변환 대상 목록 CSV 파일을 읽습니다."""
+def update_csv_process_status(csv_file_path, xml_file_path, new_status, logger):
+    """CSV 파일의 Process 컬럼을 업데이트합니다 - 안전한 버전으로 리다이렉트"""
+    return safe_csv_update(csv_file_path, xml_file_path, new_status, logger)
+
+def read_transform_target_list(file_path, logger, mode='all', process_id=None):
+    """변환 대상 목록 CSV 파일을 읽습니다 - 병렬 처리 지원"""
     target_list = []
     
     # merge 모드인 경우 세 개의 CSV 파일을 모두 확인
@@ -702,9 +809,22 @@ def read_transform_target_list(file_path, logger, mode='all'):
                     if not row or len(row) < 7:
                         continue
                     
+                    # No 컬럼 (첫 번째 컬럼) 확인
+                    no_value = row[0].strip() if len(row) > 0 else ""
                     filename = row[1].strip() if len(row) > 1 else ""
                     transform_target = row[5].strip() if len(row) > 5 else ""
                     process_status = row[6].strip() if len(row) > 6 else ""
+                    
+                    # process_id가 지정된 경우 No 끝자리로 필터링
+                    if process_id is not None:
+                        try:
+                            no_int = int(no_value)
+                            if no_int % 10 != process_id:
+                                logger.debug(f"Row {row_num}: Skipped - No {no_value} not for process {process_id}")
+                                continue
+                        except ValueError:
+                            logger.debug(f"Row {row_num}: Skipped - Invalid No value: {no_value}")
+                            continue
                     
                     # merge 모드와 다른 모드의 선정 기준 분리
                     if mode == 'merge':
@@ -725,7 +845,7 @@ def read_transform_target_list(file_path, logger, mode='all'):
                     if condition:
                         if filename not in target_list:  # 중복 제거
                             target_list.append(filename)
-                            logger.debug(f"Row {row_num}: Added {filename} (Process: '{process_status}') from {os.path.basename(csv_file)}")
+                            logger.debug(f"Row {row_num}: Added {filename} (No: {no_value}, Process: '{process_status}') from {os.path.basename(csv_file)}")
                     else:
                         if not filename:
                             logger.debug(f"Row {row_num}: Skipped - Empty filename")
@@ -736,7 +856,11 @@ def read_transform_target_list(file_path, logger, mode='all'):
                         elif skip_reason:
                             logger.debug(f"Row {row_num}: Skipped - {skip_reason}: {filename}")
         
-        logger.info(f"Read {len(target_list)} targets from {len(csv_files)} CSV file(s) for {mode} mode")
+        if process_id is not None:
+            logger.info(f"Read {len(target_list)} targets for process {process_id} (No ending with {process_id}) from {len(csv_files)} CSV file(s) for {mode} mode")
+        else:
+            logger.info(f"Read {len(target_list)} targets from {len(csv_files)} CSV file(s) for {mode} mode")
+        
         logger.debug(f"Target list: {target_list}")
         return target_list
     
@@ -745,72 +869,20 @@ def read_transform_target_list(file_path, logger, mode='all'):
         return []
 
 def record_transform_result(xml_basename, merge_file, final_file, logger, original_file_path=None):
-    """변환 결과를 SQLTransformResult.csv에 기록 (중복 방지 및 원본 경로 포함)"""
-    try:
-        # APP_TRANSFORM_FOLDER 환경변수 가져오기
-        app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER')
-        if not app_transform_folder:
-            logger.warning("APP_TRANSFORM_FOLDER environment variable not set")
-            return False
-        
-        result_csv_path = os.path.join(app_transform_folder, 'SQLTransformResult.csv')
-        
-        # CSV 헤더 정의
-        fieldnames = ['XMLBasename', 'OriginalFilePath', 'MergeFilePath', 'FinalFilePath', 'CompletedTime', 'Status']
-        
-        # 기존 데이터 읽기 (중복 확인용)
-        existing_data = []
-        file_exists = os.path.exists(result_csv_path)
-        
-        if file_exists:
-            try:
-                with open(result_csv_path, 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    existing_data = list(reader)
-            except Exception as e:
-                logger.warning(f"Could not read existing CSV data: {e}")
-        
-        # 중복 제거 (같은 XMLBasename이 있으면 제거)
-        filtered_data = [row for row in existing_data if row.get('XMLBasename') != xml_basename]
-        
-        # 새 데이터 추가
-        new_record = {
-            'XMLBasename': xml_basename,
-            'OriginalFilePath': original_file_path or '',
-            'MergeFilePath': merge_file,
-            'FinalFilePath': final_file,
-            'CompletedTime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'Status': 'Completed'
-        }
-        filtered_data.append(new_record)
-        
-        # 전체 파일 다시 쓰기
-        with open(result_csv_path, 'w', encoding='utf-8', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(filtered_data)
-        
-        if xml_basename in [row.get('XMLBasename') for row in existing_data]:
-            logger.info(f"Transform result updated (duplicate removed) in {result_csv_path}")
-        else:
-            logger.info(f"Transform result recorded in {result_csv_path}")
-        
-        return True
-        
-    except Exception as e:
-        logger.error(f"Failed to record transform result: {e}")
-        return False
+    """변환 결과를 SQLTransformResult.csv에 기록 - 안전한 버전으로 리다이렉트"""
+    return safe_record_transform_result(xml_basename, merge_file, final_file, logger, original_file_path)
 
-def process_single_batch(group_id, batch_files, extract_folder, transform_folder, prompt_template, origin_suffix, transform_suffix, xmlwork_folder, qlog_folder, qprompt_folder, logger):
+def process_single_batch(group_id, batch_files, extract_folder, transform_folder, prompt_template, origin_suffix, transform_suffix, xmlwork_folder, qlog_folder, qprompt_folder, logger, process_id=None):
     """단일 배치 처리 - 파일 개수 검증 포함"""
     try:
         # 원래 처리해야 할 파일 개수 저장
         expected_file_count = len(batch_files)
         logger.info(f"Batch {group_id}: Expected to process {expected_file_count} files")
         
-        # 임시 작업 공간 생성 (그룹ID 기반)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')[:-3]
-        temp_dir = f"/tmp/batch_{group_id}_{timestamp}"
+        # 임시 작업 공간 생성 (XML이름/그룹ID 기반)
+        # group_id에서 XML 베이스명 추출 (예: xmlname000001 → xmlname)
+        xml_basename = group_id.rstrip('0123456789')
+        temp_dir = f"/tmp/{xml_basename}/{group_id}"
         batch_input_dir = os.path.join(temp_dir, "input")
         batch_output_dir = os.path.join(temp_dir, "output")
         
@@ -861,8 +933,12 @@ def process_single_batch(group_id, batch_files, extract_folder, transform_folder
         batch_log_file = os.path.join(qlog_folder, f"{group_id}.log")
         cmd = f"q chat --trust-all-tools --no-interactive < {batch_prompt_file} > {batch_log_file}"
         
-        # 명령어 히스토리 저장
-        cmd_history_file = os.path.join(qprompt_folder, "qchat_command_history.log")
+        # 명령어 히스토리 저장 (프로세스별 분리)
+        if process_id is not None:
+            cmd_history_file = os.path.join(qprompt_folder, f"qchat_command_history_p{process_id}.log")
+        else:
+            cmd_history_file = os.path.join(qprompt_folder, "qchat_command_history.log")
+        
         with open(cmd_history_file, 'a', encoding='utf-8') as f:
             f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {group_id} - {cmd}\n")
         
@@ -923,7 +999,7 @@ def process_single_batch(group_id, batch_files, extract_folder, transform_folder
             shutil.rmtree(temp_dir, ignore_errors=True)
         return False, f"Exception occurred: {str(e)}"
 
-def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, source_sql_mapper_folder, target_sql_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger, java_source_folder, use_sudo=False, mode='all', batch_size=10):
+def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, source_sql_mapper_folder, target_sql_mapper_folder, prompt_file, qlog_folder, qprompt_folder, log_level, logger, java_source_folder, use_sudo=False, mode='all', batch_size=10, process_id=None):
     """개선된 XML 파일 처리 함수 - 배치 상태 관리 포함"""
     try:
         # 1. 파일 경로 분석
@@ -981,9 +1057,10 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
                 logger.info(f"[{mode.upper()} MODE] Extract already completed for {xml_basename}, skipping extraction")
             else:
                 # xmlExtractor.py 호출
+                app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
                 extractor_cmd = [
                     "python3",
-                    os.path.join(os.path.dirname(os.path.abspath(__file__)), "xmlExtractor.py"),
+                    os.path.join(app_tools_folder, "xmlExtractor.py"),
                     "--input", origin_file_path,
                     "--output", extract_folder,
                     f"--log-level={log_level}"
@@ -1046,7 +1123,7 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
                     batch_success, batch_message = process_single_batch(
                         group_id, batch_files, extract_folder, transform_folder,
                         prompt_template, origin_suffix, transform_suffix,
-                        xmlwork_folder, qlog_folder, qprompt_folder, logger
+                        xmlwork_folder, qlog_folder, qprompt_folder, logger, process_id
                     )
                     
                     # 상태 업데이트 (파일 개수 검증 결과 기반)
@@ -1109,9 +1186,10 @@ def process_xml_file(xml_file, origin_suffix, transform_suffix, mapper_folder, s
             xmlmerge_file = os.path.join(merge_folder, xml_stem.replace(origin_suffix, transform_suffix) + xml_path.suffix)
             
             # xmlMerger.py 호출
+            app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
             merger_cmd = [
                 "python3",
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "xmlMerger.py"),
+                os.path.join(app_tools_folder, "xmlMerger.py"),
                 "--input", transform_folder,
                 "--output", xmlmerge_file,
                 f"--log-level={log_level}"
@@ -1178,6 +1256,10 @@ def main():
                         help='실행 모드 선택: all(전체), extract(추출만), transform(변환만), merge(병합만) (기본값: all)')
     parser.add_argument('--batch-size', type=int, default=10, help='배치 크기 설정 (기본값: 10)')
     parser.add_argument('--cleanup-batch', action='store_true', help='완료 후 배치 관리 파일 정리')
+    
+    # 병렬 처리를 위한 새로운 파라미터
+    parser.add_argument('--process-id', type=int, choices=range(10), 
+                        help='처리할 프로세스 ID (0~9). CSV의 No 컬럼 끝자리와 매칭')
     
     args = parser.parse_args()
     
@@ -1275,15 +1357,20 @@ def main():
     
     # 로그 파일 경로 설정
     if not args.log:
-        log_file = os.path.join(pylog_folder, f"sqlTransformTarget_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+        if args.process_id is not None:
+            log_file = os.path.join(pylog_folder, f"sqlTransformTarget_p{args.process_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+        else:
+            log_file = os.path.join(pylog_folder, f"sqlTransformTarget_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
     else:
         log_file = args.log
     
     # 로거 설정
     logger = setup_logger(log_file, log_level)
     
-    logger.info("Starting sqlTransformTarget.py V3.0 (Improved with Batch Management)")
+    logger.info("Starting sqlTransformTarget.py V3.0 (Improved with Batch Management) - Parallel Processing Version")
     logger.info(f"Execution Mode: {args.mode.upper()}")
+    if args.process_id is not None:
+        logger.info(f"Process ID: {args.process_id} (handling No ending with {args.process_id})")
     logger.info(f"Batch Size: {args.batch_size}")
     logger.info(f"Application Name: {application_name}")
     logger.info(f"OMA Base Directory: {oma_base_dir}")
@@ -1315,7 +1402,7 @@ def main():
         sys.exit(1)
     
     # 3. 변환 대상 목록 읽기
-    target_files = read_transform_target_list(transform_target_list, logger, args.mode)
+    target_files = read_transform_target_list(transform_target_list, logger, args.mode, args.process_id)
     
     if not target_files:
         logger.info(f"All rows are completed, no targets to process in {transform_target_list}")
@@ -1352,7 +1439,8 @@ def main():
             java_source_folder,
             args.use_sudo,
             args.mode,
-            args.batch_size
+            args.batch_size,
+            args.process_id
         )
         
         # CSV 업데이트 (all 또는 merge 모드에서 프로세스가 완료된 경우)
@@ -1399,7 +1487,8 @@ def main():
     # 5. 검증 프로세스 호출 (merge 모드에서만)
     if args.mode == 'merge':
         logger.info("Starting validation process...")
-        validation_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "transformValidation.py")
+        app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
+        validation_script = os.path.join(app_tools_folder, "transformValidation.py")
 
         try:
             validation_cmd = [
