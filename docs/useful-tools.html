@@ -39,26 +39,51 @@
             background: var(--light-bg);
             min-height: calc(100vh - 76px);
             border-right: 1px solid #dee2e6;
-            padding: 2rem 0;
+            padding: 1rem 0; /* 2rem에서 1rem으로 줄임 */
         }
 
         .sidebar .nav-link {
             color: var(--primary-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            margin: 0.25rem 1rem;
+            padding: 0.4rem 1rem; /* 0.75rem 1.5rem에서 줄임 */
+            border-radius: 0.3rem;
+            margin: 0.1rem 0.5rem; /* 0.25rem 1rem에서 줄임 */
             transition: all 0.3s ease;
+            font-size: 13px; /* 폰트 크기 명시적으로 설정 */
+            line-height: 1.4;
         }
 
         .sidebar .nav-link:hover {
             background: var(--secondary-color);
             color: white;
-            transform: translateX(5px);
+            transform: translateX(3px); /* 5px에서 3px로 줄임 */
         }
 
         .sidebar .nav-link.active {
             background: var(--primary-color);
             color: white;
+        }
+
+        /* 카테고리 헤더 스타일 */
+        .sidebar .nav-category {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.5rem 1rem 0.2rem 1rem;
+            margin-top: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .sidebar .nav-category:first-child {
+            margin-top: 0.3rem;
+        }
+
+        /* 구분선 스타일 */
+        .sidebar hr {
+            margin: 0.6rem 1rem; /* my-3에서 줄임 */
+            border-color: #dee2e6;
+            opacity: 0.3;
         }
 
         .main-content {
@@ -388,8 +413,8 @@
                         <i class="fas fa-info-circle me-2"></i>OMA 소개
                     </a>
                     
-                    <hr class="my-3">
-                    <small class="text-muted px-3 mb-2">환경 설정</small>
+                    <hr>
+                    <div class="nav-category">환경 설정</div>
                     <a class="nav-link" href="0-1.setEnv.html">
                         <i class="fas fa-cog me-2"></i>환경 변수 설정
                     </a>
@@ -397,8 +422,8 @@
                         <i class="fas fa-check-circle me-2"></i>환경 검증
                     </a>
                     
-                    <hr class="my-3">
-                    <small class="text-muted px-3 mb-2">애플리케이션 분석</small>
+                    <hr>
+                    <div class="nav-category">애플리케이션 분석</div>
                     <a class="nav-link" href="1-1.processAppAnalysis.html">
                         <i class="fas fa-search me-2"></i>앱 분석
                     </a>
@@ -409,8 +434,8 @@
                         <i class="fas fa-database me-2"></i>PostgreSQL 메타
                     </a>
                     
-                    <hr class="my-3">
-                    <small class="text-muted px-3 mb-2">코드 변환</small>
+                    <hr>
+                    <div class="nav-category">코드 변환</div>
                     <a class="nav-link" href="2-1.processSqlTransform.html">
                         <i class="fas fa-exchange-alt me-2"></i>SQL 변환
                     </a>
@@ -418,14 +443,14 @@
                         <i class="fas fa-tools me-2"></i>후처리 변환
                     </a>
                     
-                    <hr class="my-3">
-                    <small class="text-muted px-3 mb-2">SQL 단위 테스트</small>
+                    <hr>
+                    <div class="nav-category">SQL 단위 테스트</div>
                     <a class="nav-link" href="3-1.sqlUnitTest.html">
                         <i class="fas fa-vial me-2"></i>SQL 단위 테스트
                     </a>
                     
-                    <hr class="my-3">
-                    <small class="text-muted px-3 mb-2">결과 통합</small>
+                    <hr>
+                    <div class="nav-category">결과 통합</div>
                     <a class="nav-link" href="4-1.processSqlTransformMerge.html">
                         <i class="fas fa-code-merge me-2"></i>SQL 변환 병합
                     </a>
@@ -436,7 +461,7 @@
                         <i class="fab fa-java me-2"></i>Java 변환
                     </a>
                     
-                    <hr class="my-3">
+                    <hr>
                     <a class="nav-link" href="useful-tools.html">
                         <i class="fas fa-toolbox me-2"></i>유용한 툴들
                     </a>
