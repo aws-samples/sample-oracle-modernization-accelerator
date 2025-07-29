@@ -1,45 +1,77 @@
 ---
-layout: default
-title: Home
-nav_order: 1
-description: "OMA (Oracle Modernization Accelerator) Manual - Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드"
-permalink: /
+layout: splash
+title: "Oracle Modernization Accelerator (OMA)"
+excerpt: "Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션"
+header:
+  overlay_color: "#5e616c"
+  overlay_filter: 0.5
+  actions:
+    - label: "시작하기"
+      url: "/OMA-Introduction/"
+      btn_class: "btn--primary"
+    - label: "GitHub"
+      url: "https://github.com/aws-samples/sample-oracle-modernization-accelerator"
+      btn_class: "btn--inverse"
+
+feature_row:
+  - image_path: /assets/images/analysis-icon.png
+    alt: "애플리케이션 분석"
+    title: "🔍 애플리케이션 분석"
+    excerpt: "Java 소스 코드 및 MyBatis XML 파일을 자동으로 분석하여 변환 대상 SQL을 식별합니다."
+    url: "/1-1.processAppAnalysis/"
+    btn_label: "자세히 보기"
+    btn_class: "btn--primary"
+    
+  - image_path: /assets/images/transform-icon.png
+    alt: "자동 변환"
+    title: "⚡ 자동 변환"
+    excerpt: "Oracle SQL을 PostgreSQL/MySQL로 자동 변환하고 MyBatis XML 파일을 처리합니다."
+    url: "/2-1.processSqlTransform/"
+    btn_label: "자세히 보기"
+    btn_class: "btn--primary"
+    
+  - image_path: /assets/images/test-icon.png
+    alt: "검증 및 테스트"
+    title: "✅ 검증 및 테스트"
+    excerpt: "변환된 SQL의 동작을 검증하고 상세한 분석 보고서를 생성합니다."
+    url: "/3-1.sqlUnitTest/"
+    btn_label: "자세히 보기"
+    btn_class: "btn--primary"
+
+intro:
+  - excerpt: "AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코드 변환을 통해 효율적인 데이터베이스 현대화를 지원합니다."
 ---
 
-# OMA (Oracle Modernization Accelerator) Manual
+{% include feature_row id="intro" type="center" %}
 
-Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드
+{% include feature_row %}
 
-[빠른 시작](#빠른-시작) | [GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator)
+## 🚀 빠른 시작
 
----
+```bash
+# 메인 실행 스크립트 실행
+./initOMA.sh
+```
 
-## Getting started
+## 📁 주요 구성 요소
 
-### 빠른 시작
+### 1. 통합 제어 계층
+- **initOMA.sh**: 메뉴 기반 통합 실행 스크립트
+- **환경 설정**: 프로젝트별 환경 변수 관리
 
-1. [사전 요구사항](Pre-Requisites.md) - 인프라 구성 및 환경 설정
-2. [OMA 소개](OMA-Introduction.md) - OMA 프로젝트 개요
-3. [환경 설정](0-1.setEnv.md) - 프로젝트별 환경 변수 설정
+### 2. 분석 엔진
+- **애플리케이션 분석**: Java 소스 코드 및 MyBatis XML 파일 분석
+- **SQL 추출**: 변환 대상 SQL 식별 및 분류
 
-### 주요 기능
+### 3. 변환 엔진
+- **SQL 변환**: Oracle SQL을 Target DBMS SQL로 자동 변환
+- **XML 처리**: MyBatis XML 파일 변환 및 병합
 
-- **자동화된 인프라 구성**: CloudFormation을 통한 AWS 리소스 자동 배포
-- **AI 기반 코드 분석**: Amazon Q를 활용한 코드 분석 및 변환
-- **데이터베이스 스키마 변환**: DMS Schema Conversion을 통한 자동 변환
-- **애플리케이션 코드 변환**: Java/MyBatis 코드 자동 변환
+### 4. 검증 엔진
+- **Unit 테스트**: 변환된 SQL 동작 검증
+- **보고서 생성**: 변환 결과 분석 및 HTML 보고서 생성
 
-### 지원 환경
-
-- **소스 데이터베이스**: Oracle Database
-- **타겟 데이터베이스**: Aurora PostgreSQL, Aurora MySQL
-- **애플리케이션**: Java, Spring Boot, MyBatis
-
----
-
-## 문서 구조
-
-이 매뉴얼은 다음과 같이 구성되어 있습니다:
+## 📖 문서 구조
 
 ### 📋 사전 준비
 - **[OMA Introduction](OMA-Introduction.md)**: 프로젝트 개요 및 아키텍처
@@ -69,15 +101,6 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 ### 🔧 유용한 툴들
 - **[유용한 툴들](useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
 
-### 카테고리별 문서 인덱스
-- **[환경 설정](environment-setup.md)**
-- **[애플리케이션 분석](application-analysis.md)**
-- **[코드 변환](code-transformation.md)**
-- **[SQL 단위 테스트](sql-unit-test.md)**
-- **[결과 통합](result-integration.md)**
-
 ---
 
-## 지원 및 기여
-
-문제가 발생하거나 개선 사항이 있으시면 [GitHub Issues](https://github.com/aws-samples/sample-oracle-modernization-accelerator/issues)를 통해 알려주세요.
+**자세한 설치 가이드, 사용법, 단계별 매뉴얼은 각 문서에서 확인하세요.**
