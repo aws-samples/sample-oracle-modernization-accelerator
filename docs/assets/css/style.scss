@@ -9,6 +9,23 @@ body {
   line-height: 1.6 !important;
 }
 
+// 사이트 헤더가 북마크바에 가리지 않도록 상단 여백 추가
+.site-header {
+  padding-top: 1rem !important;
+  margin-top: 0.5rem !important;
+}
+
+// 사이트 제목 상단 여백 추가
+.site-title {
+  margin-top: 0.5rem !important;
+  padding-top: 0.5rem !important;
+}
+
+// 메인 컨텐츠 상단 여백 추가
+.main-content-wrap {
+  padding-top: 1rem !important;
+}
+
 // 제목 폰트 크기 증가
 h1 {
   font-size: 2.2em !important;
