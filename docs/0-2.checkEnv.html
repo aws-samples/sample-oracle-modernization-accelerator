@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환경 검증 - Oracle Modernization Accelerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px; /* 기본 폰트 크기를 14px로 줄임 */
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar {
+            background: var(--light-bg);
+            min-height: calc(100vh - 76px);
+            border-right: 1px solid #dee2e6;
+            padding: 2rem 0;
+        }
+
+        .sidebar .nav-link {
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: none;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .content-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            font-size: 1.8rem; /* 2.4rem에서 1.8rem로 줄임 */
+        }
+
+        .content-header .description {
+            color: #6c757d;
+            font-size: 1rem; /* 1.1rem에서 1rem로 줄임 */
+            margin: 0;
+        }
+
+        .content-body h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.4rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h4 {
+            color: var(--primary-color);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h5 {
+            color: var(--secondary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h6 {
+            color: var(--primary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .alert {
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        code {
+            background: #f1f3f4;
+            color: #e74c3c;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #dee2e6;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .toc {
+            background: var(--light-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .toc h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 0.5rem 0;
+        }
+
+        .toc a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+            padding-left: 1rem;
+        }
+
+        .content-body p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .content-body li {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-body ul ul li, 
+        .content-body ol ol li {
+            font-size: 13px;
+        }
+
+        .content-body ul ul ul li, 
+        .content-body ol ol ol li {
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .content-header {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-database me-2"></i>
+                Oracle Modernization Accelerator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home me-2"></i>홈
+                    </a>
+                    <a class="nav-link" href="Pre-Requisites.html">
+                        <i class="fas fa-list-check me-2"></i>사전 요구사항
+                    </a>
+                    <a class="nav-link" href="OMA-Introduction.html">
+                        <i class="fas fa-info-circle me-2"></i>OMA 소개
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">환경 설정</small>
+                    <a class="nav-link" href="0-1.setEnv.html">
+                        <i class="fas fa-cog me-2"></i>환경 변수 설정
+                    </a>
+                    <a class="nav-link" href="0-2.checkEnv.html">
+                        <i class="fas fa-check-circle me-2"></i>환경 검증
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">애플리케이션 분석</small>
+                    <a class="nav-link" href="1-1.processAppAnalysis.html">
+                        <i class="fas fa-search me-2"></i>앱 분석
+                    </a>
+                    <a class="nav-link" href="1-2.processAppReporting.html">
+                        <i class="fas fa-chart-bar me-2"></i>앱 리포팅
+                    </a>
+                    <a class="nav-link" href="1-3.genPostgreSqlMeta.html">
+                        <i class="fas fa-database me-2"></i>PostgreSQL 메타
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">코드 변환</small>
+                    <a class="nav-link" href="2-1.processSqlTransform.html">
+                        <i class="fas fa-exchange-alt me-2"></i>SQL 변환
+                    </a>
+                    <a class="nav-link" href="2-2.processPostTransform.html">
+                        <i class="fas fa-tools me-2"></i>후처리 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">SQL 단위 테스트</small>
+                    <a class="nav-link" href="3-1.sqlUnitTest.html">
+                        <i class="fas fa-vial me-2"></i>SQL 단위 테스트
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">결과 통합</small>
+                    <a class="nav-link" href="4-1.processSqlTransformMerge.html">
+                        <i class="fas fa-code-merge me-2"></i>SQL 변환 병합
+                    </a>
+                    <a class="nav-link" href="4-2.processSqlTransformReport.html">
+                        <i class="fas fa-file-alt me-2"></i>SQL 변환 리포트
+                    </a>
+                    <a class="nav-link" href="4-3.processJavaTransform.html">
+                        <i class="fab fa-java me-2"></i>Java 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <a class="nav-link" href="useful-tools.html">
+                        <i class="fas fa-toolbox me-2"></i>유용한 툴들
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">홈</a></li>
+                        <li class="breadcrumb-item active">환경 설정 > 환경 검증</li>
+                    </ol>
+                </nav>
+
+                <!-- Content Header -->
+                <div class="content-header">
+                    <h1>환경 검증</h1>
+                    <p class="description">설정된 환경의 유효성 검증 및 문제 해결</p>
+                </div>
+
+                <!-- Content Body -->
+                <div class="content-body">
+                    <h1 id="0-2">0-2. 현재 환경 변수 확인 메뉴 상세 분석</h1>
+<h2 id="_1">메뉴명</h2>
+<p><strong>2. 현재 환경 변수 확인 (checkEnv.sh)</strong></p>
+<h2 id="_2">목적</h2>
+<p>현재 설정된 환경 변수 상태를 확인하고 검증하여 OMA 작업 수행에 필요한 모든 환경 변수가 올바르게 설정되었는지 점검</p>
+<h2 id="_3">실행 흐름</h2>
+<pre class="codehilite"><code>initOMA.sh 
+  → show_environment_menu() 
+    → execute_checkenv() 
+      → $OMA_BASE_DIR/bin/checkEnv.sh
+</code></pre>
+
+<h2 id="_4">상세 분석</h2>
+<h3 id="1-execute_checkenv">1. <strong>execute_checkenv() 함수</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 위치: initOMA.sh (187-194행)
+# 실행파일: $OMA_BASE_DIR/bin/checkEnv.sh
+</code></pre>
+
+<h3 id="2-checkenvsh">2. <strong>checkEnv.sh (환경 변수 확인 스크립트)</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 위치: $OMA_BASE_DIR/bin/checkEnv.sh
+# 주요 기능: 현재 설정된 환경 변수 상태 확인 및 검증
+</code></pre>
+
+<h3 id="3">3. <strong>주요 환경변수 매핑</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 기본 경로 설정
+OMA_BASE_DIR               # OMA 프로젝트 루트 디렉토리
+
+# 환경 변수 파일 패턴
+ENV_FILE_PATTERN           # oma_env_*.sh 패턴으로 환경 변수 파일 검색
+</code></pre>
+
+<h3 id="4">4. <strong>환경 변수 확인 작업</strong></h3>
+<h4 id="41"><strong>4.1 환경 변수 파일 자동 로드</strong></h4>
+<pre class="codehilite"><code class="language-bash"># 패턴: oma_env_*.sh
+# 가장 최근 파일 자동 선택 및 로드
+</code></pre>
+
+<h4 id="42"><strong>4.2 필수 환경 변수 검증</strong></h4>
+<ul>
+<li><strong>프로젝트 기본 정보</strong>: <code>APPLICATION_NAME</code> 등</li>
+<li><strong>경로 설정</strong>: 각종 폴더 경로 존재 여부 확인</li>
+<li><strong>데이터베이스 연결</strong>: 연결 정보 유효성 확인</li>
+<li><strong>도구 경로</strong>: 필요한 스크립트 및 도구 파일 존재 확인</li>
+</ul>
+<h4 id="43"><strong>4.3 환경 변수 상태 리포트</strong></h4>
+<ul>
+<li><strong>설정 완료</strong>: ✓ 표시로 정상 설정된 변수 표시</li>
+<li><strong>설정 누락</strong>: ✗ 표시로 누락된 변수 표시</li>
+<li><strong>경고 사항</strong>: 설정되었지만 주의가 필요한 항목 표시</li>
+</ul>
+<h2 id="_5">결과 출력</h2>
+<h3 id="_6"><strong>환경 변수 상태 리포트</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 콘솔 출력 형태:
+=== OMA 환경 변수 확인 ===
+✓ APPLICATION_NAME: itsm-2nd
+✓ JAVA_SOURCE_FOLDER: /path/to/source (존재함)
+✓ ORACLE_HOST: oracle.host.com (연결 가능)
+✗ PGHOST: 설정되지 않음
+⚠ APP_TOOLS_FOLDER: 경로 존재하지만 일부 파일 누락
+</code></pre>
+
+<h3 id="_7"><strong>검증 항목</strong></h3>
+<ul>
+<li><strong>환경 변수 존재 여부</strong>: 필수 환경 변수가 설정되어 있는지 확인</li>
+<li><strong>경로 유효성</strong>: 설정된 경로가 실제로 존재하는지 확인</li>
+<li><strong>파일 존재성</strong>: 필요한 파일들이 지정된 경로에 존재하는지 확인</li>
+<li><strong>권한 확인</strong>: 파일 및 디렉토리 접근 권한 확인</li>
+</ul>
+<h2 id="_8">환경 변수 의존성</h2>
+<h3 id="_9"><strong>필수 환경변수</strong></h3>
+<ul>
+<li><strong>기본 경로</strong>: <code>OMA_BASE_DIR</code></li>
+<li><strong>프로젝트 정보</strong>: <code>APPLICATION_NAME</code></li>
+</ul>
+<h3 id="_10"><strong>검증 대상 환경변수</strong></h3>
+<ul>
+<li><strong>애플리케이션</strong>: <code>APPLICATION_FOLDER</code>, <code>JAVA_SOURCE_FOLDER</code>, <code>SOURCE_SQL_MAPPER_FOLDER</code></li>
+<li><strong>데이터베이스</strong>: <code>ORACLE_*</code>, <code>PG*</code>, <code>SOURCE_DBMS_TYPE</code>, <code>TARGET_DBMS_TYPE</code></li>
+<li><strong>도구 경로</strong>: <code>APP_TOOLS_FOLDER</code>, <code>APP_LOGS_FOLDER</code></li>
+</ul>
+<h2 id="_11">사전 조건</h2>
+<h3 id="_12"><strong>환경 변수 파일 존재</strong></h3>
+<ul>
+<li><code>oma_env_*.sh</code> 패턴의 환경 변수 파일이 존재해야 함</li>
+<li>또는 현재 셸에 환경 변수가 이미 로드되어 있어야 함</li>
+</ul>
+<h3 id="_13"><strong>기본 디렉토리 구조</strong></h3>
+<ul>
+<li>OMA 프로젝트 기본 디렉토리 구조가 구성되어 있어야 함</li>
+</ul>
+<h2 id="_14">다음 단계</h2>
+<p>환경 변수 확인 결과에 따라:
+- <strong>정상</strong>: 모든 OMA 기능 사용 가능
+- <strong>문제 발견</strong>: 0-1. 환경 설정 수행을 통해 재설정 필요</p>
+<h2 id="_15">주요 특징</h2>
+<ul>
+<li><strong>자동 로드</strong>: 환경 변수 파일 자동 검색 및 로드</li>
+<li><strong>포괄적 검증</strong>: 환경 변수 존재뿐만 아니라 경로 유효성까지 확인</li>
+<li><strong>직관적 표시</strong>: ✓, ✗, ⚠ 기호로 상태를 명확히 표시</li>
+<li><strong>문제 진단</strong>: 문제가 있는 항목에 대한 구체적인 정보 제공</li>
+</ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-database me-2"></i>Oracle Modernization Accelerator</h5>
+                    <p class="mb-0">Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" class="text-light">
+                            <i class="fab fa-github me-1"></i>GitHub Repository
+                        </a>
+                    </p>
+                    <small class="text-muted">© 2025 Amazon Web Services, Inc.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // 현재 페이지에 해당하는 네비게이션 링크 활성화
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 부드러운 스크롤
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

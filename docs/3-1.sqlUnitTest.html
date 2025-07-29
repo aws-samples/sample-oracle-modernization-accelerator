@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL 단위 테스트 - Oracle Modernization Accelerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px; /* 기본 폰트 크기를 14px로 줄임 */
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar {
+            background: var(--light-bg);
+            min-height: calc(100vh - 76px);
+            border-right: 1px solid #dee2e6;
+            padding: 2rem 0;
+        }
+
+        .sidebar .nav-link {
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: none;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .content-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            font-size: 1.8rem; /* 2.4rem에서 1.8rem로 줄임 */
+        }
+
+        .content-header .description {
+            color: #6c757d;
+            font-size: 1rem; /* 1.1rem에서 1rem로 줄임 */
+            margin: 0;
+        }
+
+        .content-body h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.4rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h4 {
+            color: var(--primary-color);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h5 {
+            color: var(--secondary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .content-body h6 {
+            color: var(--primary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem; /* 기본값에서 명시적으로 설정 */
+        }
+
+        .alert {
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        code {
+            background: #f1f3f4;
+            color: #e74c3c;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #dee2e6;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .toc {
+            background: var(--light-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .toc h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 0.5rem 0;
+        }
+
+        .toc a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+            padding-left: 1rem;
+        }
+
+        .content-body p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .content-body li {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-body ul ul li, 
+        .content-body ol ol li {
+            font-size: 13px;
+        }
+
+        .content-body ul ul ul li, 
+        .content-body ol ol ol li {
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .content-header {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-database me-2"></i>
+                Oracle Modernization Accelerator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home me-2"></i>홈
+                    </a>
+                    <a class="nav-link" href="Pre-Requisites.html">
+                        <i class="fas fa-list-check me-2"></i>사전 요구사항
+                    </a>
+                    <a class="nav-link" href="OMA-Introduction.html">
+                        <i class="fas fa-info-circle me-2"></i>OMA 소개
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">환경 설정</small>
+                    <a class="nav-link" href="0-1.setEnv.html">
+                        <i class="fas fa-cog me-2"></i>환경 변수 설정
+                    </a>
+                    <a class="nav-link" href="0-2.checkEnv.html">
+                        <i class="fas fa-check-circle me-2"></i>환경 검증
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">애플리케이션 분석</small>
+                    <a class="nav-link" href="1-1.processAppAnalysis.html">
+                        <i class="fas fa-search me-2"></i>앱 분석
+                    </a>
+                    <a class="nav-link" href="1-2.processAppReporting.html">
+                        <i class="fas fa-chart-bar me-2"></i>앱 리포팅
+                    </a>
+                    <a class="nav-link" href="1-3.genPostgreSqlMeta.html">
+                        <i class="fas fa-database me-2"></i>PostgreSQL 메타
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">코드 변환</small>
+                    <a class="nav-link" href="2-1.processSqlTransform.html">
+                        <i class="fas fa-exchange-alt me-2"></i>SQL 변환
+                    </a>
+                    <a class="nav-link" href="2-2.processPostTransform.html">
+                        <i class="fas fa-tools me-2"></i>후처리 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">SQL 단위 테스트</small>
+                    <a class="nav-link" href="3-1.sqlUnitTest.html">
+                        <i class="fas fa-vial me-2"></i>SQL 단위 테스트
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">결과 통합</small>
+                    <a class="nav-link" href="4-1.processSqlTransformMerge.html">
+                        <i class="fas fa-code-merge me-2"></i>SQL 변환 병합
+                    </a>
+                    <a class="nav-link" href="4-2.processSqlTransformReport.html">
+                        <i class="fas fa-file-alt me-2"></i>SQL 변환 리포트
+                    </a>
+                    <a class="nav-link" href="4-3.processJavaTransform.html">
+                        <i class="fab fa-java me-2"></i>Java 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <a class="nav-link" href="useful-tools.html">
+                        <i class="fas fa-toolbox me-2"></i>유용한 툴들
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">홈</a></li>
+                        <li class="breadcrumb-item active">SQL 단위 테스트</li>
+                    </ol>
+                </nav>
+
+                <!-- Content Header -->
+                <div class="content-header">
+                    <h1>SQL 단위 테스트</h1>
+                    <p class="description">Oracle Migration Accelerator 테스트 프로그램들의 기능과 사용법</p>
+                </div>
+
+                <!-- Content Body -->
+                <div class="content-body">
+                    <h1 id="oracle-migration-accelerator">Oracle Migration Accelerator 프로그램 교육 자료</h1>
+<h2 id="_1">문서 정보</h2>
+<ul>
+<li><strong>작성일:</strong> 2025년 7월 29일</li>
+<li><strong>대상:</strong> Oracle to PostgreSQL 마이그레이션 프로젝트 담당자</li>
+<li><strong>목적:</strong> OMA 테스트 프로그램들의 기능과 사용법 상세 교육</li>
+<li><strong>버전:</strong> 2.0 (상세 버전)</li>
+</ul>
+<h2 id="_2">목차</h2>
+<ol>
+<li><a href="#overview">개요</a></li>
+<li><a href="#program-flow">프로그램 실행 흐름</a></li>
+<li><a href="#environment">환경 설정</a></li>
+<li><a href="#init-script">initTest.sh - 메인 실행 스크립트</a></li>
+<li><a href="#programs">개별 프로그램 상세</a></li>
+<li><a href="#xmltosql">5.1 XMLToSQL.py</a></li>
+<li><a href="#getdictionary">5.2 GetDictionary.py</a></li>
+<li><a href="#bindsampler">5.3 BindSampler.py</a></li>
+<li><a href="#bindmapper">5.4 BindMapper.py</a></li>
+<li><a href="#savesqltodb">5.5 SaveSQLToDB.py</a></li>
+<li><a href="#executecompare">5.6 ExecuteAndCompareSQL.py</a></li>
+<li><a href="#analyze-errors">5.7 analyze_pg_errors.py</a></li>
+<li><a href="#pg-transform">5.8 pg_transform.py</a></li>
+<li><a href="#troubleshooting">문제 해결</a></li>
+<li><a href="#best-practices">모범 사례</a></li>
+<li><a href="#appendix">부록</a></li>
+</ol>
+<hr />
+<h2 id="overview">1. 개요</h2>
+<p>Oracle Migration Accelerator (OMA) 테스트 프로그램들은 Oracle 데이터베이스에서 PostgreSQL로의 마이그레이션 과정에서 SQL 호환성을 테스트하고 검증하는 포괄적인 도구 모음입니다.</p>
+<h3 id="_3">전체 아키텍처</h3>
+<ul>
+<li><strong>입력:</strong> MyBatis XML 매퍼 파일들</li>
+<li><strong>처리:</strong> SQL 추출 → 바인드 변수 처리 → 실행 및 비교 → 에러 분석 → 자동 수정</li>
+<li><strong>출력:</strong> 호환성 보고서, 수정된 SQL, 에러 분석 결과</li>
+</ul>
+<h3 id="_4">핵심 가치</h3>
+<ul>
+<li><strong>자동화:</strong> 수동 작업을 최소화하여 효율성 극대화</li>
+<li><strong>정확성:</strong> 체계적인 검증을 통한 높은 신뢰성</li>
+<li><strong>확장성:</strong> 다양한 데이터베이스 타입 지원</li>
+<li><strong>추적성:</strong> 모든 과정의 상세한 로깅</li>
+</ul>
+<h2 id="program-flow">2. 프로그램 실행 흐름</h2>
+<h3 id="_5">단계별 실행 흐름</h3>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>단계</th>
+<th>프로그램</th>
+<th>입력</th>
+<th>출력</th>
+<th>소요시간 (예상)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>initTest.sh</td>
+<td>환경 변수</td>
+<td>초기화 완료</td>
+<td>1-2분</td>
+</tr>
+<tr>
+<td>2</td>
+<td>XMLToSQL.py</td>
+<td>XML 매퍼 파일들</td>
+<td>개별 SQL 파일들</td>
+<td>5-10분</td>
+</tr>
+<tr>
+<td>3</td>
+<td>GetDictionary.py</td>
+<td>Oracle DB 연결</td>
+<td>all_dictionary.json</td>
+<td>10-30분</td>
+</tr>
+<tr>
+<td>4</td>
+<td>BindSampler.py</td>
+<td>SQL 파일들, 딕셔너리</td>
+<td>바인드 변수 샘플</td>
+<td>5-15분</td>
+</tr>
+<tr>
+<td>5</td>
+<td>BindMapper.py</td>
+<td>SQL + 샘플</td>
+<td>실행 가능한 SQL</td>
+<td>5-10분</td>
+</tr>
+<tr>
+<td>6</td>
+<td>SaveSQLToDB.py</td>
+<td>매핑된 SQL</td>
+<td>sqllist 테이블</td>
+<td>2-5분</td>
+</tr>
+<tr>
+<td>7</td>
+<td>ExecuteAndCompareSQL.py</td>
+<td>sqllist 테이블</td>
+<td>실행 결과</td>
+<td>30분-2시간</td>
+</tr>
+<tr>
+<td>8</td>
+<td>analyze_pg_errors.py</td>
+<td>실행 결과</td>
+<td>에러 분석 보고서</td>
+<td>5-10분</td>
+</tr>
+<tr>
+<td>9</td>
+<td>pg_transform.py</td>
+<td>에러 분석 결과</td>
+<td>수정된 SQL</td>
+<td>10-30분</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment">3. 환경 설정</h2>
+<h3 id="_6">시스템 요구사항</h3>
+<ul>
+<li><strong>운영체제:</strong> Linux (CentOS, Ubuntu, Amazon Linux)</li>
+<li><strong>Python:</strong> 3.7 이상</li>
+<li><strong>메모리:</strong> 최소 4GB, 권장 8GB</li>
+<li><strong>디스크:</strong> 최소 10GB 여유 공간</li>
+</ul>
+<h3 id="omaproperties">oma.properties 기반 환경 변수</h3>
+<p>모든 경로 설정은 <code>/home/ec2-user/workspace/oma/config/oma.properties</code> 파일을 기반으로 합니다.</p>
+<h4 id="_7">기본 디렉토리 구조</h4>
+<pre class="codehilite"><code class="language-bash"># 기본 경로
+OMA_BASE_DIR=/home/ec2-user/workspace/oma
+APPLICATION_NAME=your-application
+
+# 주요 디렉토리
+TEST_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/test
+TEST_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/test
+APP_TRANSFORM_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/application/transform
+</code></pre>
+
+<h3 id="_8">실제 디렉토리 경로</h3>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>용도</th>
+<th>환경 변수</th>
+<th>실제 경로</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>테스트 작업 디렉토리</td>
+<td>TEST_FOLDER</td>
+<td>/home/ec2-user/workspace/oma/your-application/test</td>
+<td>모든 테스트 파일이 저장되는 기본 디렉토리</td>
+</tr>
+<tr>
+<td>테스트 로그 디렉토리</td>
+<td>TEST_LOGS_FOLDER</td>
+<td>/home/ec2-user/workspace/oma/your-application/logs/test</td>
+<td>테스트 실행 로그 저장</td>
+</tr>
+<tr>
+<td>XML 리스트 디렉토리</td>
+<td>APP_TRANSFORM_FOLDER</td>
+<td>/home/ec2-user/workspace/oma/your-application/application/transform</td>
+<td>XML 파일 목록 검색</td>
+</tr>
+<tr>
+<td>프로그램 실행 디렉토리</td>
+<td>-</td>
+<td>/home/ec2-user/workspace/oma/bin/test</td>
+<td>모든 Python 프로그램 위치</td>
+</tr>
+</tbody>
+</table>
+<h3 id="omaproperties_1">데이터베이스 연결 설정 (oma.properties 기반)</h3>
+<h4 id="oracle">Oracle 연결 정보</h4>
+<pre class="codehilite"><code class="language-bash">export ORACLE_SVC_USER=your_oracle_user
+export ORACLE_SVC_PASSWORD=your_oracle_password
+export ORACLE_HOST=your-oracle-host
+export ORACLE_PORT=1521
+export ORACLE_SVC_CONNECT_STRING=your_service_name
+export ORACLE_SID=your_sid
+</code></pre>
+
+<h4 id="postgresql">PostgreSQL 연결 정보</h4>
+<pre class="codehilite"><code class="language-bash">export PGHOST=your-postgres-host
+export PGPORT=5432
+export PGDATABASE=your_database
+export PGUSER=your_postgres_user
+export PGPASSWORD=your_postgres_password
+</code></pre>
+
+<h3 id="_9">테스트 디렉토리 구조</h3>
+<pre class="codehilite"><code>/home/ec2-user/workspace/oma/your-application/test/
+├── xmllist/                    # XML 파일 목록
+│   ├── src.list               # 소스 XML 파일 목록
+│   ├── tgt.list               # 타겟 XML 파일 목록
+│   └── postgres.list          # PostgreSQL용 XML 파일 목록
+├── src_sql_extract/           # 소스에서 추출된 SQL 파일들
+├── tgt_sql_extract/           # 타겟에서 추출된 SQL 파일들
+├── orcl_sql_extract/          # Oracle용 SQL 파일들 (레거시)
+├── pg_sql_extract/            # PostgreSQL용 SQL 파일들 (레거시)
+├── dictionary/                # 데이터베이스 딕셔너리
+│   └── all_dictionary.json   # 완전한 DB 딕셔너리
+├── sampler/                   # 바인드 변수 샘플 JSON 파일들
+├── src_sql_done/              # 소스 바인드 변수 치환 완료 SQL
+├── tgt_sql_done/              # 타겟 바인드 변수 치환 완료 SQL
+├── orcl_sql_done/             # Oracle 바인드 변수 치환 완료 SQL (레거시)
+├── pg_sql_done/               # PostgreSQL 바인드 변수 치환 완료 SQL (레거시)
+├── sqllist/                   # SQL 목록 관리 파일들
+└── sql_results/               # SQL 실행 결과 저장
+    ├── oracle/                # Oracle 실행 결과
+    ├── postgres/              # PostgreSQL 실행 결과
+    ├── comparison/            # 비교 결과
+    ├── errors/                # 에러 분석 결과
+    ├── reports/               # 보고서
+    └── backup/                # 백업 파일들
+</code></pre>
+
+<h3 id="_10">선택적 환경 변수</h3>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>환경 변수</th>
+<th>설명</th>
+<th>기본값</th>
+<th>권장값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SOURCE_DBMS_TYPE</td>
+<td>소스 데이터베이스 타입</td>
+<td>orcl</td>
+<td>orcl (Oracle)</td>
+</tr>
+<tr>
+<td>TARGET_DBMS_TYPE</td>
+<td>타겟 데이터베이스 타입</td>
+<td>postgres</td>
+<td>postgres</td>
+</tr>
+<tr>
+<td>SQL_BATCH_SIZE</td>
+<td>SQL 배치 처리 크기</td>
+<td>100</td>
+<td>50-200</td>
+</tr>
+<tr>
+<td>SQL_PARALLEL_EXECUTION</td>
+<td>병렬 실행 여부</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>SQL_MAX_WORKERS</td>
+<td>최대 워커 수</td>
+<td>4</td>
+<td>CPU 코어 수</td>
+</tr>
+<tr>
+<td>SQL_TEMP_CLEANUP</td>
+<td>임시 파일 자동 정리</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>SQL_ARCHIVE_DAYS</td>
+<td>로그 보관 일수</td>
+<td>30</td>
+<td>7-90</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_11">환경 설정 스크립트</h3>
+<h4 id="_12">환경 변수 자동 설정</h4>
+<pre class="codehilite"><code class="language-bash"># 환경 변수 자동 설정
+source /home/ec2-user/workspace/oma/bin/oma_env_your-application.sh
+
+# 설정 확인
+env | grep -E &quot;(OMA|TEST|ORACLE|PG)&quot; | sort
+</code></pre>
+
+<h2 id="init-script">4. initTest.sh - 메인 실행 스크립트</h2>
+<h3 id="_13">개요</h3>
+<p>전체 테스트 프로세스를 자동화하는 메인 스크립트로, 모든 개별 프로그램들을 순차적으로 실행하고 환경을 관리합니다.</p>
+<h3 id="_14">상세 기능</h3>
+<ul>
+<li><strong>환경 검증:</strong> 필수 환경 변수 존재 여부 확인</li>
+<li><strong>데이터베이스 초기화:</strong> sqllist 테이블 TRUNCATE</li>
+<li><strong>작업 공간 정리:</strong> 이전 실행 결과 정리</li>
+<li><strong>프로그램 체인 실행:</strong> 각 단계별 프로그램 순차 실행</li>
+<li><strong>에러 처리:</strong> 각 단계별 성공/실패 확인</li>
+<li><strong>조건부 실행:</strong> 타겟 DBMS에 따른 선택적 실행</li>
+</ul>
+<h3 id="_15">실행 단계 상세</h3>
+<ol>
+<li><strong>환경 변수 확인:</strong></li>
+<li>TARGET_DBMS_TYPE 설정 확인 (기본값: postgres)</li>
+<li>데이터베이스별 연결 정보 검증</li>
+<li>
+<p>작업 디렉토리 존재 여부 확인</p>
+</li>
+<li>
+<p><strong>sqllist 테이블 초기화:</strong></p>
+</li>
+<li>PostgreSQL: psql 명령어 사용</li>
+<li>MySQL: mysql 명령어 사용</li>
+<li>
+<p>연결 실패 시 즉시 종료</p>
+</li>
+<li>
+<p><strong>작업 폴더 초기화:</strong></p>
+</li>
+<li>TEST_FOLDER 내 모든 파일 삭제</li>
+<li>
+<p>디렉토리 구조 재생성</p>
+</li>
+<li>
+<p><strong>프로그램 순차 실행:</strong></p>
+</li>
+<li>각 프로그램 실행 전후 상태 메시지 출력</li>
+<li>실행 실패 시 에러 메시지와 함께 종료</li>
+</ol>
+<h3 id="_16">사용법</h3>
+<pre class="codehilite"><code class="language-bash"># 실행 권한 부여
+chmod +x initTest.sh
+
+# 기본 실행
+./initTest.sh
+
+# 환경 변수와 함께 실행
+TARGET_DBMS_TYPE=postgres TEST_FOLDER=/tmp/test ./initTest.sh
+</code></pre>
+
+<h3 id="_17">출력 예시</h3>
+<pre class="codehilite"><code>타겟 DBMS 타입: postgres
+sqllist 테이블 초기화 중...
+PostgreSQL에서 sqllist 테이블 초기화...
+PostgreSQL sqllist 테이블 초기화 완료
+작업 폴더 초기화 중...
+작업 폴더 초기화 완료: /home/user/test
+XML 파일에서 SQL 구문 추출 중...
+딕셔너리 파일 생성 중...
+바인드 변수 샘플링 중...
+바인드 변수 매핑 중...
+SQL 파일을 sqllist 테이블에 저장 중...
+SQL 실행 및 결과 비교 중...
+PostgreSQL 에러 유형 분석 중...
+initTest.sh 실행 완료
+</code></pre>
+
+<p><strong>주의사항:</strong>
+- 실행 전 모든 환경 변수가 올바르게 설정되어 있는지 확인
+- 데이터베이스 연결이 가능한지 사전 테스트
+- 충분한 디스크 공간 확보
+- 실행 중 중단하지 말고 완료까지 대기</p>
+<h2 id="programs">5. 개별 프로그램 상세</h2>
+<h3 id="xmltosql">5.1 XMLToSQL.py</h3>
+<h4 id="_18">개요</h4>
+<p>MyBatis XML 매퍼 파일에서 SQL 구문을 추출하여 개별 SQL 파일로 저장하는 프로그램입니다.</p>
+<h4 id="_19">입출력 디렉토리 및 파일 흐름</h4>
+<h5 id="_20">📁 입력 디렉토리</h5>
+<ul>
+<li><strong>XML 리스트 파일:</strong> <code>${APP_TRANSFORM_FOLDER}/xmllist/</code></li>
+<li><code>src.list</code> - 소스 XML 파일 목록</li>
+<li><code>tgt.list</code> - 타겟 XML 파일 목록</li>
+<li><code>postgres.list</code> - PostgreSQL용 XML 파일 목록</li>
+<li><strong>실제 경로:</strong> <code>/home/ec2-user/workspace/oma/your-application/test/xmllist/</code></li>
+</ul>
+<h5 id="_21">📁 출력 디렉토리</h5>
+<ul>
+<li><strong>소스 SQL 추출:</strong> <code>${TEST_FOLDER}/src_sql_extract/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/src_sql_extract/</code></li>
+<li>파일 형식: <code>[매퍼네임스페이스].[SQL ID].sql</code></li>
+<li><strong>타겟 SQL 추출:</strong> <code>${TEST_FOLDER}/tgt_sql_extract/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/tgt_sql_extract/</code></li>
+<li>파일 형식: <code>[매퍼네임스페이스].[SQL ID].sql</code></li>
+</ul>
+<h5 id="_22">🔄 처리 흐름</h5>
+<ol>
+<li><strong>XML 리스트 읽기:</strong> xmllist/ 디렉토리에서 .list 파일들 스캔</li>
+<li><strong>XML 파일 파싱:</strong> 각 XML 파일에서 SQL 태그 추출</li>
+<li><strong>SQL 구문 분리:</strong> select, insert, update, delete 태그별 처리</li>
+<li><strong>개별 파일 생성:</strong> 각 SQL을 별도 .sql 파일로 저장</li>
+</ol>
+<h4 id="_23">상세 기능</h4>
+<ul>
+<li><strong>XML 파일 관리:</strong></li>
+<li>xmllist 디렉토리에서 XML 파일 목록 읽기</li>
+<li>src, tgt, 또는 특정 DBMS 타입별 처리</li>
+<li>
+<p>파일 존재 여부 및 접근 권한 확인</p>
+</li>
+<li>
+<p><strong>SQL 구문 추출:</strong></p>
+</li>
+<li>select, insert, update, delete 태그 처리</li>
+<li>중첩된 SQL 구문 처리</li>
+<li>CDATA 섹션 내용 추출</li>
+<li>
+<p>동적 SQL 태그 처리 (if, choose, foreach 등)</p>
+</li>
+<li>
+<p><strong>파일 생성:</strong></p>
+</li>
+<li>각 SQL 구문을 개별 파일로 저장</li>
+<li>파일명: [매퍼ID].[SQL ID].sql</li>
+<li>
+<p>디렉토리 구조: src_sql_extract/, tgt_sql_extract/</p>
+</li>
+<li>
+<p><strong>에러 처리:</strong></p>
+</li>
+<li>XML 파싱 에러 처리</li>
+<li>파일 I/O 에러 처리</li>
+<li>상세한 에러 로깅</li>
+</ul>
+<h4 id="_24">입력 파일 형식</h4>
+<h5 id="xml-xmllistsrclist">XML 리스트 파일 예시 (xmllist/src.list)</h5>
+<pre class="codehilite"><code>/sorc001/src/src/main/resources/sqlmap/batch/BatchJobDao.xml
+/sorc001/src/src/main/resources/sqlmap/batch/BatchJobRegDao.xml
+/sorc001/src/src/main/resources/sqlmap/common/CommonDao.xml
+/sorc001/src/src/main/resources/sqlmap/csr/CsrBatchJobDao.xml
+</code></pre>
+
+<h5 id="mybatis-xml">MyBatis XML 매퍼 예시</h5>
+<pre class="codehilite"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;mapper namespace=&quot;com.ourhome.itsm.batch.BatchJobDao&quot;&gt;
+    &lt;select id=&quot;selectBatchJob&quot; resultType=&quot;BatchJob&quot;&gt;
+        SELECT job_id, job_name, job_status, create_date
+        FROM batch_jobs
+        WHERE job_id = #{jobId}
+          AND job_status = #{status}
+    &lt;/select&gt;
+
+    &lt;insert id=&quot;insertBatchJob&quot;&gt;
+        INSERT INTO batch_jobs (job_name, job_status, create_date)
+        VALUES (#{jobName}, #{status}, SYSDATE)
+    &lt;/insert&gt;
+&lt;/mapper&gt;
+</code></pre>
+
+<h4 id="_25">출력 파일 구조</h4>
+<pre class="codehilite"><code># 소스 SQL 추출 결과
+/home/ec2-user/workspace/oma/your-application/test/src_sql_extract/
+├── com.example.batch.BatchJobDao.selectBatchJob.sql
+├── com.example.batch.BatchJobDao.insertBatchJob.sql
+├── com.example.common.CommonDao.selectCommonCode.sql
+└── ...
+
+# 타겟 SQL 추출 결과
+/home/ec2-user/workspace/oma/your-application/test/tgt_sql_extract/
+├── com.example.batch.BatchJobDao.selectBatchJob.sql
+├── com.example.batch.BatchJobDao.insertBatchJob.sql
+├── com.example.common.CommonDao.selectCommonCode.sql
+└── ...
+</code></pre>
+
+<h4 id="sql">생성되는 SQL 파일 예시</h4>
+<h5 id="comexamplebatchbatchjobdaoselectbatchjobsql">com.example.batch.BatchJobDao.selectBatchJob.sql</h5>
+<pre class="codehilite"><code class="language-sql">SELECT job_id, job_name, job_status, create_date
+FROM batch_jobs
+WHERE job_id = #{jobId}
+  AND job_status = #{status}
+</code></pre>
+
+<h4 id="_26">사용법</h4>
+<pre class="codehilite"><code class="language-bash"># 모든 XML 파일 처리 (src와 tgt 모두)
+./XMLToSQL.py
+
+# 소스 XML만 처리
+./XMLToSQL.py src
+
+# 타겟 XML만 처리
+./XMLToSQL.py tgt
+
+# 특정 DBMS 타입 처리
+./XMLToSQL.py postgres
+</code></pre>
+
+<h4 id="_27">로그 출력 예시</h4>
+<pre class="codehilite"><code>============================================================
+환경 변수 확인 중...
+============================================================
+✅ SOURCE_DBMS_TYPE: orcl
+✅ TARGET_DBMS_TYPE: postgres
+✅ TEST_FOLDER: /home/ec2-user/workspace/oma/your-application/test
+✅ APP_TRANSFORM_FOLDER: /home/ec2-user/workspace/oma/your-application/application/transform
+============================================================
+XML 파일 목록 처리 중...
+============================================================
+📁 처리할 XML 리스트 파일들: ['src', 'tgt']
+📄 src.list 파일 처리 중... (125개 파일)
+  - BatchJobDao.xml: 15개 SQL 추출
+  - CommonDao.xml: 8개 SQL 추출
+  - UserDao.xml: 12개 SQL 추출
+✅ XML 파일 추출 완료: 1,247개 SQL 구문
+📄 tgt.list 파일 처리 중... (125개 파일)
+✅ XML 파일 추출 완료: 1,247개 SQL 구문
+============================================================
+XML 파일 처리 완료
+============================================================
+</code></pre>
+
+<h4 id="_28">성능 최적화</h4>
+<ul>
+<li><strong>메모리 관리:</strong> 대용량 XML 파일 스트리밍 처리</li>
+<li><strong>병렬 처리:</strong> 여러 XML 파일 동시 처리</li>
+<li><strong>캐싱:</strong> 중복 XML 파일 처리 방지</li>
+<li><strong>압축:</strong> 출력 파일 압축 옵션</li>
+</ul>
+<h4 id="_29">주요 처리 통계</h4>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>항목</th>
+<th>일반적인 프로젝트 기준</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>처리된 XML 파일 수</td>
+<td>100-200개</td>
+<td>src.list와 tgt.list 각각</td>
+</tr>
+<tr>
+<td>추출된 SQL 구문 수</td>
+<td>1,000-2,000개</td>
+<td>각 디렉토리별</td>
+</tr>
+<tr>
+<td>평균 처리 시간</td>
+<td>5-10분</td>
+<td>시스템 성능에 따라 변동</td>
+</tr>
+<tr>
+<td>생성되는 파일 크기</td>
+<td>평균 2KB</td>
+<td>SQL 복잡도에 따라 변동</td>
+</tr>
+</tbody>
+</table>
+<h3 id="getdictionary">5.2 GetDictionary.py</h3>
+<h4 id="_30">개요</h4>
+<p>Oracle 데이터베이스의 메타데이터와 샘플 데이터를 추출하여 포괄적인 딕셔너리를 생성하는 프로그램입니다.</p>
+<h4 id="_31">입출력 디렉토리 및 파일 흐름</h4>
+<h5 id="_32">📥 입력 소스</h5>
+<ul>
+<li><strong>Oracle 데이터베이스:</strong> </li>
+<li>호스트: <code>your-oracle-host:1521</code></li>
+<li>사용자: <code>APP_USER, INF_USER, OWN_USER</code> 등 (프로젝트별 스키마)</li>
+<li>접근 방법: SQLPlus를 통한 메타데이터 쿼리</li>
+<li><strong>시스템 뷰:</strong></li>
+<li><code>USER_TABLES</code> - 테이블 목록</li>
+<li><code>USER_TAB_COLUMNS</code> - 컬럼 정보</li>
+<li><code>USER_CONSTRAINTS</code> - 제약조건</li>
+<li><code>USER_INDEXES</code> - 인덱스 정보</li>
+</ul>
+<h5 id="_33">📁 출력 디렉토리</h5>
+<ul>
+<li><strong>딕셔너리 저장:</strong> <code>${TEST_FOLDER}/dictionary/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/dictionary/</code></li>
+<li>주요 파일: <code>all_dictionary.json</code></li>
+<li><strong>로그 저장:</strong> <code>${TEST_LOGS_FOLDER}/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/logs/test/</code></li>
+<li>로그 파일: <code>dictionary_extraction.log</code></li>
+</ul>
+<h5 id="_34">🔄 처리 흐름</h5>
+<ol>
+<li><strong>Oracle 연결:</strong> SQLPlus를 통한 데이터베이스 연결</li>
+<li><strong>스키마 스캔:</strong> 여러 사용자 스키마의 모든 테이블 조회</li>
+<li><strong>메타데이터 수집:</strong> 각 테이블의 컬럼 정보 추출</li>
+<li><strong>샘플 데이터 추출:</strong> 각 컬럼별 실제 데이터 샘플링</li>
+<li><strong>분류 및 분석:</strong> 컬럼명 패턴 기반 데이터 타입 분류</li>
+<li><strong>JSON 생성:</strong> 구조화된 딕셔너리 파일 생성</li>
+</ol>
+<h4 id="_35">상세 기능</h4>
+<ul>
+<li><strong>메타데이터 수집:</strong></li>
+<li>여러 스키마의 모든 사용자 테이블 목록 추출</li>
+<li>각 테이블의 컬럼 정보 수집</li>
+<li>데이터 타입, 길이, NULL 허용 여부</li>
+<li>
+<p>기본값, 제약조건 정보</p>
+</li>
+<li>
+<p><strong>샘플 데이터 수집:</strong></p>
+</li>
+<li>각 컬럼별 실제 데이터 샘플링 (기본 5개)</li>
+<li>NULL 값 비율 계산</li>
+<li>데이터 분포 분석</li>
+<li>
+<p>유니크 값 개수 계산</p>
+</li>
+<li>
+<p><strong>컬럼 분류:</strong></p>
+</li>
+<li>네이밍 패턴 기반 분류 (ID, DATE, FLAG 등)</li>
+<li>데이터 타입 기반 분류</li>
+<li>
+<p>비즈니스 의미 추론</p>
+</li>
+<li>
+<p><strong>딕셔너리 생성:</strong></p>
+</li>
+<li>JSON 형태로 구조화된 딕셔너리 생성</li>
+<li>검색 최적화를 위한 인덱스 생성</li>
+<li>압축 및 백업</li>
+</ul>
+<h4 id="_36">딕셔너리 구조</h4>
+<h5 id="all_dictionaryjson">all_dictionary.json 구조 예시</h5>
+<pre class="codehilite"><code class="language-json">{
+  &quot;tables&quot;: {
+    &quot;BATCH_JOBS&quot;: {
+      &quot;schema&quot;: &quot;APP_USER&quot;,
+      &quot;columns&quot;: {
+        &quot;JOB_ID&quot;: {
+          &quot;data_type&quot;: &quot;NUMBER&quot;,
+          &quot;data_length&quot;: 10,
+          &quot;nullable&quot;: &quot;N&quot;,
+          &quot;sample_values&quot;: [1001, 1002, 1003, 1004, 1005],
+          &quot;null_ratio&quot;: 0.0,
+          &quot;unique_count&quot;: 1250,
+          &quot;classification&quot;: &quot;ID&quot;
+        },
+        &quot;JOB_NAME&quot;: {
+          &quot;data_type&quot;: &quot;VARCHAR2&quot;,
+          &quot;data_length&quot;: 100,
+          &quot;nullable&quot;: &quot;Y&quot;,
+          &quot;sample_values&quot;: [&quot;배치작업1&quot;, &quot;데이터동기화&quot;, &quot;로그정리&quot;, &quot;통계생성&quot;, &quot;백업작업&quot;],
+          &quot;null_ratio&quot;: 0.02,
+          &quot;unique_count&quot;: 1180,
+          &quot;classification&quot;: &quot;NAME&quot;
+        },
+        &quot;CREATE_DATE&quot;: {
+          &quot;data_type&quot;: &quot;DATE&quot;,
+          &quot;nullable&quot;: &quot;N&quot;,
+          &quot;sample_values&quot;: [&quot;2023-01-15&quot;, &quot;2023-02-20&quot;, &quot;2023-03-10&quot;],
+          &quot;null_ratio&quot;: 0.0,
+          &quot;unique_count&quot;: 365,
+          &quot;classification&quot;: &quot;DATE&quot;
+        },
+        &quot;JOB_STATUS&quot;: {
+          &quot;data_type&quot;: &quot;VARCHAR2&quot;,
+          &quot;data_length&quot;: 10,
+          &quot;nullable&quot;: &quot;N&quot;,
+          &quot;sample_values&quot;: [&quot;RUNNING&quot;, &quot;COMPLETED&quot;, &quot;FAILED&quot;, &quot;PENDING&quot;],
+          &quot;null_ratio&quot;: 0.0,
+          &quot;unique_count&quot;: 4,
+          &quot;classification&quot;: &quot;CODE&quot;
+        }
+      },
+      &quot;row_count&quot;: 1250,
+      &quot;last_analyzed&quot;: &quot;2025-07-29&quot;
+    }
+  },
+  &quot;statistics&quot;: {
+    &quot;total_schemas&quot;: 5,
+    &quot;total_tables&quot;: 150,
+    &quot;total_columns&quot;: 2500,
+    &quot;extraction_time&quot;: &quot;2025-07-29 12:00:00&quot;,
+    &quot;database_version&quot;: &quot;Oracle 19c&quot;,
+    &quot;schemas_processed&quot;: [
+      &quot;APP_USER&quot;, &quot;INF_USER&quot;, &quot;OWN_USER&quot;, 
+      &quot;BATCH_USER&quot;, &quot;REPORT_USER&quot;
+    ]
+  }
+}
+</code></pre>
+
+<h4 id="_37">컬럼 분류 규칙</h4>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>분류</th>
+<th>패턴</th>
+<th>실제 예시</th>
+<th>개수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td><em>_ID, </em>_NO, *_SEQ</td>
+<td>JOB_ID, USER_NO, BATCH_SEQ</td>
+<td>~350개</td>
+</tr>
+<tr>
+<td>DATE</td>
+<td><em>_DATE, </em>_TIME, *_DT</td>
+<td>CREATE_DATE, UPDATE_TIME, REG_DT</td>
+<td>~400개</td>
+</tr>
+<tr>
+<td>FLAG</td>
+<td><em>_FLAG, </em><em>YN, USE</em>*</td>
+<td>DELETE_FLAG, USE_YN, ACTIVE_FLAG</td>
+<td>~200개</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td><em>_NAME, </em>_NM, *_TITLE</td>
+<td>JOB_NAME, USER_NM, TITLE</td>
+<td>~300개</td>
+</tr>
+<tr>
+<td>CODE</td>
+<td><em>_CODE, </em>_CD, *_TYPE</td>
+<td>STATUS_CODE, DEPT_CD, JOB_TYPE</td>
+<td>~250개</td>
+</tr>
+<tr>
+<td>AMOUNT</td>
+<td><em>_AMOUNT, </em>_CNT, *_SIZE</td>
+<td>TOTAL_AMOUNT, RECORD_CNT, FILE_SIZE</td>
+<td>~100개</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_38">실행 과정</h4>
+<ol>
+<li><strong>데이터베이스 연결:</strong> Oracle SQLPlus를 통한 연결 (여러 스키마)</li>
+<li><strong>테이블 목록 추출:</strong> USER_TABLES 뷰에서 테이블 조회</li>
+<li><strong>컬럼 정보 수집:</strong> USER_TAB_COLUMNS 뷰에서 컬럼 조회</li>
+<li><strong>샘플 데이터 추출:</strong> 각 테이블별 SAMPLE(5) 쿼리 실행</li>
+<li><strong>통계 정보 계산:</strong> 데이터 분포 및 특성 분석</li>
+<li><strong>딕셔너리 생성:</strong> JSON 형태로 결과 저장</li>
+</ol>
+<h4 id="_39">사용법</h4>
+<pre class="codehilite"><code class="language-bash"># 기본 실행 (모든 스키마 처리)
+./GetDictionary.py
+
+# 특정 스키마만 처리
+ORACLE_SCHEMA=APP_USER ./GetDictionary.py
+
+# 샘플 크기 조정
+SAMPLE_SIZE=10 ./GetDictionary.py
+
+# 상세 로그 모드
+DEBUG_MODE=true ./GetDictionary.py
+</code></pre>
+
+<h4 id="_40">출력 파일</h4>
+<ul>
+<li><strong>all_dictionary.json:</strong> 완전한 데이터베이스 딕셔너리 (약 10-20MB)</li>
+<li><strong>dictionary_extraction.log:</strong> 추출 과정 상세 로그</li>
+<li><strong>table_statistics.csv:</strong> 테이블별 통계 정보</li>
+<li><strong>column_analysis.csv:</strong> 컬럼별 분석 결과</li>
+<li><strong>schema_summary.json:</strong> 스키마별 요약 정보</li>
+</ul>
+<h4 id="_41">성능 고려사항</h4>
+<ul>
+<li><strong>대용량 테이블:</strong> 100만 건 이상 테이블은 샘플링 비율 0.1%</li>
+<li><strong>네트워크 지연:</strong> 배치 처리로 쿼리 최적화 (50개 테이블씩)</li>
+<li><strong>메모리 사용량:</strong> 스트리밍 처리로 메모리 절약 (최대 2GB)</li>
+<li><strong>실행 시간:</strong> 전체 처리 시간 약 10-30분</li>
+</ul>
+<h4 id="_42">실행 결과 예시</h4>
+<pre class="codehilite"><code>============================================================
+Oracle 딕셔너리 추출 시작
+============================================================
+📊 대상 스키마: APP_USER, INF_USER, OWN_USER, BATCH_USER, REPORT_USER
+🔗 Oracle 연결: your-oracle-host:1521/your_service
+
+📋 스키마별 테이블 수집 중...
+  - APP_USER: 45개 테이블, 850개 컬럼
+  - INF_USER: 25개 테이블, 420개 컬럼
+  - OWN_USER: 30개 테이블, 580개 컬럼
+  - BATCH_USER: 20개 테이블, 350개 컬럼
+  - REPORT_USER: 15개 테이블, 200개 컬럼
+
+🔍 샘플 데이터 수집 중...
+  - 처리된 테이블: 135개
+  - 수집된 샘플: 10,000개
+  - 분류된 컬럼: 2,400개
+
+💾 딕셔너리 파일 생성 중...
+  - 파일 크기: 12.5MB
+  - 저장 위치: /home/ec2-user/workspace/oma/your-application/test/dictionary/all_dictionary.json
+
+✅ 딕셔너리 추출 완료 (소요시간: 15분 20초)
+============================================================
+</code></pre>
+
+<h3 id="bindsampler">5.3 BindSampler.py</h3>
+<h4 id="_43">개요</h4>
+<p>SQL 파일의 바인드 변수를 분석하고 데이터베이스 딕셔너리를 기반으로 적절한 샘플 값을 할당하는 프로그램입니다.</p>
+<h4 id="_44">입출력 디렉토리 및 파일 흐름</h4>
+<h5 id="_45">📥 입력 소스</h5>
+<ul>
+<li><strong>SQL 파일들:</strong> <code>${TEST_FOLDER}/src_sql_extract/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/src_sql_extract/</code></li>
+<li>파일 개수: 약 1,000-2,000개 .sql 파일</li>
+<li>파일 형식: <code>[매퍼네임스페이스].[SQL ID].sql</code></li>
+<li><strong>데이터베이스 딕셔너리:</strong> <code>${TEST_FOLDER}/dictionary/all_dictionary.json</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/dictionary/all_dictionary.json</code></li>
+<li>파일 크기: 약 10-20MB</li>
+<li>포함 정보: 컬럼의 메타데이터 및 샘플 데이터</li>
+</ul>
+<h5 id="_46">📁 출력 디렉토리</h5>
+<ul>
+<li><strong>바인드 변수 샘플:</strong> <code>${TEST_FOLDER}/sampler/</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/test/sampler/</code></li>
+<li>파일 형식: <code>[매퍼네임스페이스].[SQL ID].json</code></li>
+<li>생성 파일 수: SQL 파일 수와 동일</li>
+<li><strong>로그 파일:</strong> <code>${TEST_LOGS_FOLDER}/bind_sampling.log</code></li>
+<li>실제 경로: <code>/home/ec2-user/workspace/oma/your-application/logs/test/bind_sampling.log</code></li>
+</ul>
+<h5 id="_47">🔄 처리 흐름</h5>
+<ol>
+<li><strong>딕셔너리 로드:</strong> all_dictionary.json 파일을 메모리에 로드</li>
+<li><strong>SQL 파일 스캔:</strong> src_sql_extract/ 디렉토리의 모든 .sql 파일 처리</li>
+<li><strong>바인드 변수 추출:</strong> #{variable}, ${variable}, :variable 패턴 검색</li>
+<li><strong>데이터 타입 추정:</strong> 변수명 패턴과 딕셔너리 매칭</li>
+<li><strong>샘플 값 할당:</strong> 딕셔너리에서 적절한 샘플 값 선택</li>
+<li><strong>JSON 파일 생성:</strong> 각 SQL별 바인드 변수 정보를 JSON으로 저장</li>
+</ol>
+<h4 id="_48">상세 기능</h4>
+<ul>
+<li><strong>바인드 변수 추출:</strong></li>
+<li>MyBatis 형식: #{variable}, ${variable}</li>
+<li>Oracle 형식: :variable</li>
+<li>중첩된 바인드 변수 처리</li>
+<li>
+<p>조건부 바인드 변수 처리</p>
+</li>
+<li>
+<p><strong>데이터 타입 추정:</strong></p>
+</li>
+<li>변수명 패턴 분석 (date_<em>, </em><em>id, is</em>* 등)</li>
+<li>딕셔너리 컬럼명 매칭</li>
+<li>SQL 컨텍스트 분석</li>
+<li>
+<p>기본 데이터 타입 추론</p>
+</li>
+<li>
+<p><strong>샘플 값 할당:</strong></p>
+</li>
+<li>딕셔너리에서 직접 매칭</li>
+<li>유사 컬럼명 검색</li>
+<li>동일 데이터 타입 컬럼에서 선택</li>
+<li>
+<p>기본값 할당</p>
+</li>
+<li>
+<p><strong>결과 저장:</strong></p>
+</li>
+<li>SQL 파일별 JSON 파일 생성</li>
+<li>바인드 변수별 메타데이터 저장</li>
+<li>매칭 신뢰도 점수 계산</li>
+</ul>
+<h4 id="_49">바인드 변수 패턴 인식</h4>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>패턴</th>
+<th>추정 타입</th>
+<th>샘플 값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>_id, </em>_no, *_seq</td>
+<td>NUMBER</td>
+<td>1, 2, 3...</td>
+<td>식별자 컬럼</td>
+</tr>
+<tr>
+<td><em>_date, </em>_time, *_dt</td>
+<td>DATE</td>
+<td>SYSDATE, '2023-01-01'</td>
+<td>날짜/시간 컬럼</td>
+</tr>
+<tr>
+<td>is_<em>, </em>_flag, *_yn</td>
+<td>VARCHAR2(1)</td>
+<td>'Y', 'N'</td>
+<td>플래그 컬럼</td>
+</tr>
+<tr>
+<td><em>_name, </em>_nm</td>
+<td>VARCHAR2</td>
+<td>'테스트명'</td>
+<td>이름 컬럼</td>
+</tr>
+<tr>
+<td><em>_code, </em>_cd</td>
+<td>VARCHAR2</td>
+<td>'001', 'A01'</td>
+<td>코드 컬럼</td>
+</tr>
+<tr>
+<td><em>_amount, </em>_price</td>
+<td>NUMBER</td>
+<td>1000, 50000</td>
+<td>금액 컬럼</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_50">샘플링 알고리즘</h4>
+<ol>
+<li><strong>직접 매칭:</strong> 변수명이 딕셔너리 컬럼명과 정확히 일치</li>
+<li><strong>패턴 매칭:</strong> 변수명 패턴으로 데이터 타입 추정</li>
+<li><strong>유사도 매칭:</strong> 편집 거리 기반 유사 컬럼 검색</li>
+<li><strong>타입 매칭:</strong> 동일 데이터 타입 컬럼에서 랜덤 선택</li>
+<li><strong>기본값 할당:</strong> 모든 매칭 실패 시 기본값 사용</li>
+</ol>
+<h4 id="json">출력 JSON 구조</h4>
+<h5 id="samplerusermapperselectuserjson">sampler/UserMapper.selectUser.json 예시</h5>
+<pre class="codehilite"><code class="language-json">{
+  &quot;sql_file&quot;: &quot;UserMapper.selectUser.sql&quot;,
+  &quot;bind_variables&quot;: {
+    &quot;userId&quot;: {
+      &quot;data_type&quot;: &quot;NUMBER&quot;,
+      &quot;sample_value&quot;: 12345,
+      &quot;confidence&quot;: 0.95,
+      &quot;match_type&quot;: &quot;direct&quot;,
+      &quot;source_column&quot;: &quot;USERS.USER_ID&quot;,
+      &quot;alternatives&quot;: [67890, 11111, 22222]
+    },
+    &quot;userName&quot;: {
+      &quot;data_type&quot;: &quot;VARCHAR2&quot;,
+      &quot;sample_value&quot;: &quot;김철수&quot;,
+      &quot;confidence&quot;: 0.80,
+      &quot;match_type&quot;: &quot;pattern&quot;,
+      &quot;source_column&quot;: &quot;USERS.USER_NAME&quot;,
+      &quot;alternatives&quot;: [&quot;이영희&quot;, &quot;박민수&quot;, &quot;최영수&quot;]
+    },
+    &quot;startDate&quot;: {
+      &quot;data_type&quot;: &quot;DATE&quot;,
+      &quot;sample_value&quot;: &quot;2023-01-01&quot;,
+      &quot;confidence&quot;: 0.70,
+      &quot;match_type&quot;: &quot;type&quot;,
+      &quot;source_column&quot;: &quot;ORDERS.ORDER_DATE&quot;,
+      &quot;alternatives&quot;: [&quot;2023-01-02&quot;, &quot;2023-01-03&quot;]
+    }
+  },
+  &quot;statistics&quot;: {
+    &quot;total_variables&quot;: 3,
+    &quot;direct_matches&quot;: 1,
+    &quot;pattern_matches&quot;: 1,
+    &quot;type_matches&quot;: 1,
+    &quot;default_values&quot;: 0,
+    &quot;average_confidence&quot;: 0.82
+  },
+  &quot;processing_time&quot;: 0.15,
+  &quot;timestamp&quot;: &quot;2025-07-29 12:30:00&quot;
+}
+</code></pre>
+
+<h4 id="_51">사용법</h4>
+<pre class="codehilite"><code class="language-bash"># 기본 실행 (모든 SQL 파일 처리)
+./BindSampler.py
+
+# 특정 디렉토리 처리
+SQL_EXTRACT_DIR=/path/to/sql ./BindSampler.py
+
+# 샘플 개수 조정
+SAMPLE_COUNT=10 ./BindSampler.py
+
+# 신뢰도 임계값 설정
+CONFIDENCE_THRESHOLD=0.7 ./BindSampler.py
+</code></pre>
+
+<h4 id="_52">성능 최적화</h4>
+<ul>
+<li><strong>딕셔너리 캐싱:</strong> 메모리에 딕셔너리 로드</li>
+<li><strong>병렬 처리:</strong> 여러 SQL 파일 동시 처리</li>
+<li><strong>인덱싱:</strong> 컬럼명 검색 최적화</li>
+<li><strong>배치 처리:</strong> 유사한 패턴 그룹화</li>
+</ul>
+<h3 id="bindmapper">5.4 BindMapper.py</h3>
+<h4 id="_53">개요</h4>
+<p>BindSampler의 결과를 사용하여 SQL 파일의 바인드 변수를 실제 값으로 치환하여 실행 가능한 SQL을 생성하는 프로그램입니다.</p>
+<h3 id="savesqltodb">5.5 SaveSQLToDB.py</h3>
+<h4 id="_54">개요</h4>
+<p>바인드 변수가 치환된 SQL 파일들을 체계적으로 관리하기 위해 sqllist 테이블에 저장하는 프로그램입니다.</p>
+<h3 id="executecompare">5.6 ExecuteAndCompareSQL.py</h3>
+<h4 id="_55">개요</h4>
+<p>sqllist 테이블의 SQL을 Oracle과 PostgreSQL에서 실행하고 결과를 비교하여 호환성을 검증하는 핵심 프로그램입니다.</p>
+<h3 id="analyze-errors">5.7 analyze_pg_errors.py</h3>
+<h4 id="_56">개요</h4>
+<p>PostgreSQL 실행 중 발생한 에러를 체계적으로 분석하고 분류하여 수정 방향을 제시하는 프로그램입니다.</p>
+<h3 id="pg-transform">5.8 pg_transform.py</h3>
+<h4 id="_57">개요</h4>
+<p>analyze_pg_errors.py의 분석 결과를 바탕으로 PostgreSQL 호환성을 위한 SQL 구문 자동 수정을 수행하는 프로그램입니다.</p>
+<h2 id="troubleshooting">6. 문제 해결</h2>
+<h3 id="_58">일반적인 문제들</h3>
+<h4 id="_59">환경 변수 관련</h4>
+<p><strong>문제:</strong> 환경 변수가 설정되지 않음</p>
+<p><strong>해결:</strong></p>
+<pre class="codehilite"><code class="language-bash"># 환경 변수 확인
+env | grep -E &quot;(ORACLE|PG|MYSQL|TEST)&quot;
+
+# 필수 환경 변수 설정
+export TARGET_DBMS_TYPE=postgres
+export PGHOST=your-host
+export PGUSER=your-user
+export PGPASSWORD=your-password
+</code></pre>
+
+<h4 id="_60">데이터베이스 연결 문제</h4>
+<p><strong>문제:</strong> 데이터베이스 연결 실패</p>
+<p><strong>해결:</strong></p>
+<pre class="codehilite"><code class="language-bash"># PostgreSQL 연결 테스트
+psql -h $PGHOST -p $PGPORT -U $PGUSER -d $PGDATABASE -c &quot;SELECT 1&quot;
+
+# Oracle 연결 테스트
+sqlplus $ORACLE_SVC_USER/$ORACLE_SVC_PASSWORD@$ORACLE_SVC_CONNECT_STRING
+</code></pre>
+
+<h4 id="_61">권한 문제</h4>
+<p><strong>문제:</strong> 스크립트 실행 권한 없음</p>
+<p><strong>해결:</strong></p>
+<pre class="codehilite"><code class="language-bash"># 실행 권한 부여
+chmod +x *.py *.sh
+
+# 소유자 확인
+ls -la *.py *.sh
+</code></pre>
+
+<h4 id="_62">메모리 부족</h4>
+<p><strong>문제:</strong> 대용량 데이터 처리 시 메모리 부족</p>
+<p><strong>해결:</strong></p>
+<pre class="codehilite"><code class="language-bash"># 배치 크기 줄이기
+export SQL_BATCH_SIZE=10
+
+# 워커 수 줄이기
+export SQL_MAX_WORKERS=2
+
+# 메모리 사용량 모니터링
+top -p $(pgrep -f python3)
+</code></pre>
+
+<h2 id="best-practices">7. 모범 사례</h2>
+<h3 id="_63">실행 전 준비사항</h3>
+<ul>
+<li>[ ] 모든 환경 변수 설정 확인</li>
+<li>[ ] 데이터베이스 연결 테스트</li>
+<li>[ ] 충분한 디스크 공간 확보 (최소 10GB)</li>
+<li>[ ] 백업 디렉토리 준비</li>
+<li>[ ] 로그 디렉토리 권한 확인</li>
+</ul>
+<h3 id="_64">실행 중 모니터링</h3>
+<ul>
+<li>[ ] 로그 파일 실시간 모니터링</li>
+<li>[ ] 시스템 리소스 사용량 확인</li>
+<li>[ ] 데이터베이스 연결 상태 점검</li>
+<li>[ ] 에러 발생 시 즉시 대응</li>
+</ul>
+<h3 id="_65">실행 후 검증</h3>
+<ul>
+<li>[ ] 모든 출력 파일 생성 확인</li>
+<li>[ ] 에러 로그 상세 검토</li>
+<li>[ ] 통계 정보 분석</li>
+<li>[ ] 결과 데이터 샘플 검증</li>
+<li>[ ] 성능 지표 분석</li>
+</ul>
+<h3 id="_66">성능 최적화 팁</h3>
+<ul>
+<li><strong>배치 크기 조정:</strong> 시스템 리소스에 맞게 SQL_BATCH_SIZE 설정</li>
+<li><strong>병렬 처리:</strong> CPU 코어 수에 맞게 SQL_MAX_WORKERS 설정</li>
+<li><strong>메모리 관리:</strong> 대용량 결과셋은 스트리밍 처리</li>
+<li><strong>네트워크 최적화:</strong> 데이터베이스와 가까운 위치에서 실행</li>
+<li><strong>임시 파일 관리:</strong> 정기적인 임시 파일 정리</li>
+</ul>
+<h2 id="appendix">8. 부록</h2>
+<h3 id="_67">주요 디렉토리 구조</h3>
+<pre class="codehilite"><code>test/
+├── xmllist/                    # XML 파일 목록
+│   ├── src.list
+│   └── tgt.list
+├── src_sql_extract/           # 추출된 소스 SQL
+├── tgt_sql_extract/           # 추출된 타겟 SQL
+├── dictionary/                # 데이터베이스 딕셔너리
+│   └── all_dictionary.json
+├── sampler/                   # 바인드 변수 샘플
+├── bind_mapped/               # 바인드 변수 치환된 SQL
+├── logs/                      # 로그 파일들
+└── backup/                    # 백업 파일들
+</code></pre>
+
+<h3 id="_68">주요 로그 파일</h3>
+<ul>
+<li><strong>xmltosql.log:</strong> XML 파싱 및 SQL 추출 로그</li>
+<li><strong>dictionary_extraction.log:</strong> 딕셔너리 생성 로그</li>
+<li><strong>bind_sampling.log:</strong> 바인드 변수 샘플링 로그</li>
+<li><strong>sql_execution.log:</strong> SQL 실행 로그</li>
+<li><strong>error_analysis.log:</strong> 에러 분석 로그</li>
+</ul>
+<h3 id="_69">유용한 명령어</h3>
+<pre class="codehilite"><code class="language-bash"># 전체 진행 상황 확인
+tail -f *.log | grep -E &quot;(완료|ERROR|성공|실패)&quot;
+
+# 에러만 필터링
+grep -i error *.log
+
+# 특정 프로그램 로그만 확인
+grep &quot;XMLToSQL&quot; *.log
+
+# 실행 시간 분석
+grep &quot;실행 시간&quot; *.log | sort -k3 -n
+
+# 디스크 사용량 확인
+du -sh */
+</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-database me-2"></i>Oracle Modernization Accelerator</h5>
+                    <p class="mb-0">Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" class="text-light">
+                            <i class="fab fa-github me-1"></i>GitHub Repository
+                        </a>
+                    </p>
+                    <small class="text-muted">© 2025 Amazon Web Services, Inc.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // 현재 페이지에 해당하는 네비게이션 링크 활성화
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 부드러운 스크롤
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
