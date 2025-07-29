@@ -61,20 +61,32 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 ### 핵심 구성 요소
 
 #### **1. 통합 제어 계층**
-- **initOMA.sh**: 메뉴 기반 통합 실행 스크립트
-- **환경 설정**: 프로젝트별 환경 변수 관리
+
+| 구성 요소 | 설명 |
+|----------|------|
+| **initOMA.sh** | 메뉴 기반 통합 실행 스크립트 |
+| **환경 설정** | 프로젝트별 환경 변수 관리 |
 
 #### **2. 분석 엔진**
-- **애플리케이션 분석**: Java 소스 코드 및 MyBatis XML 파일 분석
-- **SQL 추출**: 변환 대상 SQL 식별 및 분류
+
+| 구성 요소 | 설명 |
+|----------|------|
+| **애플리케이션 분석** | Java 소스 코드 및 MyBatis XML 파일 분석 |
+| **SQL 추출** | 변환 대상 SQL 식별 및 분류 |
 
 #### **3. 변환 엔진**
-- **SQL 변환**: Oracle SQL을 Target DBMS SQL로 자동 변환
-- **XML 처리**: MyBatis XML 파일 변환 및 병합
+
+| 구성 요소 | 설명 |
+|----------|------|
+| **SQL 변환** | Oracle SQL을 Target DBMS SQL로 자동 변환 |
+| **XML 처리** | MyBatis XML 파일 변환 및 병합 |
 
 #### **4. 검증 엔진**
-- **Unit 테스트**: 변환된 SQL 동작 검증
-- **보고서 생성**: 변환 결과 분석 및 HTML 보고서 생성
+
+| 구성 요소 | 설명 |
+|----------|------|
+| **Unit 테스트** | 변환된 SQL 동작 검증 |
+| **보고서 생성** | 변환 결과 분석 및 HTML 보고서 생성 |
 
 ## OMA.properties 설정 파일
 
@@ -86,45 +98,22 @@ sample-oracle-modernization-accelerator/          # OMA 루트 폴더
 #### **[COMMON] 섹션**
 모든 프로젝트에서 공통으로 사용되는 기본 설정들을 정의합니다.
 
-```properties
-# OMA 시스템 루트 디렉토리
-OMA_BASE_DIR=/path/to/oma
-
-# 데이터베이스 변환 관련 폴더
-DBMS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/database
-DBMS_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/database
-
-# 애플리케이션 변환 관련 폴더
-APPLICATION_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/application
-APP_TOOLS_FOLDER=${OMA_BASE_DIR}/bin/application
-APP_TRANSFORM_FOLDER=${APPLICATION_FOLDER}/transform
-APP_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/application
-
-# 테스트 관련 폴더
-TEST_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/test
-TEST_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/test
-```
+| 설정 카테고리 | 주요 설정 항목 | 설명 |
+|-------------|---------------|------|
+| **시스템 루트** | `OMA_BASE_DIR` | OMA 시스템 루트 디렉토리 |
+| **데이터베이스 변환** | `DBMS_FOLDER`<br>`DBMS_LOGS_FOLDER` | 데이터베이스 변환 관련 폴더<br>데이터베이스 로그 폴더 |
+| **애플리케이션 변환** | `APPLICATION_FOLDER`<br>`APP_TOOLS_FOLDER`<br>`APP_TRANSFORM_FOLDER`<br>`APP_LOGS_FOLDER` | 애플리케이션 변환 폴더<br>변환 도구 폴더<br>변환 결과 폴더<br>애플리케이션 로그 폴더 |
+| **테스트** | `TEST_FOLDER`<br>`TEST_LOGS_FOLDER` | 테스트 관련 폴더<br>테스트 로그 폴더 |
 
 #### **[프로젝트명] 섹션**
 각 프로젝트마다 고유한 설정들을 정의합니다.
 
-```properties
-[itsm-2nd]
-# 애플리케이션 소스 경로
-JAVA_SOURCE_FOLDER=/path/to/java/source
-SOURCE_SQL_MAPPER_FOLDER=${JAVA_SOURCE_FOLDER}/main/resources/sqlmap
-TARGET_SQL_MAPPER_FOLDER=/path/to/target/sqlmap
-
-# 프로젝트 정보
-APPLICATION_NAME=itsm-2nd
-
-# 변환 대상 필터링 설정
-TRANSFORM_JNDI=jdbc
-TRANSFORM_RELATED_CLASS=_ALL_
-
-# 데이터베이스 타입
-SOURCE_DBMS_TYPE=orcl
-TARGET_DBMS_TYPE=postgres
+| 설정 카테고리 | 주요 설정 항목 | 설명 | 예시 값 |
+|-------------|---------------|------|---------|
+| **애플리케이션 소스** | `JAVA_SOURCE_FOLDER`<br>`SOURCE_SQL_MAPPER_FOLDER`<br>`TARGET_SQL_MAPPER_FOLDER` | Java 소스 경로<br>원본 MyBatis XML 위치<br>변환된 XML 저장 위치 | `/path/to/java/source`<br>`${JAVA_SOURCE_FOLDER}/main/resources/sqlmap`<br>`/path/to/target/sqlmap` |
+| **프로젝트 정보** | `APPLICATION_NAME` | 프로젝트 이름 | `itsm-2nd` |
+| **변환 필터링** | `TRANSFORM_JNDI`<br>`TRANSFORM_RELATED_CLASS` | 변환 대상 JNDI 필터<br>변환 대상 클래스 필터 | `jdbc`<br>`_ALL_` |
+| **데이터베이스 타입** | `SOURCE_DBMS_TYPE`<br>`TARGET_DBMS_TYPE` | 원본 DB 타입<br>대상 DB 타입 | `orcl`<br>`postgres` |
 
 # Oracle 연결 정보 (Source DB)
 ORACLE_HOST=hostname
