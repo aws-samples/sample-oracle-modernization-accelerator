@@ -2,10 +2,10 @@
 layout: default
 title: OMA Introduction
 nav_order: 2
-description: "Oracle Modernization Accelerator 시스템 소개"
+description: "Oracle Modernization Accelerator 소개"
 ---
 
-# OMA (Oracle Modernization Accelerator) 시스템 소개
+# OMA (Oracle Modernization Accelerator) 소개
 
 ## 목적
 
