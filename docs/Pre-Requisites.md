@@ -53,74 +53,75 @@ config/setup.sh
 #### **생성되는 인프라 구성요소**
 
 ##### **🏗️ 네트워킹 인프라**
-- **VPC**: OMA_VPC (10.255.255.0/24)
-- **서브넷 구성**:
-  - **Public Subnet 2개** (AZ-a, AZ-b): NAT Gateway용
-  - **Private Subnet 2개** (AZ-a, AZ-b): EC2, Aurora, DMS용
-- **네트워킹 구성요소**:
-  - Internet Gateway
-  - NAT Gateway (Public Subnet 1에 위치)
-  - Route Tables (Public/Private 분리)
+
+| 구성 요소 | 세부 사항 | 설명 |
+|----------|----------|------|
+| **VPC** | OMA_VPC (10.255.255.0/24) | OMA 전용 가상 네트워크 |
+| **Public Subnet** | 2개 (AZ-a, AZ-b) | NAT Gateway용 |
+| **Private Subnet** | 2개 (AZ-a, AZ-b) | EC2, Aurora, DMS용 |
+| **Internet Gateway** | IGW | 인터넷 연결 |
+| **NAT Gateway** | Public Subnet 1에 위치 | Private 리소스 아웃바운드 통신 |
+| **Route Tables** | Public/Private 분리 | 네트워크 라우팅 관리 |
 
 ##### **🔐 보안 및 암호화**
-- **KMS Key**: 모든 리소스 암호화용
-- **Security Groups**:
-  - OMABox용 (EC2 인스턴스)
-  - VPC Endpoint용 (HTTPS 443 포트)
-  - Database용 (PostgreSQL 5432, MySQL 3306, Oracle 1521 포트)
-- **IAM Roles**:
-  - EC2 인스턴스용 (SSM, CloudWatch, S3, Secrets Manager 권한)
-  - DMS용 (VPC 관리, CloudWatch 로그)
-  - DMS Schema Conversion용 (S3, Secrets Manager 접근)
+
+| 구성 요소 | 세부 사항 | 용도 |
+|----------|----------|------|
+| **KMS Key** | 모든 리소스 암호화용 | 데이터 암호화 |
+| **Security Groups** | OMABox용<br>VPC Endpoint용<br>Database용 | EC2 인스턴스 보안<br>HTTPS 443 포트<br>DB 포트 (5432, 3306, 1521) |
+| **IAM Roles** | EC2 인스턴스용<br>DMS용<br>DMS Schema Conversion용 | SSM, CloudWatch, S3, Secrets Manager 권한<br>VPC 관리, CloudWatch 로그<br>S3, Secrets Manager 접근 |
 
 ##### **🔌 VPC Endpoints (Private 통신용)**
-- **SSM Endpoint**: Session Manager 접속용
-- **SSM Messages Endpoint**: Session Manager 메시징
-- **EC2 Messages Endpoint**: EC2 메시징
-- **Secrets Manager Endpoint**: 데이터베이스 자격증명 접근
+
+| Endpoint 유형 | 용도 |
+|--------------|------|
+| **SSM Endpoint** | Session Manager 접속용 |
+| **SSM Messages Endpoint** | Session Manager 메시징 |
+| **EC2 Messages Endpoint** | EC2 메시징 |
+| **Secrets Manager Endpoint** | 데이터베이스 자격증명 접근 |
 
 ##### **🗄️ 데이터베이스 인프라**
-- **Aurora Database Cluster** (PostgreSQL 또는 MySQL 선택 가능):
-  - Engine: aurora-postgresql 15.7 또는 aurora-mysql 8.0
-  - Instance Class: db.r6g.large
-  - 암호화 활성화 (KMS)
-  - 백업 보존 기간: 7일
-- **DB Subnet Group**: Private Subnet에서 Aurora 실행
+
+| 구성 요소 | 세부 사항 | 설명 |
+|----------|----------|------|
+| **Aurora Database Cluster** | Engine: aurora-postgresql 15.7 또는 aurora-mysql 8.0<br>Instance Class: db.r6g.large<br>암호화 활성화 (KMS)<br>백업 보존 기간: 7일 | PostgreSQL 또는 MySQL 선택 가능 |
+| **DB Subnet Group** | Private Subnet에서 Aurora 실행 | 데이터베이스 네트워크 격리 |
 
 ##### **🔄 DMS (Database Migration Service)**
-- **DMS Replication Instance**: dms.t3.medium (50GB 스토리지)
-- **DMS Endpoints**:
-  - Source: Oracle 데이터베이스 연결
-  - Target: Aurora PostgreSQL 또는 MySQL 연결
-- **DMS Schema Conversion**:
-  - Migration Project 생성
-  - S3 버킷 (변환 결과 저장)
-  - Data Providers (Oracle ↔ PostgreSQL/MySQL)
+
+| 구성 요소 | 세부 사항 | 설명 |
+|----------|----------|------|
+| **DMS Replication Instance** | dms.t3.medium (50GB 스토리지) | 데이터 복제 인스턴스 |
+| **DMS Endpoints** | Source: Oracle 데이터베이스 연결<br>Target: Aurora PostgreSQL 또는 MySQL 연결 | 소스/타겟 DB 연결 |
+| **DMS Schema Conversion** | Migration Project 생성<br>S3 버킷 (변환 결과 저장)<br>Data Providers (Oracle ↔ PostgreSQL/MySQL) | 스키마 변환 도구 |
 
 ##### **💻 EC2 인스턴스 (OMABox)**
-- **Instance Type**: m6i.xlarge
-- **OS**: Amazon Linux 2023
-- **위치**: Private Subnet (인터넷 직접 접근 불가)
-- **접속 방법**: AWS Systems Manager Session Manager
+
+| 항목 | 세부 사항 | 설명 |
+|------|----------|------|
+| **Instance Type** | m6i.xlarge | 고성능 인스턴스 |
+| **OS** | Amazon Linux 2023 | 최신 Amazon Linux |
+| **위치** | Private Subnet | 인터넷 직접 접근 불가 |
+| **접속 방법** | AWS Systems Manager Session Manager | 보안 접속 |
 
 ##### **📦 사전 설치 소프트웨어**
-- **Oracle Client**: Instant Client 19.26 (SQLPlus, JDBC 포함)
-- **PostgreSQL Client**: postgresql15
-- **MySQL Client**: mysql-community-client
-- **AWS CLI v2**
-- **Amazon Q CLI**: AI 기반 개발 도구
-- **기타 도구**: jq, wget, unzip, libaio, libnsl
+
+| 소프트웨어 | 버전/설명 |
+|-----------|----------|
+| **Oracle Client** | Instant Client 19.26 (SQLPlus, JDBC 포함) |
+| **PostgreSQL Client** | postgresql15 |
+| **MySQL Client** | mysql-community-client |
+| **AWS CLI** | v2 |
+| **Amazon Q CLI** | AI 기반 개발 도구 |
+| **기타 도구** | jq, wget, unzip, libaio, libnsl |
 
 ##### **🌍 환경 변수 자동 설정**
-- **Oracle 환경**:
-  - ORACLE_HOME, ORACLE_SID, ORACLE_ADM_USER 등
-  - Secrets Manager에서 자격증명 자동 로드
-- **PostgreSQL/MySQL 환경**:
-  - PGHOST (Aurora 엔드포인트), PGUSER, PGPASSWORD 등 (PostgreSQL용)
-  - MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD 등 (MySQL용)
-  - Aurora 연결 정보 자동 구성
-- **OMA 환경**:
-  - OMA_HOME, DB_ASSESSMENTS_FOLDER 등
+
+| 환경 카테고리 | 주요 변수 | 설명 |
+|-------------|----------|------|
+| **Oracle 환경** | `ORACLE_HOME`, `ORACLE_SID`, `ORACLE_ADM_USER` 등<br>Secrets Manager에서 자격증명 자동 로드 | Oracle 클라이언트 설정 |
+| **PostgreSQL/MySQL 환경** | `PGHOST` (Aurora 엔드포인트), `PGUSER`, `PGPASSWORD` 등<br>`MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD` 등<br>Aurora 연결 정보 자동 구성 | 타겟 DB 연결 설정 |
+| **OMA 환경** | `OMA_HOME`, `DB_ASSESSMENTS_FOLDER` 등 | OMA 도구 환경 설정 |
 
 ### **OMA 환경 설정**
 
