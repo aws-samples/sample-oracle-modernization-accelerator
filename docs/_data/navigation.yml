@@ -1,0 +1,59 @@
+# Main navigation
+main:
+  - title: "Home"
+    url: /
+  - title: "Documentation"
+    url: /docs/
+  - title: "GitHub"
+    url: https://github.com/aws-samples/sample-oracle-modernization-accelerator
+
+# Documentation navigation
+docs:
+  - title: "시작하기"
+    children:
+      - title: "OMA 소개"
+        url: /OMA-Introduction/
+      - title: "사전 요구사항"
+        url: /Pre-Requisites/
+      
+  - title: "환경 설정"
+    children:
+      - title: "환경 설정"
+        url: /0-1.setEnv/
+      - title: "환경 확인"
+        url: /0-2.checkEnv/
+        
+  - title: "애플리케이션 분석"
+    children:
+      - title: "애플리케이션 분석"
+        url: /1-1.processAppAnalysis/
+      - title: "애플리케이션 리포팅"
+        url: /1-2.processAppReporting/
+      - title: "PostgreSQL 메타 생성"
+        url: /1-3.genPostgreSqlMeta/
+        
+  - title: "코드 변환"
+    children:
+      - title: "SQL 변환"
+        url: /2-1.processSqlTransform/
+      - title: "후처리 변환"
+        url: /2-2.processPostTransform/
+        
+  - title: "SQL 단위 테스트"
+    children:
+      - title: "SQL 단위 테스트"
+        url: /3-1.sqlUnitTest/
+        
+  - title: "결과 통합"
+    children:
+      - title: "SQL 변환 병합"
+        url: /4-1.processSqlTransformMerge/
+      - title: "SQL 변환 리포트"
+        url: /4-2.processSqlTransformReport/
+      - title: "Java 변환 처리"
+        url: /4-3.processJavaTransform/
+        
+  - title: "유용한 도구"
+    children:
+      - title: "유용한 도구"
+        url: /useful-tools/
