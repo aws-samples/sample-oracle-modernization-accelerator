@@ -142,29 +142,35 @@ PGPASSWORD=password
 ### 주요 설정 항목
 
 #### **경로 설정**
-- **JAVA_SOURCE_FOLDER**: Java 소스 코드 루트 디렉토리
-- **SOURCE_SQL_MAPPER_FOLDER**: 원본 MyBatis XML 파일 위치
-- **TARGET_SQL_MAPPER_FOLDER**: 변환된 XML 파일 저장 위치
-- **APP_TOOLS_FOLDER**: 변환 도구 및 스크립트 위치
+
+| 설정 항목 | 설명 |
+|----------|------|
+| **JAVA_SOURCE_FOLDER** | Java 소스 코드 루트 디렉토리 |
+| **SOURCE_SQL_MAPPER_FOLDER** | 원본 MyBatis XML 파일 위치 |
+| **TARGET_SQL_MAPPER_FOLDER** | 변환된 XML 파일 저장 위치 |
+| **APP_TOOLS_FOLDER** | 변환 도구 및 스크립트 위치 |
 
 #### **변환 대상 필터링 설정**
-- **TRANSFORM_JNDI**: 변환 대상 JNDI를 선별할 때 사용하는 필터
-  - 예: `jdbc` - jdbc라는 JNDI를 사용하는 SQL만 변환 대상으로 선별
-  - 쉼표(,)로 구분하여 여러 JNDI 지정 가능: `jdbc,jdbc/primary,jdbc/secondary`
-  
-- **TRANSFORM_RELATED_CLASS**: 변환 대상 클래스를 선별할 때 사용하는 필터
-  - `_ALL_`: 모든 클래스의 SQL을 변환 대상으로 설정
-  - 특정 클래스명: 해당 클래스와 관련된 SQL만 변환 대상으로 선별
-  - 예: `com.example.UserDao` - UserDao 클래스 관련 SQL만 변환
+
+| 설정 항목 | 설명 | 예시 |
+|----------|------|------|
+| **TRANSFORM_JNDI** | 변환 대상 JNDI를 선별할 때 사용하는 필터 | `jdbc` - jdbc라는 JNDI를 사용하는 SQL만 변환<br>`jdbc,jdbc/primary,jdbc/secondary` - 여러 JNDI 지정 |
+| **TRANSFORM_RELATED_CLASS** | 변환 대상 클래스를 선별할 때 사용하는 필터 | `_ALL_` - 모든 클래스의 SQL을 변환 대상으로 설정<br>`com.example.UserDao` - UserDao 클래스 관련 SQL만 변환 |
 
 #### **변환 설정**
-- **SOURCE_DBMS_TYPE**: 원본 데이터베이스 타입 (orcl)
-- **TARGET_DBMS_TYPE**: 대상 데이터베이스 타입 (postgres/mysql)
+
+| 설정 항목 | 설명 | 값 |
+|----------|------|-----|
+| **SOURCE_DBMS_TYPE** | 원본 데이터베이스 타입 | `orcl` |
+| **TARGET_DBMS_TYPE** | 대상 데이터베이스 타입 | `postgres` / `mysql` |
 
 #### **데이터베이스 연결**
-- **Oracle 설정**: ORACLE_HOST, ORACLE_PORT, ORACLE_SVC_USER 등
-- **PostgreSQL 설정**: PGHOST, PGPORT, PGUSER 등
-- **MySQL 설정**: MYSQL_HOST, MYSQL_PORT, MYSQL_USER 등 (필요시)
+
+| 데이터베이스 | 주요 설정 항목 |
+|-------------|---------------|
+| **Oracle** | `ORACLE_HOST`, `ORACLE_PORT`, `ORACLE_SVC_USER` 등 |
+| **PostgreSQL** | `PGHOST`, `PGPORT`, `PGUSER` 등 |
+| **MySQL** | `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER` 등 (필요시) |
 
 ### 사용 방법
 1. **프로젝트 설정**: [프로젝트명] 섹션에 해당 프로젝트 정보 입력
