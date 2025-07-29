@@ -29,6 +29,28 @@ check_environment() {
 # ====================================================
 # Step 3: SQL 변환 작업
 # ====================================================
+
+# Merge 모드 처리 함수
+process_sql_transform_merge() {
+    print_separator
+    echo -e "${BLUE}${BOLD}Step 3: SQL 변환 Merge 작업${NC}"
+    print_separator
+    echo -e "${CYAN}이 단계에서는 변환된 SQL들을 Merge 처리합니다.${NC}"
+    print_separator
+    
+    echo -e "${BLUE}${BOLD}실행 명령:${NC}"
+    echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py --mode merge${NC}"
+    print_separator
+
+    echo -e "${BLUE}${BOLD}작업을 수행하기 이전에 3초 대기 합니다.${NC}"
+    sleep 3
+
+    python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --mode merge
+    print_separator
+    echo -e "${GREEN}SQL 변환 Merge 작업이 완료되었습니다.${NC}"
+    print_separator
+}
+
 process_sql_transform() {
     print_separator
     echo -e "${BLUE}${BOLD}Step 3: SQL 변환 작업${NC}"
@@ -84,8 +106,15 @@ check_environment
 echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
 print_separator
 
-# SQL 변환 작업 실행
-process_sql_transform
+# 파라미터 확인 및 처리
+if [ "$1" = "merge" ]; then
+    # Merge 모드 실행
+    process_sql_transform_merge
+    echo -e "${GREEN}Step 3: SQL 변환 Merge 작업이 완료되었습니다.${NC}"
+else
+    # 일반 SQL 변환 작업 실행
+    process_sql_transform
+    echo -e "${GREEN}Step 3: 애플리케이션 SQL 변환 작업이 완료되었습니다.${NC}"
+fi
 
-echo -e "${GREEN}Step 3: 애플리케이션 SQL 변환 작업이 완료되었습니다.${NC}"
 print_separator

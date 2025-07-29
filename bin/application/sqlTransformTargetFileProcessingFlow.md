@@ -1,9 +1,16 @@
-# sqlTransformTarget.py 파일 처리 흐름 가이드
+# sqlTransformTarget.py 파일 처리 흐름 가이드 (V3.0)
 
 ## 📋 개요
 
 sqlTransformTarget.py는 MyBatis XML 파일을 Oracle에서 PostgreSQL로 변환하는 프로그램입니다.
 SOURCE_SQL_MAPPER_FOLDER의 XML 파일들을 4단계 파이프라인을 통해 변환하여 TARGET_SQL_MAPPER_FOLDER에 배치합니다.
+
+**V3.0 주요 개선사항:**
+- 🔄 배치별 상태 관리로 중단된 지점부터 재시작 가능
+- 🏷️ XML별 고유 배치 ID (xmlname000001 형식)
+- ✅ Extract 완료 여부 체크로 중복 작업 방지
+- 📊 세밀한 진행 상황 추적 및 로깅
+- 🎯 실패한 배치만 선별적으로 재처리
 
 ## 🔄 전체 처리 흐름
 

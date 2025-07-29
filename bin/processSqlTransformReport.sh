@@ -34,19 +34,19 @@ generate_sql_transform_report() {
     echo -e "${BLUE}${BOLD}SQL Transform 작업 결과 보고서를 작성합니다.${NC}"
     print_separator
     
-    # SQLTransformReport.md 파일 존재 확인
-    if [ ! -f "$APP_TOOLS_FOLDER/SQLTransformReport.md" ]; then
-        echo -e "${RED}${BOLD}오류: SQLTransformReport.md 파일을 찾을 수 없습니다.${NC}"
-        echo -e "${YELLOW}파일 경로: $APP_TOOLS_FOLDER/SQLTransformReport.md${NC}"
+    # sqlTransformReport.md 파일 존재 확인
+    if [ ! -f "$APP_TOOLS_FOLDER/sqlTransformReport.md" ]; then
+        echo -e "${RED}${BOLD}오류: sqlTransformReport.md 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${YELLOW}파일 경로: $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
         exit 1
     fi
     
     echo -e "${CYAN}보고서 생성 명령을 실행합니다...${NC}"
     sleep 1
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/SQLTransformReport.md${NC}"
+    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
     
     # Amazon Q를 통한 보고서 생성 실행
-    q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/SQLTransformReport.md"
+    q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}SQL 변환 작업 보고서가 성공적으로 작성되었습니다.${NC}"

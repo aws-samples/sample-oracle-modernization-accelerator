@@ -11,13 +11,11 @@
 1. **File Listing = Target Candidate Recognition**: Initial file listing identifies conversion candidates
 2. **Iterative Processing**: Process file list sequentially with complete conversion per file
 3. **Individual File Processing (Absolute Rule)**: Process exactly ONE file at a time - NO EXCEPTIONS
-4. **Group Management for Large Sets**: When files > 10, organize into groups of 10 for systematic processing
-5. **Accuracy Over Efficiency**: Prohibit batch processing - accuracy is the highest priority
+4. **Accuracy Over Efficiency**: Prohibit batch processing - accuracy is the highest priority
 
 🔥 PROCESSING METHODOLOGY 🔥
 - **File Discovery**: Identify all conversion target candidates through initial listing
 - **Sequential Processing**: Process each file individually with full attention
-- **Group Organization**: For large file sets (>10), organize into manageable groups of 10
 - **Quality Assurance**: Complete conversion validation per file before proceeding
 
 🔥 INDIVIDUAL FILE PROCESSING ENFORCEMENT SYSTEM 🔥
@@ -27,6 +25,19 @@ IMMEDIATE VIOLATION ALERTS for these phrases when processing files outside of de
 - "due to large number", "for efficiency", "time-saving approach"
 - "process the rest", "continue with remaining", "similar pattern"
 - "sed", "awk", "grep" with multiple files, "for file in", "*.xml"
+
+🚨 SQL TRANSFORMATION QUALITY REQUIREMENTS 🚨
+- Absolutely prohibit simple text substitution tools (sed, awk, grep)
+- Must fully understand SQL syntax structure and context for transformation
+- Accurately handle function parameters and nested structures
+- Mandatory SQL syntax validation after transformation
+
+🚨 FILE SIZE PROCESSING RESTRICTIONS 🚨
+- Never split or divide files regardless of size
+- Process entire file completely - no partial or "core only" transformations
+- All Oracle patterns must be converted - no exceptions for large files
+- Maintain complete file integrity throughout processing
+- Prohibit messages like "file too large", "split processing", "core transformations only"
 
 🎯 BATCH FOLDER EXCEPTION RULE 🎯
 WHEN processing files within a designated batch folder ({MAPPER_SRCL1_DIR}):
@@ -85,7 +96,7 @@ MANDATORY SELF-CHECK BEFORE EACH FILE:
 
 IF ANY ANSWER IS "NO" - PAUSE, ACKNOWLEDGE, AND CORRECT APPROACH
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 Database-specific rules:
 - This file is specifically designed for Oracle to PostgreSQL conversion
@@ -237,18 +248,11 @@ B. Task Progression Steps:
         3.1 For File Count ≤ 10:
             - Process all files in single sequential order
             - Maintain individual file processing approach
-            
-        3.2 For File Count > 10:
-            - Organize into groups of 10 files each
-            - Example: 30 files → Group 1 (files 1-10), Group 2 (files 11-20), Group 3 (files 21-30)
-            - Processing order: Group 1 → Group 2 → Group 3
-            - Within each group: Individual file-by-file processing
 
     4. Processing Plan Generation:
         4.1 Create organized processing plan:
             - Total Files: [N]
-            - Groups: [N/10 rounded up] 
-            - Strategy: Sequential group processing with individual file conversion
+            - Strategy: Sequential individual file conversion
             - Expected completion: All [N] files processed individually
 
     5. Completion:

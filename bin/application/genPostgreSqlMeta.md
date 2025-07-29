@@ -1,6 +1,6 @@
 # PostgreSQL 메타데이터 추출 프롬프트 (테이블 + 뷰)
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 ## 요청사항
 PostgreSQL 데이터베이스에서 비즈니스 스키마의 테이블과 뷰의 컬럼 메타데이터를 추출하여 `/tmp/oma_metadata.txt` 파일을 생성해주세요.

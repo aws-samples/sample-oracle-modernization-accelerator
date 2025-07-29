@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Generate Departed XMLs
-# XML 파일들을 개별 Level1 요소로 분리하여 생성
+# Generate Departed XMLs (Modified Version)
+# CSV 파일에서 Transform Target='Y'인 XML 파일들을 개별 Level1 요소로 분리하여 생성
 # MyBatis XML Mapper 파일에서 select, insert, update, delete, sql 등의 요소를 개별 파일로 추출
 # 진행 상황 추적 및 상세 요약 제공
 #
 # 사용법: ./genDepartedXmls.sh [타입]
 # 지원되는 타입과 동작:
-#   - source  : SOURCE_SQL_MAPPER_FOLDER → origin → extract (외부 소스를 복사 후 분리)
-#   - target  : TARGET_SQL_MAPPER_FOLDER → merge → transform (외부 타겟을 복사 후 분리)
+#   - source  : CSV에서 Transform Target='Y'인 파일들을 origin → extract (CSV 기반 소스 파일 복사 후 분리)
+#   - target  : CSV에서 Transform Target='Y'인 파일들을 merge → transform (CSV 기반 타겟 파일 복사 후 분리)
 #   - origin  : origin → extract (기존 원본 파일을 분리)
 #   - merge   : merge → transform (기존 병합 파일을 분리)
 
@@ -46,24 +46,23 @@ log_progress() {
 show_usage() {
     echo "사용법: $0 [타입]"
     echo ""
-    echo "XML 파일을 개별 Level1 요소로 분리하여 생성합니다."
+    echo "CSV 파일에서 Transform Target='Y'인 XML 파일을 개별 Level1 요소로 분리하여 생성합니다."
     echo ""
     echo "지원되는 타입:"
-    echo "  $0 source    # SOURCE_SQL_MAPPER_FOLDER의 XML을 복사하여 origin에 저장 후 extract로 분리"
-    echo "  $0 target    # TARGET_SQL_MAPPER_FOLDER의 XML을 복사하여 merge에 저장 후 transform으로 분리"
+    echo "  $0 source    # CSV의 Transform Target='Y' XML을 origin에 복사 후 extract로 분리"
+    echo "  $0 target    # CSV의 Transform Target='Y' XML을 merge에 복사 후 transform으로 분리"
     echo "  $0 origin    # 기존 origin 폴더의 XML을 extract로 분리"
     echo "  $0 merge     # 기존 merge 폴더의 XML을 transform으로 분리"
     echo ""
     echo "처리 흐름:"
-    echo "  source: 외부폴더 → origin(*_src.xml) → extract(개별요소)"
-    echo "  target: 외부폴더 → merge(*_tgt.xml) → transform(개별요소)"
+    echo "  source: CSV파일 → origin(*_src.xml) → extract(개별요소)"
+    echo "  target: CSV파일 → merge(*_tgt.xml) → transform(개별요소)"
     echo "  origin: origin → extract(개별요소)"
     echo "  merge:  merge → transform(개별요소)"
     echo ""
     echo "환경변수:"
     echo "  APP_LOGS_FOLDER - 애플리케이션 로그 폴더 경로 (필수)"
-    echo "  SOURCE_SQL_MAPPER_FOLDER - source 타입 사용 시 필요"
-    echo "  TARGET_SQL_MAPPER_FOLDER - target 타입 사용 시 필요"
+    echo "  APP_TRANSFORM_FOLDER - CSV 파일이 있는 transform 폴더 경로 (source/target 타입 시 필수)"
 }
 
 # 진행률 표시 함수
@@ -89,7 +88,6 @@ get_type_config() {
             INPUT_FOLDER_TYPE="origin"
             OUTPUT_FOLDER_TYPE="extract"
             COPY_REQUIRED=true
-            COPY_SOURCE="$SOURCE_SQL_MAPPER_FOLDER"
             COPY_TARGET_SUBFOLDER="origin"
             COPY_FILE_SUFFIX="_src"
             ;;
@@ -97,7 +95,6 @@ get_type_config() {
             INPUT_FOLDER_TYPE="merge"
             OUTPUT_FOLDER_TYPE="transform"
             COPY_REQUIRED=true
-            COPY_SOURCE="$TARGET_SQL_MAPPER_FOLDER"
             COPY_TARGET_SUBFOLDER="merge"
             COPY_FILE_SUFFIX="_tgt"
             ;;
@@ -127,48 +124,77 @@ validate_environment() {
         return 1
     fi
     
-    if [ "$type" = "source" ] && [ -z "$SOURCE_SQL_MAPPER_FOLDER" ]; then
-        log_error "SOURCE_SQL_MAPPER_FOLDER 환경변수가 설정되지 않았습니다."
-        return 1
-    fi
-    
-    if [ "$type" = "target" ] && [ -z "$TARGET_SQL_MAPPER_FOLDER" ]; then
-        log_error "TARGET_SQL_MAPPER_FOLDER 환경변수가 설정되지 않았습니다."
-        return 1
+    if [ "$type" = "source" ] || [ "$type" = "target" ]; then
+        if [ -z "$APP_TRANSFORM_FOLDER" ]; then
+            log_error "APP_TRANSFORM_FOLDER 환경변수가 설정되지 않았습니다."
+            return 1
+        fi
+        
+        if [ ! -f "$APP_TRANSFORM_FOLDER/SQLTransformTarget.csv" ]; then
+            log_error "CSV 파일을 찾을 수 없습니다: $APP_TRANSFORM_FOLDER/SQLTransformTarget.csv"
+            return 1
+        fi
     fi
     
     return 0
 }
 
-# 파일 복사 함수 (source/target용)
-copy_files() {
-    log_info "파일 복사 작업을 시작합니다..."
-    log_info "소스 폴더: $COPY_SOURCE"
+# CSV에서 Transform Target='Y'인 파일 목록 가져오기
+get_target_files_from_csv() {
+    local csv_file="$APP_TRANSFORM_FOLDER/SQLTransformTarget.csv"
+    
+    log_info "CSV 파일에서 Transform Target='Y'인 파일들을 검색 중..."
+    log_info "CSV 파일: $csv_file"
+    
+    # CSV에서 Transform Target이 'Y'인 행의 Filename 컬럼(2번째) 추출
+    # 헤더 제외하고 처리
+    local target_files=$(awk -F',' 'NR>1 && $6=="Y" {print $2}' "$csv_file" | sort)
+    
+    if [ -z "$target_files" ]; then
+        log_warning "CSV 파일에서 Transform Target='Y'인 파일을 찾을 수 없습니다."
+        return 1
+    fi
+    
+    local file_count=$(echo "$target_files" | wc -l)
+    log_info "CSV에서 $file_count 개의 대상 파일을 찾았습니다."
+    
+    echo "$target_files"
+    return 0
+}
+
+# CSV 기반 파일 복사 함수 (source/target용)
+copy_files_from_csv() {
+    log_info "CSV 기반 파일 복사 작업을 시작합니다..."
     log_info "대상 서브폴더: $COPY_TARGET_SUBFOLDER"
     log_info "파일 접미사: $COPY_FILE_SUFFIX"
     
-    # 소스 폴더의 모든 XML 파일 찾기
-    local source_xml_files=$(find "$COPY_SOURCE" -name "*.xml" | sort)
-    
-    if [ -z "$source_xml_files" ]; then
-        log_warning "소스 폴더에서 XML 파일을 찾을 수 없습니다: $COPY_SOURCE"
+    # CSV에서 대상 파일 목록 가져오기
+    local target_files
+    if ! target_files=$(get_target_files_from_csv); then
         return 1
     fi
     
     local copy_count=0
     local copy_success=0
     local copy_errors=0
+    local copy_not_found=0
     
     while IFS= read -r source_file; do
         copy_count=$((copy_count + 1))
         
-        # 상대 경로 계산
-        local relative_path=$(realpath --relative-to="$COPY_SOURCE" "$source_file")
-        local dir_path=$(dirname "$relative_path")
-        local filename=$(basename "$relative_path" .xml)
+        # 파일 존재 확인
+        if [ ! -f "$source_file" ]; then
+            log_warning "파일이 존재하지 않습니다: $source_file"
+            copy_not_found=$((copy_not_found + 1))
+            continue
+        fi
+        
+        # 파일명과 디렉토리 정보 추출
+        local filename=$(basename "$source_file" .xml)
+        local relative_dir=$(dirname "$source_file" | sed 's|.*/resources/||')
         
         # 대상 디렉토리 생성
-        local target_dir="$BASE_PATH/$dir_path/$filename/$COPY_TARGET_SUBFOLDER"
+        local target_dir="$BASE_PATH/$relative_dir/$filename/$COPY_TARGET_SUBFOLDER"
         local target_file="$target_dir/${filename}${COPY_FILE_SUFFIX}.xml"
         
         log_progress "복사 중 [$copy_count]: $filename"
@@ -189,11 +215,11 @@ copy_files() {
             copy_errors=$((copy_errors + 1))
         fi
         
-    done <<< "$source_xml_files"
+    done <<< "$target_files"
     
     echo
-    log_info "파일 복사 작업 완료"
-    log_info "총 처리: $copy_count, 성공: $copy_success, 실패: $copy_errors"
+    log_info "CSV 기반 파일 복사 작업 완료"
+    log_info "총 처리: $copy_count, 성공: $copy_success, 실패: $copy_errors, 파일없음: $copy_not_found"
     echo
     
     if [ $copy_errors -gt 0 ]; then
@@ -240,12 +266,12 @@ start_time=$(date +%s)
 
 # 스크립트 시작
 echo "========================================================"
-log_info "Generate Departed XMLs 배치 실행을 시작합니다..."
+log_info "Generate Departed XMLs 배치 실행을 시작합니다... (CSV 기반)"
 log_info "처리 타입: $TYPE"
 log_info "입력 폴더: $INPUT_FOLDER_TYPE"
 log_info "출력 폴더: $OUTPUT_FOLDER_TYPE"
 if [ "$COPY_REQUIRED" = true ]; then
-    log_info "복사 작업: 필요 (${COPY_SOURCE} → ${COPY_TARGET_SUBFOLDER})"
+    log_info "복사 작업: 필요 (CSV Transform Target='Y' → ${COPY_TARGET_SUBFOLDER})"
 else
     log_info "복사 작업: 불필요"
 fi
@@ -274,10 +300,10 @@ log_info "XML 추출기 경로: $EXTRACTOR_PATH"
 log_info "기본 경로: $BASE_PATH (APP_LOGS_FOLDER: $APP_LOGS_FOLDER)"
 echo
 
-# source/target인 경우 파일 복사 작업 수행
+# source/target인 경우 CSV 기반 파일 복사 작업 수행
 if [ "$COPY_REQUIRED" = true ]; then
-    if ! copy_files; then
-        log_error "파일 복사 작업 중 오류가 발생했습니다."
+    if ! copy_files_from_csv; then
+        log_error "CSV 기반 파일 복사 작업 중 오류가 발생했습니다."
         exit 1
     fi
 fi
@@ -354,7 +380,7 @@ duration=$((end_time - start_time))
 
 # 최종 결과 출력
 echo "========================================================"
-log_info "Generate Departed XMLs 배치 실행 완료"
+log_info "Generate Departed XMLs 배치 실행 완료 (CSV 기반)"
 echo "========================================================"
 log_info "처리 타입: $TYPE"
 log_info "입력 폴더: $INPUT_FOLDER_TYPE"
