@@ -40,11 +40,11 @@ MyBatis XML Mapper 파일을 개별 Level1 요소로 분리하여 생성하는 �
 
 **예시**:
 ```
-SOURCE_SQL_MAPPER_FOLDER/com/UserDao.xml
+$SOURCE_SQL_MAPPER_FOLDER/com/UserDao.xml
 ↓ 복사 및 이름 변경
-APP_LOGS_FOLDER/mapper/com/UserDao/origin/UserDao_src.xml
+$APP_LOGS_FOLDER/mapper/com/UserDao/origin/UserDao_src.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/mapper/com/UserDao/extract/
+$APP_LOGS_FOLDER/mapper/com/UserDao/extract/
 ├── UserDao_src-01-select-userDao.getUser.xml
 └── UserDao_src-02-insert-userDao.insertUser.xml
 ```
@@ -64,11 +64,11 @@ APP_LOGS_FOLDER/mapper/com/UserDao/extract/
 
 **예시**:
 ```
-TARGET_SQL_MAPPER_FOLDER/itsm/csr/CsrMainDao.xml
+$TARGET_SQL_MAPPER_FOLDER/itsm/csr/CsrMainDao.xml
 ↓ 복사 및 이름 변경
-APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/merge/CsrMainDao_tgt.xml
+$APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/merge/CsrMainDao_tgt.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/transform/
+$APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/transform/
 ├── CsrMainDao_tgt-01-select-csrMainDao.getMainInfo.xml
 └── CsrMainDao_tgt-02-update-csrMainDao.updateStatus.xml
 ```
@@ -86,9 +86,9 @@ APP_LOGS_FOLDER/mapper/itsm/csr/CsrMainDao/transform/
 
 **예시**:
 ```
-APP_LOGS_FOLDER/mapper/com/LoginDao/origin/LoginDao_src.xml
+$APP_LOGS_FOLDER/mapper/com/LoginDao/origin/LoginDao_src.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/mapper/com/LoginDao/extract/
+$APP_LOGS_FOLDER/mapper/com/LoginDao/extract/
 ├── LoginDao_src-01-select-loginDao.checkLogin.xml
 └── LoginDao_src-02-update-loginDao.updateLastLogin.xml
 ```
@@ -106,9 +106,9 @@ APP_LOGS_FOLDER/mapper/com/LoginDao/extract/
 
 **예시**:
 ```
-APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/merge/SysAuthDao_tgt.xml
+$APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/merge/SysAuthDao_tgt.xml
 ↓ 분리 처리
-APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/transform/
+$APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/transform/
 ├── SysAuthDao_tgt-01-select-sysAuthDao.getAuthInfo.xml
 └── SysAuthDao_tgt-02-update-sysAuthDao.updateAuth.xml
 ```
@@ -124,7 +124,7 @@ APP_LOGS_FOLDER/mapper/mro/sys/SysAuthDao/transform/
 
 #### 환경변수 설정 예시
 ```bash
-export APP_LOGS_FOLDER="/home/ec2-user/workspace/sample-oracle-modernization-accelerator/ourhome-itsm/logs/application"
+export APP_LOGS_FOLDER="/home/ec2-user/workspace/sample-oracle-modernization-accelerator/your-project/logs/application"
 export SOURCE_SQL_MAPPER_FOLDER="/external/source/mappers"
 export TARGET_SQL_MAPPER_FOLDER="/external/target/mappers"
 ```
