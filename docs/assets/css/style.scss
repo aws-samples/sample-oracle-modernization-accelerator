@@ -9,21 +9,34 @@ body {
   line-height: 1.6 !important;
 }
 
-// 사이트 헤더가 북마크바에 가리지 않도록 상단 여백 추가
+// 사이트 헤더가 북마크바에 가리지 않도록 상단 여백 대폭 증가
 .site-header {
-  padding-top: 1rem !important;
-  margin-top: 0.5rem !important;
+  padding-top: 3rem !important;
+  margin-top: 2rem !important;
+  position: relative !important;
+  z-index: 1000 !important;
 }
 
 // 사이트 제목 상단 여백 추가
 .site-title {
-  margin-top: 0.5rem !important;
-  padding-top: 0.5rem !important;
+  margin-top: 1.5rem !important;
+  padding-top: 1.5rem !important;
 }
 
 // 메인 컨텐츠 상단 여백 추가
 .main-content-wrap {
-  padding-top: 1rem !important;
+  padding-top: 2rem !important;
+}
+
+// 전체 페이지 상단에 여백 추가 (북마크바 대응)
+body {
+  padding-top: 60px !important; /* 북마크바 높이만큼 여백 */
+}
+
+// 헤더 전체를 아래로 밀어내기
+.site-header-wrap {
+  margin-top: 60px !important;
+  padding-top: 20px !important;
 }
 
 // 제목 폰트 크기 - 계층 구조에 맞게 조정
@@ -61,43 +74,42 @@ h4 {
 }
 
 h5 {
-  font-size: 1.1em !important;
-  margin-top: 0.8em !important;
-  margin-bottom: 0.4em !important;
+  font-size: 1.2em !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
   color: #2c3e50 !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 h6 {
-  font-size: 1.0em !important;
-  margin-top: 0.6em !important;
-  margin-bottom: 0.3em !important;
+  font-size: 1.2em !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
   color: #34495e !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 // 본문 텍스트 개선
 p {
-  font-size: 15px !important;
+  font-size: 14px !important;
   line-height: 1.7 !important;
   margin-bottom: 1.2em !important;
 }
 
-// 리스트 항목 개선 - 계층에 따라 크기 조정
+// 리스트 항목 개선 - 본문과 동일한 크기, 모든 레벨에서 동일한 크기 유지
 li {
-  font-size: 15px !important;
+  font-size: 14px !important;
   line-height: 1.6 !important;
   margin-bottom: 0.4em !important;
 }
 
-// 중첩된 리스트는 약간 작게
-ul ul li, ol ol li {
+// 중첩된 리스트도 동일한 크기 유지
+ul ul li, ol ol li,
+ul ul ul li, ol ol ol li,
+ul ul ul ul li, ol ol ol ol li,
+ul ul ul ul ul li, ol ol ol ol ol li {
   font-size: 14px !important;
-}
-
-// 3단계 중첩 리스트는 더 작게
-ul ul ul li, ol ol ol li {
-  font-size: 13px !important;
+  line-height: 1.6 !important;
 }
 
 // 링크 스타일 개선
@@ -151,6 +163,17 @@ pre {
 @media (max-width: 768px) {
   body {
     font-size: 14px !important;
+    padding-top: 50px !important; /* 모바일에서는 조금 작게 */
+  }
+  
+  .site-header {
+    padding-top: 2rem !important;
+    margin-top: 1rem !important;
+  }
+  
+  .site-header-wrap {
+    margin-top: 50px !important;
+    padding-top: 15px !important;
   }
   
   h1 {
