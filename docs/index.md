@@ -1,37 +1,45 @@
 ---
-layout: home
-title: "Oracle Modernization Accelerator (OMA)"
+layout: default
+title: Home
+nav_order: 1
+description: "OMA (Oracle Modernization Accelerator) Manual - Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드"
+permalink: /
 ---
 
-# Oracle Modernization Accelerator (OMA)
+# OMA (Oracle Modernization Accelerator) Manual
 
-Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션입니다.
+Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드
 
-AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코드 변환을 통해 효율적인 데이터베이스 현대화를 지원합니다.
+[빠른 시작](#빠른-시작) | [GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator)
 
-## 🚀 빠른 시작
+---
 
-```bash
-# 메인 실행 스크립트 실행
-./initOMA.sh
-```
+## Getting started
 
-## 📁 주요 구성 요소
+### 빠른 시작
 
-### 1. 🔍 애플리케이션 분석
-Java 소스 코드 및 MyBatis XML 파일을 자동으로 분석하여 변환 대상 SQL을 식별합니다.
+1. [사전 요구사항](Pre-Requisites.md) - 인프라 구성 및 환경 설정
+2. [OMA 소개](OMA-Introduction.md) - OMA 프로젝트 개요
+3. [환경 설정](0-1.setEnv.md) - 프로젝트별 환경 변수 설정
 
-### 2. ⚡ 자동 변환
-Oracle SQL을 PostgreSQL/MySQL로 자동 변환하고 MyBatis XML 파일을 처리합니다.
+### 주요 기능
 
-### 3. ✅ 검증 및 테스트
-변환된 SQL의 동작을 검증하고 상세한 분석 보고서를 생성합니다.
+- **자동화된 인프라 구성**: CloudFormation을 통한 AWS 리소스 자동 배포
+- **AI 기반 코드 분석**: Amazon Q를 활용한 코드 분석 및 변환
+- **데이터베이스 스키마 변환**: DMS Schema Conversion을 통한 자동 변환
+- **애플리케이션 코드 변환**: Java/MyBatis 코드 자동 변환
 
-### 4. 📊 통합 제어 계층
-- **initOMA.sh**: 메뉴 기반 통합 실행 스크립트
-- **환경 설정**: 프로젝트별 환경 변수 관리
+### 지원 환경
 
-## 📖 문서 구조
+- **소스 데이터베이스**: Oracle Database
+- **타겟 데이터베이스**: Aurora PostgreSQL, Aurora MySQL
+- **애플리케이션**: Java, Spring Boot, MyBatis
+
+---
+
+## 문서 구조
+
+이 매뉴얼은 다음과 같이 구성되어 있습니다:
 
 ### 📋 사전 준비
 - **[OMA Introduction](OMA-Introduction.md)**: 프로젝트 개요 및 아키텍처
@@ -61,23 +69,15 @@ Oracle SQL을 PostgreSQL/MySQL로 자동 변환하고 MyBatis XML 파일을 처�
 ### 🔧 유용한 툴들
 - **[유용한 툴들](useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
 
----
-
-## 🌟 주요 특징
-
-- ✨ **자동화된 인프라 구성**: CloudFormation을 통한 AWS 리소스 자동 배포
-- 🤖 **AI 기반 코드 분석**: Amazon Q를 활용한 코드 분석 및 변환
-- 🔄 **데이터베이스 스키마 변환**: DMS Schema Conversion을 통한 자동 변환
-- ☕ **애플리케이션 코드 변환**: Java/MyBatis 코드 자동 변환
-
-## 🎯 지원 환경
-
-- **소스 데이터베이스**: Oracle Database
-- **타겟 데이터베이스**: Aurora PostgreSQL, Aurora MySQL
-- **애플리케이션**: Java, Spring Boot, MyBatis
+### 카테고리별 문서 인덱스
+- **[환경 설정](environment-setup.md)**
+- **[애플리케이션 분석](application-analysis.md)**
+- **[코드 변환](code-transformation.md)**
+- **[SQL 단위 테스트](sql-unit-test.md)**
+- **[결과 통합](result-integration.md)**
 
 ---
 
-**자세한 설치 가이드, 사용법, 단계별 매뉴얼은 각 문서에서 확인하세요.**
+## 지원 및 기여
 
-[GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator){: .btn .btn-primary}
+문제가 발생하거나 개선 사항이 있으시면 [GitHub Issues](https://github.com/aws-samples/sample-oracle-modernization-accelerator/issues)를 통해 알려주세요.
