@@ -1,13 +1,27 @@
 ---
 ---
 
+// 전체 페이지에 적용되는 기본 스타일
+* {
+  box-sizing: border-box !important;
+}
+
 // 전체 폰트 크기 증가
-body {
+body, .site-content, .main-content-wrap, .main-content {
   font-size: 16px !important;
   line-height: 1.6 !important;
+}
+
+// 배경 스타일 - 모든 페이지에 적용
+body, html {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
   min-height: 100vh !important;
   padding-top: 60px !important; /* 북마크바 높이만큼 여백 */
+}
+
+// just-the-docs 테마의 기본 배경 덮어쓰기
+.site-content, .main-content-wrap {
+  background: transparent !important;
 }
 
 // 사이트 헤더가 북마크바에 가리지 않도록 상단 여백 대폭 증가
@@ -281,8 +295,8 @@ blockquote:before {
   font-size: 1.2em !important;
 }
 
-// 메인 컨텐츠 영역 개선 - 카드 스타일
-.main-content {
+// 메인 컨텐츠 영역 개선 - 모든 페이지에 카드 스타일 적용
+.main-content, .site-content .main-content, .main-content-wrap .main-content {
   max-width: none !important;
   padding: 2.5rem !important;
   background: white !important;
@@ -292,7 +306,7 @@ blockquote:before {
   position: relative !important;
 }
 
-.main-content:before {
+.main-content:before, .site-content .main-content:before, .main-content-wrap .main-content:before {
   content: "" !important;
   position: absolute !important;
   top: 0 !important;
