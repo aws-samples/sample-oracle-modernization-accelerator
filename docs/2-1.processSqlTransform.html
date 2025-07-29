@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL 변환 - Oracle Modernization Accelerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar {
+            background: var(--light-bg);
+            min-height: calc(100vh - 76px);
+            border-right: 1px solid #dee2e6;
+            padding: 2rem 0;
+        }
+
+        .sidebar .nav-link {
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: none;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .content-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .content-header .description {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .content-body h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-body h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-body h4 {
+            color: var(--primary-color);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        code {
+            background: #f1f3f4;
+            color: #e74c3c;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #dee2e6;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .toc {
+            background: var(--light-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .toc h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 0.5rem 0;
+        }
+
+        .toc a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+            padding-left: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .content-header {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-database me-2"></i>
+                Oracle Modernization Accelerator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home me-2"></i>홈
+                    </a>
+                    <a class="nav-link" href="Pre-Requisites.html">
+                        <i class="fas fa-list-check me-2"></i>사전 요구사항
+                    </a>
+                    <a class="nav-link" href="OMA-Introduction.html">
+                        <i class="fas fa-info-circle me-2"></i>OMA 소개
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">환경 설정</small>
+                    <a class="nav-link" href="0-1.setEnv.html">
+                        <i class="fas fa-cog me-2"></i>환경 변수 설정
+                    </a>
+                    <a class="nav-link" href="0-2.checkEnv.html">
+                        <i class="fas fa-check-circle me-2"></i>환경 검증
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">애플리케이션 분석</small>
+                    <a class="nav-link" href="1-1.processAppAnalysis.html">
+                        <i class="fas fa-search me-2"></i>앱 분석
+                    </a>
+                    <a class="nav-link" href="1-2.processAppReporting.html">
+                        <i class="fas fa-chart-bar me-2"></i>앱 리포팅
+                    </a>
+                    <a class="nav-link" href="1-3.genPostgreSqlMeta.html">
+                        <i class="fas fa-database me-2"></i>PostgreSQL 메타
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">코드 변환</small>
+                    <a class="nav-link" href="2-1.processSqlTransform.html">
+                        <i class="fas fa-exchange-alt me-2"></i>SQL 변환
+                    </a>
+                    <a class="nav-link" href="2-2.processPostTransform.html">
+                        <i class="fas fa-tools me-2"></i>후처리 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">SQL 단위 테스트</small>
+                    <a class="nav-link" href="3-1.sqlUnitTest.html">
+                        <i class="fas fa-vial me-2"></i>SQL 단위 테스트
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">결과 통합</small>
+                    <a class="nav-link" href="4-1.processSqlTransformMerge.html">
+                        <i class="fas fa-code-merge me-2"></i>SQL 변환 병합
+                    </a>
+                    <a class="nav-link" href="4-2.processSqlTransformReport.html">
+                        <i class="fas fa-file-alt me-2"></i>SQL 변환 리포트
+                    </a>
+                    <a class="nav-link" href="4-3.processJavaTransform.html">
+                        <i class="fab fa-java me-2"></i>Java 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <a class="nav-link" href="useful-tools.html">
+                        <i class="fas fa-toolbox me-2"></i>유용한 툴들
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">홈</a></li>
+                        <li class="breadcrumb-item active">코드 변환 > SQL 변환</li>
+                    </ol>
+                </nav>
+
+                <!-- Content Header -->
+                <div class="content-header">
+                    <h1>SQL 변환</h1>
+                    <p class="description">Oracle SQL을 PostgreSQL/MySQL로 자동 변환</p>
+                </div>
+
+                <!-- Content Body -->
+                <div class="content-body">
+                    <h1 id="2-1-sql">2-1. 애플리케이션 SQL 변환 작업 메뉴 상세 분석</h1>
+<h2 id="_1">메뉴명</h2>
+<p><strong>애플리케이션 SQL 변환 작업 : SQLID별 변환 ( 전체, 선택, 샘플 )</strong></p>
+<h2 id="_2">목적</h2>
+<p>MyBatis XML 파일 내의 Oracle SQL을 Target DBMS(PostgreSQL/MySQL) SQL로 변환하는 작업을 수행합니다. 사용자가 전체, 선택적, 또는 샘플 모드를 선택하여 변환 범위를 조정할 수 있습니다.</p>
+<h2 id="_3">실행 흐름</h2>
+<pre class="codehilite"><code>initOMA.sh 
+  → execute_sql_transform() 
+    → $OMA_BASE_DIR/bin/processSqlTransform.sh
+      → $APP_TOOLS_FOLDER/sqlTransformTarget.py
+</code></pre>
+
+<h2 id="_4">상세 분석</h2>
+<h3 id="1-execute_sql_transform">1. <strong>execute_sql_transform() 함수</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 위치: initOMA.sh (271행)
+# 실행파일: $OMA_BASE_DIR/bin/processSqlTransform.sh
+</code></pre>
+
+<h3 id="2-processsqltransformsh">2. <strong>processSqlTransform.sh (핵심 실행 스크립트)</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 위치: $OMA_BASE_DIR/bin/processSqlTransform.sh
+# 주요 기능: SQL 변환 작업 모드 선택 및 실행
+# 실행명령: python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py [옵션]
+</code></pre>
+
+<h3 id="3">3. <strong>주요 환경변수 매핑</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 입력 관련 환경변수
+APPLICATION_NAME            # 프로젝트명
+APP_TOOLS_FOLDER           # 애플리케이션 도구 폴더 경로
+APP_TRANSFORM_FOLDER       # 변환 작업 폴더 경로
+
+# 출력 관련 환경변수  
+APP_TRANSFORM_FOLDER       # 변환 결과 저장 폴더
+
+# 기타 설정 환경변수
+OMA_BASE_DIR              # OMA 기본 디렉토리
+</code></pre>
+
+<h3 id="4">4. <strong>작업 단계</strong></h3>
+<h4 id="41"><strong>4.1 실행 모드 선택</strong></h4>
+<ul>
+<li><strong>선별적 변환 (모드 1)</strong>: SQLTransformTargetSelective.csv의 항목만 재변환 (사용자 임의 선택 변환)</li>
+<li><strong>전체 변환 (모드 2)</strong>: SQLTransformTarget.csv의 모든 미완료 항목 변환 (Sample 변환 대상은 별도 처리하므로 제외)</li>
+<li><strong>샘플 변환 (모드 3)</strong>: SampleTransformTarget.csv의 샘플 항목만 변환 (테스트 목적)</li>
+</ul>
+<h4 id="42"><strong>4.2 변환 기준</strong></h4>
+<ul>
+<li><strong>그룹 단위 처리</strong>: 10개의 SQLID를 1개의 Group으로 묶어서 변환 수행</li>
+<li><strong>파일 크기 고려</strong>: 파일 사이즈가 큰 경우는 소수 그룹으로 묶어서 수행</li>
+<li><strong>배치 크기 조정</strong>: 시스템 성능과 파일 크기에 따라 배치 크기 자동 조정</li>
+</ul>
+<h4 id="43-sql"><strong>4.3 SQL 변환 프로세스</strong></h4>
+<ul>
+<li>XML 파일에서 SQL 추출 (xmlExtractor.py)</li>
+<li>Oracle SQL을 Target DBMS SQL로 변환 (Amazon Q Chat 활용)</li>
+<li>변환된 SQL을 XML에 병합 (xmlMerger.py)</li>
+<li>변환 결과 검증 (xmllint 유효성 검사)</li>
+</ul>
+<h4 id="44"><strong>4.4 배치 처리 및 상태 관리</strong></h4>
+<ul>
+<li>XML별 고유 배치 ID 생성 (xmlname000001 형식)</li>
+<li>체크포인트 기능으로 중단된 지점부터 재시작 가능</li>
+<li>배치별 상태 관리 및 진행 상황 추적</li>
+</ul>
+<h2 id="_5">결과 파일</h2>
+<h3 id="_6"><strong>변환 결과 파일</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APP_TRANSFORM_FOLDER
+
+1. SQLTransformTarget.csv           # 전체 변환 대상 목록
+2. SQLTransformTargetSelective.csv  # 선별적 변환 대상 목록
+3. SampleTransformTarget.csv        # 샘플 변환 대상 목록
+4. [XML파일명]_tgt.xml              # 변환된 MyBatis XML 파일들
+5. transform_progress.json          # 변환 진행 상황 추적 파일
+6. batch_status.txt                 # 배치 상태 관리 파일
+</code></pre>
+
+<h3 id="_7"><strong>로그 파일</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APPLICATION_FOLDER/logs
+
+1. sqlTransform_[timestamp].log     # SQL 변환 작업 로그
+2. batch_[batchid].log             # 배치별 상세 로그
+</code></pre>
+
+<h2 id="_8">환경 변수 의존성</h2>
+<h3 id="_9"><strong>필수 환경변수</strong></h3>
+<ul>
+<li><strong>프로젝트 설정</strong>: <code>APPLICATION_NAME</code>, <code>APPLICATION_FOLDER</code></li>
+<li><strong>도구 경로</strong>: <code>APP_TOOLS_FOLDER</code>, <code>APP_TRANSFORM_FOLDER</code></li>
+<li><strong>기본 경로</strong>: <code>OMA_BASE_DIR</code></li>
+</ul>
+<h3 id="_10"><strong>선택적 환경변수</strong></h3>
+<ul>
+<li><strong>로깅</strong>: <code>LOG_LEVEL</code>, <code>VERBOSE_MODE</code></li>
+</ul>
+<h2 id="_11">사전 조건</h2>
+<ul>
+<li>애플리케이션 분석 완료 (1-1, 1-2 단계)</li>
+<li>SQLTransformTarget.csv 파일 존재</li>
+<li>MyBatis XML 파일들이 분석되어 있어야 함</li>
+<li>Amazon Q Chat 환경 설정 완료</li>
+</ul>
+<h2 id="_12">다음 단계</h2>
+<p>이 단계의 결과물은 다음 단계들에서 사용됩니다:
+- <strong>2-2. Post 변환 작업</strong>: 변환된 XML 파일의 후처리
+- <strong>2-3. SQL 변환 Merge</strong>: 변환된 SQL들의 병합 처리
+- <strong>3-1. XML List 생성</strong>: Unit Test용 XML 목록 생성
+- <strong>3-2. SQL Unit Test</strong>: 변환된 SQL의 테스트 수행</p>
+<h2 id="_13">주요 특징</h2>
+<ul>
+<li><strong>배치 처리</strong>: 대용량 XML 파일을 효율적으로 처리하기 위한 배치 시스템</li>
+<li><strong>체크포인트</strong>: 중단된 지점부터 재시작 가능한 복구 기능</li>
+<li><strong>모드 선택</strong>: 전체/선택적/샘플 변환 모드 지원</li>
+<li><strong>상태 관리</strong>: XML별 고유 배치 ID와 상태 추적</li>
+<li><strong>AI 활용</strong>: Amazon Q Chat을 활용한 지능형 SQL 변환</li>
+<li><strong>검증 기능</strong>: xmllint를 통한 변환 결과 유효성 검사</li>
+<li><strong>그룹 단위 처리</strong>: 10개 SQLID 단위로 그룹화하여 효율적 변환</li>
+</ul>
+<h2 id="_14">중요 주의사항</h2>
+<p>⚠️ <strong>Sample 변환을 먼저 수행하는 것을 강력히 추천합니다.</strong>
+- 전체 변환 작업 전에 샘플 변환(모드 3)을 통해 변환 품질과 시스템 성능을 사전 검증
+- 변환 규칙과 환경 설정의 정확성을 확인할 수 있음
+- 대용량 변환 작업 시 발생할 수 있는 문제를 미리 파악 가능</p>
+<p>⚠️ <strong>전체 변환 모드 처리 방식</strong>
+- 전체 변환(모드 2)에서 SQLTransformTarget.csv는 Sample 변환에 대해서는 별도 처리하는 형태로 간주
+- Sample 변환으로 처리된 항목들은 전체 변환 시 제외되어 중복 처리되지 않음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-database me-2"></i>Oracle Modernization Accelerator</h5>
+                    <p class="mb-0">Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" class="text-light">
+                            <i class="fab fa-github me-1"></i>GitHub Repository
+                        </a>
+                    </p>
+                    <small class="text-muted">© 2025 Amazon Web Services, Inc.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // 현재 페이지에 해당하는 네비게이션 링크 활성화
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 부드러운 스크롤
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

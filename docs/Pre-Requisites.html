@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사전 요구사항 - Oracle Modernization Accelerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .sidebar {
+            background: var(--light-bg);
+            min-height: calc(100vh - 76px);
+            border-right: 1px solid #dee2e6;
+            padding: 2rem 0;
+        }
+
+        .sidebar .nav-link {
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: none;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .content-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .content-header .description {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .content-body h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-body h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-body h4 {
+            color: var(--primary-color);
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        code {
+            background: #f1f3f4;
+            color: #e74c3c;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+        }
+
+        .table thead th {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #dee2e6;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .toc {
+            background: var(--light-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .toc h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 0.5rem 0;
+        }
+
+        .toc a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.25rem 0;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+            padding-left: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .content-header {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-database me-2"></i>
+                Oracle Modernization Accelerator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home me-2"></i>홈
+                    </a>
+                    <a class="nav-link" href="Pre-Requisites.html">
+                        <i class="fas fa-list-check me-2"></i>사전 요구사항
+                    </a>
+                    <a class="nav-link" href="OMA-Introduction.html">
+                        <i class="fas fa-info-circle me-2"></i>OMA 소개
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">환경 설정</small>
+                    <a class="nav-link" href="0-1.setEnv.html">
+                        <i class="fas fa-cog me-2"></i>환경 변수 설정
+                    </a>
+                    <a class="nav-link" href="0-2.checkEnv.html">
+                        <i class="fas fa-check-circle me-2"></i>환경 검증
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">애플리케이션 분석</small>
+                    <a class="nav-link" href="1-1.processAppAnalysis.html">
+                        <i class="fas fa-search me-2"></i>앱 분석
+                    </a>
+                    <a class="nav-link" href="1-2.processAppReporting.html">
+                        <i class="fas fa-chart-bar me-2"></i>앱 리포팅
+                    </a>
+                    <a class="nav-link" href="1-3.genPostgreSqlMeta.html">
+                        <i class="fas fa-database me-2"></i>PostgreSQL 메타
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">코드 변환</small>
+                    <a class="nav-link" href="2-1.processSqlTransform.html">
+                        <i class="fas fa-exchange-alt me-2"></i>SQL 변환
+                    </a>
+                    <a class="nav-link" href="2-2.processPostTransform.html">
+                        <i class="fas fa-tools me-2"></i>후처리 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">SQL 단위 테스트</small>
+                    <a class="nav-link" href="3-1.sqlUnitTest.html">
+                        <i class="fas fa-vial me-2"></i>SQL 단위 테스트
+                    </a>
+                    
+                    <hr class="my-3">
+                    <small class="text-muted px-3 mb-2">결과 통합</small>
+                    <a class="nav-link" href="4-1.processSqlTransformMerge.html">
+                        <i class="fas fa-code-merge me-2"></i>SQL 변환 병합
+                    </a>
+                    <a class="nav-link" href="4-2.processSqlTransformReport.html">
+                        <i class="fas fa-file-alt me-2"></i>SQL 변환 리포트
+                    </a>
+                    <a class="nav-link" href="4-3.processJavaTransform.html">
+                        <i class="fab fa-java me-2"></i>Java 변환
+                    </a>
+                    
+                    <hr class="my-3">
+                    <a class="nav-link" href="useful-tools.html">
+                        <i class="fas fa-toolbox me-2"></i>유용한 툴들
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">홈</a></li>
+                        <li class="breadcrumb-item active">사전 요구사항</li>
+                    </ol>
+                </nav>
+
+                <!-- Content Header -->
+                <div class="content-header">
+                    <h1>사전 요구사항</h1>
+                    <p class="description">OMA 프로젝트 시작 전 필요한 사전 요구사항과 환경 설정</p>
+                </div>
+
+                <!-- Content Body -->
+                <div class="content-body">
+                    <h1 id="pre-requisites-oma-infrastructure">Pre-Requisites. OMA Infrastructure 구성</h1>
+<h2 id="_1">목적</h2>
+<p>OMA(Oracle Modernization Accelerator) 프로젝트 실행을 위한 필수 인프라 환경을 구성하고, 데이터베이스 마이그레이션 작업을 위한 기반 환경을 준비합니다.</p>
+<h2 id="aws-cli">(사전 요구사항) AWS CLI 환경 구성</h2>
+<p>인프라 구성 전에 AWS CLI 환경이 설정되어 있어야 합니다:</p>
+<pre class="codehilite"><code class="language-bash"># AWS 자격증명 환경 변수 설정
+export AWS_ACCESS_KEY_ID=&quot;YOUR_ACCESS_KEY_ID&quot;
+export AWS_SECRET_ACCESS_KEY=&quot;YOUR_SECRET_ACCESS_KEY&quot;
+export AWS_SESSION_TOKEN=&quot;YOUR_SESSION_TOKEN&quot;  # 임시 자격증명 사용 시
+export AWS_DEFAULT_REGION=&quot;ap-northeast-2&quot;
+
+# 연결 테스트
+aws sts get-caller-identity
+</code></pre>
+
+<h2 id="_2">실행 흐름</h2>
+<pre class="codehilite"><code>config/setup.sh 
+  → setup/deploy-omabox.sh 
+    → Secrets Manager 설정
+    → CloudFormation 배포 (omabox-cloudformation.yaml)
+      → initOMA.sh 실행 안내
+</code></pre>
+
+<h2 id="_3">상세 절차</h2>
+<h3 id="_4"><strong>인프라 구성</strong></h3>
+<p><strong>인프라 배포</strong>
+OMA 프로젝트에서 <code>config/setup.sh</code>를 실행하면, <code>setup/deploy-omabox.sh</code>를 통해 Secret Manager를 우선 생성하고, CloudFormation을 통해 필요한 인프라를 생성합니다.</p>
+<pre class="codehilite"><code class="language-bash"># 실행 구조
+config/setup.sh
+├── setup/deploy-omabox.sh 호출
+│   ├── 옵션 1: Secrets Manager 설정 - DBMS 관련한 Connection 정보를 설정
+│   └── 옵션 2: CloudFormation 배포 - OMA Infrastructure 자원 배포
+└── 완료 후 initOMA.sh 실행 안내
+</code></pre>
+
+<p><strong>인프라 구성요소</strong></p>
+<p><strong>🏗️ 네트워킹 인프라</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>구성 요소</th>
+<th>세부 사항</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VPC</strong></td>
+<td>OMA_VPC (10.255.255.0/24)</td>
+<td>OMA 전용 가상 네트워크</td>
+</tr>
+<tr>
+<td><strong>Public Subnet</strong></td>
+<td>2개 (AZ-a, AZ-b)</td>
+<td>NAT Gateway용</td>
+</tr>
+<tr>
+<td><strong>Private Subnet</strong></td>
+<td>2개 (AZ-a, AZ-b)</td>
+<td>EC2, Aurora, DMS용</td>
+</tr>
+<tr>
+<td><strong>Internet Gateway</strong></td>
+<td>IGW</td>
+<td>인터넷 연결</td>
+</tr>
+<tr>
+<td><strong>NAT Gateway</strong></td>
+<td>Public Subnet 1에 위치</td>
+<td>Private 리소스 아웃바운드 통신</td>
+</tr>
+<tr>
+<td><strong>Route Tables</strong></td>
+<td>Public/Private 분리</td>
+<td>네트워크 라우팅 관리</td>
+</tr>
+</tbody>
+</table>
+<p><strong>🔐 보안 및 암호화</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>구성 요소</th>
+<th>세부 사항</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>KMS Key</strong></td>
+<td>모든 리소스 암호화용</td>
+<td>데이터 암호화</td>
+</tr>
+<tr>
+<td><strong>Security Groups</strong></td>
+<td>OMABox용<br>VPC Endpoint용<br>Database용</td>
+<td>EC2 인스턴스 보안<br>HTTPS 443 포트<br>DB 포트 (5432, 3306, 1521)</td>
+</tr>
+<tr>
+<td><strong>IAM Roles</strong></td>
+<td>EC2 인스턴스용<br>DMS용<br>DMS Schema Conversion용</td>
+<td>SSM, CloudWatch, S3, Secrets Manager 권한<br>VPC 관리, CloudWatch 로그<br>S3, Secrets Manager 접근</td>
+</tr>
+</tbody>
+</table>
+<p><strong>🔌 VPC Endpoints (Private 통신용)</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>Endpoint 유형</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SSM Endpoint</strong></td>
+<td>Session Manager 접속용</td>
+</tr>
+<tr>
+<td><strong>SSM Messages Endpoint</strong></td>
+<td>Session Manager 메시징</td>
+</tr>
+<tr>
+<td><strong>EC2 Messages Endpoint</strong></td>
+<td>EC2 메시징</td>
+</tr>
+<tr>
+<td><strong>Secrets Manager Endpoint</strong></td>
+<td>데이터베이스 자격증명 접근</td>
+</tr>
+</tbody>
+</table>
+<p><strong>🗄️ 데이터베이스 인프라</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>구성 요소</th>
+<th>세부 사항</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Aurora Database Cluster</strong></td>
+<td>Engine: aurora-postgresql 15.7 또는 aurora-mysql 8.0<br>Instance Class: db.r6g.large<br>암호화 활성화 (KMS)<br>백업 보존 기간: 7일</td>
+<td>PostgreSQL 또는 MySQL 선택 가능</td>
+</tr>
+<tr>
+<td><strong>DB Subnet Group</strong></td>
+<td>Private Subnet에서 Aurora 실행</td>
+<td>데이터베이스 네트워크 격리</td>
+</tr>
+</tbody>
+</table>
+<p><strong>🔄 DMS (Database Migration Service)</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>구성 요소</th>
+<th>세부 사항</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DMS Replication Instance</strong></td>
+<td>dms.t3.medium (50GB 스토리지)</td>
+<td>데이터 복제 인스턴스</td>
+</tr>
+<tr>
+<td><strong>DMS Endpoints</strong></td>
+<td>Source: Oracle 데이터베이스 연결<br>Target: Aurora PostgreSQL 또는 MySQL 연결</td>
+<td>소스/타겟 DB 연결</td>
+</tr>
+<tr>
+<td><strong>DMS Schema Conversion</strong></td>
+<td>Migration Project 생성<br>S3 버킷 (변환 결과 저장)<br>Data Providers (Oracle ↔ PostgreSQL/MySQL)</td>
+<td>스키마 변환 도구</td>
+</tr>
+</tbody>
+</table>
+<p><strong>💻 EC2 인스턴스 (OMABox)</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>항목</th>
+<th>세부 사항</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Instance Type</strong></td>
+<td>m6i.xlarge</td>
+<td>고성능 인스턴스</td>
+</tr>
+<tr>
+<td><strong>OS</strong></td>
+<td>Amazon Linux 2023</td>
+<td>최신 Amazon Linux</td>
+</tr>
+<tr>
+<td><strong>위치</strong></td>
+<td>Private Subnet</td>
+<td>인터넷 직접 접근 불가</td>
+</tr>
+<tr>
+<td><strong>접속 방법</strong></td>
+<td>AWS Systems Manager Session Manager</td>
+<td>보안 접속</td>
+</tr>
+</tbody>
+</table>
+<p><strong>📦 사전 설치 소프트웨어</strong></p>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>소프트웨어</th>
+<th>버전/설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Oracle Client</strong></td>
+<td>Instant Client 19.26 (SQLPlus, JDBC 포함)</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL Client</strong></td>
+<td>postgresql15</td>
+</tr>
+<tr>
+<td><strong>MySQL Client</strong></td>
+<td>mysql-community-client</td>
+</tr>
+<tr>
+<td><strong>AWS CLI</strong></td>
+<td>v2</td>
+</tr>
+<tr>
+<td><strong>Amazon Q CLI</strong></td>
+<td>AI 기반 개발 도구</td>
+</tr>
+<tr>
+<td><strong>기타 도구</strong></td>
+<td>jq, wget, unzip, libaio, libnsl</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oma"><strong>OMA 환경 설정</strong></h3>
+<p><strong>OMA 프로젝트 초기화</strong></p>
+<p>OMABox (EC2)가 생성되면 Application Source 코드를 준비하고 GitHub에서 OMA 프로젝트 코드를 동기화한 후 환경 설정을 진행합니다.</p>
+<p><strong>Application Source 코드 준비</strong></p>
+<p>마이그레이션 작업을 위해 Source와 Target용 두 개의 폴더에 동일한 애플리케이션 소스 코드를 복사합니다. 디렉토리명으로 Source/Target을 구분할 수 있도록 구성합니다.</p>
+<pre class="codehilite"><code class="language-bash"># 애플리케이션 소스 코드 디렉토리 생성 (예시)
+mkdir -p /home/ec2-user/workspace/chalee/orcl-itsm      # Oracle용 소스 코드
+mkdir -p /home/ec2-user/workspace/chalee/postgres-itsm  # PostgreSQL용 소스 코드
+mkdir -p /home/ec2-user/workspace/chalee/mysql-itsm     # MySQL용 소스 코드
+
+# 원본 애플리케이션 소스를 두 디렉토리에 복사
+# (실제 소스 코드 위치에 따라 경로 조정 필요)
+cp -r /path/to/original/source/* /home/ec2-user/workspace/chalee/orcl-itsm/
+cp -r /path/to/original/source/* /home/ec2-user/workspace/chalee/postgres-itsm/
+</code></pre>
+
+<p><strong>OMA 도구 설치</strong></p>
+<pre class="codehilite"><code class="language-bash"># workspace 디렉토리 생성 및 이동
+mkdir -p ~/workspace
+cd ~/workspace
+
+# GitHub에서 OMA 프로젝트 코드 동기화
+git clone https://github.com/aws-samples/sample-oracle-modernization-accelerator.git oma
+
+# 프로젝트 디렉토리로 이동
+cd ~/workspace/oma
+</code></pre>
+
+<p><strong>설정 파일 (oma.properties) 구성</strong></p>
+<p>⚠️ <strong>중요</strong>: initOMA.sh 실행 전에 반드시 설정 파일을 구성해야 합니다.</p>
+<ul>
+<li><strong>파일 위치</strong>: <code>config/oma.properties</code></li>
+<li><strong>역할</strong>: OMA 프로젝트의 모든 환경 변수와 설정값을 중앙 관리</li>
+<li><strong>사용</strong>: <code>setEnv.sh</code> 실행 시 이 파일을 기반으로 프로젝트별 환경 변수 파일 생성</li>
+</ul>
+<p><strong>환경 설정 실행</strong></p>
+<p>설정 파일 구성이 완료된 후 환경 설정을 실행합니다.</p>
+<pre class="codehilite"><code class="language-bash"># 환경 설정 실행
+./initOMA.sh
+# 메뉴에서 &quot;0. 환경설정 및 확인&quot; 선택
+
+# 또는 직접 환경 설정
+./bin/setEnv.sh
+
+# 환경 변수 로드 (생성된 파일 사용)
+source ./oma_env_&lt;project_name&gt;.sh
+
+# 환경 변수 확인
+./bin/checkEnv.sh
+</code></pre>
+
+<h3 id="_5"><strong>타겟 데이터베이스 생성</strong></h3>
+<p>Aurora PostgreSQL 또는 MySQL에 타겟 DB <code>&lt;target_database_name&gt;</code>을 생성합니다.</p>
+<p>⚠️ <strong>MySQL 타겟 DB 사용 시 주의사항</strong>
+- Target DBMS가 MySQL인 경우, Parameter <code>lower_case_table_names</code>에 대한 원칙 수립이 필요합니다.
+- Oracle에서 MySQL로 마이그레이션 시 테이블명/컬럼명의 대소문자 처리 방식이 다르므로 사전에 정책을 결정해야 합니다.
+- <code>lower_case_table_names=0</code> (대소문자 구분) 또는 <code>lower_case_table_names=1</code> (소문자로 변환) 설정에 따라 마이그레이션 전략이 달라집니다.</p>
+<pre class="codehilite"><code class="language-bash"># 타겟 DB 생성 실행
+~/workspace/oma/bin/createDB.sh
+</code></pre>
+
+<ul>
+<li>ENCODING, LC_COLLATE, LC_CTYPE를 포함하여 DB를 생성합니다.</li>
+</ul>
+<h2 id="_6">완료 체크리스트</h2>
+<h3 id="_7"><strong>인프라 구성 완료 확인</strong></h3>
+<ul>
+<li>[ ] <strong>CloudFormation 완료</strong>: 모든 AWS 리소스가 정상적으로 생성됨</li>
+<li>[ ] <strong>Target database cluster 생성</strong>: Aurora PostgreSQL 또는 MySQL 클러스터 정상 동작</li>
+<li>[ ] <strong>OMABox 인스턴스 생성</strong>: EC2 인스턴스 생성 및 System Manager 로그인 가능</li>
+<li>[ ] <strong>네트워크 구성</strong>: OMA_VPC에서 소스DB VPC에 접속 가능한 네트워크 구성 (VPC Peering, Route table, Security Group 조정)</li>
+</ul>
+<h3 id="_8"><strong>데이터베이스 연결 확인</strong></h3>
+<ul>
+<li>[ ] <strong>Oracle 연결</strong>: OMABox에서 sqlplus를 사용하여 소스DB (Oracle) 접속 확인</li>
+<li>[ ] <strong>타겟 DB 연결</strong>: OMABox에서 psql(PostgreSQL) 또는 mysql(MySQL)을 이용하여 타겟DB (Aurora) <target_database_name> 접속 확인</li>
+</ul>
+<h3 id="dms"><strong>DMS 구성 확인</strong></h3>
+<ul>
+<li>[ ] <strong>DMS Schema Conversion 프로젝트</strong>: Launch 완료</li>
+<li>[ ] <strong>DMS Endpoint 연결</strong>: Replication Instance에서 소스/타겟 endpoint connection 확인</li>
+</ul>
+<h2 id="_9">환경 변수 의존성</h2>
+<h3 id="_10"><strong>필수 환경변수</strong></h3>
+<ul>
+<li><strong>AWS 설정</strong>: <code>AWS_REGION</code>, <code>AWS_PROFILE</code></li>
+<li><strong>프로젝트 설정</strong>: <code>APPLICATION_NAME</code>, <code>OMA_HOME</code></li>
+<li><strong>데이터베이스</strong>: <code>ORACLE_HOME</code>, <code>PGHOST</code>, <code>PGUSER</code></li>
+</ul>
+<h3 id="_11"><strong>선택적 환경변수</strong></h3>
+<ul>
+<li><strong>로깅</strong>: <code>LOG_LEVEL</code>, <code>VERBOSE_MODE</code></li>
+<li><strong>성능 튜닝</strong>: <code>BATCH_SIZE</code>, <code>PARALLEL_JOBS</code></li>
+</ul>
+<h2 id="_12">다음 단계</h2>
+<p>인프라 구성이 완료되면 다음 단계들을 진행할 수 있습니다:
+- <strong>0-1. 환경 설정 수행</strong>: 프로젝트별 환경 변수 설정
+- <strong>0-2. 환경 설정 확인</strong>: 설정된 환경 변수 검증
+- <strong>1-1. 애플리케이션 분석</strong>: Java 소스 코드 및 MyBatis 분석
+- <strong>1-2. 애플리케이션 리포팅</strong>: 분석 결과 리포트 생성</p>
+<h2 id="_13">주요 특징</h2>
+<ul>
+<li><strong>완전 자동화</strong>: CloudFormation을 통한 인프라 자동 구성</li>
+<li><strong>보안 강화</strong>: Private Subnet 배치 및 VPC Endpoint 활용</li>
+<li><strong>확장성</strong>: Multi-AZ 구성으로 고가용성 보장</li>
+<li><strong>암호화</strong>: KMS를 통한 전체 데이터 암호화</li>
+<li><strong>모니터링</strong>: CloudWatch를 통한 통합 모니터링</li>
+<li><strong>접근 제어</strong>: IAM Role 기반 세밀한 권한 관리</li>
+</ul>
+<h2 id="_14">중요 주의사항</h2>
+<p>⚠️ <strong>Amazon Q Subscription 확보</strong>
+- OMA 프로젝트에서 AI 기반 코드 분석 및 변환 기능을 사용하기 위해 Amazon Q Developer Subscription이 필요합니다.
+- Amazon Q CLI를 통한 코드 분석, 리팩토링, 데이터베이스 스키마 변환 등의 기능을 활용할 수 있습니다.
+- 구독이 없는 경우 일부 AI 기반 기능이 제한될 수 있습니다.</p>
+<p>⚠️ <strong>네트워크 구성 확인</strong>
+- OMA_VPC와 소스 Oracle DB가 위치한 VPC 간의 네트워크 연결성을 반드시 확인해야 합니다.
+- VPC Peering, Transit Gateway, 또는 Direct Connect를 통한 연결 구성이 필요할 수 있습니다.</p>
+<p>⚠️ <strong>보안 그룹 설정</strong>
+- 소스 Oracle DB의 보안 그룹에서 OMA_VPC의 Private Subnet CIDR 대역을 허용해야 합니다.
+- 포트 1521(Oracle), 5432(PostgreSQL), 3306(MySQL)에 대한 접근 권한을 적절히 설정해야 합니다.</p>
+<p>⚠️ <strong>Secrets Manager 설정</strong>
+- Oracle, PostgreSQL 및 MySQL 데이터베이스 자격증명이 Secrets Manager에 올바르게 저장되어 있는지 확인해야 합니다.
+- 자격증명 정보는 JSON 형태로 저장되며, 키 이름이 정확해야 합니다.</p>
+<p>⚠️ <strong>DMS 사전 요구사항</strong>
+- 소스 Oracle DB에서 Archive Log Mode가 활성화되어 있어야 합니다.
+- 적절한 권한을 가진 DMS 전용 사용자가 생성되어 있어야 합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-database me-2"></i>Oracle Modernization Accelerator</h5>
+                    <p class="mb-0">Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator" class="text-light">
+                            <i class="fab fa-github me-1"></i>GitHub Repository
+                        </a>
+                    </p>
+                    <small class="text-muted">© 2025 Amazon Web Services, Inc.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // 현재 페이지에 해당하는 네비게이션 링크 활성화
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // 부드러운 스크롤
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
