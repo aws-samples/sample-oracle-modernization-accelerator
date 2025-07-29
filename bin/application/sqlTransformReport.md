@@ -6,7 +6,7 @@ MyBatis Oracle SQL을 Target DBMS로 변환한 결과를 분석하고 HTML 보�
 ## 디렉토리 정보
 - **Source XML 대상**: `$APP_TRANSFORM_FOLDER/SQLTransformTarget.csv`에 리스트된 XML 파일들
 - **Target XML 대상**: `$TARGET_SQL_MAPPER_FOLDER` 하위에서 SQLTransformTarget.csv에 있는 XML과 같은 이름을 가진 파일들
-- **결과 디렉토리**: `$APP_TRANSFORM_FOLDER`
+- **결과 디렉토리**: `$APP_TRANSFORM_FOLDER/../`
 - **임시 디렉토리**: `/tmp`
 
 ## 수행 작업

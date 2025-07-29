@@ -537,7 +537,19 @@ def run_command(cmd, logger, cwd=None):
         for line in process.stderr:
             line = line.strip()
             if line:
-                if line.startswith("INFO:"):
+                # Python logging 형식 파싱 (예: "2025-07-30 00:11:26,023 - INFO - 메시지")
+                if " - INFO - " in line:
+                    logger.info(f"SUBPROCESS: {line.split(' - INFO - ', 1)[1]}")
+                elif " - WARNING - " in line:
+                    logger.warning(f"SUBPROCESS: {line.split(' - WARNING - ', 1)[1]}")
+                elif " - ERROR - " in line:
+                    logger.error(f"SUBPROCESS: {line.split(' - ERROR - ', 1)[1]}")
+                elif " - DEBUG - " in line:
+                    logger.debug(f"SUBPROCESS: {line.split(' - DEBUG - ', 1)[1]}")
+                elif " - CRITICAL - " in line:
+                    logger.critical(f"SUBPROCESS: {line.split(' - CRITICAL - ', 1)[1]}")
+                # 기존 형식도 지원 (하위 호환성)
+                elif line.startswith("INFO:"):
                     logger.info(f"SUBPROCESS: {line[5:].strip()}")
                 elif line.startswith("WARNING:"):
                     logger.warning(f"SUBPROCESS: {line[8:].strip()}")
@@ -548,7 +560,8 @@ def run_command(cmd, logger, cwd=None):
                 elif line.startswith("CRITICAL:"):
                     logger.critical(f"SUBPROCESS: {line[9:].strip()}")
                 else:
-                    logger.warning(f"SUBPROCESS ERROR: {line}")
+                    # 실제 오류가 아닌 경우 DEBUG 레벨로 처리
+                    logger.debug(f"SUBPROCESS STDERR: {line}")
         
         process.wait()
         return process.returncode

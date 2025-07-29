@@ -1,64 +1,64 @@
 #!/bin/bash
 
-#  transform xml 파일 동적 처리
+# Dynamic processing of transform xml files
 cd $APP_TOOLS_FOLDER/../postTransform/function
 
-# 환경변수에서 경로 가져오기
+# Get paths from environment variables
 APP_LOGS_FOLDER=${APP_LOGS_FOLDER:-"/tmp"}
 APP_TRANSFORM_FOLDER=${APP_TRANSFORM_FOLDER:-"/tmp"}
 
-# 로그 디렉토리 생성
+# Create log directory
 POST_TRANSFORM_LOG_DIR="$APP_LOGS_FOLDER/postTransform"
 mkdir -p "$POST_TRANSFORM_LOG_DIR"
 mkdir -p "$APP_TRANSFORM_FOLDER"
 
-# 통합 테스트 로그 파일
+# Integrated test log file
 LOG_FILE="$POST_TRANSFORM_LOG_DIR/sqlTestResult.log"
 
-# 로그 파일 초기화 (처음 실행시)
-echo "🔄 로그 파일 초기화: $LOG_FILE"
+# Initialize log file (on first run)
+echo "🔄 Initializing log file: $LOG_FILE"
 echo "=== SQL Function Test Log - $(date) ===" > "$LOG_FILE"
 
-# 결과 파일 경로 설정 및 초기화
+# Set and initialize result file paths
 RESULT_FILE="$APP_TRANSFORM_FOLDER/sqlTestResult.json"
 FAILED_RESULT_FILE="$APP_TRANSFORM_FOLDER/sqlTestResultFailed.json"
-echo "🔄 결과 파일 초기화: $RESULT_FILE"
-echo "🔄 실패 결과 파일 초기화: $FAILED_RESULT_FILE"
+echo "🔄 Initializing result file: $RESULT_FILE"
+echo "🔄 Initializing failed result file: $FAILED_RESULT_FILE"
 rm -f "$RESULT_FILE"
 rm -f "$FAILED_RESULT_FILE"
 
-# transform xml 리스트 동적 생성
-echo "🔍 transform xml 파일 검색 중..."
+# Dynamically generate transform xml list
+echo "🔍 Searching for transform xml files..."
 transform_xml_list="$POST_TRANSFORM_LOG_DIR/sqlTestResult_xml_list.txt"
 find $APP_LOGS_FOLDER/mapper/ -path "*/transform/*.xml" -type f > "$transform_xml_list" 2>/dev/null
 
-# 파일 개수 확인
+# Check file count
 file_count=$(wc -l < "$transform_xml_list")
-echo "📁 발견된 transform xml 파일: ${file_count}개"
+echo "📁 Found transform xml files: ${file_count} files"
 
 if [ $file_count -eq 0 ]; then
-    echo "❌ transform xml 파일을 찾을 수 없습니다."
-    echo "   경로: $APP_LOGS_FOLDER/mapper/*/transform/*.xml"
+    echo "❌ No transform xml files found."
+    echo "   Path: $APP_LOGS_FOLDER/mapper/*/transform/*.xml"
     exit 1
 fi
 
-echo "=== transform xml 파일 처리 시작 ==="
+echo "=== Starting transform xml file processing ==="
 echo "$(date)"
-echo "📁 대상 파일: ${file_count}개"
+echo "📁 Target files: ${file_count} files"
 echo
 
-# Python 스크립트 경로 설정
+# Set Python script path
 script_path="$APP_TOOLS_FOLDER/../postTransform/function/genSelectFromXML.py"
 if [ ! -f "$script_path" ]; then
-    echo "❌ genSelectFromXML.py 스크립트를 찾을 수 없습니다."
-    echo "   경로: $script_path"
+    echo "❌ genSelectFromXML.py script not found."
+    echo "   Path: $script_path"
     exit 1
 fi
 
-echo "🚀 사용할 스크립트: $script_path"
+echo "🚀 Script to use: $script_path"
 echo
 
-# 파일 리스트 읽기
+# Read file list
 mapfile -t files < "$transform_xml_list"
 
 success_count=0
@@ -71,45 +71,45 @@ for i in "${!files[@]}"; do
     filename=$(basename "$file")
     echo "[$((i+1))/${file_count}] $filename"
     
-    # 타임아웃 설정 (30초)
+    # Set timeout (30 seconds)
     timeout 30s python3 "$script_path" "$file" > /tmp/test_result_$((i+1)).log 2>&1
     exit_code=$?
     
     if [ $exit_code -eq 124 ]; then
-        echo "  ⏰ 타임아웃"
+        echo "  ⏰ Timeout"
         timeout_count=$((timeout_count + 1))
     else
         result=$(cat /tmp/test_result_$((i+1)).log)
         
-        if echo "$result" | grep -q "✅ 성공"; then
-            functions=$(echo "$result" | grep "추출된 함수 개수" | sed 's/.*: //')
-            unique=$(echo "$result" | grep "중복 제거 후" | sed 's/.*: //')
-            echo "  ✅ 성공 - $functions → $unique"
+        if echo "$result" | grep -q "✅ Success"; then
+            functions=$(echo "$result" | grep "Extracted function count" | sed 's/.*: //')
+            unique=$(echo "$result" | grep "After deduplication" | sed 's/.*: //')
+            echo "  ✅ Success - $functions → $unique"
             success_count=$((success_count + 1))
-        elif echo "$result" | grep -q "함수를 찾을 수 없습니다"; then
-            echo "  ⚪ 함수 없음"
+        elif echo "$result" | grep -q "No functions found"; then
+            echo "  ⚪ No functions"
             no_func_count=$((no_func_count + 1))
         else
-            echo "  ❌ 실패"
+            echo "  ❌ Failed"
             fail_count=$((fail_count + 1))
         fi
     fi
     
-    # 진행률 표시 (100개마다 또는 전체 파일이 100개 미만인 경우 10개마다)
+    # Show progress (every 100 files or every 10 files if total is less than 100)
     progress_interval=$( [ $file_count -gt 100 ] && echo 100 || echo 10 )
     if [ $((($i + 1) % $progress_interval)) -eq 0 ]; then
-        echo "  📊 진행률: $((i+1))/${file_count} - 성공: $success_count, 함수없음: $no_func_count, 실패: $fail_count"
+        echo "  📊 Progress: $((i+1))/${file_count} - Success: $success_count, No functions: $no_func_count, Failed: $fail_count"
     fi
 done
 
 echo ""
-echo "=== transform xml 처리 최종 결과 ==="
-echo "✅ 성공: $success_count개"
-echo "⚪ 함수 없음: $no_func_count개"  
-echo "❌ 실패: $fail_count개"
-echo "⏰ 타임아웃: $timeout_count개"
-echo "📊 성공률: $(( (success_count + no_func_count) * 100 / file_count ))%"
+echo "=== Final transform xml processing results ==="
+echo "✅ Success: $success_count files"
+echo "⚪ No functions: $no_func_count files"  
+echo "❌ Failed: $fail_count files"
+echo "⏰ Timeout: $timeout_count files"
+echo "📊 Success rate: $(( (success_count + no_func_count) * 100 / file_count ))%"
 echo ""
-echo "🚀 처리 완료 - 총 ${file_count}개 파일"
+echo "🚀 Processing complete - Total ${file_count} files"
 echo "$(date)"
-echo "=== transform xml 처리 완료 ==="
+echo "=== Transform xml processing complete ==="

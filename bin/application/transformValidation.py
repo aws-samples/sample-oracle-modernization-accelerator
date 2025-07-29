@@ -77,17 +77,25 @@ def validate_completed_xml_files(csv_files, target_sql_mapper_folder, origin_suf
     
     # 각 파일에 대해 변환된 파일 경로 생성 및 검증
     for original_file in all_completed_files:
-        # 원본 파일명에서 변환된 파일명 생성
-        original_filename = os.path.basename(original_file)
+        # 원본 파일의 디렉토리 구조 파악
+        # 예: /home/ec2-user/workspace/chalee/orcl-itsm/src/main/resources/sqlmap/com/AccessLoggingDao_sqlMap.xml
+        # -> com/AccessLoggingDao_sqlMap.xml 부분 추출
+        
+        # sqlmap 이후의 상대 경로 추출
+        if '/sqlmap/' in original_file:
+            relative_path = original_file.split('/sqlmap/', 1)[1]
+        else:
+            # sqlmap이 없으면 파일명만 사용
+            relative_path = os.path.basename(original_file)
         
         # origin_suffix가 있으면 제거하여 변환된 파일명 생성
-        if origin_suffix and origin_suffix in original_filename:
-            transformed_filename = original_filename.replace(origin_suffix, '')
+        if origin_suffix and origin_suffix in relative_path:
+            transformed_relative_path = relative_path.replace(origin_suffix, '')
         else:
-            transformed_filename = original_filename
+            transformed_relative_path = relative_path
         
-        # 변환된 파일의 전체 경로 생성
-        transformed_file_path = os.path.join(target_sql_mapper_folder, transformed_filename)
+        # 변환된 파일의 전체 경로 생성 (디렉토리 구조 유지)
+        transformed_file_path = os.path.join(target_sql_mapper_folder, transformed_relative_path)
         
         # 변환된 파일이 존재하는지 확인
         if os.path.exists(transformed_file_path):
@@ -96,14 +104,14 @@ def validate_completed_xml_files(csv_files, target_sql_mapper_folder, origin_suf
             
             result_list.append((
                 os.path.dirname(transformed_file_path),
-                transformed_filename,
+                os.path.basename(transformed_file_path),
                 error_msg
             ))
         else:
             logger.warning(f"변환된 파일이 존재하지 않습니다: {transformed_file_path}")
             result_list.append((
-                target_sql_mapper_folder,
-                transformed_filename,
+                os.path.dirname(transformed_file_path) if '/' in transformed_file_path else target_sql_mapper_folder,
+                os.path.basename(transformed_file_path) if '/' in transformed_file_path else transformed_relative_path,
                 f"Error: 변환된 파일이 존재하지 않음"
             ))
     
