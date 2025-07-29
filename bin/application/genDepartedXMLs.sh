@@ -279,7 +279,7 @@ log_info "작업: XML 파일을 개별 Level1 요소로 분리"
 echo "========================================================"
 
 # 기본 경로 설정
-BASE_PATH="$APP_LOGS_FOLDER/mapper"
+BASE_PATH="$APP_LOGS_FOLDER/SQLTransformTarget/mapper"
 EXTRACTOR_PATH="/home/ec2-user/workspace/sample-oracle-modernization-accelerator/bin/application/xmlExtractor.py"
 
 # 통계 변수

@@ -66,7 +66,7 @@ SAMPLE_MAPPER_LIST_CSV = os.path.join(APPLICATION_FOLDER, 'discovery', 'SampleMa
 # =============================================================================
 def setup_logging():
     """로깅 설정을 초기화합니다."""
-    log_dir = os.path.join(APP_LOGS_FOLDER, 'javalogs')
+    log_dir = os.path.join(APP_LOGS_FOLDER, 'GenSQLTransformTarget')
     # 로그 디렉토리 생성
     os.makedirs(log_dir, exist_ok=True)
     
@@ -131,9 +131,9 @@ def create_required_directories():
     """프로그램 실행에 필요한 디렉토리를 생성합니다."""
     try:
         os.makedirs(os.path.join(APPLICATION_FOLDER), exist_ok=True)
-        os.makedirs(os.path.join(APP_LOGS_FOLDER, 'javalogs'), exist_ok=True)
+        os.makedirs(os.path.join(APP_LOGS_FOLDER, 'GenSQLTransformTarget'), exist_ok=True)
         os.makedirs(os.path.join(APP_TRANSFORM_FOLDER), exist_ok=True)
-        logger.info(f"Created required directories: {APP_LOGS_FOLDER}/javalogs")
+        logger.info(f"Created required directories: {APP_LOGS_FOLDER}/GenSQLTransformTarget")
     except Exception as e:
         logger.error(f"Failed to create directories: {e}")
         sys.exit(1)
@@ -374,7 +374,7 @@ def process_mapper_file(xml_file, hierarchy):
     return xml_file, start_class_candidates, found
 
 def read_mapper_list(mapper_list_file):
-    """Mapperlist.csv에서 처리할 파일 목록을 읽습니다. (경로 매칭 개선)"""
+    """Mapperlist.csv에서 처리할 파일 목록을 읽습니다."""
     if not os.path.exists(mapper_list_file):
         logger.error(f"Mapperlist.csv file does not exist: {mapper_list_file}")
         return []
@@ -386,45 +386,20 @@ def read_mapper_list(mapper_list_file):
             for row in reader:
                 if row['FileName'].strip():
                     full_filename = row['FileName'].strip()
+                    # 파일 경로에서 실제 파일명만 추출
+                    filename = os.path.basename(full_filename)
                     
-                    # 상대 경로 추출 (src/main/resources/ 이후 부분)
-                    if 'src/main/resources/' in full_filename:
-                        relative_path = full_filename.split('src/main/resources/')[-1]
-                    else:
-                        # config/로 시작하는 경우 그대로 사용
-                        relative_path = full_filename.lstrip('/')
-                    
-                    # MAPPER_DIR 하위에서 정확한 경로 매칭으로 파일 찾기
+                    # MAPPER_DIR 하위에서 재귀적으로 파일 찾기
                     found_path = None
                     for root, dirs, files in os.walk(MAPPER_DIR):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            # 파일 경로가 상대 경로와 매칭되는지 확인
-                            if file_path.endswith(relative_path.replace('/', os.sep)):
-                                found_path = file_path
-                                logger.debug(f"Path matched: {full_filename} -> {found_path}")
-                                break
-                        if found_path:
+                        if filename in files:
+                            found_path = os.path.join(root, filename)
                             break
-                    
-                    # 정확한 매칭이 안 된 경우 파일명으로 fallback
-                    if not found_path:
-                        filename = os.path.basename(full_filename)
-                        for root, dirs, files in os.walk(MAPPER_DIR):
-                            if filename in files:
-                                candidate_path = os.path.join(root, filename)
-                                # 이미 추가된 파일인지 확인하여 중복 방지
-                                if candidate_path not in file_list:
-                                    found_path = candidate_path
-                                    logger.warning(f"Fallback to filename match: {full_filename} -> {found_path}")
-                                    break
-                            if found_path:
-                                break
                     
                     if found_path:
                         file_list.append(found_path)
                     else:
-                        logger.warning(f"XML file not found in MAPPER_DIR: {full_filename}")
+                        logger.warning(f"XML file not found in MAPPER_DIR: {full_filename} (looking for: {filename})")
             
             logger.info(f"Found {len(file_list)} XML files out of total entries in Mapperlist.csv")
             return file_list
