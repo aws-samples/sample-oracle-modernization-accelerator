@@ -26,41 +26,78 @@ body {
   padding-top: 1rem !important;
 }
 
-// 제목 폰트 크기 증가
+// 제목 폰트 크기 - 계층 구조에 맞게 조정
 h1 {
-  font-size: 2.2em !important;
+  font-size: 2.4em !important;
   margin-bottom: 1em !important;
   color: #2c3e50 !important;
   border-bottom: 3px solid #3498db !important;
   padding-bottom: 0.5em !important;
+  font-weight: bold !important;
 }
 
 h2 {
-  font-size: 1.8em !important;
+  font-size: 1.9em !important;
   margin-top: 1.5em !important;
   margin-bottom: 0.8em !important;
   color: #34495e !important;
+  font-weight: bold !important;
 }
 
 h3 {
-  font-size: 1.4em !important;
+  font-size: 1.5em !important;
   margin-top: 1.2em !important;
   margin-bottom: 0.6em !important;
   color: #2c3e50 !important;
+  font-weight: 600 !important;
+}
+
+h4 {
+  font-size: 1.2em !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+  color: #34495e !important;
+  font-weight: 600 !important;
+}
+
+h5 {
+  font-size: 1.1em !important;
+  margin-top: 0.8em !important;
+  margin-bottom: 0.4em !important;
+  color: #2c3e50 !important;
+  font-weight: 500 !important;
+}
+
+h6 {
+  font-size: 1.0em !important;
+  margin-top: 0.6em !important;
+  margin-bottom: 0.3em !important;
+  color: #34495e !important;
+  font-weight: 500 !important;
 }
 
 // 본문 텍스트 개선
 p {
-  font-size: 16px !important;
+  font-size: 15px !important;
   line-height: 1.7 !important;
   margin-bottom: 1.2em !important;
 }
 
-// 리스트 항목 개선
+// 리스트 항목 개선 - 계층에 따라 크기 조정
 li {
-  font-size: 16px !important;
+  font-size: 15px !important;
   line-height: 1.6 !important;
-  margin-bottom: 0.5em !important;
+  margin-bottom: 0.4em !important;
+}
+
+// 중첩된 리스트는 약간 작게
+ul ul li, ol ol li {
+  font-size: 14px !important;
+}
+
+// 3단계 중첩 리스트는 더 작게
+ul ul ul li, ol ol ol li {
+  font-size: 13px !important;
 }
 
 // 링크 스타일 개선
@@ -113,18 +150,42 @@ pre {
 // 반응형 개선
 @media (max-width: 768px) {
   body {
-    font-size: 15px !important;
+    font-size: 14px !important;
   }
   
   h1 {
-    font-size: 1.8em !important;
+    font-size: 2.0em !important;
   }
   
   h2 {
-    font-size: 1.5em !important;
+    font-size: 1.6em !important;
   }
   
   h3 {
     font-size: 1.3em !important;
+  }
+  
+  h4 {
+    font-size: 1.1em !important;
+  }
+  
+  h5 {
+    font-size: 1.0em !important;
+  }
+  
+  h6 {
+    font-size: 0.9em !important;
+  }
+  
+  p, li {
+    font-size: 14px !important;
+  }
+  
+  ul ul li, ol ol li {
+    font-size: 13px !important;
+  }
+  
+  ul ul ul li, ol ol ol li {
+    font-size: 12px !important;
   }
 }
