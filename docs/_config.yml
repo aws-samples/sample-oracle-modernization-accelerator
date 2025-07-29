@@ -3,6 +3,9 @@ description: "Oracle Modernization Accelerator - Oracle to PostgreSQL/MySQL Migr
 url: "https://glowing-adventure-w6pzenm.pages.github.io"
 baseurl: ""
 
+# Build timestamp to force refresh
+build_time: "2025-07-29-21:00"
+
 # Site Author
 author:
   name: "OMA Team"
