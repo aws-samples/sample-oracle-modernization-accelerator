@@ -355,6 +355,30 @@ execute_oracle_function_removal() {
     print_separator
 }
 
+# Target XML 검증
+execute_target_xml_validation() {
+    print_separator
+    echo -e "${BLUE}${BOLD}Target XML 검증을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}Target XML 검증을 수행합니다...${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md" ]; then
+        echo -e "${CYAN}transformxml_validation_prompt.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md\"${NC}"
+        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Target XML 검증이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}Target XML 검증 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    
+    print_separator
+}
+
 # Target DBMS Function 문법 확인 (MySQL)
 execute_target_dbms_function_check() {
     print_separator
@@ -421,6 +445,30 @@ execute_post_result_analysis() {
         fi
     else
         echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/genFunctionReport.py 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    
+    print_separator
+}
+
+# UI 오류-XML 재수정
+execute_ui_error_xml_fix() {
+    print_separator
+    echo -e "${BLUE}${BOLD}UI 오류-XML 재수정을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}UI 오류-XML 재수정을 수행합니다...${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md" ]; then
+        echo -e "${CYAN}editUIErrors.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md\"${NC}"
+        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}UI 오류-XML 재수정이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}UI 오류-XML 재수정 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/editUIErrors.md 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     
@@ -503,15 +551,16 @@ show_post_transform_menu() {
         echo -e "${BLUE}${BOLD}5. Post 변환 작업 메뉴${NC}"
         print_separator
         echo -e "${CYAN}1. Oracle Function 제거${NC}"
-        echo -e "${CYAN}2. (MySQL) Target DBMS Function 문법 확인${NC}"
-        echo -e "${CYAN}3. (MySQL) Target DBMS Function 문법 오류 수정${NC}"
+        echo -e "${CYAN}2. Target XML 검증${NC}"
+        echo -e "${CYAN}3. (MySQL) Target DBMS Function 문법 확인${NC}"
+        echo -e "${CYAN}4. (MySQL) Target DBMS Function 문법 오류 수정${NC}"
         echo ""
-        echo -e "${CYAN}4. (MySQL) POST 결과 분석${NC}"
-        echo -e "${CYAN}5. (Experimental) MyBatis SQL Test${NC}"
+        echo -e "${CYAN}5. (MySQL) POST 결과 분석${NC}"
+        echo -e "${CYAN}6. (Experimental) MyBatis SQL Test${NC}"
         echo -e "${YELLOW}b. 상위 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,b,q): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,6,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -521,17 +570,21 @@ show_post_transform_menu() {
                 ;;
             2)
                 clear
-                execute_target_dbms_function_check
+                execute_target_xml_validation
                 ;;
             3)
                 clear
-                execute_target_dbms_function_error_fix
+                execute_target_dbms_function_check
                 ;;
             4)
                 clear
-                execute_post_result_analysis
+                execute_target_dbms_function_error_fix
                 ;;
             5)
+                clear
+                execute_post_result_analysis
+                ;;
+            6)
                 clear
                 execute_mybatis_sql_test
                 ;;
@@ -991,9 +1044,10 @@ while true; do
     echo -e "${CYAN}2. 애플리케이션 변환${NC}"
     echo -e "${CYAN}3. SQL 테스트 수행${NC}"
     echo -e "${CYAN}4. 변환 작업 완료${NC}"
+    echo -e "${CYAN}5. UI 오류-XML 재수정${NC}"
     echo -e "${YELLOW}q. 종료${NC}"
     print_separator
-    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,q): ${NC}"
+    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,5,q): ${NC}"
     read choice
 
     case $choice in
@@ -1016,6 +1070,10 @@ while true; do
         4)
             clear
             show_completion_menu
+            ;;
+        5)
+            clear
+            execute_ui_error_xml_fix
             ;;
         q|Q)
             clear

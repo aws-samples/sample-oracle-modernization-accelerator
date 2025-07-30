@@ -31,13 +31,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install Python dependencies
+        run: |
+          cd docs
+          pip install -r requirements.txt || pip install markdown
+      
+      - name: Convert Markdown to HTML
+        run: |
+          cd docs
+          python convert_to_html.py
+          echo "HTML conversion completed"
+          ls -la *.html
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload docs directory only
           path: './docs'
+      
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
