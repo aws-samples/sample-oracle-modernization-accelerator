@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# MySQL Database 생성 스크립트
+# 통합 Database 생성 스크립트 (PostgreSQL/MySQL)
+# TARGET_DBMS_TYPE 환경 변수에 따라 적절한 데이터베이스 생성
 
 # 색상 정의
 RED='\033[0;31m'
@@ -18,11 +19,53 @@ print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
 
-# 환경 변수 확인 함수
-check_environment() {
-    if [ -z "$MYSQL_HOST" ] || [ -z "$MYSQL_TCP_PORT" ] || [ -z "$MYSQL_ADM_USER" ] || [ -z "$MYSQL_PASSWORD" ]; then
+# TARGET_DBMS_TYPE 확인 함수
+check_target_dbms_type() {
+    if [ -z "$TARGET_DBMS_TYPE" ]; then
+        echo -e "${RED}${BOLD}오류: TARGET_DBMS_TYPE 환경 변수가 설정되지 않았습니다.${NC}"
+        echo -e "${YELLOW}TARGET_DBMS_TYPE을 'pg' (PostgreSQL) 또는 'mysql' (MySQL)로 설정하세요.${NC}"
+        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        exit 1
+    fi
+    
+    case "$TARGET_DBMS_TYPE" in
+        "pg"|"postgresql")
+            TARGET_DBMS_TYPE="pg"
+            echo -e "${GREEN}✓ 타겟 DBMS: PostgreSQL${NC}"
+            ;;
+        "mysql")
+            echo -e "${GREEN}✓ 타겟 DBMS: MySQL${NC}"
+            ;;
+        *)
+            echo -e "${RED}${BOLD}오류: 지원하지 않는 TARGET_DBMS_TYPE입니다: $TARGET_DBMS_TYPE${NC}"
+            echo -e "${YELLOW}지원되는 값: 'pg', 'postgresql', 'mysql'${NC}"
+            exit 1
+            ;;
+    esac
+}
+
+# PostgreSQL 환경 변수 확인 함수
+check_postgresql_environment() {
+    if [ -z "$PGHOST" ] || [ -z "$PGPORT" ] || [ -z "$PG_ADM_USER" ] || [ -z "$PG_ADM_PASSWORD" ] || [ -z "$PGDATABASE" ]; then
+        echo -e "${RED}${BOLD}오류: PostgreSQL 연결 환경 변수가 설정되지 않았습니다.${NC}"
+        echo -e "${YELLOW}필요한 환경 변수: PGHOST, PGPORT, PG_ADM_USER, PG_ADM_PASSWORD, PGDATABASE${NC}"
+        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✓ PostgreSQL 연결 환경 변수 확인 완료${NC}"
+    echo -e "${CYAN}  PGHOST: $PGHOST${NC}"
+    echo -e "${CYAN}  PGPORT: $PGPORT${NC}"
+    echo -e "${CYAN}  PG_ADM_USER: $PG_ADM_USER${NC}"
+    echo -e "${CYAN}  PG_ADM_PASSWORD: [설정됨]${NC}"
+    echo -e "${CYAN}  PGDATABASE: $PGDATABASE${NC}"
+}
+
+# MySQL 환경 변수 확인 함수
+check_mysql_environment() {
+    if [ -z "$MYSQL_HOST" ] || [ -z "$MYSQL_TCP_PORT" ] || [ -z "$MYSQL_ADM_USER" ] || [ -z "$MYSQL_PASSWORD" ] || [ -z "$MYSQL_DATABASE" ]; then
         echo -e "${RED}${BOLD}오류: MySQL 연결 환경 변수가 설정되지 않았습니다.${NC}"
-        echo -e "${YELLOW}필요한 환경 변수: MYSQL_HOST, MYSQL_TCP_PORT, MYSQL_ADM_USER, MYSQL_PASSWORD${NC}"
+        echo -e "${YELLOW}필요한 환경 변수: MYSQL_HOST, MYSQL_TCP_PORT, MYSQL_ADM_USER, MYSQL_PASSWORD, MYSQL_DATABASE${NC}"
         echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
         exit 1
     fi
@@ -32,6 +75,27 @@ check_environment() {
     echo -e "${CYAN}  MYSQL_TCP_PORT: $MYSQL_TCP_PORT${NC}"
     echo -e "${CYAN}  MYSQL_ADM_USER: $MYSQL_ADM_USER${NC}"
     echo -e "${CYAN}  MYSQL_PASSWORD: [설정됨]${NC}"
+    echo -e "${CYAN}  MYSQL_DATABASE: $MYSQL_DATABASE${NC}"
+}
+
+# PostgreSQL 연결 테스트 함수
+test_postgresql_connection() {
+    echo -e "${BLUE}${BOLD}PostgreSQL 연결 테스트 중...${NC}"
+    
+    # PostgreSQL 연결 테스트 (postgres 데이터베이스에 연결)
+    PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "SELECT 1;" >/dev/null 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ PostgreSQL 연결 성공${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ PostgreSQL 연결 실패${NC}"
+        echo -e "${YELLOW}연결 정보를 확인하세요:${NC}"
+        echo -e "${YELLOW}  Host: $PGHOST${NC}"
+        echo -e "${YELLOW}  Port: $PGPORT${NC}"
+        echo -e "${YELLOW}  User: $PG_ADM_USER${NC}"
+        return 1
+    fi
 }
 
 # MySQL 연결 테스트 함수
@@ -54,8 +118,93 @@ test_mysql_connection() {
     fi
 }
 
-# 데이터베이스 생성 함수
-create_database() {
+# PostgreSQL 데이터베이스 생성 함수
+create_postgresql_database() {
+    local db_name="$1"
+    local encoding="$2"
+    local lc_collate="$3"
+    local lc_ctype="$4"
+    local template="$5"
+    
+    print_separator
+    echo -e "${BLUE}${BOLD}PostgreSQL 데이터베이스 생성${NC}"
+    print_separator
+    
+    echo -e "${CYAN}생성할 데이터베이스 정보:${NC}"
+    echo -e "${CYAN}  데이터베이스명: $db_name${NC}"
+    echo -e "${CYAN}  ENCODING: $encoding${NC}"
+    echo -e "${CYAN}  LC_COLLATE: $lc_collate${NC}"
+    echo -e "${CYAN}  LC_CTYPE: $lc_ctype${NC}"
+    echo -e "${CYAN}  TEMPLATE: $template${NC}"
+    print_separator
+    
+    # 데이터베이스 존재 여부 확인
+    echo -e "${BLUE}${BOLD}기존 데이터베이스 확인 중...${NC}"
+    
+    DB_EXISTS=$(PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -t -c "SELECT 1 FROM pg_database WHERE datname = '$db_name';" 2>/dev/null | grep -c "1")
+    
+    if [ "$DB_EXISTS" -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  데이터베이스 '$db_name'이 이미 존재합니다.${NC}"
+        echo -ne "${BLUE}${BOLD}기존 데이터베이스를 삭제하고 다시 생성하시겠습니까? (y/N): ${NC}"
+        read recreate_db
+        
+        if [[ "$recreate_db" =~ ^[Yy]$ ]]; then
+            echo -e "${YELLOW}기존 데이터베이스를 삭제합니다...${NC}"
+            
+            # 활성 연결 종료
+            echo -e "${YELLOW}활성 연결을 종료합니다...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$db_name';" >/dev/null 2>&1
+            
+            # 데이터베이스 삭제
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "DROP DATABASE IF EXISTS \"$db_name\";" 2>/dev/null
+            
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}✓ 기존 데이터베이스 삭제 완료${NC}"
+            else
+                echo -e "${RED}✗ 기존 데이터베이스 삭제 실패${NC}"
+                return 1
+            fi
+        else
+            echo -e "${YELLOW}데이터베이스 생성을 취소합니다.${NC}"
+            return 0
+        fi
+    fi
+    
+    # 데이터베이스 생성 SQL 구성
+    CREATE_SQL="CREATE DATABASE \"$db_name\" ENCODING '$encoding' LC_COLLATE '$lc_collate' LC_CTYPE '$lc_ctype' TEMPLATE $template;"
+    
+    echo -e "${BLUE}${BOLD}실행할 SQL:${NC}"
+    echo -e "${CYAN}$CREATE_SQL${NC}"
+    print_separator
+    
+    echo -ne "${BLUE}${BOLD}데이터베이스를 생성하시겠습니까? (Y/n): ${NC}"
+    read confirm_create
+    
+    if [[ ! "$confirm_create" =~ ^[Nn]$ ]]; then
+        echo -e "${BLUE}${BOLD}데이터베이스 생성 중...${NC}"
+        
+        PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "$CREATE_SQL"
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✓ 데이터베이스 '$db_name' 생성 성공${NC}"
+            
+            # 생성된 데이터베이스 정보 확인
+            echo -e "${BLUE}${BOLD}생성된 데이터베이스 정보 확인:${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "SELECT datname, encoding, datcollate, datctype FROM pg_database WHERE datname = '$db_name';"
+            
+            return 0
+        else
+            echo -e "${RED}✗ 데이터베이스 생성 실패${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}데이터베이스 생성을 취소합니다.${NC}"
+        return 0
+    fi
+}
+
+# MySQL 데이터베이스 생성 함수
+create_mysql_database() {
     local db_name="$1"
     local charset="$2"
     local collate="$3"
@@ -129,80 +278,175 @@ create_database() {
     fi
 }
 
+# PostgreSQL 데이터베이스 생성 설정 입력 함수
+get_postgresql_settings() {
+    print_separator
+    echo -e "${BLUE}${BOLD}PostgreSQL 데이터베이스 생성 설정${NC}"
+    print_separator
+    
+    # 데이터베이스 이름 (PGDATABASE 환경 변수 필수)
+    if [ -z "$PGDATABASE" ]; then
+        echo -e "${RED}${BOLD}오류: PGDATABASE 환경 변수가 설정되지 않았습니다.${NC}"
+        echo -e "${YELLOW}PGDATABASE 환경 변수를 설정하세요.${NC}"
+        exit 1
+    fi
+    db_name="$PGDATABASE"
+    echo -e "${CYAN}데이터베이스 이름: $db_name (PGDATABASE 환경 변수)${NC}"
+    
+    # ENCODING 입력 (기본값: UTF8)
+    DEFAULT_ENCODING="UTF8"
+    echo -ne "${BLUE}${BOLD}ENCODING [$DEFAULT_ENCODING]: ${NC}"
+    read encoding
+    encoding=${encoding:-$DEFAULT_ENCODING}
+    
+    # LC_COLLATE 입력 (기본값: C)
+    DEFAULT_LC_COLLATE="C"
+    echo -ne "${BLUE}${BOLD}LC_COLLATE [$DEFAULT_LC_COLLATE]: ${NC}"
+    read lc_collate
+    lc_collate=${lc_collate:-$DEFAULT_LC_COLLATE}
+    
+    # LC_CTYPE 입력 (기본값: C)
+    DEFAULT_LC_CTYPE="C"
+    echo -ne "${BLUE}${BOLD}LC_CTYPE [$DEFAULT_LC_CTYPE]: ${NC}"
+    read lc_ctype
+    lc_ctype=${lc_ctype:-$DEFAULT_LC_CTYPE}
+    
+    # TEMPLATE 입력 (기본값: template0)
+    DEFAULT_TEMPLATE="template0"
+    echo -ne "${BLUE}${BOLD}TEMPLATE [$DEFAULT_TEMPLATE]: ${NC}"
+    read template
+    template=${template:-$DEFAULT_TEMPLATE}
+    
+    # 입력값 검증
+    if [ -z "$db_name" ] || [ -z "$encoding" ] || [ -z "$lc_collate" ] || [ -z "$lc_ctype" ] || [ -z "$template" ]; then
+        echo -e "${RED}오류: 필수 입력값이 비어있습니다.${NC}"
+        exit 1
+    fi
+    
+    # PostgreSQL 데이터베이스 생성 실행
+    create_postgresql_database "$db_name" "$encoding" "$lc_collate" "$lc_ctype" "$template"
+    
+    if [ $? -eq 0 ]; then
+        print_separator
+        echo -e "${GREEN}${BOLD}PostgreSQL 데이터베이스 생성 작업이 완료되었습니다.${NC}"
+        print_separator
+        
+        echo -e "${CYAN}${BOLD}생성된 데이터베이스 연결 정보:${NC}"
+        echo -e "${CYAN}  Host: $PGHOST${NC}"
+        echo -e "${CYAN}  Port: $PGPORT${NC}"
+        echo -e "${CYAN}  Database: $db_name${NC}"
+        echo -e "${CYAN}  ENCODING: $encoding${NC}"
+        echo -e "${CYAN}  LC_COLLATE: $lc_collate${NC}"
+        echo -e "${CYAN}  LC_CTYPE: $lc_ctype${NC}"
+        echo -e "${CYAN}  TEMPLATE: $template${NC}"
+        
+        echo -e "${YELLOW}${BOLD}연결 테스트:${NC}"
+        echo -e "${YELLOW}PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d $db_name${NC}"
+        
+        print_separator
+        return 0
+    else
+        echo -e "${RED}PostgreSQL 데이터베이스 생성에 실패했습니다.${NC}"
+        return 1
+    fi
+}
+
+# MySQL 데이터베이스 생성 설정 입력 함수
+get_mysql_settings() {
+    print_separator
+    echo -e "${BLUE}${BOLD}MySQL 데이터베이스 생성 설정${NC}"
+    print_separator
+    
+    # 데이터베이스 이름 (MYSQL_DATABASE 환경 변수 필수)
+    if [ -z "$MYSQL_DATABASE" ]; then
+        echo -e "${RED}${BOLD}오류: MYSQL_DATABASE 환경 변수가 설정되지 않았습니다.${NC}"
+        echo -e "${YELLOW}MYSQL_DATABASE 환경 변수를 설정하세요.${NC}"
+        exit 1
+    fi
+    db_name="$MYSQL_DATABASE"
+    echo -e "${CYAN}데이터베이스 이름: $db_name (MYSQL_DATABASE 환경 변수)${NC}"
+    
+    # CHARACTER SET 입력 (기본값: utf8mb4)
+    DEFAULT_CHARSET="utf8mb4"
+    echo -ne "${BLUE}${BOLD}CHARACTER SET [$DEFAULT_CHARSET]: ${NC}"
+    read charset
+    charset=${charset:-$DEFAULT_CHARSET}
+    
+    # COLLATE 입력 (기본값: utf8mb4_bin)
+    DEFAULT_COLLATE="utf8mb4_bin"
+    echo -ne "${BLUE}${BOLD}COLLATE [$DEFAULT_COLLATE]: ${NC}"
+    read collate
+    collate=${collate:-$DEFAULT_COLLATE}
+    
+    # 입력값 검증
+    if [ -z "$db_name" ] || [ -z "$charset" ] || [ -z "$collate" ]; then
+        echo -e "${RED}오류: 필수 입력값이 비어있습니다.${NC}"
+        exit 1
+    fi
+    
+    # MySQL 데이터베이스 생성 실행
+    create_mysql_database "$db_name" "$charset" "$collate"
+    
+    if [ $? -eq 0 ]; then
+        print_separator
+        echo -e "${GREEN}${BOLD}MySQL 데이터베이스 생성 작업이 완료되었습니다.${NC}"
+        print_separator
+        
+        echo -e "${CYAN}${BOLD}생성된 데이터베이스 연결 정보:${NC}"
+        echo -e "${CYAN}  Host: $MYSQL_HOST${NC}"
+        echo -e "${CYAN}  Port: $MYSQL_TCP_PORT${NC}"
+        echo -e "${CYAN}  Database: $db_name${NC}"
+        echo -e "${CYAN}  CHARACTER SET: $charset${NC}"
+        echo -e "${CYAN}  COLLATE: $collate${NC}"
+        
+        echo -e "${YELLOW}${BOLD}연결 테스트:${NC}"
+        echo -e "${YELLOW}mysql -h$MYSQL_HOST -P$MYSQL_TCP_PORT -u$MYSQL_ADM_USER -p$MYSQL_PASSWORD $db_name${NC}"
+        
+        print_separator
+        return 0
+    else
+        echo -e "${RED}MySQL 데이터베이스 생성에 실패했습니다.${NC}"
+        return 1
+    fi
+}
+
 # 메인 실행 부분
 clear
 print_separator
-echo -e "${BLUE}${BOLD}MySQL Database 생성 스크립트${NC}"
+echo -e "${BLUE}${BOLD}통합 Database 생성 스크립트 (PostgreSQL/MySQL)${NC}"
 print_separator
 
-# 환경 변수 확인
-check_environment
+# TARGET_DBMS_TYPE 확인
+check_target_dbms_type
 
-# MySQL 연결 테스트
-if ! test_mysql_connection; then
-    echo -e "${RED}MySQL 연결에 실패했습니다. 환경 변수와 네트워크 연결을 확인하세요.${NC}"
-    exit 1
-fi
+# TARGET_DBMS_TYPE에 따른 분기 처리
+case "$TARGET_DBMS_TYPE" in
+    "pg")
+        # PostgreSQL 환경 변수 확인
+        check_postgresql_environment
+        
+        # PostgreSQL 연결 테스트
+        if ! test_postgresql_connection; then
+            echo -e "${RED}PostgreSQL 연결에 실패했습니다. 환경 변수와 네트워크 연결을 확인하세요.${NC}"
+            exit 1
+        fi
+        
+        # PostgreSQL 데이터베이스 생성
+        get_postgresql_settings
+        ;;
+    "mysql")
+        # MySQL 환경 변수 확인
+        check_mysql_environment
+        
+        # MySQL 연결 테스트
+        if ! test_mysql_connection; then
+            echo -e "${RED}MySQL 연결에 실패했습니다. 환경 변수와 네트워크 연결을 확인하세요.${NC}"
+            exit 1
+        fi
+        
+        # MySQL 데이터베이스 생성
+        get_mysql_settings
+        ;;
+esac
 
-print_separator
-echo -e "${BLUE}${BOLD}데이터베이스 생성 설정${NC}"
-print_separator
-
-# 데이터베이스 이름 입력 (기본값: MYSQL_DATABASE 환경 변수)
-DEFAULT_DB_NAME="${MYSQL_DATABASE:-devdb}"
-echo -ne "${BLUE}${BOLD}데이터베이스 이름 [$DEFAULT_DB_NAME]: ${NC}"
-read db_name
-db_name=${db_name:-$DEFAULT_DB_NAME}
-
-# CHARACTER SET 입력 (기본값: utf8mb4)
-DEFAULT_CHARSET="utf8mb4"
-echo -ne "${BLUE}${BOLD}CHARACTER SET [$DEFAULT_CHARSET]: ${NC}"
-read charset
-charset=${charset:-$DEFAULT_CHARSET}
-
-# COLLATE 입력 (기본값: utf8mb4_bin)
-DEFAULT_COLLATE="utf8mb4_bin"
-echo -ne "${BLUE}${BOLD}COLLATE [$DEFAULT_COLLATE]: ${NC}"
-read collate
-collate=${collate:-$DEFAULT_COLLATE}
-
-# 입력값 검증
-if [ -z "$db_name" ]; then
-    echo -e "${RED}오류: 데이터베이스 이름이 비어있습니다.${NC}"
-    exit 1
-fi
-
-if [ -z "$charset" ]; then
-    echo -e "${RED}오류: CHARACTER SET이 비어있습니다.${NC}"
-    exit 1
-fi
-
-if [ -z "$collate" ]; then
-    echo -e "${RED}오류: COLLATE가 비어있습니다.${NC}"
-    exit 1
-fi
-
-# 데이터베이스 생성 실행
-create_database "$db_name" "$charset" "$collate"
-
-if [ $? -eq 0 ]; then
-    print_separator
-    echo -e "${GREEN}${BOLD}데이터베이스 생성 작업이 완료되었습니다.${NC}"
-    print_separator
-    
-    echo -e "${CYAN}${BOLD}생성된 데이터베이스 연결 정보:${NC}"
-    echo -e "${CYAN}  Host: $MYSQL_HOST${NC}"
-    echo -e "${CYAN}  Port: $MYSQL_TCP_PORT${NC}"
-    echo -e "${CYAN}  Database: $db_name${NC}"
-    echo -e "${CYAN}  CHARACTER SET: $charset${NC}"
-    echo -e "${CYAN}  COLLATE: $collate${NC}"
-    
-    echo -e "${YELLOW}${BOLD}연결 테스트:${NC}"
-    echo -e "${YELLOW}mysql -h$MYSQL_HOST -P$MYSQL_TCP_PORT -u$MYSQL_ADM_USER -p$MYSQL_PASSWORD $db_name${NC}"
-    
-    print_separator
-else
-    echo -e "${RED}데이터베이스 생성에 실패했습니다.${NC}"
-    exit 1
-fi
-
+exit $?
