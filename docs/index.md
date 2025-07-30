@@ -66,7 +66,10 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 - **[4-2. 최종 리포트 생성](4-2.processSqlTransformReport.md)**: 최종 리포트 생성
 - **[4-3. Java Source 변환](4-3.processJavaTransform.md)**: 애플리케이션 Java Source 변환 작업
 
-### 🔧 유용한 툴들
+### 🔧 UI 오류 수정 (5단계)
+- **[5-1. UI 오류-XML 재수정](5-1.processUIErrorXMLFix.md)**: UI 관련 XML 오류 재수정 작업
+
+### 🛠️ 유용한 툴들
 - **[유용한 툴들](useful-tools.md)**: OMA 프로젝트에서 활용할 수 있는 도구들
 
 ### 카테고리별 문서 인덱스
@@ -75,6 +78,7 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 - **[코드 변환](code-transformation.md)**
 - **[SQL 단위 테스트](sql-unit-test.md)**
 - **[결과 통합](result-integration.md)**
+- **[UI 오류 수정](ui-error-fix.md)**
 
 ---
 
