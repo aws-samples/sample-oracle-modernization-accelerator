@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oracle Modernization Accelerator - Oracle Modernization Accelerator</title>
+    <title>UI 오류-XML 재수정 - Oracle Modernization Accelerator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -474,74 +474,239 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="index.html">홈</a></li>
-                        <li class="breadcrumb-item active">홈</li>
+                        <li class="breadcrumb-item active">UI 오류 수정 > UI 오류-XML 재수정</li>
                     </ol>
                 </nav>
 
                 <!-- Content Header -->
                 <div class="content-header">
-                    <h1>Oracle Modernization Accelerator</h1>
-                    <p class="description">Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션</p>
+                    <h1>UI 오류-XML 재수정</h1>
+                    <p class="description">UI 관련 XML 오류 재수정 작업</p>
                 </div>
 
                 <!-- Content Body -->
                 <div class="content-body">
-                    <h1 id="oma-oracle-modernization-accelerator-manual">OMA (Oracle Modernization Accelerator) Manual</h1>
-<p>Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 가이드</p>
-<p><a href="#빠른-시작">빠른 시작</a> | <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator">GitHub에서 보기</a></p>
-<h2 id="_1">문서 구조</h2>
-<p>이 매뉴얼은 다음과 같이 구성되어 있습니다:</p>
-<h3 id="_2">📋 사전 준비</h3>
+                    <h1 id="5-1-ui-xml">5-1. UI 오류-XML 재수정</h1>
+<h2 id="_1">메뉴명</h2>
+<p><strong>UI 오류-XML 재수정</strong></p>
+<h2 id="_2">목적</h2>
+<p>변환 과정에서 발생한 UI 관련 XML 오류를 Amazon Q Chat을 활용하여 자동으로 재수정합니다. 주로 MyBatis Mapper XML 파일에서 발생하는 UI 관련 SQL 구문 오류, 파라미터 바인딩 오류, 결과 매핑 오류 등을 처리합니다.</p>
+<h2 id="_3">실행 흐름</h2>
+<pre class="codehilite"><code>initOMA.sh (메인 메뉴)
+  → 5. UI 오류-XML 재수정 선택
+    → execute_ui_error_xml_fix()
+      → q chat --trust-all-tools &quot;$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md&quot;
+        → Amazon Q Chat 실행
+          → UI 오류 분석
+          → 자동 수정 제안
+          → XML 파일 수정
+          → 수정 결과 검증
+</code></pre>
+
+<h2 id="_4">상세 분석</h2>
+<h3 id="1-execute_ui_error_xml_fix">1. <strong>execute_ui_error_xml_fix() 함수</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 위치: initOMA.sh (메인 메뉴 5번)
+# 실행파일: $APP_TOOLS_FOLDER/../postTransform/editUIErrors.md
+# 실행명령: q chat --trust-all-tools &quot;editUIErrors.md&quot;
+</code></pre>
+
+<h3 id="2">2. <strong>핵심 실행 스크립트</strong></h3>
+<h4 id="21-edituierrorsmd"><strong>2.1 editUIErrors.md 프롬프트</strong></h4>
+<pre class="codehilite"><code class="language-bash"># 위치: $APP_TOOLS_FOLDER/../postTransform/editUIErrors.md
+# 주요 기능: Amazon Q Chat을 활용한 UI 관련 XML 오류 자동 수정
+# 실행명령: q chat --trust-all-tools &quot;editUIErrors.md&quot;
+# 처리 대상:
+#   - MyBatis Mapper XML 파일의 UI 관련 오류
+#   - SQL 구문 오류 (SELECT, INSERT, UPDATE, DELETE)
+#   - 파라미터 바인딩 오류 (#{}, ${} 구문)
+#   - 결과 매핑 오류 (resultMap, resultType)
+#   - 동적 SQL 오류 (&lt;if&gt;, &lt;choose&gt;, &lt;foreach&gt; 등)
+</code></pre>
+
+<h3 id="3">3. <strong>주요 환경변수 매핑</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 입력 관련 환경변수
+APPLICATION_NAME            # 프로젝트명
+APP_TOOLS_FOLDER           # 애플리케이션 도구 폴더 경로
+APP_TRANSFORM_FOLDER       # 변환 작업 폴더 경로
+APP_LOGS_FOLDER            # 로그 폴더 경로
+TARGET_DBMS_TYPE           # 대상 DBMS 타입 (PostgreSQL/MySQL)
+
+# 출력 관련 환경변수  
+APP_TRANSFORM_FOLDER       # 수정된 XML 파일 저장 폴더
+APP_LOGS_FOLDER            # 로그 및 결과 파일 저장
+
+# 기타 설정 환경변수
+OMA_BASE_DIR              # OMA 기본 디렉토리
+</code></pre>
+
+<h3 id="4">4. <strong>작업 단계</strong></h3>
+<h4 id="41-ui"><strong>4.1 UI 오류 분석</strong></h4>
 <ul>
-<li><strong><a href="OMA-Introduction.html">OMA Introduction</a></strong>: 프로젝트 개요 및 아키텍처</li>
-<li><strong><a href="Pre-Requisites.html">Pre-Requisites</a></strong>: 인프라 구성 및 환경 설정</li>
+<li><strong>XML 파일 스캔</strong>: $APP_LOGS_FOLDER/mapper/<em>/transform/</em>.xml 경로에서 UI 관련 오류 파일 검색</li>
+<li><strong>오류 패턴 식별</strong>: 일반적인 UI 관련 XML 오류 패턴 분석</li>
+<li>SQL 구문 오류: 잘못된 SELECT, JOIN, WHERE 절</li>
+<li>파라미터 바인딩 오류: #{parameter} vs ${parameter} 사용법</li>
+<li>결과 매핑 오류: resultMap과 실제 컬럼 불일치</li>
+<li>동적 SQL 오류: 조건문, 반복문 구문 오류</li>
+<li><strong>Target DB별 특화 오류</strong>: PostgreSQL/MySQL 특화 오류 식별</li>
 </ul>
-<h3 id="0">⚙️ 환경 설정 (0단계)</h3>
+<h4 id="42-amazon-q-chat"><strong>4.2 Amazon Q Chat 실행</strong></h4>
 <ul>
-<li><strong><a href="0-1.setEnv.html">0-1. 환경 설정 수행</a></strong>: 환경 변수 설정</li>
-<li><strong><a href="0-2.checkEnv.html">0-2. 환경 설정 확인</a></strong>: 환경 설정 확인</li>
+<li><strong>프롬프트 로딩</strong>: editUIErrors.md 파일 내용을 Amazon Q Chat에 전달</li>
+<li><strong>컨텍스트 설정</strong>: 현재 프로젝트 환경 및 Target DBMS 정보 제공</li>
+<li><strong>오류 수정 요청</strong>: 식별된 UI 오류에 대한 자동 수정 요청</li>
+<li><strong>수정 방안 제시</strong>: Amazon Q Chat이 제안하는 수정 방안 검토</li>
 </ul>
-<h3 id="1">🔍 애플리케이션 분석 (1단계)</h3>
+<h4 id="43-xml"><strong>4.3 XML 파일 수정</strong></h4>
 <ul>
-<li><strong><a href="1-1.processAppAnalysis.html">1-1. 애플리케이션 분석</a></strong>: 애플리케이션 코드 분석</li>
-<li><strong><a href="1-2.processAppReporting.html">1-2. 분석 보고서 작성</a></strong>: 분석 결과 리포팅</li>
-<li><strong><a href="1-3.genPostgreSqlMeta.html">1-3. 메타데이터 생성</a></strong>: PostgreSQL/MySQL 메타데이터 생성</li>
+<li><strong>백업 생성</strong>: 원본 XML 파일 백업 생성</li>
+<li><strong>자동 수정 적용</strong>: Amazon Q Chat 제안사항을 바탕으로 XML 파일 수정</li>
+<li><strong>구문 검증</strong>: 수정된 XML 파일의 구문 유효성 검증</li>
+<li><strong>Target DB 호환성 확인</strong>: PostgreSQL/MySQL 호환성 검증</li>
 </ul>
-<h3 id="2">🔄 코드 변환 (2단계)</h3>
+<h4 id="44"><strong>4.4 수정 결과 검증</strong></h4>
 <ul>
-<li><strong><a href="2-1.processSqlTransform.html">2-1. SQL 변환 처리</a></strong>: SQL 변환 처리</li>
-<li><strong><a href="2-2.processPostTransform.html">2-2. 변환 후 처리</a></strong>: 변환 후 처리</li>
+<li><strong>XML 파싱 테스트</strong>: 수정된 XML 파일의 파싱 가능 여부 확인</li>
+<li><strong>SQL 구문 검증</strong>: 수정된 SQL 구문의 문법적 정확성 확인</li>
+<li><strong>파라미터 매핑 검증</strong>: 파라미터 바인딩 정확성 확인</li>
+<li><strong>결과 매핑 검증</strong>: 결과 매핑 구조 정확성 확인</li>
 </ul>
-<h3 id="sql-unit-test-3">🧪 SQL Unit Test (3단계)</h3>
+<h2 id="_5">처리 대상 오류 유형</h2>
+<h3 id="ui"><strong>UI 관련 일반적 오류</strong></h3>
+<ol>
+<li><strong>SQL 구문 오류</strong></li>
+<li>Oracle 특화 함수 사용 (DECODE, NVL, SYSDATE 등)</li>
+<li>잘못된 JOIN 구문</li>
+<li>
+<p>부적절한 WHERE 조건</p>
+</li>
+<li>
+<p><strong>파라미터 바인딩 오류</strong></p>
+</li>
+<li>
+<h1 id="vs">{} vs ${} 사용법 혼동</h1>
+</li>
+<li>파라미터명 불일치</li>
+<li>
+<p>타입 변환 오류</p>
+</li>
+<li>
+<p><strong>결과 매핑 오류</strong></p>
+</li>
+<li>resultMap과 실제 컬럼 불일치</li>
+<li>타입 매핑 오류</li>
+<li>
+<p>중첩 객체 매핑 오류</p>
+</li>
+<li>
+<p><strong>동적 SQL 오류</strong></p>
+</li>
+<li><code>&lt;if&gt;</code> 조건문 오류</li>
+<li><code>&lt;choose&gt;</code>, <code>&lt;when&gt;</code>, <code>&lt;otherwise&gt;</code> 구문 오류</li>
+<li><code>&lt;foreach&gt;</code> 반복문 오류</li>
+</ol>
+<h3 id="target-db"><strong>Target DB별 특화 오류</strong></h3>
+<ol>
+<li><strong>PostgreSQL 특화</strong></li>
+<li>대소문자 구분 오류</li>
+<li>스키마명 누락</li>
+<li>
+<p>시퀀스 사용법 오류</p>
+</li>
+<li>
+<p><strong>MySQL 특화</strong></p>
+</li>
+<li>백틱(`) 사용 오류</li>
+<li>날짜 함수 사용법 오류</li>
+<li>AUTO_INCREMENT 관련 오류</li>
+</ol>
+<h2 id="_6">결과 파일</h2>
+<h3 id="xml"><strong>수정된 XML 파일</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APP_LOGS_FOLDER/mapper/*/transform/
+
+1. *.xml                                    # 수정된 MyBatis Mapper XML 파일들
+2. *.xml.backup                             # 원본 XML 파일 백업
+</code></pre>
+
+<h3 id="_7"><strong>로그 파일</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APP_LOGS_FOLDER/qlogs
+
+1. $APP_LOGS_FOLDER/qlogs/ui_error_fix_[타임스탬프].log     # UI 오류 수정 처리 로그
+2. $APP_LOGS_FOLDER/qlogs/ui_error_fix_error.log           # 오류 발생 시 에러 로그
+</code></pre>
+
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APP_LOGS_FOLDER/qlogs/qprompt
+
+3. $APP_LOGS_FOLDER/qlogs/qprompt/qchat_command_history.log  # Q Chat 명령어 실행 이력
+</code></pre>
+
+<h3 id="_8"><strong>수정 결과 리포트</strong></h3>
+<pre class="codehilite"><code class="language-bash"># 출력 경로: $APP_TRANSFORM_FOLDER
+
+1. $APP_TRANSFORM_FOLDER/ui_error_fix_report.html          # HTML 형태의 수정 결과 리포트
+2. $APP_TRANSFORM_FOLDER/ui_error_fix_summary.json        # JSON 형태의 수정 요약 정보
+</code></pre>
+
+<h2 id="_9">환경 변수 의존성</h2>
+<h3 id="_10"><strong>필수 환경변수</strong></h3>
 <ul>
-<li><strong><a href="3-1.sqlUnitTest.html">3-1. SQL Unit Test</a></strong>: 변환된 SQL 구문의 단위 테스트</li>
+<li><strong>프로젝트 설정</strong>: <code>APPLICATION_NAME</code>, <code>APPLICATION_FOLDER</code></li>
+<li><strong>도구 경로</strong>: <code>APP_TOOLS_FOLDER</code>, <code>APP_TRANSFORM_FOLDER</code>, <code>APP_LOGS_FOLDER</code></li>
+<li><strong>DBMS 설정</strong>: <code>TARGET_DBMS_TYPE</code></li>
+<li><strong>기본 경로</strong>: <code>OMA_BASE_DIR</code></li>
 </ul>
-<h3 id="4">📊 결과 통합 (4단계)</h3>
+<h3 id="_11"><strong>선택적 환경변수</strong></h3>
 <ul>
-<li><strong><a href="4-1.processSqlTransformMerge.html">4-1. 변환 결과 병합</a></strong>: 변환 결과 병합</li>
-<li><strong><a href="4-2.processSqlTransformReport.html">4-2. 최종 리포트 생성</a></strong>: 최종 리포트 생성</li>
-<li><strong><a href="4-3.processJavaTransform.html">4-3. Java Source 변환</a></strong>: 애플리케이션 Java Source 변환 작업</li>
+<li><strong>로깅</strong>: <code>LOG_LEVEL</code>, <code>VERBOSE_MODE</code></li>
+<li><strong>백업</strong>: <code>BACKUP_ENABLED</code> (기본값: true)</li>
 </ul>
-<h3 id="ui-5">🔧 UI 오류 수정 (5단계)</h3>
+<h2 id="_12">사전 조건</h2>
 <ul>
-<li><strong><a href="5-1.processUIErrorXMLFix.html">5-1. UI 오류-XML 재수정</a></strong>: UI 관련 XML 오류 재수정 작업</li>
+<li>SQL 변환 작업 완료 (2-1 단계)</li>
+<li>POST 변환 작업 완료 (2-2 단계)</li>
+<li>변환된 XML 파일들이 $APP_LOGS_FOLDER/mapper/*/transform/ 경로에 존재</li>
+<li>Amazon Q Chat 환경 설정 완료</li>
+<li>editUIErrors.md 프롬프트 파일 존재</li>
 </ul>
-<h3 id="_3">🛠️ 유용한 툴들</h3>
+<h2 id="_13">다음 단계</h2>
+<p>이 단계의 결과물은 다음 단계들에서 사용됩니다:
+- <strong>3-1. XML List 생성</strong>: 수정된 XML 기반 Unit Test 목록 생성
+- <strong>3-2. SQL Unit Test</strong>: 수정된 XML의 SQL 구문 테스트
+- <strong>4-1. 변환 결과 병합</strong>: 최종 XML 파일 병합</p>
+<h2 id="_14">주요 특징</h2>
 <ul>
-<li><strong><a href="useful-tools.html">유용한 툴들</a></strong>: OMA 프로젝트에서 활용할 수 있는 도구들</li>
+<li><strong>메인 메뉴 직접 접근</strong>: 메인 메뉴 5번으로 직접 접근 가능</li>
+<li><strong>AI 기반 수정</strong>: Amazon Q Chat을 통한 지능형 오류 수정</li>
+<li><strong>Target DB별 최적화</strong>: PostgreSQL/MySQL 특화 오류 처리</li>
+<li><strong>자동 백업</strong>: 원본 파일 자동 백업으로 안전성 확보</li>
+<li><strong>상세 로깅</strong>: 수정 과정 및 결과에 대한 상세 로그 기록</li>
+<li><strong>검증 기능</strong>: 수정 후 XML 구문 및 SQL 유효성 자동 검증</li>
+<li><strong>리포트 생성</strong>: HTML/JSON 형태의 수정 결과 리포트 자동 생성</li>
 </ul>
-<h3 id="_4">카테고리별 문서 인덱스</h3>
-<ul>
-<li><strong><a href="environment-setup.html">환경 설정</a></strong></li>
-<li><strong><a href="application-analysis.html">애플리케이션 분석</a></strong></li>
-<li><strong><a href="code-transformation.html">코드 변환</a></strong></li>
-<li><strong><a href="sql-unit-test.html">SQL 단위 테스트</a></strong></li>
-<li><strong><a href="result-integration.html">결과 통합</a></strong></li>
-<li><strong><a href="ui-error-fix.html">UI 오류 수정</a></strong></li>
-</ul>
-<hr />
-<h2 id="_5">지원 및 기여</h2>
-<p>문제가 발생하거나 개선 사항이 있으시면 <a href="https://github.com/aws-samples/sample-oracle-modernization-accelerator/issues">GitHub Issues</a>를 통해 알려주세요.</p>
+<h2 id="_15">중요 주의사항</h2>
+<p>⚠️ <strong>Amazon Q Chat 컨텍스트 관리</strong>
+- <strong>컨텍스트 손실 모니터링</strong>: Amazon Q Chat 실행 중 기존 작업 컨텍스트를 잃어버리는 경우가 발생할 수 있음
+- <strong>비정상 동작 감지</strong>: 다음과 같은 상황이 발생하면 즉시 중단 필요
+  - 지시하지 않은 새로운 작업 방향으로 진행하려는 경우
+  - 배치 형태의 대량 변환을 시도하려는 경우
+  - 원래 목적과 다른 파일 처리를 시작하는 경우
+- <strong>즉시 중단 및 재시작</strong>: 위와 같은 상황 발견 시 <code>CTRL+C</code>로 즉시 중단하고 처음부터 재실행</p>
+<p>⚠️ <strong>백업 및 복구</strong>
+- <strong>자동 백업</strong>: 모든 XML 파일은 수정 전 자동으로 백업됨
+- <strong>복구 방법</strong>: 문제 발생 시 .backup 파일을 이용하여 원본 복구 가능
+- <strong>백업 관리</strong>: 디스크 공간 고려하여 주기적인 백업 파일 정리 필요</p>
+<p>⚠️ <strong>대용량 파일 처리</strong>
+- <strong>처리 시간</strong>: XML 파일 개수가 많은 경우 처리 시간이 오래 걸릴 수 있음
+- <strong>메모리 사용량</strong>: 대용량 XML 파일 처리 시 메모리 사용량 모니터링 필요
+- <strong>진행 상황 추적</strong>: 처리 진행 상황을 실시간으로 모니터링 권장</p>
+<p>⚠️ <strong>Target DB별 주의사항</strong>
+- <strong>PostgreSQL</strong>: 대소문자 구분, 스키마명 필수 지정
+- <strong>MySQL</strong>: 백틱 사용법, 예약어 처리 주의
+- <strong>공통</strong>: SQL 표준 준수 및 호환성 확인</p>
+<p>⚠️ <strong>검증 및 테스트</strong>
+- <strong>수정 후 검증</strong>: 모든 수정 사항은 반드시 검증 과정을 거쳐야 함
+- <strong>단위 테스트</strong>: 수정된 XML은 3-1 단계에서 단위 테스트 수행 권장
+- <strong>통합 테스트</strong>: 전체 애플리케이션 레벨에서의 통합 테스트 필요</p>
                 </div>
             </div>
         </div>
