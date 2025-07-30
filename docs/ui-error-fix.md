@@ -1,7 +1,7 @@
 ---
 layout: default
 title: UI 오류 수정
-nav_order: 9
+nav_order: 10
 has_children: true
 description: "UI 관련 XML 오류 수정 작업"
 ---
