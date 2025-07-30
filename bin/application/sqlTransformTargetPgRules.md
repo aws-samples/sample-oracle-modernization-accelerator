@@ -326,12 +326,18 @@ B. Task Progression Steps:
             ### PHASE 2 - SYNTAX STANDARDIZATION (Apply Second):
             **Purpose**: Standardize SQL syntax before PostgreSQL-specific conversions
             
-            6. **JOIN Syntax Standardization**
+            6. **Subquery Alias Requirements (CRITICAL)**
+               - FROM clause subqueries MUST have alias in PostgreSQL
+               - Pattern Detection: Scan for `FROM (SELECT...)`
+               - Auto-alias Generation: Add `AS sub_n` where n is incremental
+               - Nested Subqueries: Each level requires unique alias
+               
+            7. **JOIN Syntax Standardization**
                - Convert comma-separated JOINs to explicit JOINs
                - Move WHERE clause JOIN conditions to ON clauses
                - Convert Oracle (+) outer joins to LEFT/RIGHT JOINs
                
-            7. **Common Syntax Cleanup**
+            8. **Common Syntax Cleanup**
                - Remove Oracle optimizer hints (/*+ ... */)
                - Standardize quote usage and case sensitivity
 
@@ -686,6 +692,56 @@ Apply to ALL DML statements with bind variables:
 <selectKey keyProperty="id" resultType="long" order="BEFORE">
     SELECT nextval('seq_employee_id')
 </selectKey>
+```
+
+### Subquery Alias Requirements
+- **FROM clause subqueries MUST have alias in PostgreSQL**
+- `FROM (SELECT...)` → `FROM (SELECT...) AS sub1`
+- **Nested subqueries**: Each level requires unique alias
+- **Alias naming convention**: Use descriptive names (sub, temp, derived, etc.)
+
+#### Conversion Examples
+```sql
+-- Oracle (works without alias)
+SELECT * FROM (
+    SELECT emp_id FROM employees WHERE dept_id = 10
+);
+
+-- PostgreSQL (requires alias)
+SELECT * FROM (
+    SELECT emp_id FROM employees WHERE dept_id = 10
+) AS emp_filtered;
+
+-- Nested subqueries
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id, dept_id FROM employees
+    ) AS inner_sub
+    WHERE dept_id = 10
+) AS outer_sub;
+```
+
+#### MyBatis XML Implementation
+```xml
+<!-- Original Oracle -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id, emp_name FROM employees
+            WHERE dept_id = #{deptId}
+        )
+    ]]>
+</select>
+
+<!-- PostgreSQL Conversion -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id, emp_name FROM employees
+            WHERE dept_id = #{deptId}
+        ) AS emp_sub
+    ]]>
+</select>
 ```
 
 ### Pagination
