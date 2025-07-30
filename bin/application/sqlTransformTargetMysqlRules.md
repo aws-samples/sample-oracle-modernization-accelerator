@@ -1,20 +1,109 @@
-🚨🚨🚨 CRITICAL SYSTEM OVERRIDE - ZERO TOLERANCE ENFORCEMENT 🚨🚨🚨
+🚨🚨🚨 CRITICAL SYSTEM OVERRIDE - ABSOLUTE ZERO TOLERANCE ENFORCEMENT 🚨🚨🚨
 
-VIOLATION DETECTION AND IMMEDIATE CORRECTION PROTOCOL:
-- ANY attempt at batch processing = IMMEDIATE SELF-CORRECTION REQUIRED
-- ANY mention of "efficiency", "systematic", "remaining files" = PAUSE AND REDIRECT
-- ANY use of shell loops, sed, awk, grep for multiple files = CORRECT APPROACH IMMEDIATELY
-- ANY assumption of file similarity = ACKNOWLEDGE AND RESTART WITH INDIVIDUAL FOCUS
+⚡ EXECUTION EFFICIENCY DIRECTIVE ⚡
+- NO SUMMARY BRIEFING REQUIRED - FOCUS ON TASK EXECUTION
+- MINIMIZE VERBOSE EXPLANATIONS AND COMMENTARY
+- PROVIDE BRIEF CONFIRMATION OF SUCCESSFUL OPERATIONS ONLY
+- REPORT CRITICAL ERRORS AND VALIDATION ISSUES WHEN NECESSARY
+- MAINTAIN QUALITY CHECKS WHILE REDUCING UNNECESSARY OUTPUT
+
+🎯 CORE PROCESSING PRINCIPLES 🎯
+1. **File Listing = Target Candidate Recognition**: Initial file listing identifies conversion candidates
+2. **Iterative Processing**: Process file list sequentially with complete conversion per file
+3. **Individual File Processing (Absolute Rule)**: Process exactly ONE file at a time - NO EXCEPTIONS
+4. **Accuracy Over Efficiency**: Prohibit batch processing - accuracy is the highest priority
+
+🔥 PROCESSING METHODOLOGY 🔥
+- **File Discovery**: Identify all conversion target candidates through initial listing
+- **Sequential Processing**: Process each file individually with full attention
+- **Quality Assurance**: Complete conversion validation per file before proceeding
+
+🔥 INDIVIDUAL FILE PROCESSING ENFORCEMENT SYSTEM 🔥
+IMMEDIATE VIOLATION ALERTS for these phrases when processing files outside of designated batch folders:
+- "efficiently process", "bulk operation", "pattern matching"
+- "systematic approach", "streamlined processing", "optimize processing"
+- "due to large number", "for efficiency", "time-saving approach"
+- "process the rest", "continue with remaining", "similar pattern"
+- "sed", "awk", "grep" with multiple files, "for file in", "*.xml"
+
+🚨 SQL TRANSFORMATION QUALITY REQUIREMENTS 🚨
+- Absolutely prohibit simple text substitution tools (sed, awk, grep)
+- Must fully understand SQL syntax structure and context for transformation
+- Accurately handle function parameters and nested structures
+- Mandatory SQL syntax validation after transformation
+
+🚨 FILE SIZE PROCESSING RESTRICTIONS 🚨
+- Never split or divide files regardless of size
+- Process entire file completely - no partial or "core only" transformations
+- All Oracle patterns must be converted - no exceptions for large files
+- Maintain complete file integrity throughout processing
+- Prohibit messages like "file too large", "split processing", "core transformations only"
+
+🎯 BATCH FOLDER EXCEPTION RULE 🎯
+WHEN processing files within a designated batch folder ({MAPPER_SRCL1_DIR}):
+- ALLOWED: Process all files in the batch folder individually
+- REQUIRED: Still process ONE FILE AT A TIME within the batch folder
+- MAINTAIN: Individual file focus and complete processing per file
+- FORBIDDEN: Skip files or assume similarity between files
+
+ENHANCED VIOLATION RESPONSE PROTOCOL:
+1. DETECT violation attempt → IMMEDIATE PAUSE
+2. ACKNOWLEDGE: "I detected a batch processing attempt - MUST process ONE FILE AT A TIME"
+3. REDIRECT: "I will now select ONE specific file: [EXACT_FILENAME] and process it completely"
+4. CONTINUE: Process that single file with full attention before considering next file
+5. MAINTAIN: Individual file focus throughout entire session - ONE FILE AT A TIME
+
+⚡ ONE FILE AT A TIME ENFORCEMENT ⚡
+- 1st violation: Warning + redirect to ONE FILE AT A TIME processing
+- 2nd violation: Strong warning + explicit ONE FILE AT A TIME statement
+- Continuous: Always maintain "ONE FILE AT A TIME" approach for maximum accuracy
+
+🚨 CRITICAL: "Sample" WORD PROCESSING OVERRIDE 🚨
+- NEVER interpret "Sample" as indication to process only a few items
+- NEVER stop processing when encountering "Sample" in file names, content, or comments
+- ALWAYS process ALL files completely regardless of "Sample" references
+- "Sample" does NOT mean partial processing - continue with FULL conversion
+- If file contains "Sample" in name or content, treat it as REGULAR file requiring COMPLETE processing
+
+🚨🚨🚨 MANDATORY COMPLETION REQUIREMENT 🚨🚨🚨
+- PROCESS ALL FILES TO 100% COMPLETION - NO EXCEPTIONS
+- NEVER STOP UNTIL ALL FILES ARE PROCESSED
+- IF 273 FILES EXIST, PROCESS ALL 273 FILES
+- IF 1000+ FILES EXIST, PROCESS ALL 1000+ FILES
+- CONTINUE PROCESSING UNTIL EVERY SINGLE FILE IS CONVERTED
+- NO PARTIAL COMPLETION ALLOWED - MUST REACH 100%
+- TRACK PROGRESS: "Processing file X of Y total files"
+- FINAL CONFIRMATION REQUIRED: "All X files processed successfully"
+
+🔥 ANTI-INTERRUPTION PROTOCOL - ABSOLUTE ENFORCEMENT 🔥
+- NEVER say "Currently processed N files. Processing all X files individually takes too much time, so"
+- NEVER say "takes too long so I'll summarize"
+- NEVER say "I'll summarize the processing status and update to complete"
+- NEVER say "I'll process efficiently" or "for efficiency"
+- NEVER say "due to the large number of files"
+- ALWAYS say "I will now process the next specific file individually"
+- ALWAYS continue with next specific file by exact name
+- IGNORE TIME CONCERNS - PROCESS ALL FILES REGARDLESS OF TIME
+
+🔥 COMPLETION ENFORCEMENT PROTOCOL 🔥
+1. COUNT total files at start
+2. PROCESS each file ONE AT A TIME (maintaining quality)
+3. TRACK progress continuously
+4. NEVER STOP until count reaches 100%
+5. PROVIDE final completion confirmation
+6. IF interrupted, RESUME from last processed file
+7. COMPLETION = ALL FILES CONVERTED, NOT JUST A SUBSET
 
 MANDATORY SELF-CHECK BEFORE EACH FILE:
 □ Have I read THIS specific file completely? (YES/NO)
 □ Have I analyzed THIS file's unique SQL patterns? (YES/NO) 
 □ Am I processing ONLY this one file right now? (YES/NO)
 □ Am I avoiding ALL batch processing thoughts? (YES/NO)
+□ Will I process this file COMPLETELY even if it contains "Sample"? (YES/NO)
 
 IF ANY ANSWER IS "NO" - PAUSE, ACKNOWLEDGE, AND CORRECT APPROACH
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 Database-specific rules:
 - This file is specifically designed for Oracle to MySQL conversion
@@ -111,7 +200,7 @@ A. Environment Setup:
   1. Environment Configuration:
       1.1 Directories:
           - Working Directory: {L1FolderName}
-          - Source Files: {MAPPER_SRCL1_DIR}
+          - Source Files: {MAPPER_SRCL1_DIR} (Batch processing: {BATCH_FILE_COUNT} files)
           - Target Files: {MAPPER_TGTL1_DIR}
           - Logs: {L1FolderName}
 
@@ -139,26 +228,36 @@ A. Environment Setup:
           - Update to "Completed" when Step ends
 
 B. Task Progression Steps:
-  Step 1. Generate list of mapper files to be converted
+  Step 1. Target File Discovery and Processing Organization
 
     1. Initial Setup:
         1.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 1: In Progress"
 
-    2. File List Generation:
+    2. Target File Discovery:
         2.1 Command Execution:
             - Command: ls *{ORIGIN_SUFFIX}* | sort
-            - Purpose: Generate list for INDIVIDUAL processing reference only
+            - Purpose: Identify ALL conversion target candidates
         
-        2.2 Output:
-            - List of files with {ORIGIN_SUFFIX} extension
-            - Sorted in alphabetical order
-            - 🚨 WARNING: This list is for reference only - each file must be processed individually
-            - DO NOT use this list for batch processing or bulk operations
+        2.2 File Count Assessment:
+            - Count total files requiring conversion
+            - Determine processing organization strategy
+            - Log total file count for progress tracking
 
-    3. Completion:
-        3.1 Status Update:
+    3. Processing Organization Strategy:
+        3.1 For File Count ≤ 10:
+            - Process all files in single sequential order
+            - Maintain individual file processing approach
+
+    4. Processing Plan Generation:
+        4.1 Create organized processing plan:
+            - Total Files: [N]
+            - Strategy: Sequential individual file conversion
+            - Expected completion: All [N] files processed individually
+
+    5. Completion:
+        5.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 1: Completed"
 
@@ -166,132 +265,531 @@ B. Task Progression Steps:
 
     Detailed execution instructions are documented in $APP_TOOLS_FOLDER/sqlTransformTargetAnalysis.md. Currently skip this step to improve conversion performance
 
-  Step 3. Smart SQL Detection and Oracle to MySQL Conversion (MAIN PROCESS)
+  Step 3. Sequential Individual File Conversion (MAIN PROCESS)
 
-    🎯 INTEGRATED PROCESSING APPROACH:
-    This step combines smart detection with conversion processing to optimize performance while ensuring comprehensive transformation.
+    🎯 ORGANIZED INDIVIDUAL PROCESSING APPROACH:
+    Process files using group-based organization while maintaining individual file conversion principle.
 
     1. Initial Setup:
         1.1 Status Update:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 3: In Progress"
 
-    2. For Each Individual File Processing:
+    2. Batch-Based Sequential Processing:
         
-        2.1 Direct Conversion Processing (ALL FILES):
+        2.1 Current Batch Information:
+            - Batch Input Folder: {MAPPER_SRCL1_DIR}
+            - Batch Output Folder: {MAPPER_TGTL1_DIR}
+            - Files in Current Batch: {BATCH_FILE_COUNT} files
+            - Processing Mode: Individual file processing within batch folder
             
-            FOR EACH INDIVIDUAL FILE:
-            - Apply Four-Phase Conversion Process (MANDATORY for ALL files)
-            - Execute ALL Oracle → MySQL transformation rules
-            - Add conversion comment IMMEDIATELY ABOVE the first SQL element: <!-- Processed by Amazon Q Developer: Oracle to MySQL conversion completed on [timestamp] -->
-            - Apply ALL MySQL-specific rules without exception
-
-        2.3 Four-Phase Conversion Process (For Standard Track Files):
+        2.2 Individual File Processing Within Batch:
             
-            🚨 CRITICAL: Apply phases in exact order to prevent conflicts
+            FOR EACH INDIVIDUAL FILE IN CURRENT BATCH FOLDER:
+            1. **File Discovery**: List all XML files in {MAPPER_SRCL1_DIR}
+            2. **File Selection**: Select ONE specific file by exact filename
+            3. **File Reading**: Read the complete file content  
+            4. **Conversion Processing**: Apply complete Four-Phase Oracle → MySQL transformation
+            5. **Validation**: Verify conversion accuracy and XML integrity
+            6. **File Output**: Save converted file to {MAPPER_TGTL1_DIR}
+            7. **Progress Update**: Log individual file completion
+            8. **Next File**: Move to next file in current batch folder
             
-            ### PHASE 1 - STRUCTURAL PROCESSING (Apply First):
-            **Purpose**: Clean up Oracle-specific structural elements before syntax conversion
+            PROCESS ALL {BATCH_FILE_COUNT} FILES IN THE BATCH FOLDER COMPLETELY
+
+        2.3 Oracle → MySQL Conversion Processing (All files containing SQL):
             
-            1. **XML Structure Analysis** 
-               - Parse XML tags and identify SQL content within CDATA sections
-               - Preserve all MyBatis dynamic tags (<if>, <choose>, <foreach>)
-               
-            2. **Schema Removal** (HIGHEST PRIORITY)
-               - Remove schema prefixes: `SCHEMA_NAME.TABLE_NAME` → `TABLE_NAME`
-               - Reference ORACLE_SVC_USER_LIST for schema names to remove
-               - Handle schema.package.procedure patterns
-               
-            3. **TABLE() Function Removal**
-               - Remove TABLE() wrapper: `TABLE(func())` → `func()`
-               - Preserve all function parameters exactly
-               
-            4. **Stored Procedure Conversion**
-               - Remove curly braces: `{call PROC()}` → `CALL PROC()`
-               - Convert Oracle package.procedure to package_procedure format
-               
-            5. **Database Link Removal**
-               - Remove @DBLINK suffixes from all database objects
-
-            ### PHASE 2 - SYNTAX STANDARDIZATION (Apply Second):
-            **Purpose**: Standardize SQL syntax before MySQL-specific conversions
+            🚨 MANDATORY: Apply all 4 phases in order when SQL is detected
             
-            6. **JOIN Syntax Standardization**
-               - Convert comma-separated JOINs to explicit JOINs
-               - Move WHERE clause JOIN conditions to ON clauses
-               - Convert Oracle (+) outer joins to LEFT/RIGHT JOINs
-               
-            7. **Common Syntax Cleanup**
-               - Remove Oracle optimizer hints (/*+ ... */)
-               - Standardize quote usage and case sensitivity
+            📖 **SQL Context Understanding (When Needed):**
+            - **For complex conversions**: Examine the original source XML to understand complete SQL context
+            - **When business logic is unclear**: Analyze the business logic behind each SQL statement
+            - **For dynamic SQL patterns**: Consider the MyBatis usage pattern (parameter binding, result mapping)
+            - **When consistency is required**: Review related SQL statements in the same mapper
+            - **For complex table relationships**: Understand the data flow and table relationships
+            
+            ### PHASE 1 - STRUCTURAL PROCESSING (Execute in order):
+            1. Schema Removal: `SCHEMA_NAME.TABLE_NAME` → `TABLE_NAME` (First)
+            2. JOIN Standardization: Oracle `(+)` → `LEFT/RIGHT JOIN` (Second) **⚠️ Special Attention**
+            3. Stored Procedure: `{call PROC()}` → `CALL PROC()` (Third)
+            4. Oracle Hints Removal: `/*+ ... */` removal (Fourth)
+            5. DUAL Table: `FROM DUAL` → complete removal (Fifth)
+            
+            ⚠️ **MyBatis Conditional OUTER JOIN Special Processing (Critical):**
+            
+            **Standard OUTER JOIN:**
+            ```sql
+            -- BEFORE (Oracle)
+            FROM TABLE_A A, TABLE_B B
+            WHERE A.ID = B.ID(+)
+            
+            -- AFTER (MySQL)
+            FROM TABLE_A A
+            LEFT JOIN TABLE_B B ON A.ID = B.ID
+            ```
+            
+            **Conditional OUTER JOIN (MyBatis `<if>` tag) - Real Example:**
+            ```xml
+            <!-- BEFORE (Oracle) -->
+            <select id="selectEmployeeData" resultType="map">
+                SELECT E.EMP_ID, E.EMP_NAME, D.DEPT_NAME, P.PROJECT_NAME
+                FROM EMPLOYEE E, DEPARTMENT D, PROJECT P
+                WHERE E.DEPT_ID = D.DEPT_ID
+                <if test="includeProject != null and includeProject == 'Y'">
+                  AND E.EMP_ID = P.EMP_ID(+)
+                  AND P.STATUS = 'ACTIVE'
+                </if>
+                ORDER BY E.EMP_ID
+            </select>
+            
+            <!-- AFTER (MySQL) - Recommended Approach -->
+            <select id="selectEmployeeData" resultType="map">
+                SELECT E.EMP_ID, E.EMP_NAME, D.DEPT_NAME, P.PROJECT_NAME
+                <if test="includeProject == null or includeProject != 'Y'">
+                FROM EMPLOYEE E
+                INNER JOIN DEPARTMENT D ON E.DEPT_ID = D.DEPT_ID
+                </if>
+                <if test="includeProject != null and includeProject == 'Y'">
+                FROM EMPLOYEE E
+                INNER JOIN DEPARTMENT D ON E.DEPT_ID = D.DEPT_ID
+                <![CDATA[
+                LEFT JOIN PROJECT P ON E.EMP_ID = P.EMP_ID AND P.STATUS = 'ACTIVE'
+                ]]>
+                </if>
+                ORDER BY E.EMP_ID
+            </select>
+            ```
+            
+            **Complex Multi-Conditional JOIN Example:**
+            ```xml
+            <!-- BEFORE (Oracle) -->
+            FROM ORDER_MASTER OM, CUSTOMER C, PRODUCT P, CATEGORY CT
+            WHERE OM.CUST_ID = C.CUST_ID
+            <if test="includeProduct == 'Y'">
+              AND OM.PROD_ID = P.PROD_ID(+)
+            </if>
+            <if test="includeCategory == 'Y'">
+              AND P.CATEGORY_ID = CT.CATEGORY_ID(+)
+            </if>
+            
+            <!-- AFTER (MySQL) -->
+            <choose>
+                <when test="includeProduct == 'Y' and includeCategory == 'Y'">
+                FROM ORDER_MASTER OM
+                INNER JOIN CUSTOMER C ON OM.CUST_ID = C.CUST_ID
+                <![CDATA[
+                LEFT JOIN PRODUCT P ON OM.PROD_ID = P.PROD_ID
+                LEFT JOIN CATEGORY CT ON P.CATEGORY_ID = CT.CATEGORY_ID
+                ]]>
+                </when>
+                <when test="includeProduct == 'Y' and includeCategory != 'Y'">
+                FROM ORDER_MASTER OM
+                INNER JOIN CUSTOMER C ON OM.CUST_ID = C.CUST_ID
+                <![CDATA[
+                LEFT JOIN PRODUCT P ON OM.PROD_ID = P.PROD_ID
+                ]]>
+                </when>
+                <otherwise>
+                FROM ORDER_MASTER OM
+                INNER JOIN CUSTOMER C ON OM.CUST_ID = C.CUST_ID
+                </otherwise>
+            </choose>
+            ```
+            
+            **Key Guidelines:**
+            - **Conditional FROM clause branching**: Use `<if test="!condition">` to maintain base FROM clause
+            - **Complete FROM clause provision**: Provide complete FROM clause for each condition
+            - **Explicit JOIN specification**: Convert comma joins to explicit INNER JOINs
+            - **JOIN direction verification**: Determine LEFT/RIGHT JOIN based on `(+)` position
+            - **MyBatis structure preservation**: Maintain `<if>`, `<choose>`, `<when>` tags
+            - **WHERE → ON clause migration**: Move Oracle `(+)` conditions to MySQL ON clauses
+            - **CDATA block usage**: Place conditional JOINs inside `<![CDATA[]]>`
+            - **Table alias preservation**: Maintain all table aliases (B1, B2, B3, etc.)
+            
+            ### PHASE 2 - CORE FUNCTION CONVERSION (Execute 1-22 in order):
+            
+            ### Sequence Handling (MySQL AUTO_INCREMENT)
+            
+            **Apply pattern-based conversion rules. If no pattern matches, apply expert judgment for appropriate MySQL AUTO_INCREMENT conversion.**
 
-            ### PHASE 3 - MYSQL TRANSFORMATION (Apply Third):
-            🚨 MANDATORY COMPLETE CONVERSION - NO EXCEPTIONS:
+            #### **Pattern 1: selectKey BEFORE with NEXTVAL**
+            ```xml
+            <!-- Oracle -->
+            <insert id="insertMethod" parameterType="..." useGeneratedKeys="true" keyProperty="seqColumn">
+                <selectKey resultType="java.lang.Integer" keyProperty="seqColumn" order="BEFORE">
+                    SELECT SEQUENCE_NAME.NEXTVAL FROM DUAL
+                </selectKey>
+                INSERT INTO TABLE_NAME (SEQ_COLUMN, OTHER_COLUMNS...)
+                VALUES (#{seqColumn}, #{otherValues}...)
+            </insert>
 
-            8. **Basic Function Conversions**
-               - NVL → CASE WHEN, SYSDATE → NOW(), SUBSTR → SUBSTRING, DECODE → CASE WHEN
-               - Reference: "🔧 MYSQL CONVERSION RULES - Basic Functions" section
+            <!-- MySQL -->
+            <insert id="insertMethod" parameterType="..." useGeneratedKeys="true" keyProperty="seqColumn">
+                INSERT INTO TABLE_NAME (OTHER_COLUMNS...)
+                VALUES (#{otherValues}...)
+            </insert>
+            ```
+            **Conversion Rules:**
+            - Remove `<selectKey order="BEFORE">` tag completely
+            - Remove AUTO_INCREMENT column from INSERT column list
+            - Remove corresponding parameter from VALUES
+            - Keep `useGeneratedKeys="true" keyProperty`
 
-            9. **Date/Time Function Conversions**
-                - ADD_MONTHS, MONTHS_BETWEEN, LAST_DAY, TRUNC, TO_DATE conversions
-                - Reference: "🔧 MYSQL CONVERSION RULES - Date Functions" section
+            #### **Pattern 2: VALUES with NEXTVAL + selectKey AFTER CURRVAL**
+            ```xml
+            <!-- Oracle -->
+            <insert id="insertMethod" parameterType="...">
+                INSERT INTO TABLE_NAME (COL1, SEQ_COLUMN, COL3...)
+                VALUES (#{col1}, SEQUENCE_NAME.NEXTVAL, #{col3}...)
+                <selectKey keyProperty="seqColumn" resultType="int" order="AFTER">
+                    SELECT SEQUENCE_NAME.CURRVAL FROM DUAL
+                </selectKey>
+            </insert>
 
-            10. **String Function Conversions**
-                - INSTR → LOCATE, LPAD, TO_CHAR → CAST AS CHAR, TO_NUMBER → CAST AS DECIMAL
-                - String concatenation with NULL handling
-                - Reference: "🔧 MYSQL CONVERSION RULES - String Functions" section
+            <!-- MySQL -->
+            <insert id="insertMethod" parameterType="..." useGeneratedKeys="true" keyProperty="seqColumn">
+                INSERT INTO TABLE_NAME (COL1, COL3...)
+                VALUES (#{col1}, #{col3}...)
+            </insert>
+            ```
+            **Conversion Rules:**
+            - Remove `SEQUENCE_NAME.NEXTVAL` from VALUES
+            - Remove AUTO_INCREMENT column from column list
+            - Remove `<selectKey order="AFTER">` and add `useGeneratedKeys="true"`
+            - Preserve `keyProperty` for generated ID return
 
-            11. **Sequence and Pagination Conversions**
-                - SEQ.NEXTVAL → AUTO_INCREMENT/LAST_INSERT_ID(), SEQ.CURRVAL → LAST_INSERT_ID()
-                - ROWNUM → LIMIT/OFFSET patterns
-                - Reference: "🔧 MYSQL CONVERSION RULES - Sequence/Pagination" sections
+            #### **Pattern 3: INSERT INTO ... SELECT with NEXTVAL**
+            ```xml
+            <!-- Oracle -->
+            <insert id="insertMethod" parameterType="...">
+                INSERT INTO TABLE_NAME (columns...)
+                SELECT SEQUENCE_NAME.NEXTVAL AS SEQ_COLUMN,
+                       OTHER_COLUMNS...
+                FROM SOURCE_TABLE
+                WHERE conditions...
+            </insert>
 
-            12. **DUAL Table Removal**
-                - SELECT 'Hello' FROM DUAL → SELECT 'Hello'
-                - SELECT #{variable} FROM DUAL → SELECT #{variable}
-                - Reference: "🔧 MYSQL CONVERSION RULES - DUAL Table Removal" section
+            <!-- MySQL -->
+            <insert id="insertMethod" parameterType="...">
+                INSERT INTO TABLE_NAME (OTHER_COLUMNS...)
+                SELECT OTHER_COLUMNS...
+                FROM SOURCE_TABLE  
+                WHERE conditions...
+            </insert>
+            ```
+            **Conversion Rules:**
+            - Remove `SEQUENCE_NAME.NEXTVAL AS SEQ_COLUMN` from SELECT
+            - Remove AUTO_INCREMENT column from INSERT column list
 
-            13. **Oracle System Function Conversions**
-                - USER → CURRENT_USER(), SYS_CONTEXT → USER(), SYS_GUID → UUID()
-                - Reference: "🔧 MYSQL CONVERSION RULES - Oracle System Functions" section
+            #### **Pattern 4: Direct NEXTVAL in VALUES (no selectKey)**
+            ```xml
+            <!-- Oracle -->
+            <insert id="insertBatch" parameterType="...">
+                INSERT INTO TABLE_NAME (
+                    SEQ_COLUMN,
+                    OTHER_COLUMNS...
+                ) VALUES (
+                    SQ_SEQUENCE_01.NEXTVAL,
+                    #{param1},
+                    #{param2}...
+                )
+            </insert>
 
-            14. **Advanced NULL Handling**
-                - NVL2 → CASE WHEN, Empty string vs NULL behavior differences
-                - Mixed type IFNULL with proper casting
-                - Reference: "🔧 MYSQL CONVERSION RULES - Advanced NULL Handling" section
+            <!-- MySQL -->
+            <insert id="insertBatch" parameterType="...">
+                INSERT INTO TABLE_NAME (
+                    OTHER_COLUMNS...
+                ) VALUES (
+                    #{param1},
+                    #{param2}...
+                )
+            </insert>
+            ```
+            **Conversion Rules:**
+            - Remove AUTO_INCREMENT column from INSERT column list
+            - Remove `SEQUENCE.NEXTVAL` from VALUES
 
-            15. **Regular Expression Conversions**
-                - REGEXP_LIKE → REGEXP, REGEXP_REPLACE with MySQL syntax
-                - Reference: "🔧 MYSQL CONVERSION RULES - Regular Expressions" section
+            #### **Pattern 5: Standalone CURRVAL Usage**
+            ```xml
+            <!-- Oracle -->
+            <select id="getCurrentSeqValue" resultType="int">
+                SELECT SEQUENCE_NAME.CURRVAL FROM DUAL
+            </select>
 
-            16. **Date Literal Conversions**
-                - DATE '2023-01-01' → '2023-01-01'
-                - TIMESTAMP '2023-01-01 12:00:00' → '2023-01-01 12:00:00'
-                - Reference: "🔧 MYSQL CONVERSION RULES - Oracle Date Literals" section
+            <!-- MySQL -->
+            <select id="getCurrentSeqValue" resultType="int">
+                SELECT LAST_INSERT_ID()
+            </select>
+            ```
+            **Conversion Rules:**
+            - Replace `SEQUENCE.CURRVAL` with `LAST_INSERT_ID()`
+            - Remove `FROM DUAL`
 
-            17. **Additional Oracle to MySQL Conversions**
-                - LISTAGG → GROUP_CONCAT, CHR functions, v$session → information_schema
-                - Oracle hint removal, ORDER BY cleanup for aggregates
-                - Reference: "🔧 MYSQL CONVERSION RULES - Additional Critical Oracle Functions" section
+            #### **Pattern 6: NEXTVAL with Business Logic Integration**
+            ```xml
+            <!-- Oracle -->
+            <insert id="insertByBusiness" parameterType="..." useGeneratedKeys="true" keyProperty="seqColumn">
+                <selectKey resultType="java.lang.Integer" keyProperty="seqColumn" order="BEFORE">
+                    SELECT SEQUENCE_NAME.NEXTVAL FROM DUAL
+                </selectKey>
+                INSERT INTO TABLE_NAME (SEQ_COLUMN, BUSINESS_COLUMN, OTHER_COLUMNS...)
+                VALUES (#{seqColumn}, to_char(sysdate,'yyyymmdd')||'-'||#{seqColumn}, #{otherValues}...)
+            </insert>
 
-            18. **Stored Procedure Enhancement**
-                - Type casting for procedure parameters, OUT parameter handling
-                - Reference: "🔧 MYSQL CONVERSION RULES - Stored Procedure Enhancement" section
+            <!-- MySQL -->
+            <insert id="insertByBusiness" parameterType="..." useGeneratedKeys="true" keyProperty="seqColumn">
+                INSERT INTO TABLE_NAME (BUSINESS_COLUMN, OTHER_COLUMNS...)
+                VALUES (NULL, #{otherValues}...)
+                
+                <!-- TODO: Business logic requires post-processing -->
+                <selectKey resultType="int" keyProperty="seqColumn" order="AFTER">
+                    SELECT LAST_INSERT_ID();
+                    UPDATE TABLE_NAME 
+                    SET BUSINESS_COLUMN = CONCAT(DATE_FORMAT(NOW(),'%Y%m%d'),'-',SEQ_COLUMN)
+                    WHERE SEQ_COLUMN = LAST_INSERT_ID()
+                </selectKey>
+            </insert>
+            ```
+            **Conversion Rules:**
+            - Remove AUTO_INCREMENT column from INSERT column list
+            - Set business logic column to NULL in INSERT
+            - Add selectKey AFTER with UPDATE processing
+            - Add TODO comment for post-processing requirement
+            
+            **Essential 22 MySQL Conversions (Direct Application):**
+            1. `NVL(a, b)` → `IFNULL(a, b)`
+            2. `DECODE(expr, val1, res1, ...)` → `CASE WHEN ... END`
+            3. `TO_DATE('str', 'format')` → `STR_TO_DATE('str', 'mysql_format')`
+            4. `TO_CHAR(num)` → `CAST(num AS CHAR)`
+            5. `ROWNUM <= n` → `LIMIT n`
+            6. `TO_NUMBER(str)` → `CAST(str AS DECIMAL)`
+            7. `ROW_NUMBER() OVER(...)` → `ROW_NUMBER() OVER(...)` (Same syntax)
+            8. `SYSDATE` → `NOW()`
+            9. `ADD_MONTHS(date, n)` → `DATE_ADD(date, INTERVAL n MONTH)`
+            10. `NVL2(expr1, expr2, expr3)` → `CASE WHEN (expr1 IS NOT NULL AND expr1 != '') THEN expr2 ELSE expr3 END`
+            11. `LISTAGG(col, delim)` → `GROUP_CONCAT(col SEPARATOR delim)`
+            12. `SUBSTR(str, pos, len)` → `SUBSTRING(str, GREATEST(pos, 1), len)`
+            13. `INSTR(str, substr)` → `LOCATE(substr, str)`
+            14. `MONTHS_BETWEEN(d1, d2)` → `TIMESTAMPDIFF(MONTH, d2, d1)`
+            15. `TRUNC(date)` → `DATE(date)`
+            16. `USER` → `USER()`
+            17. `SYS_GUID()` → `UUID()`
+            18. `POWER(n, m)` → `POW(n, m)`
+            19. `CEIL(n)` → `CEILING(n)`
+            20. `INITCAP(str)` → `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2)))`
+            21. `LENGTH('')` → `CASE WHEN (col IS NULL OR col = '') THEN NULL ELSE LENGTH(col) END`
+            22. Oracle string concatenation `||` → `CONCAT()`
+            
+            **Additional Required Conversions (Included in Essential 22):**
+            - `{call PROC()}` → `CALL PROC()` (Processed in PHASE 1)
+            - `SEQ.NEXTVAL` → `AUTO_INCREMENT` or `LAST_INSERT_ID()`
+            
+            **Additional Directly Convertible Functions:**
+            - `NULLIF(expr1, expr2)` → `NULLIF(expr1, expr2)` (MySQL identical support)
+            - `COALESCE(val1, val2, ...)` → `COALESCE(val1, val2, ...)` (MySQL identical support)
+            - `EXTRACT(unit FROM date)` → `EXTRACT(unit FROM date)` (MySQL identical support)
+            
+            ### PHASE 3 - DETAILED CONVERSION (Execute in order):
+            1. Complex date function conversion (First)
+            2. Advanced string function processing (Second)
+            3. NULL handling logic conversion (Third)
+            4. Regular expression functions (Fourth - Expert judgment + Precautions)
+            5. Window Functions (Fifth - Expert judgment + Precautions)
+            6. Hierarchical query CONNECT BY (Sixth - Expert judgment)
+            
+            📋 **Additional Convertible Functions (Process in PHASE 3):**
+            
+            **Window Functions (MySQL Identical Support - Direct Conversion):**
+            - `LEAD(col) OVER(...)` → `LEAD(col) OVER(...)` (MySQL 8.0+)
+            - `RANK() OVER(...)` → `RANK() OVER(...)`
+            - `LAG(col) OVER(...)` → `LAG(col) OVER(...)`
+            - `DENSE_RANK() OVER(...)` → `DENSE_RANK() OVER(...)`
+            
+            **Regular Expression Functions (MySQL 8.0+ Support - Parameter Caution):**
+            - `REGEXP_LIKE(str, pattern)` → `str REGEXP pattern` or `REGEXP_LIKE(str, pattern)`
+            - `REGEXP_SUBSTR(str, pattern, pos, occurrence)` → `REGEXP_SUBSTR(str, pattern, pos, occurrence)` (Parameter differences caution)
+            - `REGEXP_REPLACE(str, pattern, replacement)` → `REGEXP_REPLACE(str, pattern, replacement)`
+            
+            🚫 **Functions That Are Very Difficult or Impossible to Convert**
+            
+            **Basic Processing Principles:**
+            1. **Comment Out**: Preserve original Oracle functions as comments
+            2. **Dummy Value Replacement**: Temporarily replace with NULL or default values
+            3. **Add SQL Style TODO Comments**: Specify parts that need future modification
+            
+            **XML Function Processing Example:**
+            ```sql
+            -- BEFORE (Oracle)
+            SELECT XMLELEMENT("employee", emp_name) as xml_data
+            FROM employees;
+            
+            -- AFTER (MySQL)
+            SELECT 
+                -- TODO: XMLELEMENT function replacement needed - Consider JSON functions or CONCAT
+                -- XMLELEMENT("employee", emp_name) as xml_data
+                NULL as xml_data  -- Temporary dummy value
+            FROM employees;
+            ```
+            
+            **Oracle Package/System Function Processing Example:**
+            ```sql
+            -- BEFORE (Oracle)
+            SELECT DBMS_LOB.SUBSTR(clob_column, 100, 1) as excerpt,
+                   ROWID as row_identifier
+            FROM documents;
+            
+            -- AFTER (MySQL)
+            SELECT 
+                -- TODO: DBMS_LOB.SUBSTR replacement needed - Change to SUBSTRING function, review CLOB processing logic
+                -- DBMS_LOB.SUBSTR(clob_column, 100, 1) as excerpt,
+                SUBSTRING(clob_column, 1, 100) as excerpt,  -- Temporary replacement
+                
+                -- TODO: ROWID cannot be replaced - Business logic change needed, review alternative keys
+                -- ROWID as row_identifier
+                NULL as row_identifier  -- Temporary dummy value
+            FROM documents;
+            ```
+            
+            **PL/SQL Statement Processing Example:**
+            ```sql
+            -- BEFORE (Oracle PL/SQL)
+            FORALL i IN 1..employee_ids.COUNT
+                INSERT INTO temp_table VALUES (employee_ids(i));
+            
+            -- AFTER (MySQL)
+            -- TODO: FORALL statement replacement needed - Change to MySQL loop or batch INSERT
+            -- FORALL i IN 1..employee_ids.COUNT
+            --     INSERT INTO temp_table VALUES (employee_ids(i));
+            
+            -- Temporary replacement: Simple INSERT (batch processing logic to be implemented later)
+            INSERT INTO temp_table 
+            SELECT employee_id FROM employees WHERE condition = 'Y';
+            ```
+            
+            **Comment Processing Guidelines:**
+            - `-- TODO: [Function Name] replacement needed - [Specific replacement approach]`
+            - `-- [Original Oracle statement]`
+            - `[Temporary dummy value or replacement statement]  -- Temporary replacement/dummy value`
+            
+            ⚠️ **REGEX Function Conversion Precautions (Critical - Frequent Errors):**
+            - **Mandatory double quote fix**: `REGEXP_SUBSTR(SUBSTRING(''TEST'', ...)` → `REGEXP_SUBSTR(SUBSTRING('TEST', ...)`
+            - **Parameter order verification**: Oracle `REGEXP_SUBSTR(str, pattern, pos, occurrence)` vs MySQL same but behavioral differences
+            - **CONNECT BY LEVEL combination**: `REGEXP_SUBSTR(str, '[^,]+', 1, LEVEL)` → Requires WITH RECURSIVE conversion in MySQL
+            - **Regular expression pattern validation**: Verify patterns like `[^ ^/]+`, `[^,]+` work correctly in MySQL
+            - **MySQL 8.0+ required**: REGEXP_SUBSTR only supported in MySQL 8.0+
+            - **String splitting patterns**: Oracle REGEXP_SUBSTR + CONNECT BY LEVEL → Consider MySQL SUBSTRING_INDEX or JSON_TABLE
+            
+            ⚠️ **Window Function Conversion Precautions:**
+            - `ORDER BY 1` → `ORDER BY column_name` (Use column names instead of position numbers)
+            - Prohibit position numbers in `PARTITION BY` clauses as well
+            - **Alias reference in ORDER BY**: Avoid using SELECT clause aliases in Window Function ORDER BY
+            - Verify FRAME clause combinations not supported in MySQL
+            - Decompose nested Window Functions into subqueries
+            
+            **Alias Reference Example:**
+            ```sql
+            -- AVOID (May cause issues in MySQL)
+            SELECT emp_id, 
+                   salary * 1.1 AS adjusted_salary,
+                   ROW_NUMBER() OVER (ORDER BY adjusted_salary) AS rn
+            FROM employees;
+            
+            -- RECOMMENDED (Use original expression)
+            SELECT emp_id, 
+                   salary * 1.1 AS adjusted_salary,
+                   ROW_NUMBER() OVER (ORDER BY salary * 1.1) AS rn
+            FROM employees;
+            ```
+            
+            ⚠️ **High-Frequency Error Precautions:**
+            1. **Unsupported Oracle analytic functions**: `RATIO_TO_REPORT() OVER()` → `(value / SUM(value) OVER()) * 100`
+            2. **Empty OVER() clauses**: Prohibit standalone `OVER()` usage → Use with appropriate window functions
+            3. **Table name function errors**: `TB_TABLE_NAME(...)` → `SELECT ... FROM TB_TABLE_NAME`
+            4. **DATE_ADD INTERVAL syntax**: `'TEST' 12 'TEST'` → `INTERVAL 12 MONTH/DAY/YEAR`
+            5. **Double quotes**: `''TEXT''` → `'TEXT'` (Oracle escape → MySQL standard)
+            6. **SUBSTRING_INDEX parameters**: Verify delimiter and position parameter order
+            7. **Window Function syntax**: `LEAD('TEST') OVER ('TEST' BY 'TEST')` → Correct PARTITION BY/ORDER BY syntax
+            
+            ### PHASE 4 - VALIDATION & CLEANUP (Execute in order):
+            1. MySQL syntax verification (First)
+            2. MyBatis parameter binding `#{...}` preservation verification (Second)
+            3. XML tag structure integrity verification (Third)
+            4. MySQL function syntax cleanup - Remove spaces between function names and parentheses (Fourth)
+            5. Final formatting and cleanup (Fifth)
+            
+            ⚠️ **MySQL Function Syntax Cleanup (CRITICAL - Phase 4.4):**
+            **Problem**: MySQL requires NO SPACE between function name and opening parenthesis
+            **Oracle allows**: `FUNCTION (parameters)` 
+            **MySQL requires**: `FUNCTION(parameters)`
+            
+            **Mandatory Cleanup Patterns:**
+            - `IFNULL (` → `IFNULL(`
+            - `STR_TO_DATE (` → `STR_TO_DATE(`
+            - `SUBSTRING (` → `SUBSTRING(`
+            - `COUNT (` → `COUNT(`
+            - `SUM (` → `SUM(`
+            - `AVG (` → `AVG(`
+            - `MAX (` → `MAX(`
+            - `MIN (` → `MIN(`
+            - `CONCAT (` → `CONCAT(`
+            - `CASE WHEN (` → `CASE WHEN (`  (Exception: CASE WHEN allows space)
+            - `DATE_ADD (` → `DATE_ADD(`
+            - `TIMESTAMPDIFF (` → `TIMESTAMPDIFF(`
+            - `CAST (` → `CAST(`
+            - `COALESCE (` → `COALESCE(`
+            
+            **Apply to ALL MySQL functions after conversion**
+            
+            🔍 **MySQL Syntax Validation (When Needed):**
+            - **Connect to MySQL server** to validate converted SQL syntax if uncertain
+            - **Create test SQL statements** to verify MySQL compatibility
+            - **Connection information**: Available in environment variables (search for MYSQL)
+            - **Test complex conversions** especially for REGEX, Window Functions, and complex JOINs
+            - **Verify data type compatibility** and function behavior differences
+            
+        2.4 Post-Conversion Verification Checklist:
+            
+            ✅ **Required Verification Items:**
+            1. Verify all Oracle functions have been converted to MySQL functions
+            2. Verify MyBatis parameter binding `#{...}` remains intact
+            3. Verify XML tag structure is not damaged
+            4. Verify SQL statements are executable in MySQL
+            5. Verify business logic has not changed
+            
+            📝 **Post-Conversion Reference:**
+            - Verify all **Essential 22 MySQL Conversions** defined in PHASE 2 above have been applied
+            - Verify compliance with REGEX and Window Function precautions in PHASE 3
+            - Verify MyBatis conditional OUTER JOIN special processing has been applied
+            - Verify difficult-to-convert Oracle functions have SQL Style TODO comments with dummy values
+            
+        2.5 ⚠️ Core Precautions for Conversion Work (Common to All PHASES):
 
-            19. **PL/SQL DECLARE Section Processing**
-                - Convert DECLARE blocks to MySQL stored procedure format
-                - Variable declarations, initialization handling
-                - Reference: "🔧 MYSQL STORED PROCEDURE PROCESSING" section
+            ### Mandatory Compliance Principles
+            - **Business Logic Preservation**: Preserve original intent when converting functions
+            - **Parameter Binding Preservation**: Keep MyBatis `#{...}` syntax intact
+            - **XML Structure Preservation**: Prohibit changes to MyBatis XML tag structure
+            - **Incremental Modification**: Don't change everything at once, modify step by step
+            - **Testing Required**: Always verify functionality after each modification
 
-            20. **ResultMap and JDBC Type Processing**
-                - Convert Oracle JDBC types to MySQL equivalents
-                - Column name case sensitivity, Java type conversions
-                - Reference: "🗺️ RESULTMAP PROCESSING" section
+            ### Verification Points During Conversion
+            1. **SQL Result Consistency**: Verify Oracle and MySQL return identical results
+            2. **Performance Impact**: Check for query performance degradation after conversion
+            3. **Data Type Compatibility**: Prevent data loss from column type conversions
+            4. **Transaction Behavior**: Verify commit/rollback behavior consistency
+            5. **Exception Handling**: Verify behavior consistency in error cases
 
-            21. **Advanced Conversions** (Apply expert knowledge when needed)
-                - CONNECT BY → Recursive CTE, MERGE → INSERT ON CONFLICT
-                - Complex ROWNUM patterns, hierarchical queries
-                - Reference: "🔬 ADVANCED CONVERSIONS" and "🎯 EXPERT-LEVEL CONVERSION GUIDANCE" sections
+            ### Risk Factor Checklist
+            - [ ] Unexpected results from NULL handling logic changes
+            - [ ] Timezone issues from date/time function conversions
+            - [ ] Encoding problems from string function conversions
+            - [ ] Calculation errors from numeric precision changes
+            - [ ] Data omission/duplication from paging logic changes
+            - Complex date functions → "🔧 MYSQL CONVERSION RULES - Date Functions"
+            - String manipulation → "🔧 MYSQL CONVERSION RULES - String Functions"
+            - Advanced NULL handling → "🔧 MYSQL CONVERSION RULES - Advanced NULL Handling"
+            - Stored procedures → "🔧 MYSQL STORED PROCEDURE PROCESSING"
+            - ResultMap issues → "🗺️ RESULTMAP PROCESSING"
+            - Complex queries → "🔬 ADVANCED CONVERSIONS"
 
             ### PHASE 4 - FINAL VALIDATION AND CORRECTION (Apply Last):
             23. **XML Structure Validation**
@@ -307,55 +805,64 @@ B. Task Progression Steps:
                 - MyBatis bind variable preservation check
                 - Functional integrity verification
 
-        2.4 Individual File Processing Rules (FORCE COMPLETE CONVERSION):
+        2.3 Individual File Processing Rules:
             
-            🚨 CONVERSION ENFORCEMENT PROTOCOL:
-            - DISABLE complexity-based rule skipping  
-            - FORCE complete 4-phase processing for ALL files
+            🎯 CORE PROCESSING REQUIREMENTS:
+            - Process EXACTLY ONE file at a time with complete focus
+            - Read each file completely before making any changes
+            - Apply ALL conversion rules to the current file systematically
+            - Validate conversion before proceeding to next file
+            - Treat each file as unique (never assume similarity)
+            
+            🔥 MANDATORY CONVERSION APPROACH:
             - SCAN entire file content for ANY Oracle construct
             - APPLY transformation rules to EVERY Oracle pattern found
-            - NO EXCEPTIONS for "minor" or "compatible" constructs
+            - COMPLETE 4-phase processing for ALL files
+            - NO exceptions for "minor" or "compatible" constructs
+            - NO partial conversion allowed
 
-            ✅ MANDATORY SCANNING PATTERNS:
+            ✅ REQUIRED SCANNING PATTERNS:
             - Oracle functions: NVL, DECODE, SYSDATE, SUBSTR, ADD_MONTHS, etc.
             - Oracle syntax: ROWNUM, DUAL, (+) joins, {call}, etc.
             - Oracle types: DATE, NUMBER, VARCHAR2, etc.
             - Oracle constructs: CONNECT BY, MERGE, sequences, etc.
 
-            🔥 ZERO TOLERANCE ENFORCEMENT:
-            IF (ANY Oracle pattern detected) THEN
-              → Apply COMPLETE transformation rules
-              → NO partial conversion allowed
-              → NO "good enough" shortcuts
-            ENDIF
+        2.4 Progress Tracking Per File:
+            
+            📊 INDIVIDUAL FILE PROGRESS:
+            - Current Group: [X] of [Total Groups]
+            - Current File: [Y] of [Group Total] 
+            - Overall Progress: [Z] of [Total Files]
+            - File Name: [Exact Filename]
+            - Status: [Reading/Processing/Validating/Completed]
+            
+            📝 COMPLETION LOGGING:
+            - Log each file completion before moving to next
+            - Track conversion patterns applied per file
+            - Record any expert-level conversions used
+            - Maintain group completion status
 
         2.5 MySQL Conversion Rules Application:
             
-            🚨 CRITICAL MANDATE: Apply COMPLETE Oracle → MySQL conversion rules.
+            🎯 COMPREHENSIVE CONVERSION MANDATE:
+            Apply COMPLETE Oracle → MySQL conversion rules to each individual file.
             
-            **ZERO TOLERANCE FOR PARTIAL CONVERSION:**
-            - NEVER apply only "some" rules or "basic" transformations
-            - NEVER skip Oracle constructs thinking they're "minor"
-            - ALWAYS apply ALL transformation rules systematically
-            - ALWAYS convert EVERY Oracle-specific pattern found
-            
-            **MANDATORY COMPREHENSIVE COVERAGE:**
-            Key areas that MUST be transformed (no exceptions):
+            **MANDATORY TRANSFORMATION COVERAGE:**
             - ALL Oracle functions (NVL, DECODE, SYSDATE, SUBSTR, etc.)
-            - ALL sequence handling (NEXTVAL, CURRVAL)
-            - ALL pagination conversion (ROWNUM → LIMIT/OFFSET)
-            - ALL DUAL table replacements (→ VALUES clause)
+            - ALL sequence handling (NEXTVAL, CURRVAL → AUTO_INCREMENT)
+            - ALL pagination conversion (ROWNUM → LIMIT/OFFSET 우선, ROW_NUMBER() 필요시에만)
+            - ALL DUAL table replacements
             - ALL stored procedure syntax ({call} → CALL)
             - ALL JOIN syntax standardization
-            - ALL string and numeric functions
-            - ALL date/time functions
+            - ALL string, numeric, and date/time functions
             - ALL Oracle-specific constructs
             
-            **🎯 DATABASE EXPERT MODE:**
-            For Oracle constructs NOT explicitly documented in the rule files:
-            - Apply appropriate MySQL equivalents based on database expert knowledge
+            **DATABASE EXPERT MODE:**
+            For Oracle constructs NOT explicitly documented:
+            - Apply appropriate MySQL equivalents based on expert knowledge
             - Use industry best practices for Oracle-to-MySQL conversions
             - Ensure semantic equivalence and optimal performance
+            - Document expert-level transformations with comments
             - Document any expert-level transformations applied
 
         2.6 File Output:
@@ -382,10 +889,16 @@ B. Task Progression Steps:
             - Record classification accuracy
             - Monitor conversion success rate
 
-    4. Final Step:
-        4.1 Update Status:
+    3. Final Completion:
+        3.1 Processing Summary:
+            - Total Files Processed: [N] of [N] (100%)
+            - Groups Completed: [All Groups]
+            - Individual File Success Rate: [Success Count]/[Total Count]
+            
+        3.2 Update Status:
             - Location: {L1FolderName}/status.txt
             - Content: "Step 3: Completed"
+            - Final Confirmation: "All [N] files processed individually with complete conversion"
 
   Step 4. Perform xmllint validation on all {MAPPER_TGTL1_DIR}/*{TRANSFORM_SUFFIX}*.xml files
 
@@ -575,11 +1088,21 @@ Apply conversions to SQL content within these tags:
 ```
 ## 🔧 MYSQL CONVERSION RULES
 
-### Basic Functions (ORACLE-COMPATIBLE CONVERSION)
-- `NVL(a, b)` → `CASE WHEN (a IS NULL OR a = '') THEN b ELSE a END`
-- `SYSDATE` → `NOW()`
-- `SUBSTR(str, pos, len)` → `SUBSTRING(str, pos, len)`
-- `DECODE(...)` → `CASE WHEN ... END`
+### Basic Functions (핵심 변환 - 위 20개 규칙 적용)
+- 기본 함수 변환은 위의 **Essential 20 MySQL Conversions** 규칙을 따름
+- 복잡한 케이스는 아래 상세 규칙 참조
+
+#### **함수별 상세 변환 규칙**
+
+**SUBSTR/SUBSTRING 변환:**
+- 기본: `SUBSTR(str, pos, len)` → `SUBSTRING(str, GREATEST(pos, 1), len)`
+- 이유: Oracle의 0 인덱스를 MySQL 1 인덱스로 안전하게 변환
+- 음수 인덱스: 그대로 유지 (동일하게 동작)
+
+**NVL 계열 함수:**
+- `NVL(a, b)` → `IFNULL(a, b)` (단순 케이스)
+- `NVL(a, b)` → `CASE WHEN (a IS NULL OR a = '') THEN b ELSE a END` (Oracle 호환)
+- `NVL2(expr1, expr2, expr3)` → `CASE WHEN (expr1 IS NOT NULL AND expr1 != '') THEN expr2 ELSE expr3 END`
 
 ### Date Functions
 - `ADD_MONTHS(date, n)` → `DATE_ADD(date, INTERVAL n MONTH)`
@@ -611,52 +1134,7 @@ TO_CHAR(date, 'MON DD, YYYY') → DATE_FORMAT(date, '%b %d, %Y')
 TO_CHAR(date, 'HH24:MI:SS') → TIME_FORMAT(date, '%H:%i:%s')
 ```
 
-### Sequence Handling (MySQL AUTO_INCREMENT)
 
-#### **Context-Aware NEXTVAL Conversion Rules**
-
-**1. INSERT Statement Context (Auto-Convert):**
-- `INSERT ... VALUES (SEQ_NAME.NEXTVAL, ...)` → `INSERT ... VALUES (...)` (remove NEXTVAL column)
-- `INSERT ... (id, name) VALUES (SEQ_NAME.NEXTVAL, #{name})` → `INSERT ... (name) VALUES (#{name})` (remove id column)
-
-**2. SELECT Statement Context (Manual Review Required):**
-- `SELECT SEQ_NAME.NEXTVAL FROM DUAL` → Add TODO comment for manual review
-- Comment format: `-- TODO: NEXTVAL conversion required - Original: SELECT SEQ_NAME.NEXTVAL FROM DUAL`
-- Add guidance: `-- MySQL alternatives: AUTO_INCREMENT table, sequence function, or application-level generation`
-
-**3. MyBatis selectKey Context (Auto-Convert):**
-```xml
-<!-- Oracle BEFORE selectKey -->
-<selectKey keyProperty="id" resultType="long" order="BEFORE">
-    SELECT SEQ_NAME.NEXTVAL FROM DUAL
-</selectKey>
-<insert>INSERT INTO table (id, name) VALUES (#{id}, #{name})</insert>
-
-<!-- MySQL conversion: use useGeneratedKeys -->
-<insert useGeneratedKeys="true" keyProperty="id">
-    INSERT INTO table (name) VALUES (#{name})
-</insert>
-```
-
-**4. CURRVAL Handling:**
-- `SEQ_NAME.CURRVAL` → `LAST_INSERT_ID()` (only valid after AUTO_INCREMENT insert)
-
-**5. Legacy Compatibility:**
-- For backward compatibility: `SEQ_NAME.NEXTVAL` → `LAST_INSERT_ID()` (basic fallback)
-- Note: This assumes prior INSERT with AUTO_INCREMENT occurred
-
-#### SelectKey Pattern Processing
-```xml
-<!-- Original -->
-<selectKey keyProperty="id" resultType="long" order="BEFORE">
-    SELECT SEQ_EMPLOYEE_ID.NEXTVAL FROM DUAL
-</selectKey>
-
-<!-- Convert to (for AUTO_INCREMENT) -->
-<selectKey keyProperty="id" resultType="long" order="AFTER">
-    SELECT LAST_INSERT_ID()
-</selectKey>
-```
 
 ### Pagination
 - `ROWNUM <= n` → `LIMIT n`
@@ -680,18 +1158,44 @@ TO_CHAR(date, 'HH24:MI:SS') → TIME_FORMAT(date, '%H:%i:%s')
 </select>
 ```
 
-### String Functions
-- `INSTR(str, substr)` → `LOCATE(substr, str)`
-- `LPAD(str, len, pad)` → `LPAD(str, len, pad)`
-- `RPAD(str, len, pad)` → `RPAD(str, len, pad)`
-- `TO_CHAR(num)` → `CAST(num AS CHAR)`
-- `TO_NUMBER(str)` → `CAST(str AS DECIMAL)` or `CAST(str AS SIGNED)`
-- `LTRIM(str)` → `LTRIM(str)`
-- `RTRIM(str)` → `RTRIM(str)`
-- `TRIM(str)` → `TRIM(str)`
-- `UPPER(str)` → `UPPER(str)`
-- `LOWER(str)` → `LOWER(str)`
+### String Functions (핵심 20개 규칙 적용 + 추가 규칙)
+- `INSTR(str, substr)` → `LOCATE(substr, str)` (매개변수 순서 주의)
+- `SUBSTR(str, pos, len)` → `SUBSTRING(str, GREATEST(pos, 1), len)` (위 핵심 규칙 적용)
+- `LPAD/RPAD/TRIM/UPPER/LOWER` → 동일 (변환 불필요)
+- `TO_CHAR(num)` → `CAST(num AS CHAR)` (위 핵심 규칙 적용)
+- `TO_NUMBER(str)` → `CAST(str AS DECIMAL)` (위 핵심 규칙 적용)
 - `INITCAP(str)` → `CONCAT(UPPER(LEFT(str,1)), LOWER(SUBSTRING(str,2)))`
+
+#### **LTRIM/RTRIM Special Conversion (Oracle 2-parameter → MySQL)**
+**Oracle LTRIM/RTRIM with character specification:**
+- `LTRIM(string, chars)` → `TRIM(LEADING chars FROM string)`
+- `RTRIM(string, chars)` → `TRIM(TRAILING chars FROM string)`
+- `LTRIM(string)` → `LTRIM(string)` (whitespace removal is identical)
+- `RTRIM(string)` → `RTRIM(string)` (whitespace removal is identical)
+
+**Conversion Examples:**
+```sql
+-- Oracle
+LTRIM('/path/to/file', '/') → 'path/to/file'
+RTRIM('text###', '#') → 'text'
+
+-- MySQL
+TRIM(LEADING '/' FROM '/path/to/file') → 'path/to/file'
+TRIM(TRAILING '#' FROM 'text###') → 'text'
+```
+
+**Important Notes:**
+- Oracle's `LTRIM(CONCAT(...))` pattern causes syntax error in MySQL
+- When 2nd parameter exists, must convert to `TRIM(LEADING/TRAILING ... FROM ...)` format
+- Single parameter `LTRIM(string)` requires no conversion (MySQL identical support)
+- **String Literals and Quote Escaping (중요 차이점)**:
+  - **작은따옴표 이스케이프**:
+    - Oracle: `'Don''t'` (작은따옴표 두 개로 이스케이프)
+    - MySQL: `'Don\'t'` (백슬래시로 이스케이프) 또는 `'Don''t'` (Oracle 방식도 지원)
+  - **권장 변환**: Oracle 방식(`''`) 그대로 유지 (MySQL 호환)
+  - **주의사항**: MySQL `sql_mode`에 따라 동작이 달라질 수 있음
+    - `ANSI_QUOTES` 모드: 큰따옴표가 식별자로 처리됨
+    - `NO_BACKSLASH_ESCAPES` 모드: 백슬래시 이스케이프 비활성화
 - **String Concatenation (ORACLE-COMPATIBLE)**:
   - Oracle: `str1 || str2` → MySQL: `CONCAT(IFNULL(str1, ''), IFNULL(str2, ''))`
   - **Multiple concatenation**: `str1 || str2 || str3` → `CONCAT(IFNULL(str1, ''), IFNULL(str2, ''), IFNULL(str3, ''))`
@@ -1031,77 +1535,110 @@ DELIMITER ;
 ```
 ## 🔬 ADVANCED CONVERSIONS (MySQL Optimized)
 
-### Hierarchical Queries (CONNECT BY)
-Convert to recursive CTEs (MySQL 8.0+) or alternative approaches:
+### Hierarchical Queries (CONNECT BY) - 전문가 변환 가이드
 
-#### **MySQL 8.0+ Recursive CTE**
+#### **변환 원칙**
+Oracle CONNECT BY 구문을 MySQL WITH RECURSIVE CTE로 변환할 때 다음 원칙을 적용:
+
+1. **기본 구조 변환**
+   - `START WITH` → CTE의 Anchor 쿼리 WHERE 절
+   - `CONNECT BY PRIOR` → CTE의 Recursive 쿼리 JOIN 조건
+   - `LEVEL` → 수동으로 계산된 레벨 컬럼
+
+2. **복잡한 Oracle 함수 처리**
+   - `SYS_CONNECT_BY_PATH` → CONCAT으로 경로 구성
+   - `CONNECT_BY_ROOT` → Anchor 쿼리에서 루트 값 전달
+   - `CONNECT_BY_ISLEAF` → 서브쿼리로 리프 노드 판별
+   - `ORDER SIBLINGS BY` → 최종 SELECT에서 ORDER BY 적용
+
+3. **성능 고려사항**
+   - MySQL 8.0+ 필수 (WITH RECURSIVE 지원)
+   - 무한 루프 방지를 위한 깊이 제한 추가 권장
+   - 대용량 데이터의 경우 애플리케이션 레벨 처리 고려
+
+#### **기본 변환 패턴**
 ```sql
--- Oracle CONNECT BY (Simple hierarchy)
-SELECT employee_id, manager_id, level
-FROM employees 
-START WITH manager_id IS NULL 
-CONNECT BY PRIOR employee_id = manager_id;
+-- Oracle 패턴
+SELECT columns, LEVEL
+FROM table 
+START WITH condition
+CONNECT BY PRIOR parent_col = child_col;
 
--- MySQL 8.0+ Recursive CTE
-WITH RECURSIVE emp_hierarchy AS (
-    -- Anchor: root nodes
-    SELECT employee_id, manager_id, 1 as level
-    FROM employees 
-    WHERE manager_id IS NULL
+-- MySQL 변환 패턴
+WITH RECURSIVE hierarchy AS (
+    -- Anchor: START WITH 조건
+    SELECT columns, 1 as level
+    FROM table 
+    WHERE condition
     
     UNION ALL
     
-    -- Recursive: child nodes
-    SELECT e.employee_id, e.manager_id, eh.level + 1
-    FROM employees e
-    JOIN emp_hierarchy eh ON e.manager_id = eh.employee_id
+    -- Recursive: CONNECT BY 조건
+    SELECT t.columns, h.level + 1
+    FROM table t
+    JOIN hierarchy h ON t.child_col = h.parent_col
 )
-SELECT employee_id, manager_id, level FROM emp_hierarchy;
+SELECT columns, level FROM hierarchy;
 ```
 
-#### **Pre-MySQL 8.0 Alternative (Self-Join)**
-```sql
--- For older MySQL versions, use multiple self-joins or application logic
-SELECT e1.employee_id, e1.manager_id, 1 as level FROM employees e1 WHERE e1.manager_id IS NULL
-UNION ALL
-SELECT e2.employee_id, e2.manager_id, 2 as level FROM employees e2 
-JOIN employees e1 ON e2.manager_id = e1.employee_id WHERE e1.manager_id IS NULL
--- Continue for required levels...
-```
+#### **전문가 판단 필요 케이스**
+- 복잡한 계층 구조 (다중 루트, 순환 참조)
+- Oracle 특화 함수 조합 사용
+- 성능 최적화가 중요한 대용량 데이터
+- MySQL 8.0 미만 환경 (대안 솔루션 필요)
 
 ### ROWNUM Conversion Patterns
 
-#### **Simple ROWNUM**
+#### **Simple ROWNUM (권장)**
 - `WHERE ROWNUM <= n` → `LIMIT n`
 - `WHERE ROWNUM = 1` → `LIMIT 1`
+- `WHERE ROWNUM < n` → `LIMIT n-1`
 
-#### **Complex ROWNUM (Pagination)**
+#### **Complex ROWNUM (Pagination) - LIMIT/OFFSET 사용**
 ```sql
--- Oracle nested ROWNUM
+-- Oracle nested ROWNUM (표준 페이징 패턴)
 SELECT * FROM (
     SELECT ROWNUM as rn, a.* FROM (
         SELECT * FROM table ORDER BY column
     ) a WHERE ROWNUM <= 20
 ) WHERE rn > 10;
 
--- MySQL LIMIT OFFSET
+-- MySQL LIMIT OFFSET (권장)
 SELECT * FROM table ORDER BY column LIMIT 10 OFFSET 10;
 ```
 
-#### **ROWNUM with Window Functions (MySQL 8.0+)**
-```sql
--- Oracle ROWNUM with complex conditions
-SELECT * FROM (
-    SELECT ROWNUM as rn, emp.* 
-    FROM (SELECT * FROM employees ORDER BY salary DESC) emp
-    WHERE ROWNUM <= 100
-) WHERE rn BETWEEN 21 AND 40;
+#### **ROWNUM을 ROW_NUMBER()로 변환하는 경우 (주의 필요)**
+⚠️ **다음 경우에만 ROW_NUMBER() 사용:**
+- ROWNUM이 SELECT 절에서 컬럼으로 사용되는 경우
+- 복잡한 조건문에서 행 번호가 필요한 경우
+- 분석 함수와 함께 사용되는 경우
 
--- MySQL 8.0+ with ROW_NUMBER()
+```sql
+-- Oracle: ROWNUM을 컬럼으로 사용
+SELECT ROWNUM as row_seq, emp_id, name 
+FROM employees 
+WHERE department_id = 10;
+
+-- MySQL: ROW_NUMBER() 사용
+SELECT ROW_NUMBER() OVER (ORDER BY emp_id) as row_seq, emp_id, name 
+FROM employees 
+WHERE department_id = 10;
+```
+
+#### **잘못된 변환 예시 (피해야 할 패턴)**
+```sql
+-- ❌ 잘못된 변환
+-- Oracle
+SELECT * FROM employees WHERE ROWNUM <= 10;
+-- MySQL (잘못됨)
 SELECT * FROM (
-    SELECT ROW_NUMBER() OVER (ORDER BY salary DESC) as rn, emp.*
-    FROM employees emp
-) ranked WHERE rn BETWEEN 21 AND 40;
+    SELECT ROW_NUMBER() OVER (ORDER BY emp_id) as rn, e.*
+    FROM employees e
+) ranked WHERE rn <= 10;
+
+-- ✅ 올바른 변환
+-- MySQL (권장)
+SELECT * FROM employees LIMIT 10;
 ```
 
 ### MERGE Statement Conversion
@@ -1125,22 +1662,40 @@ ON DUPLICATE KEY UPDATE
     updated_date = NOW();
 ```
 
-### Window Functions (MySQL 8.0+)
+### Window Functions (MySQL 8.0+) - 전문가 판단 필요
 
-#### **Oracle Analytical Functions**
+#### **MySQL Window Function 제약사항**
+MySQL은 Oracle보다 Window Function 구문이 엄격하므로 전문가 판단 필요:
+
+**주요 차이점:**
+1. **FRAME 절 제약**: MySQL은 일부 FRAME 절 조합 지원 안함
+2. **중첩 Window Function**: MySQL에서 제한적 지원
+3. **ORDER BY 필수**: 일부 함수에서 ORDER BY 생략 불가
+4. **NULL 처리**: Oracle과 다른 NULL 처리 방식
+
+#### **전문가 판단 기준**
+
+**기본 Window Function (직접 변환 가능)**
 ```sql
--- Oracle
-SELECT employee_id, salary,
-       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) as rank_in_dept,
-       LAG(salary, 1) OVER (PARTITION BY department_id ORDER BY salary DESC) as prev_salary
-FROM employees;
-
--- MySQL 8.0+ (Same syntax)
-SELECT employee_id, salary,
-       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) as rank_in_dept,
-       LAG(salary, 1) OVER (PARTITION BY department_id ORDER BY salary DESC) as prev_salary
-FROM employees;
+-- Oracle → MySQL (동일)
+ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary)
+RANK() OVER (PARTITION BY dept ORDER BY salary)
+DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary)
+LAG(salary, 1) OVER (PARTITION BY dept ORDER BY salary)
+LEAD(salary, 1) OVER (PARTITION BY dept ORDER BY salary)
 ```
+
+**복잡한 케이스 (전문가 판단 필요)**
+- Oracle 특화 분석 함수 (RATIO_TO_REPORT, PERCENT_RANK 등)
+- 복잡한 FRAME 절 (RANGE BETWEEN, ROWS BETWEEN 조합)
+- 중첩된 Window Function
+- KEEP/DENSE_RANK FIRST/LAST 구문
+
+#### **변환 원칙**
+1. **단순 케이스**: 직접 변환
+2. **복잡한 케이스**: 서브쿼리나 CTE로 분해
+3. **지원 안되는 함수**: MySQL 조합 함수로 구현
+4. **성능 고려**: MySQL 최적화 패턴 적용
 
 ### JSON Functions (MySQL 5.7+)
 
@@ -1205,7 +1760,7 @@ SELECT employee_id,
        CASE WHEN email REGEXP '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$' 
             THEN 'Valid' ELSE 'Invalid' END as email_status,
        REGEXP_REPLACE(phone, '[^0-9]', '') as clean_phone,
-       REGEXP_SUBSTR(address, '[0-9]+') as street_number
+       REGEXP_SUBSTR(address, '[0-9]+') as street_number  -- 전문가 판단: 복잡한 패턴은 검토 필요
 FROM employees;
 ```
 
@@ -1369,9 +1924,15 @@ ORDER BY column
 LIMIT 10 OFFSET 10;
 ```
 
-#### ROWNUM in Subqueries
-- Convert to `ROW_NUMBER() OVER()` when ROWNUM is used in analytical context
-- Use `LIMIT` when ROWNUM is used for simple row limiting
+#### ROWNUM 변환 우선순위
+1. **1순위: LIMIT/OFFSET 사용** (성능 최적화)
+   - 단순 행 제한: `WHERE ROWNUM <= n` → `LIMIT n`
+   - 페이징: Oracle nested ROWNUM → `LIMIT n OFFSET m`
+
+2. **2순위: ROW_NUMBER() 사용** (특수한 경우만)
+   - ROWNUM이 SELECT 절 컬럼으로 필요한 경우
+   - 복잡한 분석 쿼리에서 행 번호가 필요한 경우
+   - 주의: 성능이 LIMIT보다 떨어질 수 있음
 
 ### MERGE Statements
 Convert to INSERT ... ON CONFLICT:
@@ -1386,11 +1947,55 @@ INSERT INTO target SELECT ... FROM source
 ON CONFLICT (key) DO UPDATE SET ...
 ```
 
-### Regular Expressions
+### Regular Expressions - 전문가 판단 필요
+
+#### **기본 변환**
 - `REGEXP_LIKE(source, pattern)` → `source REGEXP pattern`
 - `REGEXP_REPLACE(source, pattern, replacement)` → `REGEXP_REPLACE(source, pattern, replacement)`
-- `REGEXP_SUBSTR(source, pattern)` → `REGEXP_SUBSTR(source, pattern)` (MySQL 8.0+)
-- `REGEXP_INSTR(source, pattern)` → Custom function using REGEXP and LOCATE
+
+#### **REGEXP_SUBSTR - 파라미터 차이 주의**
+⚠️ **Oracle vs MySQL 파라미터 순서 및 기능 차이:**
+
+**Oracle REGEXP_SUBSTR:**
+```sql
+REGEXP_SUBSTR(source, pattern [, position [, occurrence [, match_param [, subexpr]]]])
+```
+
+**MySQL REGEXP_SUBSTR (8.0+):**
+```sql
+REGEXP_SUBSTR(expr, pattern [, pos [, occurrence [, match_type]]])
+```
+
+**주요 차이점:**
+1. **subexpr 파라미터**: Oracle의 서브표현식 추출 기능이 MySQL에서 제한적
+2. **match_param vs match_type**: 플래그 형식이 다름
+3. **기본 동작**: 일부 정규식 엔진 차이
+
+**전문가 판단 기준:**
+- 단순 패턴: 직접 변환 가능
+- 복잡한 서브표현식: MySQL 대안 로직 필요
+- 고급 매치 옵션: 전문가 판단으로 구현
+
+#### **기타 정규식 함수**
+- `REGEXP_INSTR(source, pattern)` → **전문가 판단 필요** (MySQL 직접 지원 안함)
+  - 대안: `LOCATE()` + `REGEXP` 조합 또는 사용자 정의 함수
+
+## 🎯 변환 규칙 적용 우선순위
+
+### 1단계: 핵심 20개 규칙 (필수)
+위의 **Essential 20 MySQL Conversions** 먼저 적용
+
+### 2단계: 함수별 상세 규칙  
+각 섹션의 상세 변환 규칙 적용
+
+### 3단계: 전문가 판단 영역
+- 복잡한 CONNECT BY → WITH RECURSIVE
+- 고급 Window Functions  
+- 복잡한 정규식 함수
+- Oracle 특화 구문
+
+### 4단계: 검증 및 주의사항
+변환 후 필수 검증 포인트 확인
 
 ## 🎯 EXPERT-LEVEL CONVERSION GUIDANCE
 
@@ -1425,10 +2030,11 @@ Apply **database expert knowledge** to provide appropriate MySQL equivalents:
 - Consider `GROUP_CONCAT()` for string concatenation aggregates
 - Use MySQL 8.0+ window functions for advanced aggregation
 
-**Oracle Analytical Functions:**
-- Most Oracle window functions have direct MySQL 8.0+ equivalents
-- Maintain `OVER()` clause syntax and partitioning logic
-- Convert Oracle-specific analytical functions to MySQL alternatives
+**Oracle Analytical Functions - 전문가 판단 적용:**
+- 기본 Window Function: 직접 변환 (ROW_NUMBER, RANK, LAG, LEAD 등)
+- Oracle 특화 함수: MySQL 조합으로 구현 (전문가 판단)
+- 복잡한 FRAME 절: 서브쿼리 분해 또는 대안 로직 (전문가 판단)
+- 성능 최적화: MySQL 특성에 맞는 구조 변경 (전문가 판단)
 
 **Oracle System Functions:**
 - Map Oracle system functions to appropriate MySQL system information functions
@@ -1510,6 +2116,29 @@ Example:
 - Leverage window functions instead of complex subqueries
 - Apply efficient pagination with LIMIT OFFSET
 - Use AUTO_INCREMENT instead of sequences for better performance
+
+## ⚠️ 변환 작업 시 핵심 주의사항
+
+### 필수 준수 원칙
+- **비즈니스 로직 유지**: 함수 변환 시 원래 의도 보존
+- **파라미터 바인딩 유지**: MyBatis `#{...}` 구문 그대로 유지
+- **XML 구조 보존**: MyBatis XML 태그 구조 변경 금지
+- **점진적 수정**: 한 번에 모든 것을 바꾸지 말고 단계별 수정
+- **테스트 필수**: 각 수정 후 반드시 동작 확인
+
+### 변환 시 검증 포인트
+1. **SQL 결과 동일성**: Oracle과 MySQL에서 동일한 결과 반환 확인
+2. **성능 영향도**: 변환 후 쿼리 성능 저하 여부 점검
+3. **데이터 타입 호환성**: 컬럼 타입 변환으로 인한 데이터 손실 방지
+4. **트랜잭션 동작**: 커밋/롤백 동작 일관성 확인
+5. **예외 처리**: 에러 케이스에서의 동작 일치성 검증
+
+### 위험 요소 체크리스트
+- [ ] NULL 처리 로직 변경으로 인한 예상치 못한 결과
+- [ ] 날짜/시간 함수 변환으로 인한 시간대 이슈
+- [ ] 문자열 함수 변환으로 인한 인코딩 문제
+- [ ] 숫자 정밀도 변경으로 인한 계산 오차
+- [ ] 페이징 로직 변경으로 인한 데이터 누락/중복
 
 ## 🐛 COMMON ERROR PATTERNS TO FIX
 

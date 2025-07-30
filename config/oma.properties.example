@@ -31,29 +31,29 @@ APPLICATION_NAME=example
 TRANSFORM_JNDI=jdbc
 TRANSFORM_RELATED_CLASS=_ALL_
 
-#Transform DBMS ( orcl, pg, mysql ), Target DB유형에 따라서 변환 프롬프트 가변 실행
+#Transform DBMS ( orcl, postgres, mysql ), Target DB유형에 따라서 변환 프롬프트 가변 실행
 SOURCE_DBMS_TYPE=orcl
-TARGET_DBMS_TYPE=pg
+TARGET_DBMS_TYPE=postgres
 
 #Source DBMS Connection:
-ORACLE_ADM_USER=
-ORACLE_ADM_PASSWORD=
-ORACLE_HOST=
-ORACLE_PORT=
-ORACLE_SID=
-ORACLE_SVC_USER=AAA
-ORACLE_SVC_PASSWORD=
-ORACLE_SVC_CONNECT_STRING=orcl
+ORACLE_ADM_USER=example
+ORACLE_ADM_PASSWORD=example
+ORACLE_HOST=example
+ORACLE_PORT=example
+ORACLE_SID=example
+ORACLE_SVC_USER=example
+ORACLE_SVC_PASSWORD=example
+ORACLE_SVC_CONNECT_STRING=example
 #Source Migration Schema List
 ORACLE_SVC_USER_LIST="AAA,BBB,CCC,DDD,EEE,FFF,GGG"
 
 #TargetSQL Connection:
-PG_SVC_PASSWORD=
+PG_SVC_PASSWORD=example
 PGPORT=5432
-PG_ADM_USER=postgres
-PG_ADM_PASSWORD=
-PG_SVC_USER=aaa
-PGUSER=postgres
-PGPASSWORD=
-PGDATABASE=postgresdb
-PGHOST=
+PG_ADM_USER=example
+PG_ADM_PASSWORD=example
+PG_SVC_USER=example
+PGUSER=example
+PGPASSWORD=example
+PGDATABASE=example
+PGHOST=example

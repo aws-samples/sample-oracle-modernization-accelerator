@@ -1,6 +1,6 @@
 # Application Analysis HTML Report Generation Prompt
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 ## Objective
 Generate comprehensive HTML report by integrating analysis result files generated from appAnalysis.md

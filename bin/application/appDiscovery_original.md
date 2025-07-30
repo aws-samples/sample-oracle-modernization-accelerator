@@ -1,6 +1,6 @@
 # Application Analysis and DB Migration Pre-Analysis and Report Generation Prompt
 
-Reference: Apply environment information from $APP_TOOLS_FOLDER/environment_context.md
+Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 ## Objective
 1. Analyze Java Source code of the Application to perform pre-analysis work for changing Source DBMS to Target DBMS and create a report

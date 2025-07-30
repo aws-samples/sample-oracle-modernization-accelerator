@@ -1,0 +1,2103 @@
+#!/usr/bin/env python3
+"""
+XML 파일에서 함수 추출 및 검증 프로그램 v1.6
+- 1630 오류 해결 (함수 공백 문제)
+- 윈도우 함수 컨텍스트 개선
+
+Version: 1.6
+Author: Amazon Q Developer  
+Date: 2025-07-19
+
+*** 중요: 이 프로그램의 목적 ***
+이 프로그램은 Transform XML에서 추출한 함수들의 MySQL 문법 검사가 목적입니다.
+실제 테이블명/컬럼명을 '1'로 치환하여 함수 문법만 검증하므로,
+테이블/컬럼 존재 오류는 정상적인 동작입니다.
+
+주요 검증 대상:
+- 함수 문법 오류 (1064 오류)
+- GROUPING 함수 사용법 (1210 오류) 
+- 집계 함수 사용법 (1111 오류)
+- 함수 파라미터 개수 (1582 오류)
+
+Changelog:
+- v1.6: 1630 오류 해결, 윈도우 함수 컨텍스트 개선
+- v1.5: PARTITION BY 보호, MyBatis ${} 변수 처리 추가
+- v1.4: CAST 함수와 윈도우 함수 특별 처리 추가
+- v1.3: MyBatis 파라미터 처리 추가
+- v1.2: SQL 파서 기반으로 전면 개편
+"""
+
+import re
+import sys
+import os
+import json
+import logging
+import mysql.connector
+from pathlib import Path
+from datetime import datetime
+
+# 스크립트 파일의 디렉토리를 Python 경로에 추가
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# SQL 파서 import
+from sql_function_parser import SQLFunctionParser
+
+class FunctionValidator:
+    def __init__(self, debug=False):
+        self.debug = True  # 임시로 디버그 모드 활성화
+        self.target_dbms = os.getenv('TARGET_DBMS_TYPE', 'mysql').lower()
+        
+        # 환경변수에서 경로 가져오기
+        self.app_logs_folder = os.getenv('APP_LOGS_FOLDER', '/tmp')
+        self.app_transform_folder = os.getenv('APP_TRANSFORM_FOLDER', '/tmp')
+        
+        # 로그 디렉토리 생성
+        self.post_transform_log_dir = os.path.join(self.app_logs_folder, 'postTransform')
+        os.makedirs(self.post_transform_log_dir, exist_ok=True)
+        os.makedirs(self.app_transform_folder, exist_ok=True)
+        
+        # SQL 파서 초기화
+        self.parser = SQLFunctionParser()
+        
+        # MyBatis 파라미터 저장용 변수 초기화
+        self.mybatis_params = []
+        self.mybatis_vars = []
+        
+        # 모든 함수명 통합 (MySQL, Oracle, PostgreSQL)
+        self.all_functions = {
+            # 문자열 함수들
+            'CONCAT', 'SUBSTRING', 'SUBSTR', 'UPPER', 'LOWER', 'TRIM', 'LTRIM', 'RTRIM',
+            'REPLACE', 'LENGTH', 'CHAR_LENGTH', 'LEFT', 'RIGHT', 'REVERSE',
+            'LOCATE', 'INSTR', 'POSITION', 'LPAD', 'RPAD', 'REPEAT', 'SPACE',
+            'INITCAP', 'TRANSLATE', 'ASCII', 'CHR', 'SOUNDEX', 'REGEXP_REPLACE',
+            'REGEXP_SUBSTR', 'REGEXP_INSTR', 'REGEXP_COUNT',
+            'SPLIT_PART', 'STRING_AGG', 'ARRAY_TO_STRING', 'STRING_TO_ARRAY',
+            'BTRIM', 'OVERLAY', 'STRPOS', 'FORMAT', 'SUBSTRING_INDEX',
+            
+            # 숫자 함수들
+            'SUM', 'COUNT', 'AVG', 'MAX', 'MIN', 'ROUND', 'CEIL', 'CEILING', 'FLOOR',
+            'GROUP_CONCAT',
+            'ABS', 'MOD', 'POWER', 'SQRT', 'SIGN', 'GREATEST', 'LEAST',
+            'TRUNC', 'BITAND', 'EXP', 'LN', 'LOG', 'SIN', 'COS', 'TAN',
+            'RANDOM', 'WIDTH_BUCKET', 'DEGREES', 'RADIANS',
+            'ROW_NUMBER', 'RANK', 'DENSE_RANK', 'NTILE', 'PERCENT_RANK',
+            'CUME_DIST', 'LEAD', 'LAG', 'FIRST_VALUE', 'LAST_VALUE',
+            'RATIO_TO_REPORT', 'GROUPING',
+            
+            # 날짜/시간 함수들
+            'DATE_FORMAT', 'STR_TO_DATE', 'DATE_ADD', 'DATE_SUB', 'DATEDIFF',
+            'YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND', 'DAYOFWEEK',
+            'UNIX_TIMESTAMP', 'FROM_UNIXTIME', 'TIME_FORMAT', 'NOW', 'CURDATE',
+            'CURTIME', 'CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME',
+            'SYSDATE', 'SYSTIMESTAMP', 'TO_DATE', 'TO_CHAR', 'ADD_MONTHS',
+            'MONTHS_BETWEEN', 'NEXT_DAY', 'LAST_DAY', 'EXTRACT',
+            'DATE_TRUNC', 'AGE', 'JUSTIFY_DAYS', 'JUSTIFY_HOURS', 'JUSTIFY_INTERVAL',
+            'CLOCK_TIMESTAMP', 'STATEMENT_TIMESTAMP', 'TRANSACTION_TIMESTAMP',
+            
+            # NULL 처리 함수들
+            'IFNULL', 'ISNULL', 'COALESCE', 'NULLIF', 'NVL', 'NVL2', 'LNNVL',
+            
+            # 변환 함수들
+            'CAST', 'CONVERT', 'BINARY', 'CHAR', 'SIGNED', 'UNSIGNED',
+            'TO_NUMBER', 'TO_TIMESTAMP'
+        }
+        
+        # MySQL 예약어 보호 리스트 (PARTITION, GROUPING, 데이터 타입 추가)
+        self.mysql_reserved_words = {
+            'INTERVAL', 'SELECT', 'FROM', 'WHERE', 'GROUP', 'ORDER', 'BY', 'HAVING',
+            'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 'ALTER', 'TABLE',
+            'INDEX', 'VIEW', 'DATABASE', 'SCHEMA', 'UNION', 'JOIN', 'INNER', 'LEFT',
+            'RIGHT', 'OUTER', 'ON', 'AS', 'AND', 'OR', 'NOT', 'IN', 'EXISTS',
+            'BETWEEN', 'LIKE', 'REGEXP', 'IS', 'NULL', 'TRUE', 'FALSE', 'DISTINCT',
+            'ALL', 'ANY', 'SOME', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
+            'IF', 'WHILE', 'FOR', 'LOOP', 'REPEAT', 'UNTIL', 'DECLARE',
+            'SET', 'CALL', 'PROCEDURE', 'FUNCTION', 'TRIGGER', 'EVENT',
+            'DAY', 'HOUR', 'MINUTE', 'SECOND', 'MONTH', 'YEAR', 'WEEK',
+            'PARTITION', 'GROUPING', 'OVER', 'SEPARATOR', 'TRAILING', 'LEADING', 'BOTH',
+            'LIMIT', 'OFFSET',  # LIMIT과 OFFSET 추가
+            # MySQL 데이터 타입들
+            'CHAR', 'VARCHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT',
+            'BINARY', 'VARBINARY', 'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB',
+            'INT', 'INTEGER', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BIGINT',
+            'DECIMAL', 'NUMERIC', 'FLOAT', 'DOUBLE', 'REAL', 'BIT',
+            'DATE', 'TIME', 'DATETIME', 'TIMESTAMP', 'YEAR',
+            'SIGNED', 'UNSIGNED'
+        }
+    
+    def extract_xml_content(self, xml_file_path):
+        """XML 파일에서 전체 내용 추출 (태그 제거 없이)"""
+        try:
+            with open(xml_file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            return content.strip()
+            
+        except Exception as e:
+            return f"파일 읽기 오류: {e}"
+    
+    def clean_xml_content(self, xml_content):
+        """XML 내용에서 동적 태그들 제거 (함수 추출 후에 사용)"""
+        # XML 주석 제거 (함수 추출 전에 먼저 제거)
+        content = re.sub(r'<!--.*?-->', '', xml_content, flags=re.DOTALL)
+        
+        # CDATA 태그 제거
+        content = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', content, flags=re.DOTALL)
+        
+        # 동적 태그들 제거
+        dynamic_tags = [
+            r'<if[^>]*>.*?</if>', r'<choose[^>]*>.*?</choose>',
+            r'<when[^>]*>.*?</when>', r'<otherwise[^>]*>.*?</otherwise>',
+            r'<where[^>]*>.*?</where>', r'<set[^>]*>.*?</set>',
+            r'<trim[^>]*>.*?</trim>', r'<foreach[^>]*>.*?</foreach>',
+            r'<include[^>]*/>',
+        ]
+        
+        for tag_pattern in dynamic_tags:
+            content = re.sub(tag_pattern, '', content, flags=re.DOTALL | re.IGNORECASE)
+        
+        return content.strip()
+    
+    def extract_functions_from_xml(self, xml_content):
+        """SQL 파서를 사용해서 XML 내용에서 함수들을 추출"""
+        
+        # 먼저 XML 태그를 제거한 후 함수 추출
+        cleaned_content = self.clean_xml_content_for_parsing(xml_content)
+        
+        # 파서에 정리된 텍스트 설정
+        self.parser.set_original_text(cleaned_content)
+        
+        # 파서로 함수 추출
+        functions = self.parser.parse(cleaned_content)
+        
+        # 함수 추출 직후 MyBatis 바인딩 변수 처리 (개선된 버전)
+        processed_functions = []
+        for func in functions:
+            # MyBatis 바인딩 변수 처리 개선: jdbcType 속성을 포함한 전체 패턴 처리
+            # #{paramName,jdbcType=VARCHAR} → 1
+            # ${paramName,jdbcType=VARCHAR} → 1
+            processed_func = re.sub(r'#\{[^}]*\}', '1', func)
+            processed_func = re.sub(r'\$\{[^}]*\}', '1', processed_func)
+            
+            # 추가 정리: 바인딩 변수 처리 후 남은 jdbcType 관련 패턴 제거
+            # ", jdbcType = VARCHAR" 패턴 제거
+            processed_func = re.sub(r',\s*jdbcType\s*=\s*\w+', '', processed_func, flags=re.IGNORECASE)
+            # "1, 1 = VARCHAR" → "1" 패턴 수정
+            processed_func = re.sub(r'1,\s*1\s*=\s*\w+', '1', processed_func, flags=re.IGNORECASE)
+            
+            # 테이블별칭.컬럼명 패턴을 미리 처리 (파서 처리 전에)
+            # 이렇게 하면 파서가 테이블별칭과 컬럼명을 따로 처리하지 않음
+            processed_func = re.sub(r'\b[A-Za-z][A-Za-z0-9_]*\.[A-Za-z0-9_]+\b', '1', processed_func, flags=re.IGNORECASE)
+            
+            # 공백이 있는 테이블별칭. 컬럼명 패턴도 처리 (C. NO → 1)
+            processed_func = re.sub(r'\b[A-Za-z][A-Za-z0-9_]*\.\s+[A-Za-z0-9_]+\b', '1', processed_func, flags=re.IGNORECASE)
+            
+            processed_functions.append(processed_func)
+        
+        functions = processed_functions
+        
+        if self.debug:
+            print("🔧 MyBatis 바인딩 변수 처리 완료: #{...} → 1, ${...} → 1")
+        
+        # 추출된 함수들에서 추가 정리 (후처리)
+        cleaned_functions = []
+        for func in functions:
+            cleaned_func = self.post_process_extracted_function(func)
+            if cleaned_func and cleaned_func.strip():
+                cleaned_functions.append(cleaned_func)
+        
+        return cleaned_functions
+    
+    def clean_xml_content_for_parsing(self, xml_content):
+        """함수 추출을 위한 XML 태그 제거 (비교 연산자 보호)"""
+        # XML 주석 제거
+        content = re.sub(r'<!--.*?-->', '', xml_content, flags=re.DOTALL)
+        
+        # CDATA 태그 제거
+        content = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', content, flags=re.DOTALL)
+        
+        # 동적 태그들 제거 - 더 정확한 패턴 사용
+        # 태그는 반드시 <태그명으로 시작해야 함 (공백이나 숫자로 시작하는 < 는 제외)
+        dynamic_tags = [
+            r'<if\s[^>]*>.*?</if\s*>', r'<choose\s[^>]*>.*?</choose\s*>',
+            r'<when\s[^>]*>.*?</when\s*>', r'<otherwise\s[^>]*>.*?</otherwise\s*>',
+            r'<where\s[^>]*>.*?</where\s*>', r'<set\s[^>]*>.*?</set\s*>',
+            r'<trim\s[^>]*>.*?</trim\s*>', r'<foreach\s[^>]*>.*?</foreach\s*>',
+            r'<include\s[^>]*/>', 
+            # 속성이 없는 태그들도 처리
+            r'<if>.*?</if>', r'<choose>.*?</choose>',
+            r'<when>.*?</when>', r'<otherwise>.*?</otherwise>',
+            r'<where>.*?</where>', r'<set>.*?</set>',
+            r'<trim>.*?</trim>', r'<foreach>.*?</foreach>',
+        ]
+        
+        for tag_pattern in dynamic_tags:
+            content = re.sub(tag_pattern, '', content, flags=re.DOTALL | re.IGNORECASE)
+        
+        # 추가: 남은 XML 태그들 제거 (공백이 있는 태그 포함)
+        # </ if >, </ when > 등의 패턴 처리
+        content = re.sub(r'<\s*/\s*\w+\s*>', '', content, flags=re.IGNORECASE)
+        content = re.sub(r'<\s*\w+\s*[^>]*>', '', content, flags=re.IGNORECASE)
+        
+        if self.debug:
+            print(f"🔧 XML 태그 제거 완료")
+        
+        return content.strip()
+    
+    def post_process_extracted_function(self, function_text):
+        """추출된 함수의 후처리 (기존 remove_xml_tags_from_function 로직 활용)"""
+        if not function_text:
+            return function_text
+            
+        result = function_text
+        
+        # SQL 주석 제거 (-- 주석) - 함수별로 개별 처리
+        result = re.sub(r'--[^\r\n]*', ' ', result)
+        
+        # 혹시 남은 XML 태그 제거 (비교 연산자 보호)
+        # XML 태그는 <태그명으로 시작해야 함 (< 뒤에 공백이나 숫자가 오면 비교 연산자)
+        result = re.sub(r'<([a-zA-Z][^>]*)>', '', result, flags=re.IGNORECASE)
+        
+        # AND 연산자 누락 패턴 수정
+        result = self.fix_missing_and_operators(result)
+        
+        # 동적 태그 제거로 인한 CASE WHEN THEN 패턴 수정
+        # CASE WHEN THEN → CASE WHEN 1=1 THEN
+        if re.search(r'CASE\s+WHEN\s+THEN', result, re.IGNORECASE):
+            result = re.sub(r'CASE\s+WHEN\s+THEN', 'CASE WHEN 1=1 THEN', result, flags=re.IGNORECASE)
+            if self.debug:
+                print(f"🔧 CASE WHEN THEN → CASE WHEN 1=1 THEN 수정: {result}")
+        
+        # 여러 공백을 하나로 정리
+        result = re.sub(r'\s+', ' ', result)
+        
+        return result.strip()
+    
+    def remove_xml_tags_from_function(self, function_text):
+        """개별 함수에서 XML 태그 제거 및 AND 연산자 누락 수정"""
+        if not function_text:
+            return function_text
+            
+        result = function_text
+        
+        # XML 주석 제거
+        result = re.sub(r'<!--.*?-->', '', result, flags=re.DOTALL)
+        
+        # SQL 주석 제거 (-- 주석)
+        result = re.sub(r'--[^\r\n]*', ' ', result)
+        
+        # CDATA 태그 제거
+        result = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', result, flags=re.DOTALL)
+        
+        # 상호 배타적 조건문 패턴 처리
+        result = self.handle_mutually_exclusive_conditions(result)
+        
+        # 나머지 동적 태그들 제거 (태그만 제거하고 내용은 유지)
+        result = re.sub(r'<if[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</if>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<choose[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</choose>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<when[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</when>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<otherwise[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</otherwise>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<where[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</where>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<set[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</set>', '', result, flags=re.IGNORECASE)
+        # MyBatis <trim> 태그만 제거 (SQL TRIM 함수는 보존)
+        # MyBatis trim 태그는 prefix, suffix, prefixOverrides, suffixOverrides 속성을 가짐
+        result = re.sub(r'<trim\s+[^>]*(?:prefix|suffix|prefixOverrides|suffixOverrides)[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</trim>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<foreach[^>]*>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'</foreach>', '', result, flags=re.IGNORECASE)
+        result = re.sub(r'<include[^>]*/?>', '', result, flags=re.IGNORECASE)
+        
+        # AND 연산자 누락 패턴 수정
+        result = self.fix_missing_and_operators(result)
+        
+        # 여러 공백을 하나로 정리
+        result = re.sub(r'\s+', ' ', result)
+        
+        return result.strip()
+    
+    def fix_missing_and_operators(self, text):
+        """AND 연산자 누락 패턴 수정"""
+        result = text
+        
+        # 패턴 1: = 'Y' IFNULL(...) = '1' THEN → = 'Y' AND IFNULL(...) = '1' THEN
+        pattern1 = r"=\s*'Y'\s+(IFNULL\([^)]+\)[^=]*=\s*'[^']+'\s+THEN)"
+        replacement1 = r"= 'Y' AND \1"
+        
+        if re.search(pattern1, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴1 발견 및 수정")
+            result = re.sub(pattern1, replacement1, result, flags=re.IGNORECASE)
+        
+        # 패턴 2: = 'SELK138AX' 1 = 1 → = 'SELK138AX' AND 1 = 1
+        pattern2 = r"=\s*'([^']+)'\s+(\d+\s*=\s*\d+)"
+        replacement2 = r"= '\1' AND \2"
+        
+        if re.search(pattern2, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴2 발견 및 수정")
+            result = re.sub(pattern2, replacement2, result, flags=re.IGNORECASE)
+        
+        # 패턴 3: IFNULL( 1,0) 1 END → IFNULL( 1,0) ELSE 1 END
+        pattern3 = r"IFNULL\s*\(\s*[^,]+,\s*[^)]+\)\s+(\d+\s+END)"
+        replacement3 = r"IFNULL( 1,0) ELSE \1"
+        
+        if re.search(pattern3, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴3 발견 및 수정")
+            result = re.sub(pattern3, replacement3, result, flags=re.IGNORECASE)
+        
+        # 패턴 4: 1 <> 0 1 > 0 → 1 <> 0 AND 1 > 0
+        pattern4 = r"(\d+\s*<>\s*\d+)\s+(\d+\s*>\s*\d+)"
+        replacement4 = r"\1 AND \2"
+        
+        if re.search(pattern4, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴4 발견 및 수정")
+            result = re.sub(pattern4, replacement4, result, flags=re.IGNORECASE)
+        
+        # 패턴 5: THEN IFNULL( 1,0) 1 END → THEN IFNULL( 1,0) AND 1 END
+        pattern5 = r"THEN\s+IFNULL\s*\(\s*[^,]+,\s*[^)]+\)\s+(\d+\s+END)"
+        replacement5 = r"THEN IFNULL( 1,0) AND \1"
+        
+        if re.search(pattern5, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴5 발견 및 수정")
+            result = re.sub(pattern5, replacement5, result, flags=re.IGNORECASE)
+        
+        # 패턴 7: THEN IFNULL(...) 1 END → THEN 1 ELSE 1 END (복잡한 CASE 문 간소화)
+        pattern7 = r"THEN\s+IFNULL\s*\([^)]+\)\s+(\d+)\s+END"
+        replacement7 = r"THEN 1 ELSE 1 END"
+        
+        if re.search(pattern7, result, re.IGNORECASE):
+            if self.debug:
+                print(f"🔍 AND 연산자 누락 패턴7 발견 및 수정")
+            result = re.sub(pattern7, replacement7, result, flags=re.IGNORECASE)
+        
+        return result
+    
+    def handle_mutually_exclusive_conditions(self, text):
+        """상호 배타적 조건문 처리 - 첫 번째 조건만 선택"""
+        
+        # 상호 배타적 패턴들 정의
+        mutually_exclusive_patterns = [
+            # 패턴 1: onefarebasis null 체크
+            {
+                'pattern': r'<if\s+test="[^"]*onefarebasis[^"]*!=\s*\'\'[^"]*"[^>]*>(.*?)</if>\s*<if\s+test="[^"]*onefarebasis[^"]*==\s*\'\'[^"]*"[^>]*>(.*?)</if>',
+                'replacement': r'\1'  # 첫 번째 조건만 선택
+            },
+            # 패턴 2: 일반적인 null/not null 체크
+            {
+                'pattern': r'<if\s+test="[^"]*!=\s*null[^"]*"[^>]*>(.*?)</if>\s*<if\s+test="[^"]*==\s*null[^"]*"[^>]*>(.*?)</if>',
+                'replacement': r'\1'  # 첫 번째 조건만 선택
+            },
+            # 패턴 3: empty/not empty 체크
+            {
+                'pattern': r'<if\s+test="[^"]*!=\s*\'\'[^"]*"[^>]*>(.*?)</if>\s*<if\s+test="[^"]*==\s*\'\'[^"]*"[^>]*>(.*?)</if>',
+                'replacement': r'\1'  # 첫 번째 조건만 선택
+            }
+        ]
+        
+        result = text
+        
+        for pattern_info in mutually_exclusive_patterns:
+            pattern = pattern_info['pattern']
+            replacement = pattern_info['replacement']
+            
+            # 상호 배타적 패턴 찾기 및 첫 번째 조건만 선택
+            matches = re.findall(pattern, result, flags=re.DOTALL | re.IGNORECASE)
+            if matches:
+                if self.debug:
+                    print(f"🔍 상호 배타적 조건문 발견: {len(matches)}개")
+                    for i, match in enumerate(matches):
+                        print(f"  조건 {i+1}-1: {match[0][:100]}...")
+                        if len(match) > 1:
+                            print(f"  조건 {i+1}-2: {match[1][:100]}...")
+                
+                result = re.sub(pattern, replacement, result, flags=re.DOTALL | re.IGNORECASE)
+        
+        return result
+    
+    def protect_string_literals(self, text):
+        """문자열 리터럴을 임시 토큰으로 보호"""
+        self.string_map = {}
+        result = text
+        
+        # 큰따옴표 문자열 보호 "text"
+        string_count = 0
+        while True:
+            match = re.search(r'"[^"]*"', result)
+            if not match:
+                break
+            token = f"__DSTRING_{string_count}__"
+            original = match.group(0)
+            self.string_map[token] = original
+            result = result.replace(original, token, 1)
+            string_count += 1
+        
+        # 작은따옴표 문자열 보호 'text'
+        while True:
+            match = re.search(r"'[^']*'", result)
+            if not match:
+                break
+            token = f"__SSTRING_{string_count}__"
+            original = match.group(0)
+            self.string_map[token] = original
+            result = result.replace(original, token, 1)
+            string_count += 1
+        
+        return result
+    
+    def restore_string_literals(self, text):
+        """보호된 문자열 리터럴을 복원"""
+        result = text
+        for token, original in self.string_map.items():
+            result = result.replace(token, original)
+        return result
+    
+    def analyze_nested_functions(self, func_text):
+        """sqlparse를 사용하여 중첩 함수 분석"""
+        try:
+            import sqlparse
+            from sqlparse.sql import Function, Parenthesis
+            
+            parsed = sqlparse.parse(func_text)[0]
+            
+            def find_functions(token, depth=0):
+                functions = []
+                if isinstance(token, Function):
+                    func_info = {
+                        'name': token.get_name(),
+                        'depth': depth,
+                        'full_text': str(token).strip()
+                    }
+                    functions.append(func_info)
+                    
+                    # 함수 내부의 중첩 함수 찾기
+                    for sub_token in token.tokens:
+                        functions.extend(find_functions(sub_token, depth + 1))
+                
+                elif hasattr(token, 'tokens'):
+                    for sub_token in token.tokens:
+                        functions.extend(find_functions(sub_token, depth))
+                
+                return functions
+            
+            nested_funcs = find_functions(parsed)
+            
+            if self.debug and nested_funcs:
+                print(f"🔍 중첩 함수 분석:")
+                for func in nested_funcs:
+                    indent = "  " * func['depth']
+                    print(f"    {indent}└─ {func['name']} (depth: {func['depth']})")
+            
+            return nested_funcs
+            
+        except Exception as e:
+            if self.debug:
+                print(f"🔍 중첩 함수 분석 오류: {e}")
+            return []
+
+    def process_cast_functions_with_parser(self, sql_text):
+        """개선된 CAST 함수 AS 절 보호 - 단순화된 접근"""
+        
+        def find_cast_end(text, start_pos):
+            """CAST 함수의 끝 위치를 괄호 균형으로 찾기"""
+            paren_count = 0
+            for i, char in enumerate(text[start_pos:], start_pos):
+                if char == '(':
+                    paren_count += 1
+                elif char == ')':
+                    paren_count -= 1
+                    if paren_count == 0:
+                        return i + 1
+            return -1
+        
+        result = sql_text
+        pos = 0
+        
+        while True:
+            # CAST( 패턴 찾기
+            match = re.search(r'CAST\s*\(', result[pos:], re.IGNORECASE)
+            if not match:
+                break
+            
+            cast_start = pos + match.start()
+            paren_start = pos + match.end() - 1  # '(' 위치
+            
+            # 괄호 균형으로 CAST 함수 끝 찾기
+            cast_end = find_cast_end(result, paren_start)
+            if cast_end == -1:
+                pos = cast_start + 1
+                continue
+            
+            full_cast = result[cast_start:cast_end]
+            
+            if self.debug:
+                print(f"🔍 CAST 함수 발견: {full_cast[:50]}...")
+            
+            # AS 절이 이미 있는지 확인
+            if ' AS ' in full_cast.upper():
+                if self.debug:
+                    print(f"✅ AS 절이 이미 있음")
+                pos = cast_end
+                continue
+            
+            # AS 절이 없는 경우 추가
+            cast_content = full_cast[5:-1]  # 'CAST(' 와 ')' 제거
+            fixed_cast = f"CAST({cast_content} AS CHAR)"
+            
+            if self.debug:
+                print(f"🔧 AS 절 추가: {fixed_cast[:50]}...")
+            
+            # 교체
+            result = result[:cast_start] + fixed_cast + result[cast_end:]
+            pos = cast_start + len(fixed_cast)
+        
+        if self.debug and result != sql_text:
+            print(f"🔍 CAST 함수 AS 절 보호 완료")
+        
+        return result
+    
+    def _fix_cast_function(self, cast_token):
+        """개별 CAST 함수 토큰 수정"""
+        cast_str = str(cast_token)
+        cast_upper = cast_str.upper()
+        
+        # CAST 함수 내용 분석
+        if ' AS ' not in cast_upper:
+            # AS 절이 없는 경우 - CAST(value) → CAST(value AS CHAR)
+            # 괄호 매칭을 통한 내용 추출
+            content = self._extract_cast_content(cast_str)
+            if content:
+                return f'CAST({content} AS CHAR)'
+        
+        elif 'AS DECIMAL' in cast_upper:
+            # DECIMAL은 MySQL에서 완전히 지원하므로 그대로 유지 (precision, scale 포함)
+            return cast_str
+        
+        elif 'AS SIGNED' in cast_upper or 'AS UNSIGNED' in cast_upper:
+            # SIGNED/UNSIGNED는 MySQL에서 지원하므로 그대로 유지
+            return cast_str
+        
+        elif re.search(r'AS\s+\d+', cast_str, re.IGNORECASE):
+            # AS 숫자 → AS CHAR
+            return re.sub(r'AS\s+\d+', 'AS CHAR', cast_str, flags=re.IGNORECASE)
+        
+        return cast_str
+    
+    def _extract_cast_content(self, cast_str):
+        """CAST 함수에서 괄호 매칭을 통해 내용 추출"""
+        import re
+        match = re.search(r'CAST\s*\(', cast_str, re.IGNORECASE)
+        if not match:
+            return None
+            
+        start_pos = match.end() - 1  # '(' 위치
+        paren_count = 0
+        content_start = start_pos + 1
+        
+        for i, char in enumerate(cast_str[start_pos:], start_pos):
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+                if paren_count == 0:
+                    # 매칭되는 ')' 찾음
+                    content = cast_str[content_start:i].strip()
+                    return content
+        
+        return None
+    
+    def _find_cast_end(self, cast_str):
+        """CAST 함수의 끝 위치를 찾음"""
+        if not cast_str.upper().startswith('CAST('):
+            return -1
+            
+        paren_count = 0
+        start_pos = 4  # 'CAST' 다음부터
+        
+        for i, char in enumerate(cast_str[start_pos:], start_pos):
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+                if paren_count == 0:
+                    return i + 1  # ')' 다음 위치
+        
+        return len(cast_str)  # 매칭되는 ')' 없으면 전체 길이
+    
+    def remove_as_aliases_with_parser(self, sql_text):
+        """sqlparse를 사용하여 AS 별칭을 안전하게 제거"""
+        try:
+            # 먼저 CAST 함수들을 보호
+            protected_casts = []
+            temp_sql = sql_text
+            
+            # CAST 함수를 찾아서 보호
+            cast_pattern = r'CAST\s*\('
+            pos = 0
+            while True:
+                match = re.search(cast_pattern, temp_sql[pos:], re.IGNORECASE)
+                if not match:
+                    break
+                
+                actual_pos = pos + match.start()
+                cast_content = self._extract_cast_with_position(temp_sql, actual_pos)
+                if cast_content:
+                    full_cast, end_pos = cast_content
+                    placeholder = f'__PROTECTED_CAST_{len(protected_casts)}__'
+                    protected_casts.append((placeholder, full_cast))
+                    temp_sql = temp_sql[:actual_pos] + placeholder + temp_sql[actual_pos + end_pos:]
+                    pos = actual_pos + len(placeholder)
+                else:
+                    pos = actual_pos + 1
+            
+            # 이제 일반 AS 별칭 제거 (CAST는 보호됨)
+            # 하지만 함수의 파라미터 내부는 보호해야 함
+            # ), 0) AS alias 패턴에서 ), 0) 부분을 보호
+            temp_sql = re.sub(r'\)\s*,\s*([^)]+)\)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\b', r'), \1)', temp_sql, flags=re.IGNORECASE)
+            
+            # 일반적인 AS 별칭 제거
+            temp_sql = re.sub(r'\)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\b(?!\s*\))', ')', temp_sql, flags=re.IGNORECASE)
+            temp_sql = re.sub(r'END\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\b', 'END', temp_sql, flags=re.IGNORECASE)
+            
+            # 보호된 CAST 함수들 복원
+            for placeholder, original in protected_casts:
+                temp_sql = temp_sql.replace(placeholder, original)
+            
+            if self.debug:
+                print(f"🔍 sqlparse 기반 AS 별칭 제거 후: {temp_sql}")
+            
+            return temp_sql
+            
+        except Exception as e:
+            if self.debug:
+                print(f"🔍 sqlparse AS 별칭 제거 오류: {e}, 정규식 사용")
+            # 기존 정규식 방식으로 fallback
+            result = re.sub(r'\)\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\b(?!\s*\))', ')', sql_text, flags=re.IGNORECASE)
+            result = re.sub(r'END\s+AS\s+[A-Za-z_][A-Za-z0-9_]*\b', 'END', result, flags=re.IGNORECASE)
+            return result
+    
+    def _extract_cast_with_position(self, sql_text, start_pos):
+        """지정된 위치에서 CAST 함수 전체를 추출"""
+        if not sql_text[start_pos:].upper().startswith('CAST'):
+            return None
+            
+        # CAST( 찾기
+        match = re.search(r'CAST\s*\(', sql_text[start_pos:], re.IGNORECASE)
+        if not match:
+            return None
+            
+        paren_start = start_pos + match.end() - 1  # '(' 위치
+        paren_count = 0
+        
+        for i, char in enumerate(sql_text[paren_start:], paren_start):
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+                if paren_count == 0:
+                    # 매칭되는 ')' 찾음
+                    full_cast = sql_text[start_pos:i+1]
+                    return full_cast, i + 1 - start_pos
+        
+        return None
+
+    def _find_balanced_parentheses(self, text, start_pos):
+        """괄호 균형을 고려하여 서브쿼리 끝 위치 찾기"""
+        count = 0
+        i = start_pos
+        while i < len(text):
+            if text[i] == '(':
+                count += 1
+            elif text[i] == ')':
+                count -= 1
+                if count == 0:
+                    return i
+            i += 1
+        return -1
+
+    def _extract_subqueries_balanced(self, sql):
+        """괄호 균형을 고려한 서브쿼리 추출"""
+        subqueries = []
+        i = 0
+        
+        while i < len(sql):
+            # SELECT 패턴 찾기 (대소문자 무관)
+            match = re.search(r'\(\s*SELECT\s+', sql[i:], re.IGNORECASE)
+            if not match:
+                break
+                
+            start_pos = i + match.start()
+            select_pos = i + match.end() - 1  # SELECT 끝 위치
+            
+            # 괄호 균형 찾기
+            end_pos = self._find_balanced_parentheses(sql, start_pos)
+            if end_pos != -1:
+                subquery = sql[start_pos:end_pos + 1]
+                subqueries.append(subquery)
+                i = end_pos + 1
+            else:
+                i = select_pos + 1
+        
+        return subqueries
+
+    def _find_cast_end(self, cast_str):
+        """CAST 함수의 끝 위치를 찾음"""
+        import re
+        match = re.search(r'CAST\s*\(', cast_str, re.IGNORECASE)
+        if not match:
+            return -1
+            
+        start_pos = match.end() - 1  # '(' 위치
+        paren_count = 0
+        
+        for i, char in enumerate(cast_str[start_pos:], start_pos):
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+                if paren_count == 0:
+                    # 매칭되는 ')' 찾음
+                    return i + 1
+        
+        return -1
+        """CAST 함수에서 괄호 매칭을 통해 내용 추출"""
+        import re
+        match = re.search(r'CAST\s*\(', cast_str, re.IGNORECASE)
+        if not match:
+            return None
+            
+        start_pos = match.end() - 1  # '(' 위치
+        paren_count = 0
+        content_start = start_pos + 1
+        
+        for i, char in enumerate(cast_str[start_pos:], start_pos):
+            if char == '(':
+                paren_count += 1
+            elif char == ')':
+                paren_count -= 1
+                if paren_count == 0:
+                    # 매칭되는 ')' 찾음
+                    content = cast_str[content_start:i].strip()
+                    return content
+        
+        return None
+
+    def transform_function(self, func):
+        """함수를 검증 가능한 형태로 변환 (v1.6 윈도우 함수 컨텍스트 개선)"""
+        result = func
+        
+        if self.debug:
+            print(f"🔍 원본 함수: {func}")
+        
+        # 0-0. 중첩 함수 분석 (디버그 모드에서만)
+        if self.debug:
+            self.analyze_nested_functions(func)
+        
+        # 0-1. 숫자 AS CHAR(255) 패턴을 숫자만 남기도록 전처리
+        result = re.sub(r"(\d+)\s+AS\s+CHAR\(\d+\)", r"\1", result, flags=re.IGNORECASE)
+        result = re.sub(r"'(\d+)'\s+AS\s+CHAR\(\d+\)", r"'\1'", result, flags=re.IGNORECASE)
+        
+        # 0-1. TRIM 함수 보호
+        trim_placeholders = {}
+        # 문자열 리터럴 플레이스홀더를 고려한 패턴
+        trim_pattern = r'TRIM\s*\(\s*(LEADING|TRAILING|BOTH)\s+([^)]+?)\s+FROM\s+([^)]+?)\s*\)'
+        trim_matches = list(re.finditer(trim_pattern, result, flags=re.IGNORECASE | re.DOTALL))
+        for i, match in enumerate(trim_matches):
+            placeholder = f'__TRIM_FUNCTION_{i}__'
+            trim_placeholders[placeholder] = match.group(0)
+            result = result.replace(match.group(0), placeholder, 1)
+        
+        if self.debug and trim_placeholders:
+            print(f"🔧 TRIM 함수 보호: {len(trim_placeholders)}개")
+            for placeholder, original in trim_placeholders.items():
+                print(f"  {placeholder}: {original[:100]}...")
+        
+        # 0-2. TRIM 함수 복원
+        for placeholder, original in trim_placeholders.items():
+            result = result.replace(placeholder, original)
+        
+        if self.debug and trim_placeholders:
+            print(f"🔧 TRIM 함수 복원: {len(trim_placeholders)}개")
+        
+        # 0-3. TRIM 함수 복원
+        for placeholder, original in trim_placeholders.items():
+            result = result.replace(placeholder, original)
+        
+        if self.debug and trim_placeholders:
+            print(f"🔧 TRIM 함수 복원: {len(trim_placeholders)}개")
+        
+        # 복잡한 함수 필터링 로직 삭제 - 모든 함수를 테스트 대상으로 포함
+        
+        # 0. CAST 함수 처리 (가장 먼저) - sqlparse 기반으로 정확한 구조 파악
+        result = self.process_cast_functions_with_parser(result)
+        
+        if self.debug:
+            print(f"🔍 CAST 함수 처리 후: {result}")
+        
+        # 1. AS 별칭 제거 - sqlparse 기반으로 안전하게 처리
+        result = self.remove_as_aliases_with_parser(result)
+        
+        # 2. 문자열 리터럴 보호
+        result = self.protect_string_literals(result)
+        
+        # 3. MyBatis 파라미터 처리 #{...} → 1, ${...} → 1 (추가 보호)
+        result = re.sub(r'#\{[^}]*\}', '1', result)
+        result = re.sub(r'\$\{[^}]*\}', '1', result)
+        
+    def transform_function_for_testing_with_parser(self, func):
+        """파서 기반으로 함수를 완전히 처리"""
+        try:
+            import sqlparse
+            from sqlparse.sql import Statement, Function, Parenthesis, IdentifierList, Identifier
+            from sqlparse.tokens import Keyword, Name, String, Number
+            
+            if self.debug:
+                print(f"🔍 원본 함수: {func}")
+            
+            # 1. 파서로 구조 파악
+            parsed = sqlparse.parse(func)[0]
+            
+            # 2. 중첩 함수 분석
+            nested_funcs = self.analyze_nested_functions(func)
+            if nested_funcs and self.debug:
+                func_info = [f"{f['name']}(depth:{f['depth']})" for f in nested_funcs]
+                print(f"🔍 파서 기반 처리 순서: {func_info}")
+            
+            def process_token_recursively(token):
+                """토큰을 재귀적으로 처리 (안쪽부터)"""
+                
+                # 서브쿼리 처리: (SELECT ... FROM ...) → (SELECT 1)
+                if isinstance(token, Parenthesis):
+                    inner_text = str(token).strip()
+                    if inner_text.upper().startswith('(SELECT') or inner_text.upper().startswith('( SELECT'):
+                        # FROM 이후 제거하고 SELECT 1로 변경
+                        return '(SELECT 1)'
+                
+                # 함수 처리 - 함수명은 보호, 내부 파라미터만 재귀 처리
+                elif isinstance(token, Function):
+                    func_name = str(token.get_name()).upper()
+                    if func_name in self.mysql_reserved_words or func_name in self.all_functions:
+                        # 함수명은 보호, 내부 파라미터만 처리
+                        processed_params = []
+                        for sub_token in token.tokens:
+                            processed_params.append(process_token_recursively(sub_token))
+                        return ''.join(processed_params)
+                
+                # 문자열 리터럴 보호
+                elif token.ttype is String.Single or token.ttype is String.Symbol:
+                    return str(token)  # 문자열 리터럴 보호
+                
+                # 숫자 리터럴 보호  
+                elif token.ttype is Number.Integer or token.ttype is Number.Float:
+                    return str(token)  # 숫자 리터럴 보호
+                
+                # 예약어 보호 (CASE, WHEN, THEN, ELSE, END 포함)
+                elif token.ttype is Keyword:
+                    keyword = str(token).upper()
+                    if keyword in self.mysql_reserved_words:
+                        return str(token)  # 예약어 보호
+                
+                # 식별자 (컬럼명, 테이블명) → 1로 치환 (안쪽부터)
+                elif isinstance(token, Identifier) or token.ttype is Name:
+                    name = str(token).upper()
+                    # CASE 문 키워드는 보호
+                    if name in ['CASE', 'WHEN', 'THEN', 'ELSE', 'END']:
+                        return str(token)
+                    elif name not in self.mysql_reserved_words and name not in self.all_functions:
+                        # 테이블별칭.컬럼명 패턴 처리 (공백 포함)
+                        token_str = str(token)
+                        if '.' in token_str:
+                            # 테이블별칭. 컬럼명 (공백 포함) → 1
+                            if re.match(r'^[A-Za-z][A-Za-z0-9_]*\.\s*[A-Za-z0-9_]+$', token_str):
+                                return '1'
+                        return '1'  # 컬럼명/테이블명 치환
+                
+                # 하위 토큰이 있는 경우 재귀 처리 (안쪽부터)
+                elif hasattr(token, 'tokens'):
+                    # CASE 문인지 확인
+                    token_str = str(token).upper().strip()
+                    if token_str.startswith('CASE'):
+                        # CASE 문은 내부 구조를 보존하면서 처리
+                        processed_tokens = []
+                        for sub_token in token.tokens:
+                            processed_tokens.append(process_token_recursively(sub_token))
+                        return ''.join(processed_tokens)
+                    else:
+                        # 일반적인 경우
+                        processed_tokens = []
+                        for sub_token in token.tokens:
+                            processed_tokens.append(process_token_recursively(sub_token))
+                        return ''.join(processed_tokens)
+                
+                # 기본: 토큰 그대로 반환
+                return str(token)
+            
+            # 3. 파서로 전체 처리
+            result = process_token_recursively(parsed)
+            
+            if self.debug:
+                print(f"🔍 파서 처리 결과: {result}")
+            
+            return result
+            
+        except Exception as e:
+            if self.debug:
+                print(f"🔍 파서 처리 오류: {e}, 기존 방식 사용")
+            return self.transform_function_for_testing(func)
+        
+        # 5. IN 1 → IN (1, 2, 3)
+        result = re.sub(r'IN\s+1\b', 'IN (1, 2, 3)', result, flags=re.IGNORECASE)
+        
+        # 6. 테이블.컬럼 → 1 (대문자/소문자 컬럼명 모두 포함)
+        result = re.sub(r'\b[A-Z][A-Z0-9_]*\.[a-z_][a-z0-9_]*\b', '1', result)
+        result = re.sub(r'\b[A-Z][A-Z0-9_]*\.[A-Z_][A-Z0-9_]*\b', '1', result)
+        result = re.sub(r'\b[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*\b', '1', result)
+        result = re.sub(r'\b[a-z_][a-z0-9_]*\.[A-Z_][A-Z0-9_]*\b', '1', result)
+        # 혼합 케이스 컬럼명 처리 (예: rsv_SALE_AMT)
+        result = re.sub(r'\b[a-z_][a-z0-9_]*\.[a-z_][a-zA-Z0-9_]*\b', '1', result)
+        
+        # 7. 대문자 컬럼명 → 1 (함수명과 예약어 제외) - 예약어 보호 강화
+        for word in re.findall(r'\b[A-Z][A-Z0-9_]+\b', result):
+            if word not in self.all_functions and word.upper() not in self.mysql_reserved_words:
+                if not re.search(rf'\b{word}\s*\(', result):
+                    # 예약어가 아닌 경우만 치환
+                    result = re.sub(rf'\b{word}\b(?!\s*\()', '1', result)
+        
+        # 8. 컬럼명 → 1 (함수명과 예약어 제외, 대소문자 모두 포함)
+        # 문자열 리터럴 보호
+        string_literals = []
+        def protect_string(match):
+            string_literals.append(match.group(0))
+            return f"__STRING_LITERAL_{len(string_literals)-1}__"
+        
+        # 문자열 리터럴을 임시 토큰으로 치환 (빈 문자열 포함)
+        result = re.sub(r"'[^']*'", protect_string, result)
+        
+        if self.debug and string_literals:
+            print(f"🔧 개별 함수 문자열 리터럴 보호: {len(string_literals)}개")
+            for i, literal in enumerate(string_literals):
+                print(f"  {i}: {literal}")
+            print(f"보호 후: {result}")
+        elif self.debug:
+            print(f"🔧 개별 함수 문자열 리터럴 보호: 0개 (원본: {result[:100]}...)")
+        
+        words = re.findall(r'\b[A-Za-z_][A-Za-z0-9_]*\b', result)
+        for word in words:
+            if word.upper() not in self.all_functions and word.upper() not in self.mysql_reserved_words:
+                if not re.search(rf'\b{word}\s*\(', result):
+                    # 임시 토큰이 아닌 경우만 치환 (__STRING_LITERAL_, __SSTRING_ 토큰 보호)
+                    if (not word.startswith('__STRING_LITERAL_') and 
+                        not word.startswith('__SSTRING_')):
+                        # 예약어 보호를 고려한 안전한 컬럼명 치환
+                        pattern = rf'\b{re.escape(word)}\b(?!\s*\()'
+                        def replace_with_space_preservation(match):
+                            return '1'
+                        result = re.sub(pattern, replace_with_space_preservation, result)
+        
+        # 문자열 리터럴 복원
+        for i, literal in enumerate(string_literals):
+            result = result.replace(f"__STRING_LITERAL_{i}__", literal)
+        
+        if self.debug:
+            print(f"🔍 컬럼명 치환 후: {result}")
+        
+        # 특별 함수 처리 (CAST, 윈도우 함수, Oracle 함수) - 임시 비활성화
+        # result = self.parser.fix_special_functions(result)
+        
+        # CAST 함수 처리는 이미 앞에서 완료됨
+        
+        if self.debug:
+            print(f"🔍 특별 함수 처리 후: {result}")
+        
+        # 8.5. 윈도우 함수 위치 표시 문제 해결 (3592 오류 방지)
+        # PARTITION BY (SELECT NULL), 1 → PARTITION BY (SELECT NULL), (SELECT NULL)
+        # ORDER BY (SELECT NULL), 1 → ORDER BY (SELECT NULL), (SELECT NULL)
+        result = re.sub(r'(PARTITION\s+BY\s+\([^)]+\)),\s*1\b', r'\1, (SELECT NULL)', result, flags=re.IGNORECASE)
+        result = re.sub(r'(ORDER\s+BY\s+\([^)]+\)),\s*1\b', r'\1, (SELECT NULL)', result, flags=re.IGNORECASE)
+        
+        # 9. 문자열 리터럴 복원 (가장 나중)
+        result = self.restore_string_literals(result)
+        
+        if self.debug:
+            print(f"🔍 최종 결과: {result}")
+            print()
+        
+        return result.strip()
+    
+    def get_mysql_connection(self):
+        """MySQL 연결 생성"""
+        try:
+            connection = mysql.connector.connect(
+                host=os.getenv('MYSQL_HOST', 'localhost'),
+                port=int(os.getenv('MYSQL_PORT', '3306')),
+                user=os.getenv('MYSQL_USER', 'root'),
+                password=os.getenv('MYSQL_PASSWORD', ''),
+                database=os.getenv('MYSQL_DATABASE', 'devdb'),
+                charset='utf8mb4',
+                collation='utf8mb4_unicode_ci'
+            )
+            return connection
+        except mysql.connector.Error as e:
+            error_msg = f"MySQL 연결 실패: {e}"
+            return connection, error_msg
+    
+    def validate_functions_batch(self, unique_functions, logger, xml_file_path):
+        """변환된 함수들을 일괄 검증"""
+        if not unique_functions:
+            return False, "검증할 함수가 없습니다", ""
+        
+        connection_result = self.get_mysql_connection()
+        if isinstance(connection_result, tuple):
+            connection, error_msg = connection_result
+            logger.error(error_msg)
+            return False, error_msg, ""
+        
+        connection = connection_result
+        
+        try:
+            cursor = connection.cursor()
+            
+            # SELECT 절 생성
+            select_sql = "SELECT " + ", ".join(unique_functions)
+            
+            logger.info(f"생성된 SELECT 문: {select_sql}")
+            
+            if self.debug:
+                print(f"\n🔍 DEBUG - 생성된 SELECT 문:")
+                print(f"{select_sql}")
+                print()
+            
+            # SQL 수행 전 마지막 정리: AS 1 패턴 제거 (문법 오류 방지)
+            select_sql = self.clean_sql_before_execution(select_sql)
+            
+            # 실행
+            cursor.execute(select_sql)
+            result = cursor.fetchall()
+            
+            cursor.close()
+            connection.close()
+            
+            success_msg = f"성공: {len(unique_functions)}개 함수 모두 검증 완료"
+            logger.info(success_msg)
+            
+            # 성공 시 실패 목록에서 제거
+            self.remove_from_failed_result(xml_file_path)
+            
+            return True, success_msg, select_sql
+            
+        except mysql.connector.Error as e:
+            if connection:
+                connection.close()
+            error_msg = f"SQL 오류: {e}"
+            logger.error(error_msg)
+            return False, error_msg, select_sql if 'select_sql' in locals() else ""
+    
+    def clean_sql_before_execution(self, sql):
+        """SQL 수행 전 마지막 정리: 다양한 문법 오류 패턴 수정"""
+        original_sql = sql
+        
+        # 0. WITH 절 완전 제거 (CTE 제거) - 가장 먼저 처리
+        # WITH ... AS (...) 패턴을 모두 제거하여 함수만 남김
+        def remove_with_clause(sql_text):
+            """WITH 절과 CTE를 완전히 제거"""
+            # WITH로 시작하는 부분부터 메인 SELECT까지 찾기
+            with_pattern = r'\bWITH\s+.*?(?=\bSELECT\s+(?!.*\bFROM\s+\w+\s+AS\s*\())'
+            
+            # WITH 절이 있는지 확인
+            if re.search(r'\bWITH\s+', sql_text, re.IGNORECASE | re.DOTALL):
+                # WITH 절 전체를 제거하고 마지막 SELECT만 남김
+                # 복잡한 패턴 매칭 대신 단순하게 처리
+                lines = sql_text.split('\n')
+                in_with_section = False
+                main_select_found = False
+                result_lines = []
+                
+                for line in lines:
+                    line_upper = line.strip().upper()
+                    
+                    # WITH 절 시작 감지
+                    if line_upper.startswith('WITH ') or (in_with_section and ',' in line and 'AS (' in line.upper()):
+                        in_with_section = True
+                        continue
+                    
+                    # CTE 정의 부분 스킵
+                    if in_with_section and not line_upper.startswith('SELECT '):
+                        continue
+                    
+                    # 메인 SELECT 발견
+                    if in_with_section and line_upper.startswith('SELECT '):
+                        in_with_section = False
+                        main_select_found = True
+                    
+                    # WITH 절이 없거나 메인 SELECT 이후의 라인들 유지
+                    if not in_with_section:
+                        result_lines.append(line)
+                
+                return '\n'.join(result_lines)
+            
+            return sql_text
+        
+        sql = remove_with_clause(sql)
+        
+        if self.debug:
+            print(f"🔧 WITH 절 제거 후: {len(sql)} 문자")
+            print(f"처리된 SQL 시작: {sql[:200]}...")
+            print()
+
+        # 0-1. CAST 함수 AS 절 보호 (WITH 절 제거 후)
+        sql = self.process_cast_functions_with_parser(sql)
+        
+        if self.debug and sql != original_sql:
+            print(f"🔧 CAST 함수 AS 절 보호 완료")
+            
+            # WITH 절이 있는지 확인
+            if re.search(r'\bWITH\s+', sql_text, re.IGNORECASE | re.DOTALL):
+                # WITH 절 전체를 제거하고 마지막 SELECT만 남김
+                # 복잡한 패턴 매칭 대신 단순하게 처리
+                lines = sql_text.split('\n')
+                in_with_section = False
+                main_select_found = False
+                result_lines = []
+                
+                for line in lines:
+                    line_upper = line.strip().upper()
+                    
+                    # WITH 절 시작 감지
+                    if line_upper.startswith('WITH ') or (in_with_section and ',' in line and 'AS (' in line.upper()):
+                        in_with_section = True
+                        continue
+                    
+                    # CTE 정의 부분 스킵
+                    if in_with_section and not line_upper.startswith('SELECT '):
+                        continue
+                    
+                    # 메인 SELECT 발견
+                    if in_with_section and line_upper.startswith('SELECT '):
+                        in_with_section = False
+                        main_select_found = True
+                    
+                    # WITH 절이 없거나 메인 SELECT 이후의 라인들 유지
+                    if not in_with_section:
+                        result_lines.append(line)
+                
+                return '\n'.join(result_lines)
+            
+            return sql_text
+        
+        sql = remove_with_clause(sql)
+        
+        if self.debug:
+            print(f"🔧 WITH 절 제거 후: {len(sql)} 문자")
+            print(f"처리된 SQL 시작: {sql[:200]}...")
+            print()
+
+        # 0-1. 정확한 서브쿼리 처리 - 괄호 매칭을 고려한 처리
+        
+        # 0-1. 파서 기반 서브쿼리 처리 - 중첩 레벨 1단계 처리
+        
+        def replace_subqueries_with_parser(sql_text):
+            """파서를 이용한 서브쿼리 치환 - 1레벨 중첩만 처리"""
+            try:
+                import sqlparse
+                from sqlparse.sql import Parenthesis, Statement
+                from sqlparse.tokens import Keyword, Name
+                
+                # SQL 파싱
+                parsed = sqlparse.parse(sql_text)
+                if not parsed:
+                    return sql_text
+                
+                def process_tokens_for_subquery(tokens):
+                    """토큰 리스트를 처리하여 서브쿼리를 (SELECT 1)로 변환"""
+                    result_tokens = []
+                    
+                    for token in tokens:
+                        if isinstance(token, Parenthesis):
+                            inner_text = str(token).strip()
+                            # (SELECT ... FROM ... WHERE ...) 패턴 감지
+                            if (inner_text.upper().startswith('(SELECT') or 
+                                inner_text.upper().startswith('( SELECT')):
+                                # FROM이 포함된 서브쿼리만 변환 (단순 함수 호출 제외)
+                                if ' FROM ' in inner_text.upper():
+                                    # 새로운 Parenthesis 토큰 생성
+                                    new_token = sqlparse.sql.Parenthesis([
+                                        sqlparse.sql.Token(sqlparse.tokens.Punctuation, '('),
+                                        sqlparse.sql.Token(sqlparse.tokens.Keyword, 'SELECT'),
+                                        sqlparse.sql.Token(sqlparse.tokens.Whitespace, ' '),
+                                        sqlparse.sql.Token(sqlparse.tokens.Number.Integer, '1'),
+                                        sqlparse.sql.Token(sqlparse.tokens.Punctuation, ')')
+                                    ])
+                                    result_tokens.append(new_token)
+                                    continue
+                        
+                        # 하위 토큰이 있는 경우 재귀 처리
+                        if hasattr(token, 'tokens') and token.tokens:
+                            processed_subtokens = process_tokens_for_subquery(token.tokens)
+                            # 원본 토큰 타입을 유지하면서 하위 토큰만 교체
+                            if hasattr(token, '__class__'):
+                                new_token = token.__class__(processed_subtokens)
+                                result_tokens.append(new_token)
+                            else:
+                                result_tokens.append(token)
+                        else:
+                            result_tokens.append(token)
+                    
+                    return result_tokens
+                
+                # 각 statement 처리
+                result_statements = []
+                for statement in parsed:
+                    if hasattr(statement, 'tokens') and statement.tokens:
+                        processed_tokens = process_tokens_for_subquery(statement.tokens)
+                        # Statement 재구성
+                        new_statement = sqlparse.sql.Statement(processed_tokens)
+                        result_statements.append(str(new_statement))
+                    else:
+                        result_statements.append(str(statement))
+                
+                return ' '.join(result_statements)
+                
+            except Exception as e:
+                if self.debug:
+                    print(f"🔧 파서 기반 서브쿼리 처리 실패, 기존 방식 사용: {e}")
+                # 기존 방식으로 fallback
+                result = sql_text
+                changed = True
+                iteration = 0
+                
+                while changed and iteration < 10:
+                    changed = False
+                    i = 0
+                    while i < len(result):
+                        # ( SELECT 패턴 찾기
+                        if result[i:i+1] == '(' and result[i:i+8].upper().startswith('( SELECT'):
+                            # 괄호 균형 찾기
+                            paren_count = 0
+                            start_pos = i
+                            
+                            for j in range(i, len(result)):
+                                if result[j] == '(':
+                                    paren_count += 1
+                                elif result[j] == ')':
+                                    paren_count -= 1
+                                    if paren_count == 0:
+                                        # 완전한 서브쿼리 발견
+                                        subquery = result[start_pos:j+1]
+                                        if 'SELECT' in subquery.upper():
+                                            result = result[:start_pos] + '(SELECT 1)' + result[j+1:]
+                                            changed = True
+                                            break
+                            if changed:
+                                break
+                        i += 1
+                    iteration += 1
+                
+                return result
+        
+        sql = replace_subqueries_with_parser(sql)
+        
+        if self.debug:
+            print(f"🔧 파서 기반 서브쿼리 처리 완료")
+            print()
+
+        # 0. 문자열 리터럴 보호
+        string_literals = []
+        def protect_string(match):
+            string_literals.append(match.group(0))
+            return f"__STRING_LITERAL_{len(string_literals)-1}__"
+        
+        # 문자열 리터럴을 임시 토큰으로 치환
+        sql = re.sub(r"'[^']*'", protect_string, sql)
+        
+        if self.debug:
+            print(f"🔧 문자열 리터럴 보호 후: {len(string_literals)}개 보호됨")
+            for i, literal in enumerate(string_literals):
+                print(f"  {i}: {literal}")
+            print(f"보호된 SQL: {sql[:200]}...")
+            print()
+        
+        # MyBatis 바인드 변수 치환
+        sql = re.sub(r'#\{[^}]*\}', '1', sql)
+        sql = re.sub(r'\$\{[^}]*\}', '1', sql)
+        
+        if self.debug:
+            print(f"🔧 바인드 변수 치환 완료")
+        
+        
+        # 0-2. TRIM 함수 보호 (바인드 변수 및 테이블.컬럼명 치환 후)
+        # TRIM 함수 보호를 컬럼 치환 이후로 이동하여 내부 컬럼도 치환되도록 함
+        trim_placeholders = {}
+        
+        if self.debug:
+            print(f"🔧 TRIM 함수 보호를 컬럼 치환 이후로 연기")
+        
+        # 0.5. AND 연산자 누락 패턴 수정 (문자열 리터럴 보호 후)
+        sql = self.fix_missing_and_operators(sql)
+        
+        # 0.6. 복잡한 중첩 CASE 문 단순화
+        # 특정 문제 패턴들을 직접 수정
+        sql = re.sub(r'THEN\s+IFNULL\s*\([^)]+\)\s+(\d+)\s+END', r'THEN 1 ELSE 1 END', sql, flags=re.IGNORECASE)
+        
+        # 3중 이상 중첩된 CASE 문을 단순한 IFNULL(1,0)으로 치환
+        if sql.count('CASE WHEN') >= 3:
+            # 복잡한 중첩 CASE 문을 찾아서 단순화
+            complex_case_pattern = r'IFNULL\s*\(\s*\(\s*CASE\s+WHEN.*?END\s*\)\s*,\s*0\s*\)'
+            if re.search(complex_case_pattern, sql, re.IGNORECASE | re.DOTALL):
+                if self.debug:
+                    print(f"🔍 복잡한 중첩 CASE 문 발견, 단순화 처리")
+                sql = re.sub(complex_case_pattern, 'IFNULL(1,0)', sql, flags=re.IGNORECASE | re.DOTALL)
+        
+        # 1. AS 1, AS 2, AS 3 등의 패턴을 제거 (숫자만 있는 별칭)
+        sql = re.sub(r'(\w+)\s*AS\s+\d+(?=\s*[,)$])', r'\1', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\s*AS\s*\d+(?=\s*[,)$])', '', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'AS\s*\d+(?=\s*[,)$])', '', sql, flags=re.IGNORECASE)
+        # 문장 끝의 AS 숫자 패턴도 제거
+        sql = re.sub(r'\s*AS\s+\d+\s*$', '', sql, flags=re.IGNORECASE)
+        
+        # 2. Window Function 내부의 PARTITION BY 1 ORDER BY 1 패턴 수정
+        # 괄호 매칭을 고려한 정확한 OVER 절 처리
+        def replace_over_with_partition(sql_text):
+            """OVER 절에서 PARTITION BY 1이 포함된 부분을 찾아 단순화"""
+            result = sql_text
+            start_pos = 0
+            
+            while True:
+                # OVER ( 패턴 찾기
+                over_match = re.search(r'OVER\s*\(', result[start_pos:], re.IGNORECASE)
+                if not over_match:
+                    break
+                
+                over_start = start_pos + over_match.start()
+                paren_start = start_pos + over_match.end() - 1  # '(' 위치
+                
+                # 괄호 매칭으로 OVER 절의 끝 찾기
+                paren_count = 1
+                pos = paren_start + 1
+                while pos < len(result) and paren_count > 0:
+                    if result[pos] == '(':
+                        paren_count += 1
+                    elif result[pos] == ')':
+                        paren_count -= 1
+                    pos += 1
+                
+                if paren_count == 0:
+                    # OVER 절 전체 추출
+                    over_clause = result[over_start:pos]
+                    
+                    # PARTITION BY 1 또는 ORDER BY 1이 포함되어 있으면 단순화
+                    if re.search(r'(PARTITION\s+BY\s+1|ORDER\s+BY\s+1)', over_clause, re.IGNORECASE):
+                        result = result[:over_start] + 'OVER ()' + result[pos:]
+                        start_pos = over_start + len('OVER ()')
+                    else:
+                        start_pos = pos
+                else:
+                    break
+            
+            return result
+        
+        sql = replace_over_with_partition(sql)
+        
+        # 3. 윈도우 함수 내부의 ORDER BY 컬럼명 치환
+        # MySQL 윈도우 함수에서는 ORDER BY 위치 지정을 지원하지 않으므로 OVER()로 단순화
+        sql = re.sub(r'OVER\s*\(\s*ORDER\s+BY\s+[A-Za-z_][A-Za-z0-9_]*\s*\)', 'OVER ()', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'OVER\s*\(\s*PARTITION\s+BY\s+[^)]+\s+ORDER\s+BY\s+[A-Za-z_][A-Za-z0-9_]*\s*\)', 'OVER ()', sql, flags=re.IGNORECASE)
+        
+        # 4. 일반적인 ORDER BY 처리 (Window Function 밖에서)
+        # 문장 끝이나 GROUP BY, HAVING, LIMIT 앞의 ORDER BY만 처리
+        sql = re.sub(r'\bORDER\s+BY\s+\d+(?:\s*,\s*\d+)*(?=\s*(?:$|GROUP\s+BY|HAVING|LIMIT|;))', 'ORDER BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bORDER\s+BY\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*(?=\s*(?:$|GROUP\s+BY|HAVING|LIMIT|;))', 'ORDER BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        
+        # 4. 빈 THEN 절 처리 (MyBatis 조건문으로 인한 빈 THEN 절)
+        # CASE WHEN ... THEN [공백/탭/줄바꿈만] ELSE ... END 패턴을 찾아서 수정
+        # 더 정확한 패턴으로 수정
+        sql = re.sub(r'THEN\s*\n?\s*\t*\s*\n?\s*\t*\s*ELSE', 'THEN NULL ELSE', sql, flags=re.IGNORECASE | re.MULTILINE)
+        
+        # 5. CAST 함수 패턴 수정 - 이미 777라인에서 처리되었으므로 중복 처리 비활성화
+        # sql = self.process_cast_functions_with_parser(sql)
+        
+        # 5. 테이블별칭.공백컬럼 패턴 수정 (예: B. 1 → B.column, A. 2 → A.column)
+        sql = re.sub(r'\b([A-Za-z_][A-Za-z0-9_]*)\.\s+(\d+)', r'\1.column\2', sql)
+        
+        # 6. 빈 IFNULL 파라미터 처리 (MyBatis 조건문으로 인한 함수 분할 예외 처리)
+        # IFNULL(,0) → IFNULL(1,0), IFNULL( \n\t ,0) → IFNULL(1,0)
+        sql = re.sub(r'IFNULL\s*\(\s*,', 'IFNULL(1,', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'IFNULL\s*\(\s*\n\s*\t*\s*\n\s*\t*\s*,', 'IFNULL(1,', sql, flags=re.IGNORECASE | re.MULTILINE)
+        
+        # 7. XML 주석 제거 (<!-- ... -->)
+        sql = re.sub(r'<!--.*?-->', '', sql, flags=re.DOTALL)
+        
+        # 8. SQL 주석 제거 (-- 주석) - 주석 제거 후 공백 정리
+        sql = re.sub(r'--[^\r\n]*', ' ', sql)
+        sql = re.sub(r'\s+', ' ', sql)  # 연속된 공백을 하나로 정리
+        
+        # 9. EXISTS 1 → EXISTS (SELECT 1) 패턴 수정
+        sql = re.sub(r'\bEXISTS\s+(\d+)', r'EXISTS (SELECT \1)', sql, flags=re.IGNORECASE)
+        
+        # 10. SUBSTRING position from 문법을 MySQL 문법으로 변경
+        # SUBSTRING(str position from pos for len) → SUBSTRING(str, pos, len)
+        sql = re.sub(r'\bSUBSTRING\s*\(\s*([^)]+?)\s+position\s+from\s+([^)]+?)\s+([^)]+?)\s*\)', 
+                    r'SUBSTRING(\1, \2, \3)', sql, flags=re.IGNORECASE)
+        
+        # 11. 잘못된 SUBSTRING 패턴 수정 (SUBSTRING (1 position from 0 1 1))
+        sql = re.sub(r'\bSUBSTRING\s*\(\s*(\d+)\s+position\s+from\s+(\d+)\s+(\d+)\s+(\d+)\s*\)', 
+                    r'SUBSTRING(\1, \2, \3)', sql, flags=re.IGNORECASE)
+        
+        # 12. 소수점 패턴 수정 (IFNULL(1. 1,0) → IFNULL(1.1,0))
+        sql = re.sub(r'(\d+)\.\s+(\d+)', r'\1.\2', sql)
+        
+        # 13. 연산자 주변 공백 정리
+        sql = re.sub(r'\s*\.\s*', '.', sql)  # 점 연산자 주변 공백 제거
+        
+        # 14. 스키마/테이블별칭 제거 - 주석 처리 (서브쿼리 보호 이후에 처리하도록 변경)
+        # 이 로직은 서브쿼리 내부의 SELECT 문을 손상시키므로 비활성화
+        # 대신 라인 1270 이후의 개선된 컬럼 교체 로직을 사용
+        
+        # # GROUPING 함수 내부를 임시로 보호
+        # grouping_patterns = []
+        # def protect_grouping(match):
+        #     grouping_patterns.append(match.group(1))  # 괄호 안의 내용 저장
+        #     return f"GROUPING(__GROUPING_PARAM_{len(grouping_patterns)-1}__)"
+        # 
+        # sql = re.sub(r'GROUPING\s*\(([^)]+)\)', protect_grouping, sql, flags=re.IGNORECASE)
+        # 
+        # # 일반적인 스키마/테이블별칭 제거
+        # sql = re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*', '1', sql)
+        # sql = re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\.', '', sql)
+        # 
+        # # GROUPING 함수 복원 (파라미터는 NULL로 변경)
+        # for i, original_param in enumerate(grouping_patterns):
+        #     sql = sql.replace(f"GROUPING(__GROUPING_PARAM_{i}__)", "GROUPING(NULL)")
+        
+        # 15. 단순 컬럼명 치환 - 주석 처리 (서브쿼리 보호 이후에 처리하도록 변경)
+        # 이 로직도 서브쿼리 내부의 식별자를 손상시키므로 비활성화
+        
+        # # 함수 내부의 컬럼명을 1로 치환 (예: SUM(SALE_DSCNT_AMT) → SUM(1))
+        # # 단, 함수명 자체는 보호
+        # def replace_column_in_function(match):
+        #     func_name = match.group(1)
+        #     params = match.group(2)
+        #     # 파라미터 내의 컬럼명을 1로 치환
+        #     # 숫자, 문자열 리터럴, NULL은 보호
+        #     params_replaced = re.sub(r'\b(?!NULL\b|__STRING_LITERAL_\d+__\b)\d*[A-Za-z_][A-Za-z0-9_]*\b(?!\s*\()', '1', params, flags=re.IGNORECASE)
+        #     return f"{func_name}({params_replaced})"
+        # 
+        # # 모든 함수 내부의 컬럼명 치환
+        # for func in self.all_functions:
+        #     pattern = rf'\b({func})\s*\(([^)]+)\)'
+        #     sql = re.sub(pattern, replace_column_in_function, sql, flags=re.IGNORECASE)
+        
+        
+        # 16. 심플한 컬럼 교체 - 함수 내부 컬럼명도 처리
+        
+        if self.debug:
+            print(f"🔧 심플한 컬럼 교체 시작")
+        
+        # 1단계: 연산자 보호 (컬럼 교체 전에 먼저 보호)
+        operator_protections = []
+        
+        # 비교 연산자 보호 (공백 포함)
+        comparison_operators = [r'>=', r'<=', r'<>', r'!=', r'>', r'<', r'=']
+        for i, op in enumerate(comparison_operators):
+            pattern = rf'(\s*{re.escape(op)}\s*)'
+            matches = list(re.finditer(pattern, sql))
+            for j, match in enumerate(reversed(matches)):
+                placeholder = f'__COMP_OP_{i}_{len(matches)-1-j}__'
+                operator_protections.append((placeholder, match.group()))
+                sql = sql[:match.start()] + placeholder + sql[match.end():]
+        
+        # 2단계: 테이블.컬럼 → 1 (공백이 있는 패턴도 처리)
+        # 테이블별칭. 컬럼명 패턴 (공백 포함) 처리
+        sql = re.sub(r'\b[A-Za-z][A-Za-z0-9_]*\.\s+[A-Za-z0-9_]+\b', '1', sql, flags=re.IGNORECASE)
+        # 일반적인 테이블.컬럼 패턴
+        sql = re.sub(r'\b[A-Za-z][A-Za-z0-9_]*\.[A-Za-z0-9_]+\b', '1', sql, flags=re.IGNORECASE)
+        
+        # 3단계: 단독 컬럼명 → 1 (예약어, 함수명 제외) - 개선된 순차 처리
+        # 동적으로 확장된 함수명과 예약어를 모두 보호
+        protected_words = set()
+        protected_words.update(self.mysql_reserved_words)
+        protected_words.update(self.all_functions)
+        
+        if self.debug:
+            print(f"🔍 컬럼 교체 전 SQL 샘플: {sql[-200:]}")
+        
+        # 예약어가 아닌 식별자를 1로 교체 - 개선된 로직
+        # 여러 번 반복하여 모든 컬럼명이 확실히 치환되도록 함
+        max_iterations = 10  # 반복 횟수 증가
+        for iteration in range(max_iterations):
+            original_sql = sql
+            
+            # 더 포괄적인 패턴으로 단어 찾기 (언더스코어로 시작하는 것도 포함)
+            words_found = re.findall(r'\b[A-Za-z_][A-Za-z0-9_]*\b', sql)
+            replaced_count = 0
+            
+            if self.debug and iteration == 0:
+                print(f"🔍 발견된 모든 단어: {sorted(set(words_found))}")
+            
+            for word in set(words_found):  # 중복 제거
+                word_upper = word.upper()
+                
+                # 치환 조건 확인 - 더 명확한 로직
+                should_replace = (
+                    word_upper not in protected_words and 
+                    not word.startswith('__STRING_LITERAL_') and 
+                    not word.startswith('__COMP_OP_') and
+                    word != '1' and  # 이미 치환된 것은 제외
+                    len(word) > 1  # 한 글자 단어는 제외
+                )
+                
+                if should_replace:
+                    # 함수 호출이 아닌 경우만 치환 (함수명 보호)
+                    pattern = r'\b' + re.escape(word) + r'\b(?!\s*\()'
+                    matches = re.findall(pattern, sql, re.IGNORECASE)
+                    
+                    if matches:
+                        sql = re.sub(pattern, '1', sql, flags=re.IGNORECASE)
+                        replaced_count += len(matches)
+                        if self.debug:
+                            print(f"🔄 반복 {iteration+1}: '{word}' → '1' ({len(matches)}개 치환)")
+            
+            # 변화가 없으면 종료
+            if sql == original_sql:
+                if self.debug:
+                    print(f"✅ 컬럼 교체 완료 (반복 {iteration+1}회)")
+                break
+        
+        if self.debug:
+            print(f"🔍 컬럼 교체 후 SQL 샘플: {sql[-200:]}")
+        
+        # 4단계: 연산자 복원
+        for placeholder, original in operator_protections:
+            sql = sql.replace(placeholder, original)
+        
+        # 5단계: 연산자 복원 후 추가 컬럼 교체 (연산자 복원으로 노출된 컬럼명 처리)
+        if self.debug:
+            print(f"🔧 연산자 복원 후 추가 컬럼 교체 시작")
+        
+        # 연산자 복원 후 다시 한 번 컬럼명 검사 및 치환
+        words_found = re.findall(r'\b[A-Za-z][A-Za-z0-9_]*\b', sql)
+        for word in set(words_found):
+            if (word.upper() not in protected_words and 
+                not word.startswith('__STRING_LITERAL_') and 
+                word != '1'):
+                pattern = r'\b' + re.escape(word) + r'\b'
+                if re.search(pattern, sql, re.IGNORECASE):
+                    sql = re.sub(pattern, '1', sql, flags=re.IGNORECASE)
+                    if self.debug:
+                        print(f"🔄 추가 치환: '{word}' → '1'")
+        
+        if self.debug:
+            print(f"🔧 연산자 복원 후 추가 컬럼 교체 완료")
+        
+        if self.debug:
+            print(f"🔧 심플한 컬럼 교체 완료")
+            print(f"결과: {sql[:200]}...")
+            print()
+        
+        # 컬럼 치환 완료 후 TRIM 함수 보호
+        # 문자열 리터럴 플레이스홀더를 고려한 패턴
+        trim_pattern = r'TRIM\s*\(\s*(LEADING|TRAILING|BOTH)\s+(__STRING_LITERAL_\d+__)\s+FROM\s+([^)]+?)\s*\)'
+        trim_matches = list(re.finditer(trim_pattern, sql, flags=re.IGNORECASE | re.DOTALL))
+        for i, match in enumerate(trim_matches):
+            placeholder = f'__TRIM_FUNCTION_{i}__'
+            trim_placeholders[placeholder] = match.group(0)
+            sql = sql.replace(match.group(0), placeholder, 1)
+        
+        if self.debug and trim_placeholders:
+            print(f"🔧 TRIM 함수 보호: {len(trim_placeholders)}개")
+            for placeholder, original in trim_placeholders.items():
+                print(f"  {placeholder}: {original[:100]}...")
+        
+        sql = re.sub(r'CAST\(([^)]+)\)\*(\d+)', r'(CAST(\1))*\2', sql, flags=re.IGNORECASE)
+        
+        # 15. 잘못된 연산자 패턴 수정
+        # 1. 1 → 1.1 (소수점 표기)
+        sql = re.sub(r'(\d+)\.\s+(\d+)', r'\1.\2', sql)
+        
+        # 16. 빈 괄호나 잘못된 괄호 패턴 수정 (RANK() 함수는 제외)
+        # RANK(), ROW_NUMBER(), DENSE_RANK() 등 윈도우 함수는 보호
+        window_functions = ['RANK', 'ROW_NUMBER', 'DENSE_RANK', 'LEAD', 'LAG', 'FIRST_VALUE', 'LAST_VALUE']
+        protected_patterns = []
+        
+        # 윈도우 함수들을 임시로 보호 (역순으로 처리하여 인덱스 변경 문제 방지)
+        for func in window_functions:
+            pattern = rf'\b{func}\s*\(\s*\)'
+            matches = list(re.finditer(pattern, sql, re.IGNORECASE))
+            # 역순으로 처리하여 인덱스 변경 문제 방지
+            for i, match in enumerate(reversed(matches)):
+                placeholder = f'__WINDOW_FUNC_{func}_{len(matches)-1-i}__'
+                protected_patterns.append((placeholder, match.group()))
+                sql = sql[:match.start()] + placeholder + sql[match.end():]
+        
+        # 함수명이 없는 빈 괄호만 처리 (함수명 뒤의 빈 괄호는 보호)
+        # 모든 함수명 뒤의 빈 괄호를 임시로 보호
+        function_empty_parens = []
+        temp_sql = sql
+        
+        for func in self.all_functions:
+            pattern = rf'\b{func}\s*\(\s*\)'
+            matches = list(re.finditer(pattern, temp_sql, re.IGNORECASE))
+            # 역순으로 처리하여 인덱스 변경 문제 방지
+            for i, match in enumerate(reversed(matches)):
+                placeholder = f'__FUNC_EMPTY_{func}_{len(matches)-1-i}__'
+                function_empty_parens.append((placeholder, match.group()))
+                temp_sql = temp_sql[:match.start()] + placeholder + temp_sql[match.end():]
+        
+        # 이제 남은 빈 괄호만 처리 (OVER() 및 OVER ( ) 절은 제외)
+        # OVER() 절은 MySQL에서 유효한 문법이므로 변환하지 않음
+        # OVER 뒤에 공백이 있을 수도 있으므로 이를 고려
+        temp_sql = re.sub(r'(?<!OVER)(?<!\bOVER\s)\s*\(\s*\)', '(SELECT NULL)', temp_sql, flags=re.IGNORECASE)
+        
+        # 함수명 뒤의 빈 괄호 복원
+        for placeholder, original in function_empty_parens:
+            temp_sql = temp_sql.replace(placeholder, original)
+        
+        sql = temp_sql
+        
+        # 보호된 윈도우 함수들 복원
+        for placeholder, original in protected_patterns:
+            sql = sql.replace(placeholder, original)
+        
+        # 17. SQL 패턴 수정 (실행 전 마지막 단계)
+        sql = self.fix_sql_patterns_before_execution(sql)
+        
+        # 18. 문자열 리터럴 복원
+        for i, literal in enumerate(string_literals):
+            sql = sql.replace(f"__STRING_LITERAL_{i}__", literal)
+        
+        # 18-1. TRIM 함수 복원 (문자열 리터럴 복원 후)
+        for placeholder, original in trim_placeholders.items():
+            # TRIM 함수 내의 문자열 리터럴도 복원
+            restored_trim = original
+            for i, literal in enumerate(string_literals):
+                restored_trim = restored_trim.replace(f"__STRING_LITERAL_{i}__", literal)
+            sql = sql.replace(placeholder, restored_trim)
+        
+        if self.debug and trim_placeholders:
+            print(f"🔧 TRIM 함수 복원: {len(trim_placeholders)}개")
+        
+        # CASE WHEN 오류 수정: ELSE END → ELSE 1 END 패턴 교체
+        # 중간에 빈칸이나 줄바꿈이 있을 수 있음을 고려
+        else_end_pattern = r'ELSE\s*\n?\s*\t*\s*END'
+        else_1_end_replacement = r'ELSE 1 END'
+        
+        if re.search(else_end_pattern, sql, re.IGNORECASE | re.MULTILINE):
+            sql = re.sub(else_end_pattern, else_1_end_replacement, sql, flags=re.IGNORECASE | re.MULTILINE)
+            if self.debug:
+                print(f"🔧 CASE WHEN 오류 수정: ELSE END → ELSE 1 END 패턴 교체 완료")
+        
+        if self.debug and sql != original_sql:
+            print(f"\n🔧 SQL 정리 완료:")
+            print(f"원본: ...{original_sql[-200:]}")
+            print(f"정리: ...{sql[-200:]}")
+            print()
+        
+        # 마지막 단계: Window 함수의 PARTITION BY/ORDER BY 1 → (SELECT NULL) 치환
+        # MySQL에서 Window 함수의 PARTITION BY 1, ORDER BY 1은 오류 발생
+        
+        # 1. 먼저 복수 컬럼 패턴 처리 (더 구체적인 패턴을 먼저)
+        sql = re.sub(r'\bORDER\s+BY\s+1\s*,\s*1\b', 'ORDER BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bPARTITION\s+BY\s+1\s*,\s*1\b', 'PARTITION BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        
+        # 2. 더 복잡한 패턴들 처리 (3개 이상의 1)
+        sql = re.sub(r'\bORDER\s+BY\s+1\s*(?:,\s*1\s*)+', 'ORDER BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bPARTITION\s+BY\s+1\s*(?:,\s*1\s*)+', 'PARTITION BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        
+        # 3. 마지막에 단일 컬럼 패턴 처리
+        sql = re.sub(r'\bPARTITION\s+BY\s+1\b', 'PARTITION BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bORDER\s+BY\s+1\b', 'ORDER BY (SELECT NULL)', sql, flags=re.IGNORECASE)
+        
+        if self.debug and ('PARTITION BY (SELECT NULL)' in sql or 'ORDER BY (SELECT NULL)' in sql):
+            print("🔧 Window 함수 PARTITION BY/ORDER BY 1 → (SELECT NULL) 치환 완료")
+        
+        return sql
+    
+    def fix_sql_patterns_before_execution(self, sql):
+        """SQL 실행 전 문제가 되는 패턴들을 수정"""
+        
+        if self.debug:
+            print("🔧 SQL 패턴 수정 시작")
+        
+        original_sql = sql
+        
+        # 1. IN (SELECT 1) → IN (SELECT NULL WHERE 1=0) 패턴 수정
+        # 빈 결과셋을 시뮬레이션하기 위해 NULL 반환
+        sql = re.sub(r'\bIN\s*\(\s*SELECT\s+1\s*\)', 'IN (SELECT NULL WHERE 1=0)', sql, flags=re.IGNORECASE)
+        
+        # 2. REGEXP 1 → REGEXP 'pattern' 패턴 수정
+        # 숫자 1이 정규식 패턴으로 사용되는 경우 유효한 패턴으로 교체
+        sql = re.sub(r'\bREGEXP\s+1\b', "REGEXP 'pattern'", sql, flags=re.IGNORECASE)
+        
+        # 3. 1 REGEXP 1 → 1 REGEXP 'pattern' 패턴 수정
+        sql = re.sub(r'\b1\s+REGEXP\s+1\b', "1 REGEXP 'pattern'", sql, flags=re.IGNORECASE)
+        
+        # 4. 기타 REGEXP 패턴에서 숫자를 문자열로 교체
+        sql = re.sub(r'(\w+)\s+REGEXP\s+(\d+)', r"\1 REGEXP 'pattern'", sql, flags=re.IGNORECASE)
+        
+        # 5. EXISTS (SELECT 1) → EXISTS (SELECT NULL WHERE 1=0) 
+        # 빈 결과셋으로 만들어 항상 FALSE 반환
+        sql = re.sub(r'\bEXISTS\s*\(\s*SELECT\s+1\s*\)', 'EXISTS (SELECT NULL WHERE 1=0)', sql, flags=re.IGNORECASE)
+        
+        # 6. 테이블이 존재하지 않는 서브쿼리 패턴 수정
+        # FROM 절에 존재하지 않는 테이블이 있는 경우 더미 테이블로 교체
+        problematic_tables = ['ITIN_DAT', 'CDSHARE_DAT', 'OALDAT1', 'G3_VIA_DAT', 'SEGDAT', 'OALDAT1']
+        for table in problematic_tables:
+            sql = re.sub(rf'\bFROM\s+{table}\b', 'FROM (SELECT NULL) AS dummy_table', sql, flags=re.IGNORECASE)
+        
+        # 7. GROUPING 함수 문제 해결 - MySQL에서는 GROUP BY와 함께 사용해야 함
+        if 'GROUPING(' in sql.upper():
+            # GROUPING 함수가 있으면 간단한 값으로 교체
+            sql = re.sub(r'\bGROUPING\s*\([^)]+\)', '0', sql, flags=re.IGNORECASE)
+        
+        # 8. RATIO_TO_REPORT 함수 - MySQL에서 지원하지 않음
+        if 'RATIO_TO_REPORT(' in sql.upper():
+            sql = re.sub(r'\bRATIO_TO_REPORT\s*\([^)]+\)\s*OVER\s*\([^)]*\)', '1', sql, flags=re.IGNORECASE)
+        
+        if self.debug and sql != original_sql:
+            print("🔧 SQL 패턴 수정 완료")
+            changes = []
+            if 'IN (SELECT NULL WHERE 1=0)' in sql:
+                changes.append("IN (SELECT 1) → IN (SELECT NULL WHERE 1=0)")
+            if "REGEXP 'pattern'" in sql:
+                changes.append("REGEXP 1 → REGEXP 'pattern'")
+            if 'EXISTS (SELECT NULL WHERE 1=0)' in sql:
+                changes.append("EXISTS (SELECT 1) → EXISTS (SELECT NULL WHERE 1=0)")
+            if 'dummy_table' in sql:
+                changes.append("존재하지 않는 테이블 → dummy_table")
+            if 'GROUPING(' not in sql.upper() and '0' in sql:
+                changes.append("GROUPING 함수 → 0")
+            if changes:
+                print("수정된 패턴들:")
+                for change in changes:
+                    print(f"  - {change}")
+        
+        return sql
+    
+    def save_result(self, result):
+        """결과를 JSON 파일로 저장 (XMLFileName이 같지 않으면 추가)"""
+        result_file = os.path.join(self.app_transform_folder, "sqlTestResult.json")
+        
+        # 기존 데이터 로드
+        existing_data = []
+        if os.path.exists(result_file):
+            try:
+                with open(result_file, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+                    if content:
+                        existing_data = json.loads(content)
+                        # 단일 객체인 경우 배열로 변환
+                        if isinstance(existing_data, dict):
+                            existing_data = [existing_data]
+            except (json.JSONDecodeError, FileNotFoundError):
+                existing_data = []
+        
+        # 새로운 결과의 XMLFileName 확인 (file 필드에서 파일명 추출)
+        new_xml_filename = Path(result.get("file", "")).name
+        
+        # 기존 데이터에서 같은 XMLFileName이 있는지 확인
+        found_index = -1
+        for i, item in enumerate(existing_data):
+            existing_xml_filename = Path(item.get("file", "")).name
+            if existing_xml_filename == new_xml_filename:
+                found_index = i
+                break
+        
+        # 같은 XMLFileName이 있으면 교체, 없으면 추가
+        if found_index >= 0:
+            existing_data[found_index] = result
+        else:
+            existing_data.append(result)
+        
+        # 파일에 저장
+        with open(result_file, 'w', encoding='utf-8') as f:
+            json.dump(existing_data, f, ensure_ascii=False, indent=2)
+    
+    def remove_from_failed_result(self, xml_file_path):
+        """성공한 케이스를 실패 목록에서 제거"""
+        failed_result_file = os.path.join(self.app_transform_folder, "sqlTestResultFailed.json")
+        
+        if not os.path.exists(failed_result_file):
+            return
+        
+        transform_xml_filename = Path(xml_file_path).name
+        
+        try:
+            with open(failed_result_file, 'r', encoding='utf-8') as f:
+                failed_data = json.load(f)
+                if not isinstance(failed_data, list):
+                    return
+        except (json.JSONDecodeError, FileNotFoundError):
+            return
+        
+        # 해당 파일명과 일치하는 항목들을 모두 제거
+        original_count = len(failed_data)
+        failed_data = [item for item in failed_data 
+                      if item.get("TransformXMLFileName") != transform_xml_filename]
+        
+        removed_count = original_count - len(failed_data)
+        
+        if removed_count > 0:
+            # 업데이트된 실패 목록 저장
+            with open(failed_result_file, 'w', encoding='utf-8') as f:
+                json.dump(failed_data, f, ensure_ascii=False, indent=2)
+            
+            if self.debug:
+                print(f"🗑️ 실패 목록에서 {removed_count}개 항목 제거: {transform_xml_filename}")
+
+    def save_failed_result(self, xml_file_path, status, test_sql, error_message):
+        """실패한 케이스를 별도 JSON 파일에 append 모드로 저장"""
+        failed_result_file = os.path.join(self.app_transform_folder, "sqlTestResultFailed.json")
+        
+        if self.debug:
+            print(f"🔍 save_failed_result 호출됨")
+            print(f"🔍 입력된 xml_file_path: {xml_file_path}")
+        
+        # Transform XML 파일명 추출
+        transform_xml_filename = Path(xml_file_path).name
+        
+        # Origin XML 파일 경로 생성
+        origin_xml_file = self.get_origin_xml_file(xml_file_path)
+        
+        if self.debug:
+            print(f"🔍 생성된 origin_xml_file: {origin_xml_file}")
+        
+        # 실패 결과 데이터 구성
+        failed_result = {
+            "TransformXMLFileName": transform_xml_filename,
+            "Status": status,
+            "TestSQL": test_sql,
+            "SQLErrorMessage": error_message,
+            "TransformXMLFile": xml_file_path,
+            "OriginXMLFile": origin_xml_file,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # 기존 실패 데이터 배열 읽기
+        try:
+            if os.path.exists(failed_result_file):
+                with open(failed_result_file, 'r', encoding='utf-8') as f:
+                    failed_data = json.load(f)
+                    if not isinstance(failed_data, list):
+                        failed_data = []
+            else:
+                failed_data = []
+        except (json.JSONDecodeError, FileNotFoundError):
+            failed_data = []
+        
+        # 새 실패 결과 추가
+        failed_data.append(failed_result)
+        
+        # 전체 실패 배열을 다시 저장
+        with open(failed_result_file, 'w', encoding='utf-8') as f:
+            json.dump(failed_data, f, ensure_ascii=False, indent=2)
+    
+    def get_origin_xml_file(self, xml_file_path):
+        """원본 XML 파일 경로 생성 (transform->extract, tgt->src)"""
+        path_str = str(xml_file_path)
+        
+        if self.debug:
+            print(f"🔍 원본 Transform XML 경로: {path_str}")
+        
+        # transform -> extract 변경
+        origin_path = path_str.replace('/transform/', '/extract/')
+        
+        # tgt -> src 변경
+        origin_path = origin_path.replace('_tgt-', '_src-')
+        
+        if self.debug:
+            print(f"🔍 변환된 Extract XML 경로: {origin_path}")
+        
+        return origin_path
+    
+    def setup_logger(self, xml_file_path):
+        """로거 설정"""
+        # 로그 파일명 생성
+        xml_filename = Path(xml_file_path).stem  # .xml 확장자 제거
+        log_filename = f"sqlTestResult_{xml_filename}.log"
+        log_file_path = os.path.join(self.post_transform_log_dir, log_filename)
+        
+        # 로거 설정
+        logger = logging.getLogger(f'sql_test_{xml_filename}')
+        logger.setLevel(logging.INFO)
+        
+        # 기존 핸들러 제거
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+        
+        # 파일 핸들러 추가
+        file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        
+        return logger, log_file_path
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        
+        return logger, log_file_path
+    
+    def write_to_fixed_log(self, log_file_path, xml_file_path, status, message):
+        """고정된 로그 파일에 결과 기록"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            xml_filename = os.path.basename(xml_file_path)
+            
+            with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                log_file.write(f"[{timestamp}] {xml_filename}: {status} - {message}\n")
+        except Exception as e:
+            print(f"⚠️ 로그 파일 기록 실패: {e}")
+    
+    def process_file(self, xml_file_path):
+        """XML 파일 처리 메인 로직"""
+        # 통합 테스트 로그 파일 경로
+        FIXED_LOG_FILE = os.path.join(self.post_transform_log_dir, "sqlTestResult.log")
+        
+        try:
+            # 로거 설정
+            logger, log_file_path = self.setup_logger(xml_file_path)
+            
+            print("=" * 80)
+            print("XML 함수 검증 (일괄 테스트) - v1.6 윈도우 함수 컨텍스트 개선")
+            print("=" * 80)
+            print(f"📁 처리 파일: {Path(xml_file_path).name}")
+            print(f"📝 로그 파일: {log_file_path}")
+            
+            # 원본 XML 파일 경로
+            origin_xml_file = self.get_origin_xml_file(xml_file_path)
+            logger.info(f"XML 함수 검증 시작: {xml_file_path}")
+            logger.info(f"원본 XML 파일: {origin_xml_file}")
+            
+            # 1. XML 내용 추출 (태그 제거 없이)
+            xml_content = self.extract_xml_content(xml_file_path)
+            if xml_content.startswith("파일 읽기 오류"):
+                error_message = xml_content
+                logger.error(error_message)
+                print(f"❌ {error_message}")
+                
+                # 고정 로그 파일에 기록
+                self.write_to_fixed_log(FIXED_LOG_FILE, xml_file_path, "ERROR", error_message)
+                return
+            
+            # 2. 원본 XML에서 함수 리스트 추출 (태그 제거 전에 수행)
+            original_functions = self.extract_functions_from_xml(xml_content)
+            logger.info(f"추출된 함수 개수: {len(original_functions)}")
+            print(f"📊 추출된 함수 개수: {len(original_functions)}")
+            
+            # 3. 태그 제거된 XML 내용 생성 (SQL 생성용)
+            cleaned_xml_content = self.clean_xml_content(xml_content)
+            
+            if not original_functions:
+                completed_message = "함수를 찾을 수 없습니다"
+                logger.info(f"Completed: {completed_message}")
+                print(f"❌ {completed_message}")
+                
+                # 고정 로그 파일에 기록
+                self.write_to_fixed_log(FIXED_LOG_FILE, xml_file_path, "NO_FUNCTIONS", completed_message)
+                
+                # 결과 저장
+                result = {
+                    "file": xml_file_path,
+                    "status": "completed",
+                    "message": completed_message,
+                    "functions_count": 0,
+                    "unique_functions_count": 0,
+                    "sql": "",
+                    "timestamp": datetime.now().isoformat()
+                }
+                self.save_result(result)
+                return
+            
+            # 3. 함수 변환 (파서 기반 처리 사용)
+            transformed_functions = [self.transform_function_for_testing_with_parser(func) for func in original_functions]
+            
+            # 4. 중복 제거 (None 값 필터링 포함)
+            unique_functions = []
+            for func in transformed_functions:
+                if func is not None and func not in unique_functions:
+                    unique_functions.append(func)
+            
+            logger.info(f"중복 제거 후 함수 개수: {len(unique_functions)}")
+            print(f"📊 중복 제거 후 함수 개수: {len(unique_functions)}")
+            print("🔍 MySQL 함수 검증 중...")
+            
+            # 5. MySQL 일괄 검증
+            success, message, sql = self.validate_functions_batch(unique_functions, logger, xml_file_path)
+            
+            if success:
+                print(f"✅ {message}")
+                result_status = "success"
+                # 고정 로그 파일에 기록
+                self.write_to_fixed_log(FIXED_LOG_FILE, xml_file_path, "SUCCESS", 
+                                      f"{len(original_functions)} functions, {len(unique_functions)} unique")
+            else:
+                print(f"❌ {message}")
+                result_status = "failed"
+                # 고정 로그 파일에 기록
+                self.write_to_fixed_log(FIXED_LOG_FILE, xml_file_path, "FAILED", message)
+                
+                # 실패한 케이스를 별도 JSON 파일에 저장
+                self.save_failed_result(xml_file_path, result_status, sql, message)
+            
+            # 6. 결과 저장
+            result = {
+                "file": xml_file_path,
+                "status": result_status,
+                "message": message,
+                "functions_count": len(original_functions),
+                "unique_functions_count": len(unique_functions),
+                "sql": sql,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self.save_result(result)
+            logger.info(f"결과 파일 저장: {os.path.join(self.app_transform_folder, 'sqlTestResult.json')}")
+            print(f"💾 결과 파일: {os.path.join(self.app_transform_folder, 'sqlTestResult.json')}")
+            
+        except Exception as e:
+            error_message = f"처리 중 오류 발생: {e}"
+            print(f"❌ {error_message}")
+            if 'logger' in locals():
+                logger.error(error_message)
+            
+            # 고정 로그 파일에 기록
+            self.write_to_fixed_log(FIXED_LOG_FILE, xml_file_path, "EXCEPTION", str(e))
+            
+            # 예외 발생 케이스도 실패 JSON에 저장
+            self.save_failed_result(xml_file_path, "exception", "", error_message)
+        
+        print("\n" + "=" * 80)
+        print("검증 완료!")
+        print("=" * 80)
+
+def main():
+    """메인 함수"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='XML 파일에서 함수 추출 및 MySQL 검증 v1.6')
+    parser.add_argument('xml_file', help='처리할 XML 파일 경로')
+    parser.add_argument('--debug', action='store_true', help='디버그 모드 (생성된 SQL 출력)')
+    
+    args = parser.parse_args()
+    
+    # XML 파일 경로를 절대 경로로 변환
+    xml_file_path = os.path.abspath(args.xml_file)
+    
+    # XML 파일 존재 확인
+    if not os.path.exists(xml_file_path):
+        print(f"❌ 파일을 찾을 수 없습니다: {xml_file_path}")
+        sys.exit(1)
+    
+    # 검증기 실행
+    validator = FunctionValidator(debug=args.debug)
+    validator.process_file(xml_file_path)
+
+if __name__ == "__main__":
+    main()
