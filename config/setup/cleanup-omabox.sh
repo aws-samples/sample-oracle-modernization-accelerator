@@ -1,16 +1,47 @@
 #!/bin/bash
 
-# OMABox EC2 Instance Cleanup Script
-echo "=== OMABox EC2 Instance Cleanup ==="
+# OMABox EC2 Instance Enhanced Cleanup Script
+echo "=== OMABox EC2 Instance Enhanced Cleanup ==="
 echo ""
 
 read -p "Enter AWS Region [ap-northeast-2]: " REGION
 REGION=${REGION:-ap-northeast-2}
 
+# Target Database Selection
+echo ""
+echo "=== Target Database Selection ==="
+echo "Available options:"
+echo "  postgres  - Aurora PostgreSQL"
+echo "  mysql     - Aurora MySQL"
+echo ""
+read -p "Enter Target Database (postgres/mysql): " TARGET_DB
+
+# Validate target database input
+case "$TARGET_DB" in
+    "postgres"|"postgresql")
+        TARGET_DB="postgres"
+        TARGET_DB_NAME="PostgreSQL"
+        TARGET_SECRET_PREFIX="postgres"
+        echo "✅ Selected: Aurora PostgreSQL"
+        ;;
+    "mysql")
+        TARGET_DB_NAME="MySQL"
+        TARGET_SECRET_PREFIX="mysql"
+        echo "✅ Selected: Aurora MySQL"
+        ;;
+    *)
+        echo "❌ Invalid target database: $TARGET_DB"
+        echo "Please enter 'postgres' or 'mysql'"
+        exit 1
+        ;;
+esac
+
 STACK_NAME="omabox-stack"
 
+echo ""
 echo "🗑️  Cleaning up OMABox resources..."
 echo "Region: $REGION"
+echo "Target Database: $TARGET_DB_NAME"
 echo "Stack: $STACK_NAME"
 echo ""
 
@@ -22,7 +53,8 @@ if [[ "$DELETE_SECRETS" =~ ^[Yy]$ ]]; then
     echo ""
     echo "=== Deleting Secrets Manager Secrets ==="
     
-    SECRETS=("oma-secret-oracle-admin" "oma-secret-oracle-service" "oma-secret-postgres-admin" "oma-secret-postgres-service")
+    # Define secrets based on target database
+    SECRETS=("oma-secret-oracle-admin" "oma-secret-oracle-service" "oma-secret-${TARGET_SECRET_PREFIX}-admin" "oma-secret-${TARGET_SECRET_PREFIX}-service")
     
     for SECRET in "${SECRETS[@]}"; do
         echo "Deleting secret: $SECRET"
@@ -50,7 +82,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "📋 Resources being deleted:"
     echo "- EC2 Instance (OMABox)"
-    echo "- Aurora PostgreSQL Cluster and Instance"
+    echo "- Aurora $TARGET_DB_NAME Cluster and Instance"
     echo "- DMS Replication Instance and Target Endpoint"
     echo "- IAM Roles (EC2, DMS VPC, DMS CloudWatch)"
     echo "- Security Groups (EC2, Database, VPC Endpoints)"
@@ -58,7 +90,7 @@ if [ $? -eq 0 ]; then
     echo "- KMS Key and Alias"
     echo "- DB Subnet Group and DMS Subnet Group"
     if [[ "$DELETE_SECRETS" =~ ^[Yy]$ ]]; then
-        echo "- Secrets Manager Secrets (Oracle and PostgreSQL)"
+        echo "- Secrets Manager Secrets (Oracle and $TARGET_DB_NAME)"
     else
         echo "- Secrets Manager Secrets will be retained"
     fi
