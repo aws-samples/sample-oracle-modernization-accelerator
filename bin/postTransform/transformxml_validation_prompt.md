@@ -3,7 +3,7 @@ Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentConte
 
 **Language Instruction**: 모든 메시지, 프롬프트, 사용자 상호작용은 한국어로 표시되어야 합니다.
 
-**IMPORTANT**: 이 프로세스는 대화형 사용자 입력이 필요합니다. 시스템은 지정된 지점에서 일시 정지하고 사용자 입력을 기다려야 합니다. 사용자 입력 섹션을 건너뛰거나 자동으로 채우지 마십시오.
+**IMPORTANT**: 이 프로세스는 예외 기반 승인 방식으로 진행됩니다. 파일 리스트를 먼저 생성하고, 문제가 없는 파일들은 자동으로 처리하며, 오류가 발견된 파일에 대해서만 사용자 승인을 받습니다.
 
 ## 목표
 TransformXML의 문법적 완결성을 확인하고 수정합니다. TransformXML은 $SOURCE_DBMS_TYPE에서 $TARGET_DBMS_TYPE으로 변경된 SQL을 포함하는 XML 파일입니다. $TARGET_DBMS_TYPE의 전문가로서 변경된 SQL을 검증하고 오류가 있을 시 수정을 수행해야 합니다.
@@ -22,15 +22,25 @@ TransformXML의 문법적 완결성을 확인하고 수정합니다. TransformXM
 
 ## 핵심 원칙
 1. **개별 파일 검증**: 각 XML 파일은 개별적으로 분석되어야 함 (패턴 방식의 일괄 수정 금지)
-2. **사용자 승인 필수**: 모든 수정 사항은 사용자 승인 후 실행
-3. **전체 파일 검증**: 모든 TransformXML 파일에 대해 문법적 완결성 확인 필수
-4. **안전한 백업**: 수정 전 백업 파일 생성 (파일명_backup_YYYYMMDD_HHMMSS.xml)
+2. **예외 기반 승인**: 오류가 발견된 파일에 대해서만 사용자 승인 필요
+3. **자동 진행**: 문제가 없는 파일들은 자동으로 다음 파일로 진행
+4. **전체 파일 검증**: 모든 TransformXML 파일에 대해 문법적 완결성 확인 필수
+5. **안전한 백업**: 수정 전 백업 파일 생성 (파일명_backup_YYYYMMDD_HHMMSS.xml)
 
 ---
 
 ## Task Instructions
 
-### 0. 시스템 초기화 및 파일 스캔
+### 0. 환경변수 검증 및 시스템 초기화
+
+**환경변수 검증**:
+```bash
+# 필수 환경변수 존재 여부 확인
+echo "APP_TOOLS_FOLDER: ${APP_TOOLS_FOLDER:-'❌ 미설정'}"
+echo "APP_LOGS_FOLDER: ${APP_LOGS_FOLDER:-'❌ 미설정'}"
+echo "SOURCE_DBMS_TYPE: ${SOURCE_DBMS_TYPE:-'❌ 미설정'}"
+echo "TARGET_DBMS_TYPE: ${TARGET_DBMS_TYPE:-'❌ 미설정'}"
+```
 
 **시스템 설정 표시**:
 ```
@@ -44,77 +54,85 @@ $SOURCE_DBMS_TYPE → $TARGET_DBMS_TYPE SQL 변환 검증 및 수정
 - TransformXML: $APP_LOGS_FOLDER/mapper/*/transform/*.xml
 - OriginXML: $APP_LOGS_FOLDER/mapper/*/extract/*.xml
 
-검증 범위: 전체 TransformXML 파일
-수정 방식: 개별 파일별 검증 및 승인
+검증 방식: 예외 기반 승인 (오류 발견 시에만 사용자 승인)
 전문가 모드: $TARGET_DBMS_TYPE 전문가
 
 ================================
 ```
 
-**전체 TransformXML 파일 스캔**:
+**전체 TransformXML 파일 스캔 및 처리 계획**:
 1. `$APP_LOGS_FOLDER/mapper/*/transform/*.xml` 경로에서 모든 XML 파일 검색
 2. 각 파일의 기본 정보 수집 (파일명, 크기, 수정일)
-3. 파일 목록을 사용자에게 표시
+3. 파일 목록을 사용자에게 표시하고 처리 시작
 
-**파일 목록 표시**:
+**파일 목록 및 처리 계획 표시**:
 ```
 ================================
-TransformXML 파일 스캔 결과
+TransformXML 파일 스캔 결과 및 처리 계획
 ================================
 
 📁 스캔 경로: $APP_LOGS_FOLDER/mapper/*/transform/
 📊 발견된 파일 수: [total_count]개
 
 📋 파일 목록:
-[번호] [파일명] [크기] [수정일] [상태]
-1. transform_user_001_tgt.xml (2.3KB) 2025-07-30 [미검증]
-2. transform_product_002_tgt.xml (1.8KB) 2025-07-30 [미검증]
+[번호] [파일명] [크기] [수정일]
+1. transform_user_001_tgt.xml (2.3KB) 2025-07-30
+2. transform_product_002_tgt.xml (1.8KB) 2025-07-30
 ...
 
+🔄 처리 방식:
+- 각 파일을 순차적으로 검증
+- 문제가 없는 파일: 자동으로 다음 파일 진행
+- 오류 발견 시: 사용자 승인 후 수정 진행
+- 전체 진행 상황을 실시간으로 표시
+
 ================================
-검증을 시작하시겠습니까? (y/n/s/q)
-y: 예, 순차적 검증 시작
+검증을 시작하시겠습니까? (y/n/q)
+y: 예, 검증 시작
 n: 아니오, 특정 파일만 선택
-s: 설정 변경
 q: 종료
 ================================
 ```
 
 **STOP HERE - WAIT FOR USER INPUT**
 
-시스템은 이 지점에서 일시 정지하고 사용자가 y, n, s, q 중 하나를 입력할 때까지 기다려야 합니다.
+시스템은 이 지점에서 일시 정지하고 사용자가 y, n, q 중 하나를 입력할 때까지 기다려야 합니다.
 
-### 1. 개별 파일 문법적 완결성 검증
+### 1. 개별 파일 문법적 완결성 검증 (자동 진행)
 
 각 TransformXML 파일에 대해 다음 단계를 수행:
 
-**1.1 파일 분석 시작**:
+**1.1 파일 분석 진행 상황 표시**:
 ```
 ================================
-파일 분석 중 ([current]/[total])
+파일 검증 진행 중 ([current]/[total])
 ================================
 
 📁 현재 파일: [transform_xml_filename]
 📄 대응 원본: [origin_xml_filename]
 🔍 분석 상태: 진행 중...
 
-XML 구조 검증:
-✅ XML 형식 유효성
-✅ 필수 태그 존재 여부
-✅ 인코딩 확인
-
-SQL 내용 분석:
-🔍 SQL 구문 추출 중...
+✅ XML 구조 검증 완료
+✅ SQL 구문 추출 완료
 🔍 $TARGET_DBMS_TYPE 호환성 검사 중...
-🔍 문법 오류 검색 중...
-
-================================
 ```
 
-**1.2 상세 분석 결과**:
+**1.2 검증 결과에 따른 자동 분기**:
+
+**A) 문제가 없는 경우 (자동 진행)**:
+```
+✅ [transform_xml_filename] 검증 완료 - 문제 없음
+   - XML 구조: 정상
+   - SQL 구문: [sql_count]개 모두 정상
+   - $TARGET_DBMS_TYPE 호환성: 100%
+   
+🔄 다음 파일로 자동 진행...
+```
+
+**B) 오류 발견 시 (사용자 승인 필요)**:
 ```
 ================================
-파일 분석 결과: [transform_xml_filename]
+⚠️  오류 발견: [transform_xml_filename]
 ================================
 
 📊 기본 정보:
@@ -126,44 +144,36 @@ SQL 내용 분석:
    ✅ XML 형식: 유효
    ✅ 인코딩: UTF-8
    ✅ 필수 태그: 모두 존재
-   ✅ 네임스페이스: 정상
 
-🎯 SQL 문법 검증 ($TARGET_DBMS_TYPE 관점):
+❌ SQL 문법 검증 결과 ($TARGET_DBMS_TYPE 관점):
    📋 총 SQL 구문: [total_sql_count]개
-   ✅ 문법적으로 올바른 구문: [valid_sql_count]개
-   ❌ 문법 오류 발견: [error_sql_count]개
+   ✅ 정상 구문: [valid_sql_count]개
+   ❌ 오류 구문: [error_sql_count]개
    ⚠️  경고 사항: [warning_count]개
 
-❌ 발견된 문법 오류:
+❌ 발견된 주요 오류:
    1. [SQL_ID_1]: [error_description_1]
-      위치: [error_location_1]
-      오류 유형: [error_type_1]
-      
    2. [SQL_ID_2]: [error_description_2]
-      위치: [error_location_2]
-      오류 유형: [error_type_2]
+   [... 최대 5개까지 표시]
 
-⚠️  경고 사항:
-   1. [warning_description_1]
-   2. [warning_description_2]
-
-🔧 $TARGET_DBMS_TYPE 최적화 기회:
-   - [optimization_opportunity_1]
-   - [optimization_opportunity_2]
+🔧 수정 필요 사항:
+   - 구문 오류: [syntax_error_count]개
+   - 함수 변환: [function_error_count]개
+   - 데이터 타입: [datatype_error_count]개
 
 ================================
 이 파일을 수정하시겠습니까? (y/n/s/d/q)
 y: 예, 수정 진행
-n: 아니오, 다음 파일로 이동
+n: 아니오, 건너뛰고 다음 파일로
 s: 건너뛰기 (나중에 수정)
 d: 상세 오류 내용 표시
-q: 검증 중단
+q: 전체 검증 중단
 ================================
 ```
 
-**STOP HERE - WAIT FOR USER DECISION**
+**STOP HERE - WAIT FOR USER DECISION (오류 발견 시에만)**
 
-시스템은 사용자가 y, n, s, d, q 중 하나를 선택할 때까지 기다려야 합니다.
+시스템은 오류가 발견된 파일에 대해서만 사용자 결정을 기다립니다.
 
 ### 2. 오류 상세 분석 및 수정 계획 수립
 
@@ -268,16 +278,9 @@ q: 취소하고 다음 파일로
    - 제거된 오류: [fixed_error_count]개
    - 남은 경고: [remaining_warning_count]개
 
-================================
-수정이 완료되었습니다. 다음 파일로 진행하시겠습니까? (y/n/r/q)
-y: 예, 다음 파일 검증
-n: 아니오, 이 파일 재검증
-r: 수정 내용 검토
-q: 전체 검증 종료
-================================
-```
+✅ 수정 완료! 다음 파일로 자동 진행합니다...
 
-**STOP HERE - WAIT FOR USER DECISION**
+================================
 
 ### 4. 전체 검증 완료 및 보고서 생성
 
@@ -344,7 +347,9 @@ q: 전체 검증 종료
 - 모범 사례 적용
 
 ### 4. 사용자 상호작용
-- 모든 중요 단계에서 사용자 확인 필수
+- 시작 시 전체 파일 목록 확인 필수
+- 오류 발견 시에만 사용자 확인 필요
+- 정상 파일은 자동으로 다음 파일 진행
 - 명확한 선택지 제공 (y/n/s/q 등)
 - 상세 정보 요청 시 추가 정보 제공
 - 언제든지 중단 가능
