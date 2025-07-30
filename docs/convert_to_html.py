@@ -81,6 +81,16 @@ PAGE_INFO = {
         'description': 'Java 애플리케이션 코드 변환 및 최적화',
         'breadcrumb': '결과 통합 > Java 변환'
     },
+    '5-1.processUIErrorXMLFix.md': {
+        'title': 'UI 오류-XML 재수정',
+        'description': 'UI 관련 XML 오류 재수정 작업',
+        'breadcrumb': 'UI 오류 수정 > UI 오류-XML 재수정'
+    },
+    'ui-error-fix.md': {
+        'title': 'UI 오류 수정',
+        'description': 'UI 관련 XML 오류 수정 작업',
+        'breadcrumb': 'UI 오류 수정'
+    },
     'useful-tools.md': {
         'title': '유용한 툴들',
         'description': 'OMA 프로젝트에서 활용할 수 있는 유용한 도구들',
