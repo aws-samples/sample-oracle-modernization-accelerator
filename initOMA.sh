@@ -427,6 +427,75 @@ execute_post_result_analysis() {
     print_separator
 }
 
+# MyBatis SQL Test 실행
+execute_mybatis_sql_test() {
+    print_separator
+    echo -e "${BLUE}${BOLD}(Experimental) MyBatis SQL Test를 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}MyBatis SQL Test를 수행합니다...${NC}"
+    echo ""
+    
+    # Source/Target 선택
+    echo -e "${YELLOW}${BOLD}테스트할 데이터베이스를 선택하세요:${NC}"
+    echo -e "${CYAN}1. Source (Oracle)${NC}"
+    echo -e "${CYAN}2. Target (PostgreSQL/MySQL)${NC}"
+    echo ""
+    echo -ne "${BLUE}${BOLD}데이터베이스 선택 (1 또는 2): ${NC}"
+    read db_choice
+    
+    case $db_choice in
+        1)
+            dbms_param="src"
+            db_name="Source (Oracle)"
+            ;;
+        2)
+            dbms_param="tgt"
+            db_name="Target (PostgreSQL/MySQL)"
+            ;;
+        *)
+            echo -e "${RED}잘못된 선택입니다. 1 또는 2를 입력하세요.${NC}"
+            return 1
+            ;;
+    esac
+    
+    echo -e "${GREEN}선택된 데이터베이스: $db_name${NC}"
+    echo ""
+    
+    # 테스트 범위 입력
+    echo -e "${YELLOW}${BOLD}테스트할 SQL 범위를 입력하세요:${NC}"
+    echo -e "${CYAN}- 숫자 입력: 해당 개수만큼 테스트${NC}"
+    echo -e "${CYAN}- ALL 입력: 전체 SQL 테스트${NC}"
+    echo ""
+    echo -ne "${BLUE}${BOLD}테스트 범위 (숫자 또는 ALL): ${NC}"
+    read test_limit
+    
+    if [ -f "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" ]; then
+        echo -e "${CYAN}mybatis_db_test.py를 실행합니다...${NC}"
+        
+        if [[ "$test_limit" =~ ^[Aa][Ll][Ll]$ ]]; then
+            echo -e "${BLUE}${BOLD}python3 $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py --dbms $dbms_param${NC}"
+            python3 "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" --dbms "$dbms_param"
+        elif [[ "$test_limit" =~ ^[0-9]+$ ]]; then
+            echo -e "${BLUE}${BOLD}python3 $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py --dbms $dbms_param --limit $test_limit${NC}"
+            python3 "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" --dbms "$dbms_param" --limit "$test_limit"
+        else
+            echo -e "${RED}잘못된 입력입니다. 숫자 또는 ALL을 입력하세요.${NC}"
+            return 1
+        fi
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}MyBatis SQL Test가 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}MyBatis SQL Test 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    
+    print_separator
+}
+
 # Post 변환 작업 서브 메뉴
 show_post_transform_menu() {
     while true; do
@@ -438,10 +507,11 @@ show_post_transform_menu() {
         echo -e "${CYAN}3. (MySQL) Target DBMS Function 문법 오류 수정${NC}"
         echo ""
         echo -e "${CYAN}4. (MySQL) POST 결과 분석${NC}"
+        echo -e "${CYAN}5. (Experimental) MyBatis SQL Test${NC}"
         echo -e "${YELLOW}b. 상위 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,4,b,q): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -460,6 +530,10 @@ show_post_transform_menu() {
             4)
                 clear
                 execute_post_result_analysis
+                ;;
+            5)
+                clear
+                execute_mybatis_sql_test
                 ;;
             b|B)
                 clear
