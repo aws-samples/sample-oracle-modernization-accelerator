@@ -666,53 +666,55 @@ class MyBatisDbTester:
         self.db_connectors = {}
     
     def setup_db_connections(self, dbms_type: str = None) -> bool:
-        """DB 연결 설정"""
+        """DB 연결 설정 - 환경변수에 따라 연결할 DB 결정"""
         # DBMS 타입에 따른 연결 설정
         if dbms_type == 'src':
-            # Oracle만 연결
+            # Oracle만 연결 (환경변수가 설정된 경우에만)
             oracle_config = EnvironmentConfig.get_oracle_config()
-            if oracle_config and ORACLE_AVAILABLE:
+            if oracle_config and oracle_config.host and ORACLE_AVAILABLE:
                 self.db_connectors['oracle'] = DatabaseConnector(oracle_config)
                 if not self.db_connectors['oracle'].connect():
                     logger.warning("Oracle 연결 실패")
         elif dbms_type == 'tgt':
-            # PostgreSQL과 MySQL만 연결
+            # PostgreSQL과 MySQL 중 환경변수가 설정된 것만 연결
             mysql_config = EnvironmentConfig.get_mysql_config()
-            if mysql_config and MYSQL_AVAILABLE:
+            if mysql_config and mysql_config.host and MYSQL_AVAILABLE:
                 self.db_connectors['mysql'] = DatabaseConnector(mysql_config)
                 if not self.db_connectors['mysql'].connect():
                     logger.warning("MySQL 연결 실패")
             
             pg_config = EnvironmentConfig.get_postgresql_config()
-            if pg_config and POSTGRESQL_AVAILABLE:
+            if pg_config and pg_config.host and POSTGRESQL_AVAILABLE:
                 self.db_connectors['postgresql'] = DatabaseConnector(pg_config)
                 if not self.db_connectors['postgresql'].connect():
                     logger.warning("PostgreSQL 연결 실패")
         else:
-            # all인 경우 모든 DB 연결
+            # all인 경우 환경변수가 설정된 모든 DB 연결
             oracle_config = EnvironmentConfig.get_oracle_config()
-            if oracle_config and ORACLE_AVAILABLE:
+            if oracle_config and oracle_config.host and ORACLE_AVAILABLE:
                 self.db_connectors['oracle'] = DatabaseConnector(oracle_config)
                 if not self.db_connectors['oracle'].connect():
                     logger.warning("Oracle 연결 실패")
             
             mysql_config = EnvironmentConfig.get_mysql_config()
-            if mysql_config and MYSQL_AVAILABLE:
+            if mysql_config and mysql_config.host and MYSQL_AVAILABLE:
                 self.db_connectors['mysql'] = DatabaseConnector(mysql_config)
                 if not self.db_connectors['mysql'].connect():
                     logger.warning("MySQL 연결 실패")
             
             pg_config = EnvironmentConfig.get_postgresql_config()
-            if pg_config and POSTGRESQL_AVAILABLE:
+            if pg_config and pg_config.host and POSTGRESQL_AVAILABLE:
                 self.db_connectors['postgresql'] = DatabaseConnector(pg_config)
                 if not self.db_connectors['postgresql'].connect():
                     logger.warning("PostgreSQL 연결 실패")
         
         return len(self.db_connectors) > 0
     
-    def test_directory(self, directory: str, dbms_type: str = None) -> Dict[str, Any]:
+    def test_directory(self, directory: str, dbms_type: str = None, limit: int = None) -> Dict[str, Any]:
         """디렉토리 테스트"""
         logger.info(f"디렉토리 파싱 중: {directory} (DBMS: {dbms_type or 'all'})")
+        if limit:
+            logger.info(f"테스트 제한: {limit}개")
         
         # DB 연결 설정
         if not self.setup_db_connections(dbms_type):
@@ -730,11 +732,18 @@ class MyBatisDbTester:
             'dbms_type': dbms_type or 'all',
             'sql_fragments': list(self.parser.sql_fragments.keys()),
             'files': [],
-            'db_connections': list(self.db_connectors.keys())
+            'db_connections': list(self.db_connectors.keys()),
+            'limit': limit
         }
         
+        # 파일 개수 제한 적용
+        file_items = list(xml_files.items())
+        if limit:
+            file_items = file_items[:limit]
+            logger.info(f"파일 개수를 {limit}개로 제한합니다.")
+        
         # 각 파일 테스트
-        for xml_file, elements in xml_files.items():
+        for xml_file, elements in file_items:
             file_result = self._test_file(xml_file, elements)
             results['files'].append(file_result)
         
@@ -862,6 +871,46 @@ class MyBatisDbTester:
         
         return params
 
+def _classify_db_error(error_msg: str) -> str:
+    """DB 오류 메시지를 유형별로 분류"""
+    error_msg_lower = error_msg.lower()
+    
+    if 'table' in error_msg_lower and ('not found' in error_msg_lower or 'does not exist' in error_msg_lower):
+        return 'TABLE_NOT_FOUND'
+    elif 'column' in error_msg_lower and ('not found' in error_msg_lower or 'does not exist' in error_msg_lower):
+        return 'COLUMN_NOT_FOUND'
+    elif 'syntax error' in error_msg_lower or 'sql syntax' in error_msg_lower:
+        return 'SYNTAX_ERROR'
+    elif 'connection' in error_msg_lower and ('refused' in error_msg_lower or 'timeout' in error_msg_lower):
+        return 'CONNECTION_ERROR'
+    elif 'permission' in error_msg_lower or 'access denied' in error_msg_lower:
+        return 'PERMISSION_ERROR'
+    elif 'constraint' in error_msg_lower or 'foreign key' in error_msg_lower:
+        return 'CONSTRAINT_ERROR'
+    elif 'data type' in error_msg_lower or 'type mismatch' in error_msg_lower:
+        return 'DATA_TYPE_ERROR'
+    elif 'timeout' in error_msg_lower:
+        return 'TIMEOUT_ERROR'
+    else:
+        return 'OTHER_DB_ERROR'
+
+def _classify_general_error(error_msg: str) -> str:
+    """일반 오류 메시지를 유형별로 분류"""
+    error_msg_lower = error_msg.lower()
+    
+    if 'xml' in error_msg_lower and 'parsing' in error_msg_lower:
+        return 'XML_PARSING_ERROR'
+    elif 'parameter' in error_msg_lower and 'not found' in error_msg_lower:
+        return 'PARAMETER_ERROR'
+    elif 'include' in error_msg_lower and 'not found' in error_msg_lower:
+        return 'INCLUDE_ERROR'
+    elif 'sql' in error_msg_lower and 'processing' in error_msg_lower:
+        return 'SQL_PROCESSING_ERROR'
+    elif 'file' in error_msg_lower and ('not found' in error_msg_lower or 'does not exist' in error_msg_lower):
+        return 'FILE_NOT_FOUND'
+    else:
+        return 'OTHER_ERROR'
+
 def main():
     """메인 함수"""
     parser = argparse.ArgumentParser(description='실제 DB 연결을 통한 MyBatis XML 테스터')
@@ -869,6 +918,7 @@ def main():
                        help='DBMS 타입 (src: Oracle, tgt: PostgreSQL/MySQL, all: 전체)')
     parser.add_argument('--output', help='결과 파일명')
     parser.add_argument('--directory', help='매퍼 디렉토리 경로')
+    parser.add_argument('--limit', type=int, help='테스트할 최대 개수 (없으면 전체 테스트)')
     
     args = parser.parse_args()
     
@@ -887,7 +937,7 @@ def main():
         sys.exit(1)
     
     tester = MyBatisDbTester()
-    results = tester.test_directory(base_mapper_path, args.dbms)
+    results = tester.test_directory(base_mapper_path, args.dbms, args.limit)
     
     if 'error' in results:
         print(f"❌ 오류: {results['error']}")
@@ -900,6 +950,10 @@ def main():
     print(f"DB 연결: {', '.join(results['db_connections'])}")
     print(f"SQL 조각 개수: {len(results['sql_fragments'])}")
     print(f"파일 개수: {len(results['files'])}")
+    if args.limit:
+        print(f"테스트 제한: {args.limit}개")
+    else:
+        print(f"테스트 제한: 전체")
     
     if results['sql_fragments']:
         print(f"SQL 조각들: {', '.join(results['sql_fragments'])}")
@@ -908,6 +962,10 @@ def main():
     success_count = 0
     error_count = 0
     db_error_count = 0
+    
+    # 오류 유형별 통계 수집
+    error_stats = {}
+    db_error_stats = {}
     
     # DBMS별로 그룹화하여 출력
     dbms_groups = {}
@@ -941,9 +999,16 @@ def main():
                                 affected_rows = result.get('affected_rows', 0)
                                 print(f"    {db_name.upper()}: {affected_rows}행 영향 (롤백됨)")
                         else:
-                            print(f"    {db_name.upper()}: 실패 - {result.get('error', 'Unknown error')}")
+                            error_msg = result.get('error', 'Unknown error')
+                            print(f"    {db_name.upper()}: 실패 - {error_msg}")
                             element_has_error = True
                             db_error_count += 1
+                            
+                            # DB 오류 유형별 통계
+                            error_type = _classify_db_error(error_msg)
+                            if error_type not in db_error_stats:
+                                db_error_stats[error_type] = 0
+                            db_error_stats[error_type] += 1
                 
                 if not element_has_error:
                     success_count += 1
@@ -951,7 +1016,14 @@ def main():
                     error_count += 1
             else:
                 error_count += 1
-                print(f"  ✗ {element['id']} ({element['type']}): {element['error']}")
+                error_msg = element.get('error', 'Unknown error')
+                print(f"  ✗ {element['id']} ({element['type']}): {error_msg}")
+                
+                # 일반 오류 유형별 통계
+                error_type = _classify_general_error(error_msg)
+                if error_type not in error_stats:
+                    error_stats[error_type] = 0
+                error_stats[error_type] += 1
     
     print(f"\n=== 요약 ===")
     print(f"총 요소: {total_elements}")
@@ -960,16 +1032,44 @@ def main():
     if db_error_count > 0:
         print(f"DB 쿼리 실패: {db_error_count}")
     
-    # 결과 저장
+    # 오류 유형별 통계 출력
+    if error_stats or db_error_stats:
+        print(f"\n=== 오류 유형별 통계 ===")
+        
+        if error_stats:
+            print("일반 오류:")
+            for error_type, count in sorted(error_stats.items()):
+                print(f"  - {error_type}: {count}건")
+        
+        if db_error_stats:
+            print("DB 오류:")
+            for error_type, count in sorted(db_error_stats.items()):
+                print(f"  - {error_type}: {count}건")
+    
+    # 결과 저장 - /tmp 디렉토리에 저장
     if args.output:
         output_file = args.output
+        # 상대 경로인 경우 /tmp에 저장
+        if not os.path.isabs(output_file):
+            output_file = os.path.join('/tmp', output_file)
     else:
+        # 기본 파일명으로 /tmp에 저장
         directory_name = Path(base_mapper_path).name
-        output_file = f"{directory_name}_{results['dbms_type']}_db_test_result.json"
+        limit_suffix = f"_limit{args.limit}" if args.limit else ""
+        filename = f"{directory_name}_{results['dbms_type']}_db_test_result{limit_suffix}.json"
+        output_file = os.path.join('/tmp', filename)
+    
+    # 출력 디렉토리가 존재하지 않으면 생성
+    output_dir = os.path.dirname(output_file)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
     
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
-    print(f"\n결과 저장: {output_file}")
+    
+    print(f"\n=== 결과 파일 위치 ===")
+    print(f"📁 결과 저장 위치: {output_file}")
+    print(f"📊 파일 크기: {os.path.getsize(output_file):,} bytes")
     
     # Query Error가 발생한 경우 실패 상태로 종료
     if error_count > 0:
