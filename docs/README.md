@@ -1,22 +1,31 @@
-# Oracle Modernization Accelerator Documentation
+# OMA Documentation
 
-이 디렉토리는 정적 HTML 파일들로 구성되어 있습니다.
+이 디렉토리는 Oracle Modernization Accelerator (OMA)의 문서를 포함하고 있습니다.
+
+## GitHub Pages
+
+문서는 GitHub Pages를 통해 자동으로 배포됩니다:
+- **URL**: https://aws-samples.github.io/sample-oracle-modernization-accelerator/
+- **자동 배포**: main/master 브랜치에 push할 때마다 자동으로 업데이트됩니다.
+
+## 로컬 개발
+
+로컬에서 문서를 미리보기하려면:
+
+```bash
+# 의존성 설치 및 서버 실행
+./serve.sh
+
+# 또는 수동으로
+bundle install
+bundle exec jekyll serve --livereload
+```
+
+서버가 실행되면 http://localhost:4000 에서 확인할 수 있습니다.
 
 ## 파일 구조
 
-- `*.html` - 변환된 문서 페이지들
-- `template.html` - HTML 템플릿
-- `convert_to_html.py` - Markdown → HTML 변환 스크립트
-- `.nojekyll` - Jekyll 빌드 비활성화
-
-## 접속 방법
-
-GitHub Pages에서 직접 HTML 파일들이 서빙됩니다:
-- 메인 페이지: `index.html`
-- 빌드 과정 없음 (정적 파일 서빙)
-
-## 업데이트 방법
-
-1. Markdown 파일 수정
-2. `python3 convert_to_html.py` 실행
-3. 생성된 HTML 파일들을 git에 커밋/푸시
+- `_config.yml`: Jekyll 설정 파일
+- `Gemfile`: Ruby 의존성 정의
+- `*.md`: Markdown 문서 파일들
+- `.nojekyll`: GitHub Pages Jekyll 처리 비활성화 (우리는 GitHub Actions 사용)

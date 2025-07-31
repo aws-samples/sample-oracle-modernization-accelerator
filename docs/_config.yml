@@ -1,0 +1,40 @@
+title: Oracle Modernization Accelerator (OMA)
+description: Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션
+baseurl: "/sample-oracle-modernization-accelerator"
+url: "https://aws-samples.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Navigation
+header_pages:
+  - index.md
+  - OMA-Introduction.md
+  - Pre-Requisites.md
+  - environment-setup.md
+  - application-analysis.md
+  - code-transformation.md
+  - sql-unit-test.md
+  - result-integration.md
+  - ui-error-fix.md
+  - useful-tools.md
+
+# Exclude from processing
+exclude:
+  - venv/
+  - requirements.txt
+  - convert_to_html.py
+  - template.html
+  - "*.html"
+  - README.md
+
+# Include
+include:
+  - .nojekyll
