@@ -140,7 +140,7 @@ Do not proceed until user provides their choice.
 
 ### 3. Interactive Approval Process
 - Present changes for approval before modification
-- Create backup copies of original files in the same directory with timestamp suffix (YYYYMMDD_HHMMSS)
+- Create backup copies of original files in the same directory with timestamp suffix (.YYYYMMDDHHMM)
 - Execute approved modifications with proper error handling
 
 ### 4. Documentation and Logging
@@ -184,7 +184,7 @@ FILE MODIFICATION APPROVAL REQUEST
    - [additional_dependencies_required]
 
 🔄 ROLLBACK PLAN:
-   - Backup location: [same_directory_as_original]/[original_filename]_backup_YYYYMMDD_HHMMSS.[extension]
+   - Backup location: [same_directory_as_original]/[original_filename].[extension].YYYYMMDDHHMM
    - Working copy: /tmp/oracle_java_work_[filename]_[timestamp].java
    - Diff preview: /tmp/oracle_java_diff_[filename]_[timestamp].txt
    - Rollback procedure: [steps_to_revert_changes]
@@ -213,8 +213,8 @@ Do not proceed until user provides their decision.
 - **Semantic preservation**: Maintain original functionality while removing Oracle dependencies
 
 ### 2. Safety and Reliability
-- **Mandatory backups**: Create timestamped backups in the same directory as the original file with format: [filename]_backup_YYYYMMDD_HHMMSS.[extension]
-  - Example: `DatabaseConnection.java` → `DatabaseConnection_backup_20250729_180000.java`
+- **Mandatory backups**: Create timestamped backups in the same directory as the original file with format: [filename].[extension].YYYYMMDDHHMM
+  - Example: `DatabaseConnection.java` → `DatabaseConnection.java.202507301200`
 - **Temporary work files**: All intermediate processing files MUST be created in `/tmp` directory
   - Working copies for analysis: `/tmp/oracle_java_[filename]_work_[timestamp].java`
   - Diff files for preview: `/tmp/oracle_java_[filename]_diff_[timestamp].txt`

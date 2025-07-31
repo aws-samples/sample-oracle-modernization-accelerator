@@ -282,7 +282,7 @@ Do not proceed until user provides their decision.
 ================================
 
 📁 대상 파일: [transform_xml_path]
-💾 백업 파일: [transform_xml_path]_backup_YYYYMMDD_HHMMSS.xml
+💾 백업 파일: [transform_xml_path].xml.YYYYMMDDHHMM
 
 🔄 수정 진행 상황:
    ✅ 백업 파일 생성 완료
@@ -358,7 +358,7 @@ TransformXML 수정 승인 요청 ($TARGET_DBMS_TYPE 전문가 분석)
    - 성능 모니터링: [performance_monitoring_recommendations]
 
 🔄 롤백 계획:
-   - 백업 위치: [transform_xml_path]_backup_YYYYMMDD_HHMMSS.xml
+   - 백업 위치: [transform_xml_path].xml.YYYYMMDDHHMM
    - 작업 사본: /tmp/sql_transform_work_[sqlid]_[timestamp].xml
    - 차이점 미리보기: /tmp/sql_transform_diff_[sqlid]_[timestamp].txt
    - 롤백 절차: [steps_to_revert_changes]
@@ -387,8 +387,8 @@ Do not proceed until user provides their decision.
 - **의미 보존**: $TARGET_DBMS_TYPE 호환성을 확보하면서 원본 기능 유지
 
 ### 2. 안전성 및 신뢰성
-- **필수 백업**: 원본 파일과 동일한 디렉토리에 타임스탬프가 포함된 백업 생성: [filename]_backup_YYYYMMDD_HHMMSS.[extension]
-  - 예시: `transform_user_001.xml` → `transform_user_001_backup_20250730_020000.xml`
+- **필수 백업**: 원본 파일과 동일한 디렉토리에 타임스탬프가 포함된 백업 생성: [filename].xml.YYYYMMDDHHMM
+  - 예시: `transform_user_001.xml` → `transform_user_001.xml.202507301200`
 - **임시 작업 파일**: 모든 중간 처리 파일은 `/tmp` 디렉토리에 생성
   - 분석용 작업 사본: `/tmp/sql_transform_[sqlid]_work_[timestamp].xml`
   - 미리보기용 차이점 파일: `/tmp/sql_transform_[sqlid]_diff_[timestamp].txt`
