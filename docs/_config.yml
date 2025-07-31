@@ -38,7 +38,3 @@ exclude:
   - serve.sh
   - Gemfile
   - Gemfile.lock
-
-# Include
-include:
-  - .nojekyll
