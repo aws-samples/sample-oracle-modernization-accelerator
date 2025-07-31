@@ -1,21 +1,12 @@
 ---
 layout: default
-title: Home
-nav_order: 1
-description: "Oracle Modernization Accelerator - Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션"
-permalink: /
+title: Oracle Modernization Accelerator (OMA)
+description: Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션
 ---
 
 # Oracle Modernization Accelerator (OMA)
-{: .fs-9 }
 
-Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션
-{: .fs-6 .fw-300 }
-
-[빠른 시작하기](#주요-기능){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[GitHub에서 보기](https://github.com/aws-samples/sample-oracle-modernization-accelerator){: .btn .fs-5 .mb-4 .mb-md-0 }
-
----
+Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위한 종합 솔루션입니다.
 
 ## 주요 기능
 
@@ -37,13 +28,11 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 ## 📚 문서 구조
 
 ### 사전 준비
-{: .text-delta }
 
 - [**OMA Introduction**](OMA-Introduction.md): 프로젝트 개요 및 아키텍처
 - [**Pre-Requisites**](Pre-Requisites.md): 인프라 구성 및 환경 설정
 
 ### 단계별 가이드
-{: .text-delta }
 
 #### ⚙️ 환경 설정 (0단계)
 - [**0-1. 환경 설정 수행**](0-1.setEnv.md): 환경 변수 설정
@@ -70,7 +59,6 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 - [**5-1. UI 오류-XML 재수정**](5-1.processUIErrorXMLFix.md): UI 관련 XML 오류 재수정 작업
 
 ### 추가 리소스
-{: .text-delta }
 
 - [**유용한 툴들**](useful-tools.md): OMA 프로젝트에서 활용할 수 있는 도구들
 
@@ -78,7 +66,6 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 
 ## 🎯 시작하기
 
-{: .highlight }
 > **시작하기 전에**: [Pre-Requisites](Pre-Requisites.md) 문서를 먼저 확인하여 필요한 인프라와 환경을 구성하세요.
 
 1. **인프라 구성**: AWS 리소스 배포
@@ -92,3 +79,9 @@ Oracle에서 PostgreSQL/MySQL로의 데이터베이스 마이그레이션을 위
 ## 🤝 지원 및 기여
 
 문제가 발생하거나 개선 사항이 있으시면 [GitHub Issues](https://github.com/aws-samples/sample-oracle-modernization-accelerator/issues)를 통해 알려주세요.
+
+---
+
+## 📄 라이선스
+
+이 프로젝트는 MIT-0 라이선스 하에 배포됩니다.

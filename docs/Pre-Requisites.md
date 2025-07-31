@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Pre-Requisites
 nav_order: 3
 description: "OMA Infrastructure 구성"

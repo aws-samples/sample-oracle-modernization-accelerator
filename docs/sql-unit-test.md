@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: SQL Unit Test
 nav_order: 7
 has_children: true

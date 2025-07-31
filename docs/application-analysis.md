@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: 애플리케이션 분석
 nav_order: 5
 has_children: true
