@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: OMA Introduction
 nav_order: 2
 description: "Oracle Modernization Accelerator 소개"

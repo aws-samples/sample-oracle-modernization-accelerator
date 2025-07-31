@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: UI 오류 수정
 nav_order: 10
 has_children: true
