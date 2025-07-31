@@ -6,22 +6,11 @@ url: "https://aws-samples.github.io"
 # Build settings
 markdown: kramdown
 highlighter: rouge
-theme: cayman
+
+# Use GitHub Pages supported theme
+theme: minima
 
 # Plugins
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-
-# Exclude from processing
-exclude:
-  - venv/
-  - requirements.txt
-  - convert_to_html.py
-  - template.html
-  - "*.html"
-  - README.md
-  - serve.sh
-  - Gemfile
-  - Gemfile.lock
-  - vendor/
