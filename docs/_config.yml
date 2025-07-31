@@ -8,24 +8,16 @@ markdown: kramdown
 highlighter: rouge
 theme: minima
 
-# Plugins
+# Plugins (GitHub Pages supported plugins only)
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll-seo-tag
 
 # Navigation
 header_pages:
   - index.md
   - OMA-Introduction.md
   - Pre-Requisites.md
-  - environment-setup.md
-  - application-analysis.md
-  - code-transformation.md
-  - sql-unit-test.md
-  - result-integration.md
-  - ui-error-fix.md
-  - useful-tools.md
 
 # Exclude from processing
 exclude:
@@ -38,3 +30,4 @@ exclude:
   - serve.sh
   - Gemfile
   - Gemfile.lock
+  - vendor/
