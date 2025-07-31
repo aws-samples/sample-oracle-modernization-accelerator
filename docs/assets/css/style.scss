@@ -1,0 +1,30 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+// Custom styles for sidebar title
+.site-title {
+  font-size: 0.9rem !important;  // 기본 크기보다 작게
+  line-height: 1.2 !important;   // 줄 간격 조정
+  font-weight: 600 !important;   // 폰트 굵기 유지
+  word-wrap: break-word !important; // 긴 단어 줄바꿈
+}
+
+// 사이드바 전체 폰트 크기 조정
+.side-bar {
+  font-size: 0.875rem;
+}
+
+// 네비게이션 링크 폰트 크기 조정
+.navigation-list-item .navigation-list-link {
+  font-size: 0.875rem !important;
+}
+
+// 모바일에서 더 작게
+@media (max-width: 768px) {
+  .site-title {
+    font-size: 0.8rem !important;
+    line-height: 1.1 !important;
+  }
+}
