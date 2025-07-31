@@ -7,8 +7,8 @@ url: "https://aws-samples.github.io"
 markdown: kramdown
 highlighter: rouge
 
-# Use GitHub Pages supported theme
-theme: minima
+# Use GitHub Pages supported documentation theme
+theme: architect
 
 # Plugins
 plugins:
