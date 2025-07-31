@@ -7,8 +7,32 @@ url: "https://aws-samples.github.io"
 markdown: kramdown
 highlighter: rouge
 
-# Use GitHub Pages supported theme
-theme: minima
+# Use remote theme with sidebar navigation
+remote_theme: just-the-docs/just-the-docs
+
+# Color scheme
+color_scheme: light
+
+# Search
+search_enabled: true
+
+# Navigation structure
+nav_sort: case_insensitive
+
+# Aux links for the upper right navigation
+aux_links:
+  "GitHub Repository":
+    - "https://github.com/aws-samples/sample-oracle-modernization-accelerator"
+
+# Makes Aux links open in a new tab
+aux_links_new_tab: true
+
+# Footer content
+footer_content: "Copyright &copy; 2024 Amazon Web Services, Inc. or its affiliates. All Rights Reserved."
+
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
 
 # Plugins
 plugins:
