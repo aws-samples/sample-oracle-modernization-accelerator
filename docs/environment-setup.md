@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: 환경 설정
 nav_order: 4
 has_children: true

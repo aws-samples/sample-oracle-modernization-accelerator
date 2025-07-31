@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: 코드 변환
 nav_order: 6
 has_children: true
