@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: 결과 통합
 nav_order: 8
 has_children: true
