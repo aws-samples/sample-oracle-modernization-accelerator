@@ -32,7 +32,7 @@ log_error() {
 
 # 스크립트 디렉토리 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_DIR="${SCRIPT_DIR}/config/setup"
+CONFIG_DIR="${SCRIPT_DIR}"
 
 # 함수: 사용법 출력
 usage() {
@@ -529,4 +529,3 @@ main() {
 
 # 스크립트 실행
 main "$@"
-}
