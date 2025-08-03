@@ -588,7 +588,7 @@ Resources:
       Engine: oracle
       Settings: 
         OracleSettings:
-          DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:dbname}}'
+          DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:sid}}'
           Port: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:port}}'
           ServerName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:host}}'
           SslMode: none
@@ -731,7 +731,7 @@ Resources:
   DMSSourceEndpoint:
     Type: AWS::DMS::Endpoint
     Properties:
-      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:dbname}}'
+      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:sid}}'
       EndpointIdentifier: !Sub '${AWS::StackName}-source-oracle'
       EndpointType: source
       EngineName: oracle
