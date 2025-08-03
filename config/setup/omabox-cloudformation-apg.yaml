@@ -588,7 +588,7 @@ Resources:
       Engine: oracle
       Settings: 
         OracleSettings:
-          DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:dbname}}'
+          DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:sid}}'
           Port: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:port}}'
           ServerName: !Sub '{{resolve:secretsmanager:oma-secret-oracle-service:SecretString:host}}'
           SslMode: none
