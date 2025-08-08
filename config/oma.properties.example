@@ -1,5 +1,5 @@
 [COMMON]
-OMA_BASE_DIR=/Users/changik/workspace/sample-oracle-modernization-accelerator
+OMA_BASE_DIR=/home/ec2-user/workspace/oma
 
 # Database Transform 폴더
 DBMS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/database

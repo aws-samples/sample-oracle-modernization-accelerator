@@ -314,6 +314,7 @@ B. Task Progression Steps:
             3. Stored Procedure: `{call PROC()}` → `CALL PROC()` (Third)
             4. Oracle Hints Removal: `/*+ ... */` removal (Fourth)
             5. DUAL Table: `FROM DUAL` → complete removal (Fifth)
+            6. SubQuery Alias: Add unique aliases to FROM/JOIN clause subqueries only (Sixth) **⚠️ MySQL Required**
             
             ⚠️ **MyBatis Conditional OUTER JOIN Special Processing (Critical):**
             
@@ -715,7 +716,107 @@ B. Task Progression Steps:
             2. MyBatis parameter binding `#{...}` preservation verification (Second)
             3. XML tag structure integrity verification (Third)
             4. MySQL function syntax cleanup - Remove spaces between function names and parentheses (Fourth)
-            5. Final formatting and cleanup (Fifth)
+            5. XML special character handling for inequality operators (Fifth) **⚠️ XML Parsing Critical**
+            6. Final formatting and cleanup (Sixth)
+            
+            ⚠️ **XML Special Character Handling (CRITICAL - Phase 4.5):**
+            
+            **Problem**: XML parsing errors occur when inequality operators (`<`, `>`) are used outside CDATA sections
+            
+            #### **CDATA Detection Rule (CRITICAL)**
+            **ONLY convert inequality operators that are OUTSIDE `<![CDATA[]]>` sections**
+            
+            **Step 1: Identify CDATA Sections**
+            - Scan for `<![CDATA[` opening tags
+            - Find matching `]]>` closing tags
+            - Mark all content between them as CDATA-protected
+            
+            **Step 2: Apply Conversion Rules**
+            - **Inside CDATA**: Leave `<`, `>` operators unchanged
+            - **Outside CDATA**: Convert to XML entities
+            
+            #### **Conversion Examples**
+            
+            **Example 1: Mixed CDATA and Dynamic SQL**
+            ```xml
+            <!-- BEFORE conversion -->
+            <select id="getEmployees">
+                <![CDATA[
+                    SELECT * FROM employees 
+                    WHERE salary > #{minSalary}  <!-- CDATA: No conversion needed -->
+                ]]>
+                <if test="maxAge != null">
+                    AND age < #{maxAge}  <!-- Outside CDATA: Needs conversion -->
+                </if>
+            </select>
+            
+            <!-- AFTER conversion -->
+            <select id="getEmployees">
+                <![CDATA[
+                    SELECT * FROM employees 
+                    WHERE salary > #{minSalary}  <!-- CDATA: Unchanged -->
+                ]]>
+                <if test="maxAge != null">
+                    AND age &lt; #{maxAge}  <!-- Outside CDATA: Converted -->
+                </if>
+            </select>
+            ```
+            
+            **Example 2: All Outside CDATA**
+            ```xml
+            <!-- BEFORE conversion -->
+            <select id="getRange">
+                SELECT * FROM employees 
+                WHERE salary >= #{min} AND salary <= #{max}
+                <if test="status != null">
+                    AND status <> #{status}
+                </if>
+            </select>
+            
+            <!-- AFTER conversion -->
+            <select id="getRange">
+                SELECT * FROM employees 
+                WHERE salary &gt;= #{min} AND salary &lt;= #{max}
+                <if test="status != null">
+                    AND status &lt;&gt; #{status}
+                </if>
+            </select>
+            ```
+            
+            **Example 3: All Inside CDATA**
+            ```xml
+            <!-- BEFORE and AFTER (No conversion needed) -->
+            <select id="getStatic">
+                <![CDATA[
+                    SELECT * FROM employees 
+                    WHERE salary > 50000 
+                      AND age < 65
+                      AND status <> 'INACTIVE'
+                ]]>
+            </select>
+            ```
+            
+            #### **Required XML Entity Conversions (Outside CDATA only)**
+            - `<` → `&lt;`
+            - `>` → `&gt;`
+            - `<=` → `&lt;=`
+            - `>=` → `&gt;=`
+            - `<>` → `&lt;&gt;`
+            
+            #### **Processing Algorithm**
+            1. **Parse XML structure**: Identify all CDATA sections
+            2. **Mark protected areas**: Flag content inside `<![CDATA[]]>`
+            3. **Scan for operators**: Find `<`, `>`, `<=`, `>=`, `<>` outside CDATA
+            4. **Apply conversions**: Convert only unprotected operators
+            5. **Preserve CDATA content**: Leave CDATA sections completely unchanged
+            
+            #### **Validation Checklist**
+            - [ ] CDATA sections correctly identified
+            - [ ] Operators inside CDATA left unchanged
+            - [ ] Operators outside CDATA converted to entities
+            - [ ] XML validates without parsing errors
+            - [ ] SQL logic remains functionally correct
+            - [ ] MyBatis dynamic tags work correctly
             
             ⚠️ **MySQL Function Syntax Cleanup (CRITICAL - Phase 4.4):**
             **Problem**: MySQL requires NO SPACE between function name and opening parenthesis
@@ -1318,6 +1419,102 @@ TRIM(TRAILING '#' FROM 'text###') → 'text'
 - `SELECT 'Hello' FROM DUAL` → `SELECT 'Hello'`
 - `SELECT #{variable} FROM DUAL` → `SELECT #{variable}`
 
+### SubQuery Alias Requirements (CRITICAL - MySQL Mandatory)
+
+#### **MySQL SubQuery Alias Rule**
+**CRITICAL**: MySQL requires ALL subqueries in FROM clause and JOIN clauses to have aliases (Oracle allows without alias)
+
+**Scope**: Only FROM clause and JOIN clause subqueries need aliases
+- ✅ FROM clause subqueries → Alias REQUIRED
+- ✅ JOIN clause subqueries → Alias REQUIRED  
+- ❌ EXISTS/IN subqueries → No alias needed
+- ❌ Scalar subqueries in SELECT → No alias needed
+- ❌ WHERE clause subqueries → No alias needed
+
+#### **Conversion Rules**
+
+**Pattern 1: FROM Clause Subquery**
+```sql
+-- Oracle
+SELECT * FROM (SELECT col1, col2 FROM table1);
+
+-- MySQL (Add unique alias)
+SELECT * FROM (SELECT col1, col2 FROM table1) AS sub1;
+```
+
+**Pattern 2: JOIN Clause Subquery**
+```sql
+-- Oracle
+SELECT e.*, d.dept_name 
+FROM employees e
+JOIN (SELECT dept_id, dept_name FROM departments WHERE active = 'Y') 
+     ON e.dept_id = dept_id;
+
+-- MySQL (Add unique alias)
+SELECT e.*, d.dept_name 
+FROM employees e
+JOIN (SELECT dept_id, dept_name FROM departments WHERE active = 'Y') AS d
+     ON e.dept_id = d.dept_id;
+```
+
+**Pattern 3: Nested FROM Subqueries (Unique aliases)**
+```sql
+-- Oracle
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id, name FROM employees
+    ) WHERE emp_id > 100
+);
+
+-- MySQL (Each subquery needs UNIQUE alias)
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id, name FROM employees
+    ) AS inner_sub WHERE emp_id > 100
+) AS outer_sub;
+```
+
+**Pattern 4: Multiple Subqueries (Avoid duplicate aliases)**
+```sql
+-- Oracle
+SELECT * FROM 
+    (SELECT emp_id, name FROM employees) e1,
+    (SELECT dept_id, dept_name FROM departments) d1;
+
+-- MySQL (Ensure unique aliases)
+SELECT * FROM 
+    (SELECT emp_id, name FROM employees) AS emp_sub,
+    (SELECT dept_id, dept_name FROM departments) AS dept_sub;
+```
+
+#### **Alias Naming Strategy (Duplicate Prevention)**
+1. **Sequential numbering**: sub1, sub2, sub3...
+2. **Descriptive + number**: emp_sub1, dept_sub2, order_sub3...
+3. **Check existing aliases**: Scan query for existing table/column aliases
+4. **Avoid conflicts**: Don't use names that match existing table aliases
+
+#### **What NOT to alias (No change needed)**
+```sql
+-- EXISTS subquery (No alias needed)
+SELECT * FROM employees e
+WHERE EXISTS (SELECT 1 FROM departments WHERE id = e.dept_id);
+
+-- Scalar subquery (No alias needed)  
+SELECT emp_id, (SELECT COUNT(*) FROM orders WHERE emp_id = e.emp_id) as order_count
+FROM employees e;
+
+-- IN subquery (No alias needed)
+SELECT * FROM employees 
+WHERE dept_id IN (SELECT id FROM departments WHERE active = 'Y');
+```
+
+#### **Validation Checklist**
+- [ ] All FROM clause subqueries have aliases
+- [ ] All JOIN clause subqueries have aliases  
+- [ ] All subquery aliases are unique within the query
+- [ ] EXISTS/IN/Scalar subqueries left without aliases
+- [ ] No alias conflicts with existing table names
+
 ### Package Handling (Convert to underscore naming)
 - Convert Oracle package.procedure format to MySQL naming convention
 - `PACKAGE_NAME.PROCEDURE_NAME` → `PACKAGE_NAME_PROCEDURE_NAME`
@@ -1338,31 +1535,85 @@ TRIM(TRAILING '#' FROM 'text###') → 'text'
 - **Priority**: Eliminate DECLARE blocks when possible, convert only when necessary
 
 ### Critical Requirements for MySQL Conversion
-- **Eliminate rather than convert**: Most DECLARE blocks can be replaced with subqueries
+- **Temporary procedure first**: Most PL/SQL blocks should use temporary procedure pattern
 - **User variables**: Use @variable syntax for simple cases
-- **Stored procedures**: Only for complex logic that cannot be simplified
+- **Eliminate when safe**: Only eliminate DECLARE blocks when logic is very simple
 - **Never modify anything within #{...} brackets - treat as sacred tokens**
 - **NEVER modify variable case**
 
 ### Conversion Strategies
 
-#### **Strategy 1: Elimination (PREFERRED)**
+#### **Strategy 1: Temporary Stored Procedure (PREFERRED)**
+**Pattern: Create → Execute → Drop temporary procedure**
+
 ```sql
--- Oracle PL/SQL
+-- Oracle PL/SQL (Complex logic)
 DECLARE
-    v_count NUMBER;
+    v_emp_count NUMBER;
+    v_dept_name VARCHAR2(100);
 BEGIN
-    SELECT COUNT(*) INTO v_count FROM employees WHERE dept_id = #{deptId};
-    IF v_count > 0 THEN
-        DELETE FROM departments WHERE id = #{deptId};
+    SELECT COUNT(*), d.name INTO v_emp_count, v_dept_name
+    FROM employees e, departments d 
+    WHERE e.dept_id = d.id AND d.id = #{deptId};
+    
+    IF v_emp_count > 10 THEN
+        INSERT INTO audit_log VALUES (v_dept_name, 'LARGE_DEPT', SYSDATE);
     END IF;
 END;
 
--- MySQL (Eliminate DECLARE)
-DELETE FROM departments 
-WHERE id = #{deptId} 
-  AND EXISTS (SELECT 1 FROM employees WHERE dept_id = #{deptId})
+-- MySQL Temporary Procedure (Create → Execute → Drop)
+DELIMITER //
+CREATE TEMPORARY PROCEDURE temp_proc_#{randomId}(IN dept_id INT)
+BEGIN
+    DECLARE v_emp_count INT;
+    DECLARE v_dept_name VARCHAR(100);
+    
+    SELECT COUNT(*), d.name INTO v_emp_count, v_dept_name
+    FROM employees e, departments d 
+    WHERE e.dept_id = d.id AND d.id = dept_id;
+    
+    IF v_emp_count > 10 THEN
+        INSERT INTO audit_log VALUES (v_dept_name, 'LARGE_DEPT', NOW());
+    END IF;
+END //
+DELIMITER ;
+
+CALL temp_proc_#{randomId}(#{deptId});
+DROP PROCEDURE temp_proc_#{randomId};
 ```
+
+**MyBatis XML Implementation:**
+```xml
+<!-- 2025-04-27 Amazon Q Developer : Converted PL/SQL block to temporary procedure pattern -->
+<insert id="processComplexLogic" parameterType="map">
+    <![CDATA[
+        DELIMITER //
+        CREATE TEMPORARY PROCEDURE temp_proc_${randomId}(IN dept_id INT)
+        BEGIN
+            DECLARE v_emp_count INT;
+            DECLARE v_dept_name VARCHAR(100);
+            
+            SELECT COUNT(*), d.name INTO v_emp_count, v_dept_name
+            FROM employees e, departments d 
+            WHERE e.dept_id = d.id AND d.id = dept_id;
+            
+            IF v_emp_count > 10 THEN
+                INSERT INTO audit_log VALUES (v_dept_name, 'LARGE_DEPT', NOW());
+            END IF;
+        END //
+        DELIMITER ;
+        
+        CALL temp_proc_${randomId}(#{deptId});
+        DROP PROCEDURE temp_proc_${randomId};
+    ]]>
+</insert>
+```
+
+**Key Requirements:**
+- Use `TEMPORARY PROCEDURE` for automatic cleanup on session end
+- Generate unique procedure name using `${randomId}` or timestamp
+- Include complete Create → Execute → Drop sequence
+- Handle parameter binding with MyBatis syntax
 
 #### **Strategy 2: User Variables (Simple Cases)**
 ```sql
@@ -1379,38 +1630,22 @@ SET @max_salary = (SELECT MAX(salary) FROM employees);
 UPDATE employees SET bonus = salary * 0.1 WHERE salary = @max_salary;
 ```
 
-#### **Strategy 3: Stored Procedure (Complex Cases Only)**
+#### **Strategy 3: Elimination (Simple Cases Only)**
 ```sql
--- Oracle PL/SQL (Complex logic)
+-- Oracle PL/SQL
 DECLARE
-    v_emp_count NUMBER;
-    v_dept_name VARCHAR2(100);
+    v_count NUMBER;
 BEGIN
-    SELECT COUNT(*), d.name INTO v_emp_count, v_dept_name
-    FROM employees e, departments d 
-    WHERE e.dept_id = d.id AND d.id = #{deptId};
-    
-    IF v_emp_count > 10 THEN
-        INSERT INTO audit_log VALUES (v_dept_name, 'LARGE_DEPT', SYSDATE);
+    SELECT COUNT(*) INTO v_count FROM employees WHERE dept_id = #{deptId};
+    IF v_count > 0 THEN
+        DELETE FROM departments WHERE id = #{deptId};
     END IF;
 END;
 
--- MySQL Stored Procedure (Only if elimination not possible)
-DELIMITER //
-CREATE PROCEDURE process_department(IN dept_id INT)
-BEGIN
-    DECLARE v_emp_count INT;
-    DECLARE v_dept_name VARCHAR(100);
-    
-    SELECT COUNT(*), d.name INTO v_emp_count, v_dept_name
-    FROM employees e, departments d 
-    WHERE e.dept_id = d.id AND d.id = dept_id;
-    
-    IF v_emp_count > 10 THEN
-        INSERT INTO audit_log VALUES (v_dept_name, 'LARGE_DEPT', NOW());
-    END IF;
-END //
-DELIMITER ;
+-- MySQL (Eliminate DECLARE)
+DELETE FROM departments 
+WHERE id = #{deptId} 
+  AND EXISTS (SELECT 1 FROM employees WHERE dept_id = #{deptId})
 ```
 
 ### MySQL Variable Declaration Rules
@@ -2072,19 +2307,61 @@ If no suitable MySQL equivalent exists:
 
 ### Comment Requirements
 
+#### Unified XML Comment Approach
+**All comments are now XML comments placed above SQL definition tags**
+
 #### Comment Location
 - Inside `<mapper>` tag
-- Above SQL definition tags
+- Above SQL definition tags (select, insert, update, delete, sql)
 
 #### Comment Format
 ```xml
 <!-- YYYY-MM-DD Amazon Q Developer : description -->
-
-Example:
-<mapper namespace="AuthListDAO">
-    <!-- 2025-04-27 Amazon Q Developer : Converted date formatting -->
-    <sql id="selectAuthListQuery">
 ```
+
+#### Comment Content Guidelines
+
+**Type 1: General Conversion (Focus on MySQL changes)**
+```xml
+<!-- 2025-04-27 Amazon Q Developer : Applied LIMIT clause, converted date functions to STR_TO_DATE -->
+<select id="getEmployeeList">
+```
+
+**Type 2: Complex/Impossible Conversions (TODO format)**
+```xml
+<!-- 2025-04-27 Amazon Q Developer : TODO: XMLELEMENT replacement needed - Consider JSON functions or CONCAT -->
+<select id="getXmlData">
+    <![CDATA[
+        SELECT emp_id, name,
+               NULL as xml_data  -- Temporary dummy value
+        FROM employees
+    ]]>
+</select>
+```
+
+**Type 3: Multiple Issues Combined**
+```xml
+<!-- 2025-04-27 Amazon Q Developer : Applied LEFT JOIN conversion, TODO: DBMS_LOB.SUBSTR replacement needed - Change to SUBSTRING function -->
+<select id="getComplexData">
+```
+
+#### Content Rules
+**DO (Focus on MySQL changes):**
+- "Applied LIMIT clause for pagination"
+- "Converted to LEFT JOIN syntax" 
+- "Added IFNULL function conversion"
+- "TODO: XMLELEMENT replacement needed - Consider JSON functions"
+
+**DON'T (Avoid Oracle references):**
+- ❌ "Converted Oracle NVL to MySQL IFNULL"
+- ❌ "Replaced Oracle SYSDATE with MySQL NOW()"
+- ❌ "Removed Oracle DUAL table"
+
+#### Processing Guidelines
+1. **Single XML comment per SQL tag**: One consolidated comment above each SQL definition
+2. **Combine all changes**: Include both successful conversions and TODO items in one comment
+3. **Preserve TODO format**: Keep "TODO: [Function Name] replacement needed - [Specific replacement approach]" structure
+4. **No SQL comments**: All documentation moves to XML comments at the top
 
 ### Logging Requirements
 - "Applied MySQL conversion: [function_name] → [mysql_equivalent]"

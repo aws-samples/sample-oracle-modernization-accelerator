@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+transformValidation.py
+위치: /home/ec2-user/workspace/oracle-mod-ax/bin/application/transformValidation.py
+
+transform 파라미터를 받아서 $APP_TRANSFORM_FOLDER/postCheck.csv에서 XML 리스트를 가져와 validation 수행
+"""
+
+import csv
+import os
+import subprocess
+import logging
+import sys
+import argparse
+from datetime import datetime
+
+def read_xml_files_from_postcheck(csv_file, logger):
+    """postCheck.csv 파일에서 XML 파일들의 경로를 읽어옵니다."""
+    xml_files = []
+    
+    if not os.path.exists(csv_file):
+        logger.warning(f"postCheck.csv 파일이 존재하지 않습니다: {csv_file}")
+        return xml_files
+    
+    try:
+        with open(csv_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                filename = row.get('XMLFile', '').strip()
+                if filename and filename.endswith('.xml'):
+                    xml_files.append(filename)
+        
+        logger.info(f"postCheck.csv에서 XML 파일 {len(xml_files)}개 발견: {csv_file}")
+        
+    except Exception as e:
+        logger.error(f"postCheck.csv 파일 읽기 오류: {csv_file}, 오류: {e}")
+    
+    return xml_files
+
+def read_completed_files_from_csv(csv_file, logger):
+    """CSV 파일에서 Completed 상태인 파일들의 경로를 읽어옵니다."""
+    completed_files = []
+    
+    if not os.path.exists(csv_file):
+        logger.warning(f"CSV 파일이 존재하지 않습니다: {csv_file}")
+        return completed_files
+    
+    try:
+        with open(csv_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                process = row.get('Process', '').strip()
+                if process == 'Completed':
+                    filename = row.get('Filename', '').strip()
+                    if filename and filename.endswith('.xml'):
+                        completed_files.append(filename)
+        
+        logger.info(f"CSV에서 Completed 상태 XML 파일 {len(completed_files)}개 발견: {csv_file}")
+        
+    except Exception as e:
+        logger.error(f"CSV 파일 읽기 오류: {csv_file}, 오류: {e}")
+    
+    return completed_files
+
+def validate_xml_with_parsing(xml_file_path, logger):
+    """MyBatis XML 매퍼 파일의 구문과 구조를 검증합니다."""
+    try:
+        import xml.etree.ElementTree as ET
+        import re
+        
+        # XML 파싱으로 기본 구문 오류 검사
+        try:
+            tree = ET.parse(xml_file_path)
+            root = tree.getroot()
+        except ET.ParseError as e:
+            error_msg = str(e)
+            if "mismatched tag" in error_msg.lower():
+                return False, f"Error: Opening/ending tag mismatch - {error_msg}"
+            elif "invalid element name" in error_msg.lower() or "StartTag" in error_msg:
+                return False, f"Error: StartTag: invalid element name - {error_msg}"
+            else:
+                return False, f"XML Parse Error: {error_msg}"
+        
+        # 파일 내용 읽기
+        with open(xml_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # XML 주석 내 문제 패턴 검사
+        comment_pattern = r'<!--(.*?)-->'
+        comments = re.findall(comment_pattern, content, re.DOTALL)
+        for comment in comments:
+            comment_content = comment.strip()
+            # 이중 하이픈 검사
+            if '--' in comment_content:
+                return False, "Error: Double hyphen within comment is not allowed in XML"
+            # 이스케이프되지 않은 앰퍼샌드 검사
+            if '&' in comment_content and not any(entity in comment_content for entity in ['&amp;', '&lt;', '&gt;', '&quot;', '&apos;']):
+                return False, "Error: Unescaped ampersand (&) in XML comment - use &amp; instead"
+            # CDATA 종료 마커 검사
+            if ']]>' in comment_content:
+                return False, "Error: CDATA end marker (]]>) found in XML comment"
+        
+        # CDATA 밖의 부등호 검사
+        # CDATA 섹션을 임시로 제거한 후 부등호 검사
+        cdata_pattern = r'<!\[CDATA\[(.*?)\]\]>'
+        content_without_cdata = re.sub(cdata_pattern, '', content, flags=re.DOTALL)
+        # XML 태그가 아닌 곳의 < > 검사 (간단한 휴리스틱)
+        lines = content_without_cdata.split('\n')
+        for line_num, line in enumerate(lines, 1):
+            # XML 태그나 주석이 아닌 라인에서 < > 검사
+            if not line.strip().startswith('<') and not line.strip().startswith('<!--'):
+                if '<' in line and not ('&lt;' in line or '</' in line or '<!' in line):
+                    return False, f"Error: Unescaped less-than (<) found outside CDATA at line {line_num}"
+                if '>' in line and not ('&gt;' in line or '/>' in line or '-->' in line):
+                    return False, f"Error: Unescaped greater-than (>) found outside CDATA at line {line_num}"
+        
+        # 루트 엘리먼트가 mapper인지 확인
+        if root.tag != 'mapper':
+            return False, f"Error: Root element must be 'mapper', found '{root.tag}'"
+        
+        # namespace 속성 필수 확인
+        namespace = root.get('namespace')
+        if not namespace:
+            return False, "Error: Missing required 'namespace' attribute in mapper"
+        
+        # SQL 문장이 있는 엘리먼트들의 id 속성 확인
+        sql_elements = ['select', 'insert', 'update', 'delete', 'sql', 'resultMap']
+        missing_ids = []
+        duplicate_ids = []
+        ids_found = set()
+        
+        for child in root:
+            if child.tag in sql_elements:
+                element_id = child.get('id')
+                if not element_id:
+                    missing_ids.append(f"{child.tag}")
+                elif element_id in ids_found:
+                    duplicate_ids.append(element_id)
+                else:
+                    ids_found.add(element_id)
+        
+        if missing_ids:
+            return False, f"Error: Missing 'id' attribute in elements: {', '.join(missing_ids)}"
+        
+        if duplicate_ids:
+            return False, f"Error: Duplicate 'id' attributes found: {', '.join(duplicate_ids)}"
+        
+        # resultMap의 type 속성 확인
+        for result_map in root.findall('resultMap'):
+            if not result_map.get('type'):
+                result_map_id = result_map.get('id', 'unknown')
+                return False, f"Error: Missing 'type' attribute in resultMap '{result_map_id}'"
+        
+        # select 문의 resultType 또는 resultMap 속성 확인
+        for select in root.findall('select'):
+            select_id = select.get('id', 'unknown')
+            if not select.get('resultType') and not select.get('resultMap'):
+                return False, f"Error: Select '{select_id}' must have either 'resultType' or 'resultMap' attribute"
+        
+        logger.debug(f"MyBatis XML 검증 성공: {xml_file_path}")
+        return True, "OK"
+        
+    except Exception as e:
+        return False, f"Validation Error: {str(e)}"
+
+def validate_xml_files_from_postcheck(postcheck_csv, target_sql_mapper_folder, origin_suffix, logger):
+    """postCheck.csv에서 XML 파일들을 읽어와 검증합니다."""
+    result_list = []
+    
+    # postCheck.csv에서 XML 파일들 읽기
+    xml_files = read_xml_files_from_postcheck(postcheck_csv, logger)
+    
+    logger.info(f"총 {len(xml_files)}개의 XML 파일을 검증합니다.")
+    
+    # 각 파일에 대해 그대로 검증 (경로 변환 없이)
+    for xml_file_path in xml_files:
+        # 파일이 존재하는지 확인
+        if os.path.exists(xml_file_path):
+            # XML 검증 수행
+            valid, error_msg = validate_xml_with_parsing(xml_file_path, logger)
+            
+            result_list.append((
+                os.path.dirname(xml_file_path),
+                os.path.basename(xml_file_path),
+                error_msg
+            ))
+            logger.debug(f"검증 완료: {xml_file_path} -> {error_msg}")
+        else:
+            logger.warning(f"파일이 존재하지 않습니다: {xml_file_path}")
+            result_list.append((
+                os.path.dirname(xml_file_path) if '/' in xml_file_path else '',
+                os.path.basename(xml_file_path),
+                f"Error: 파일이 존재하지 않음"
+            ))
+    
+    return result_list
+
+    """Python XML 파싱을 사용하여 XML 파일을 검증합니다. (MyBatis 호환)"""
+    try:
+        import xml.etree.ElementTree as ET
+        
+        # XML 파싱 시도
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+        
+        # 기본적인 MyBatis 매퍼 구조 확인
+        if root.tag != 'mapper':
+            error_msg = f"Error: Root element is not 'mapper': {root.tag}"
+            logger.warning(f"XML 검증 실패: {xml_file}, 오류: {error_msg}")
+            return False, error_msg
+        
+        # namespace 속성 확인
+        if 'namespace' not in root.attrib:
+            error_msg = "Error: Missing 'namespace' attribute in mapper"
+            logger.warning(f"XML 검증 실패: {xml_file}, 오류: {error_msg}")
+            return False, error_msg
+        
+        logger.debug(f"XML 검증 성공: {xml_file}")
+        return True, "Success"
+        
+    except ET.ParseError as e:
+        error_msg = f"Error: XML Parse Error: {str(e)}"
+        logger.warning(f"XML 검증 실패: {xml_file}, 오류: {error_msg}")
+        return False, error_msg
+    except Exception as e:
+        error_msg = f"Error: 검증 중 예외 발생: {str(e)}"
+        logger.error(f"XML 검증 예외: {xml_file}, 오류: {error_msg}")
+        return False, error_msg
+
+def validate_completed_xml_files(csv_files, target_sql_mapper_folder, origin_suffix, logger):
+    """CSV 파일들에서 Completed 상태인 XML 파일들만 검증합니다."""
+    result_list = []
+    all_completed_files = []
+    
+    # 모든 CSV 파일에서 Completed 파일들 수집
+    for csv_file in csv_files:
+        completed_files = read_completed_files_from_csv(csv_file, logger)
+        all_completed_files.extend(completed_files)
+    
+    logger.info(f"총 {len(all_completed_files)}개의 Completed 파일을 검증합니다.")
+    
+    # 각 파일에 대해 변환된 파일 경로 생성 및 검증
+    for original_file in all_completed_files:
+        # 원본 파일에서 TARGET_SQL_MAPPER_FOLDER 기준으로 상대 경로 추출
+        # 예: 원본이 orcl-ibe-vof-trans이고 타겟이 mysql-ibe-vof-trans인 경우
+        # /home/ec2-user/workspace/topas/orcl-ibe-vof-trans/src/main/resources/config/vof/mybatis/mapperA/AirReservationMasterSsinsingMapper_Custom.xml
+        # -> vof/mybatis/mapperA/AirReservationMasterSsinsingMapper_Custom.xml 부분 추출
+        
+        # /config/ 이후의 상대 경로 추출
+        if '/config/' in original_file:
+            relative_path = original_file.split('/config/', 1)[1]
+        else:
+            # config가 없으면 파일명만 사용
+            relative_path = os.path.basename(original_file)
+        
+        # origin_suffix가 있으면 제거하여 변환된 파일명 생성
+        if origin_suffix and origin_suffix in relative_path:
+            transformed_relative_path = relative_path.replace(origin_suffix, '')
+        else:
+            transformed_relative_path = relative_path
+        
+        # TARGET_SQL_MAPPER_FOLDER 환경변수 기반으로 변환된 파일의 전체 경로 생성 (디렉토리 구조 유지)
+        transformed_file_path = os.path.join(target_sql_mapper_folder, transformed_relative_path)
+        
+        # 변환된 파일이 존재하는지 확인
+        if os.path.exists(transformed_file_path):
+            # XML 검증 수행
+            valid, error_msg = validate_xml_with_parsing(transformed_file_path, logger)
+            
+            result_list.append((
+                os.path.dirname(transformed_file_path),
+                os.path.basename(transformed_file_path),
+                error_msg
+            ))
+            logger.debug(f"검증 완료: {transformed_file_path} -> {error_msg}")
+        else:
+            logger.warning(f"변환된 파일이 존재하지 않습니다: {transformed_file_path}")
+            result_list.append((
+                os.path.dirname(transformed_file_path) if '/' in transformed_file_path else target_sql_mapper_folder,
+                os.path.basename(transformed_file_path) if '/' in transformed_file_path else transformed_relative_path,
+                f"Error: 변환된 파일이 존재하지 않음"
+            ))
+    
+    return result_list
+
+def write_xmllint_result(results, output_file, logger):
+    """xmllint 검증 결과를 CSV 파일에 기록합니다."""
+    try:
+        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Path', 'FileName', 'Message'])
+            
+            for path, filename, message in results:
+                writer.writerow([path, filename, message])
+        
+        logger.info(f"XML 검증 결과가 저장되었습니다: {output_file}")
+        
+    except Exception as e:
+        logger.error(f"결과 파일 저장 오류: {output_file}, 오류: {e}")
+
+# 사용 예시
+if __name__ == "__main__":
+    # 명령행 인수 파싱
+    parser = argparse.ArgumentParser(description='XML Validation Tool')
+    parser.add_argument('--transform', action='store_true', 
+                       help='postCheck.csv에서 XML 리스트를 가져와서 validation 수행')
+    args = parser.parse_args()
+    
+    # 로거 설정
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    
+    # 환경 변수에서 경로 가져오기
+    app_transform_folder = os.environ.get('APP_TRANSFORM_FOLDER')
+    target_sql_mapper_folder = os.environ.get('TARGET_SQL_MAPPER_FOLDER')
+    origin_suffix = os.environ.get('ORIGIN_SUFFIX', '_origin')
+    
+    if not app_transform_folder or not target_sql_mapper_folder:
+        logger.error("필수 환경 변수가 설정되지 않았습니다: APP_TRANSFORM_FOLDER, TARGET_SQL_MAPPER_FOLDER")
+        exit(1)
+    
+    logger.info("MyBatis 호환 XML Validation 시작")
+    logger.info(f"Transform Folder: {app_transform_folder}")
+    logger.info(f"Target Mapper Folder: {target_sql_mapper_folder}")
+    logger.info(f"Origin Suffix: {origin_suffix}")
+    
+    # transform 파라미터에 따라 분기
+    if args.transform:
+        # postCheck.csv에서 XML 리스트 가져와서 validation
+        postcheck_csv = os.path.join(app_transform_folder, 'postCheck.csv')
+        logger.info(f"Transform 모드: postCheck.csv에서 XML 리스트 가져오기 - {postcheck_csv}")
+        xmllint_results = validate_xml_files_from_postcheck(postcheck_csv, target_sql_mapper_folder, origin_suffix, logger)
+    else:
+        # 기존 방식: CSV 파일들에서 Completed 상태인 파일들만 검증
+        csv_files = [
+            os.path.join(app_transform_folder, 'SQLTransformTarget.csv'),
+            os.path.join(app_transform_folder, 'SampleTransformTarget.csv')
+        ]
+        logger.info("기본 모드: SQLTransformTarget.csv, SampleTransformTarget.csv에서 Completed 파일들 검증")
+        xmllint_results = validate_completed_xml_files(csv_files, target_sql_mapper_folder, origin_suffix, logger)
+    
+    # 결과 저장
+    validation_result_file = os.path.join(app_transform_folder, 'mybatisValidationResult.csv')
+    write_xmllint_result(xmllint_results, validation_result_file, logger)
+    
+    # 요약
+    logger.info("Validation process completed")
+    logger.info(f"Total files checked: {len(xmllint_results)}")
+    
+    xml_failures = sum(1 for _, _, msg in xmllint_results if msg.startswith('Error'))
+    logger.info(f"XML validation failures: {xml_failures}")
+    
+    if xml_failures > 0:
+        logger.warning("Validation found issues. Check the output files for details.")
+        exit(1)
+    else:
+        logger.info("All validations passed successfully.")
+        exit(0)
