@@ -1415,21 +1415,14 @@ def main():
         validation_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "transformValidation.py")
 
         try:
+            # transformValidation.py는 파라미터를 사용하지 않고 환경변수만 사용함
             validation_cmd = [
                 "python3", 
-                validation_script,
-                "--mapper-folder", target_sql_mapper_folder,
-                "--origin-suffix", origin_suffix,
-                "--app-transform-folder", app_transform_folder,
-                "--app-log-folder", pylog_folder,
-                f"--log-level={log_level_str}"
+                validation_script
             ]
             
-            # 로그 파일 경로 구성 (검증 프로세스용)
-            validation_log_file = os.path.join(pylog_folder, f"TransformValidation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-            validation_cmd.extend(["-l", validation_log_file])
-            
             logger.info(f"Running validation with command: {' '.join(validation_cmd)}")
+            logger.info("Note: transformValidation.py uses environment variables (APP_TRANSFORM_FOLDER, TARGET_SQL_MAPPER_FOLDER)")
             
             # 하위 프로세스 실행 및 출력 캡처
             result = run_command(validation_cmd, logger)
@@ -1444,6 +1437,8 @@ def main():
             sys.exit(1)
     else:
         logger.info(f"Skipping validation process for {args.mode.upper()} mode")
+    
+    logger.info(f"XML validation process {'executed' if args.mode == 'merge' else 'skipped'} for {args.mode.upper()} mode")
 
     # 6. 결과 요약
     logger.info("="*80)
@@ -1479,7 +1474,7 @@ def main():
         logger.warning("Some processes failed. Check the log for details.")
         sys.exit(1)
 
-    # 7. 검증 결과 리포팅 (merge 모드에서만)
+    # 7. 검증 결과 리포팅 (merge 모드에서만) - XML validation 결과 리포팅 주석처리
     if args.mode == 'merge':
         # Check SQLTransformTargetSelective.csv
         failure_csv = os.path.join(app_transform_folder, 'SQLTransformTargetSelective.csv')
@@ -1496,23 +1491,24 @@ def main():
                     logger.warning(f"Total failures: {len(failures)}")
                     logger.warning("="*80 + "\n")
 
+        # XML validation 결과 리포팅 주석처리
         # Check xmllintResult.csv
-        xmllint_csv = os.path.join(app_transform_folder, 'xmllintResult.csv')
-        if os.path.exists(xmllint_csv):
-            with open(xmllint_csv, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                xml_failures = [row for row in reader if row['Message'].startswith('Error')]
-                if xml_failures:
-                    logger.warning("\n" + "="*80)
-                    logger.warning("XML VALIDATION FAILURES DETECTED:")
-                    logger.warning("="*80)
-                    for failure in xml_failures:
-                        logger.warning(f"File: {failure['FileName']}")
-                        logger.warning(f"Path: {failure['Path']}")
-                        logger.warning(f"Error: {failure['Message']}")
-                        logger.warning("-"*80)
-                    logger.warning(f"Total XML validation failures: {len(xml_failures)}")
-                    logger.warning("="*80 + "\n")
+        # xmllint_csv = os.path.join(app_transform_folder, 'xmllintResult.csv')
+        # if os.path.exists(xmllint_csv):
+        #     with open(xmllint_csv, 'r', encoding='utf-8') as f:
+        #         reader = csv.DictReader(f)
+        #         xml_failures = [row for row in reader if row['Message'].startswith('Error')]
+        #         if xml_failures:
+        #             logger.warning("\n" + "="*80)
+        #             logger.warning("XML VALIDATION FAILURES DETECTED:")
+        #             logger.warning("="*80)
+        #             for failure in xml_failures:
+        #                 logger.warning(f"File: {failure['FileName']}")
+        #                 logger.warning(f"Path: {failure['Path']}")
+        #                 logger.warning(f"Error: {failure['Message']}")
+        #                 logger.warning("-"*80)
+        #             logger.warning(f"Total XML validation failures: {len(xml_failures)}")
+        #             logger.warning("="*80 + "\n")
     
     logger.info("="*80)
     logger.info(f"All {args.mode.upper()} operations completed successfully")

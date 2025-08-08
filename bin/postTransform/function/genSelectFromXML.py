@@ -246,6 +246,19 @@ class FunctionValidator:
         # CDATA 태그 제거
         content = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', content, flags=re.DOTALL)
         
+        # HTML 엔티티 처리 (XML에서 부등호 연산자들이 인코딩된 것을 복원)
+        content = content.replace('&lt;=', '<=')
+        content = content.replace('&lt;&gt;', '<>')
+        content = content.replace('&lt;', '<')
+        content = content.replace('&gt;=', '>=')
+        content = content.replace('&gt;', '>')
+        content = content.replace('&amp;', '&')
+        content = content.replace('&quot;', '"')
+        content = content.replace('&apos;', "'")
+        
+        if self.debug:
+            print(f"🔧 HTML 엔티티 처리 완료")
+        
         # 동적 태그들 제거 - 더 정확한 패턴 사용
         # 태그는 반드시 <태그명으로 시작해야 함 (공백이나 숫자로 시작하는 < 는 제외)
         dynamic_tags = [
@@ -267,11 +280,28 @@ class FunctionValidator:
         # 추가: 남은 XML 태그들 제거 (공백이 있는 태그 포함)
         # </ if >, </ when > 등의 패턴 처리
         # 비교 연산자 보호: < 뒤에 숫자나 공백+숫자가 오는 경우는 제외
+        # 문자열 리터럴 보호: 따옴표 안의 < > 는 제거하지 않음
+        
+        # 1. 문자열 리터럴 보호 (임시 토큰으로 치환)
+        string_literals = []
+        def protect_string_literal(match):
+            string_literals.append(match.group(0))
+            return f"__STRING_PROTECTED_{len(string_literals)-1}__"
+        
+        # 작은따옴표와 큰따옴표 문자열 보호
+        content = re.sub(r"'[^']*'", protect_string_literal, content)
+        content = re.sub(r'"[^"]*"', protect_string_literal, content)
+        
+        # 2. XML 태그 제거 (문자열 리터럴이 보호된 상태에서)
         content = re.sub(r'<\s*/\s*[a-zA-Z]\w*\s*>', '', content, flags=re.IGNORECASE)
         content = re.sub(r'<\s*[a-zA-Z]\w*\s*[^>]*>', '', content, flags=re.IGNORECASE)
         
+        # 3. 문자열 리터럴 복원
+        for i, literal in enumerate(string_literals):
+            content = content.replace(f"__STRING_PROTECTED_{i}__", literal)
+        
         if self.debug:
-            print(f"🔧 XML 태그 제거 완료")
+            print(f"🔧 XML 태그 제거 완료 (문자열 리터럴 보호됨)")
         
         return content.strip()
     
@@ -282,12 +312,42 @@ class FunctionValidator:
             
         result = function_text
         
+        # HTML 엔티티 처리 (XML에서 부등호 연산자들이 인코딩된 것을 복원)
+        result = result.replace('&lt;=', '<=')
+        result = result.replace('&lt;&gt;', '<>')
+        result = result.replace('&lt;', '<')
+        result = result.replace('&gt;=', '>=')
+        result = result.replace('&gt;', '>')
+        result = result.replace('&amp;', '&')
+        result = result.replace('&quot;', '"')
+        result = result.replace('&apos;', "'")
+        
+        if self.debug:
+            print(f"🔧 함수 후처리에서 HTML 엔티티 처리 완료")
+        
         # SQL 주석 제거 (-- 주석) - 함수별로 개별 처리
         result = re.sub(r'--[^\r\n]*', ' ', result)
         
         # 혹시 남은 XML 태그 제거 (비교 연산자 보호)
         # XML 태그는 <태그명으로 시작해야 함 (< 뒤에 공백이나 숫자가 오면 비교 연산자)
+        # 문자열 리터럴 보호: 따옴표 안의 < > 는 제거하지 않음
+        
+        # 1. 문자열 리터럴 보호 (임시 토큰으로 치환)
+        string_literals = []
+        def protect_string_literal(match):
+            string_literals.append(match.group(0))
+            return f"__STRING_PROTECTED_{len(string_literals)-1}__"
+        
+        # 작은따옴표와 큰따옴표 문자열 보호
+        result = re.sub(r"'[^']*'", protect_string_literal, result)
+        result = re.sub(r'"[^"]*"', protect_string_literal, result)
+        
+        # 2. XML 태그 제거 (문자열 리터럴이 보호된 상태에서)
         result = re.sub(r'<([a-zA-Z][^>]*)>', '', result, flags=re.IGNORECASE)
+        
+        # 3. 문자열 리터럴 복원
+        for i, literal in enumerate(string_literals):
+            result = result.replace(f"__STRING_PROTECTED_{i}__", literal)
         
         # AND 연산자 누락 패턴 수정
         result = self.fix_missing_and_operators(result)
@@ -1128,7 +1188,7 @@ class FunctionValidator:
             cursor.close()
             connection.close()
             
-            success_msg = f"성공: {len(unique_functions)}개 함수 모두 검증 완료"
+            success_msg = f"✅ Success: {len(unique_functions)} functions validated"
             logger.info(success_msg)
             
             # 성공 시 실패 목록에서 제거
@@ -2006,8 +2066,8 @@ class FunctionValidator:
             
             # 2. 원본 XML에서 함수 리스트 추출 (태그 제거 전에 수행)
             original_functions = self.extract_functions_from_xml(xml_content)
-            logger.info(f"추출된 함수 개수: {len(original_functions)}")
-            print(f"📊 추출된 함수 개수: {len(original_functions)}")
+            logger.info(f"Extracted function count: {len(original_functions)}")
+            print(f"📊 Extracted function count: {len(original_functions)}")
             
             if self.debug:
                 print("🔍 original_functions 리스트 내용:")
@@ -2022,7 +2082,7 @@ class FunctionValidator:
             cleaned_xml_content = self.clean_xml_content(xml_content)
             
             if not original_functions:
-                completed_message = "함수를 찾을 수 없습니다"
+                completed_message = "No functions found"
                 logger.info(f"Completed: {completed_message}")
                 print(f"❌ {completed_message}")
                 
@@ -2060,8 +2120,8 @@ class FunctionValidator:
                 if func is not None and func not in unique_functions:
                     unique_functions.append(func)
             
-            logger.info(f"중복 제거 후 함수 개수: {len(unique_functions)}")
-            print(f"📊 중복 제거 후 함수 개수: {len(unique_functions)}")
+            logger.info(f"After deduplication: {len(unique_functions)}")
+            print(f"📊 After deduplication: {len(unique_functions)}")
             print("🔍 MySQL 함수 검증 중...")
             
             # 5. MySQL 일괄 검증

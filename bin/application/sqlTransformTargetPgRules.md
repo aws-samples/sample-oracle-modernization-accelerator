@@ -1085,7 +1085,7 @@ Apply **database expert knowledge** to provide appropriate PostgreSQL equivalent
 #### **Documentation Requirement:**
 When applying expert-level conversions, add comments documenting the transformation:
 ```xml
-<!-- YYYY-MM-DD Amazon Q Developer : Expert conversion - Oracle [construct] to PostgreSQL [equivalent] -->
+<!-- YYYY-MM-DD Amazon Q Developer : PostgreSQL [equivalent feature/function] applied -->
 ```
 
 #### **Fallback Strategy:**
@@ -1112,11 +1112,11 @@ If no suitable PostgreSQL equivalent exists:
 
 #### Comment Format
 ```xml
-<!-- YYYY-MM-DD Amazon Q Developer : description -->
+<!-- YYYY-MM-DD Amazon Q Developer : PostgreSQL [feature/function] applied -->
 
 Example:
 <mapper namespace="AuthListDAO">
-    <!-- 2025-04-27 Amazon Q Developer : Converted date formatting -->
+    <!-- 2025-04-27 Amazon Q Developer : PostgreSQL date formatting applied -->
     <sql id="selectAuthListQuery">
 ```
 

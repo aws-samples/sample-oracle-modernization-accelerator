@@ -1,0 +1,37 @@
+{
+  "statistics": {
+    "total_files": 1,
+    "parsing_success": 1,
+    "parsing_failed": 0,
+    "sql_success": 1,
+    "sql_failed": 0,
+    "db_success": 0,
+    "db_failed": 1
+  },
+  "results": [
+    {
+      "file": "/home/ec2-user/workspace/oracle-mod-ax/ibe-vof-trans/logs/application/mapper/agent/zk8/internal/air/mybatis/mapper/TbAirRv100_Agent_Mapper_Custom/transform/TbAirRv100_Agent_Mapper_Custom_tgt-12-select-selectAirReserveAllInfoCustom.xml",
+      "elements": [
+        {
+          "id": "selectAirReserveAllInfoCustom",
+          "type": "select",
+          "file": "/home/ec2-user/workspace/oracle-mod-ax/ibe-vof-trans/logs/application/mapper/agent/zk8/internal/air/mybatis/mapper/TbAirRv100_Agent_Mapper_Custom/transform/TbAirRv100_Agent_Mapper_Custom_tgt-12-select-selectAirReserveAllInfoCustom.xml",
+          "sql_extracted": true,
+          "sql_content": "SELECT ZZ.* FROM ( SELECT COUNT(1) AS \"_COUNT_\" , MIN(PNR_SEQNO) AS PNR_SEQNO , MIN(ALPHA_PNR_NO) AS ALPHA_PNR_NO , MIN(PCC) AS PCC , MIN(AGT_CD) AS AGT_CD , MIN(AGT_NM) AS AGT_NM , MIN(NDC_RSV_YN) AS...",
+          "executable_sql": "SELECT ZZ.* FROM ( SELECT COUNT(1) AS \"_COUNT_\" , MIN(PNR_SEQNO) AS PNR_SEQNO , MIN(ALPHA_PNR_NO) AS ALPHA_PNR_NO , MIN(PCC) AS PCC , MIN(AGT_CD) AS AGT_CD , MIN(AGT_NM) AS AGT_NM , MIN(NDC_RSV_YN) AS...",
+          "db_test_results": {
+            "mysql": {
+              "success": false,
+              "row_count": 0,
+              "error": "(1064, \"You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '0 ) , 0)* -1 AS PTN_PROMTN_SUM_AMT /* 프로모션 총액 */ , A.REALTM_PAY_YN A' at line 1\")",
+              "execution_time": 0
+            }
+          }
+        }
+      ],
+      "parsing_success": true,
+      "preprocessing_success": true,
+      "processing_time": 0.34586334228515625
+    }
+  ]
+}

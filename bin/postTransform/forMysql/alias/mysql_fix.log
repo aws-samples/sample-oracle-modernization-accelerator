@@ -1,0 +1,60 @@
+2025-08-03 07:00 - TbAirRv100Mapper_Custom_tgt-158-select-selectAirSaleStatisticsInfoDetail.xml - FIXED
+- 백업: TbAirRv100Mapper_Custom_tgt-158-select-selectAirSaleStatisticsInfoDetail.xml.202508030700
+- 문제: Oracle→MySQL 변환 시 CDATA 제거로 인한 XML 특수문자 에러 + 태그 구조 불일치
+- 수정: CDATA 섹션 추가, 누락된 <if> 태그 추가, 따옴표 이스케이프 수정
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbComCd200Mapper_Custom_tgt-09-select-getTasfCommApplyUnitAmt.xml - FIXED
+- 백업: TbComCd200Mapper_Custom_tgt-09-select-getTasfCommApplyUnitAmt.xml.202508030700
+- 문제: NVL()→IFNULL() 변환 과정에서 XML 이스케이프 해제 버그
+- 수정: <= 0 → &lt;= 0 이스케이프 복원
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAirTk110EbyMapper_Custom_tgt-04-select-selecInterfaceSchedulerIssuTk.xml - FIXED
+- 백업: TbAirTk110EbyMapper_Custom_tgt-04-select-selecInterfaceSchedulerIssuTk.xml.202508030700
+- 문제: 주석 블록 내 XML 태그와 특수문자로 인한 파싱 에러
+- 수정: 문제가 되는 주석 블록 전체 제거
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAirTp120Mapper_Custom_tgt-05-select-selectBusinessPartnerEmployeesMemberShipInfo.xml - FIXED
+- 백업: TbAirTp120Mapper_Custom_tgt-05-select-selectBusinessPartnerEmployeesMemberShipInfo.xml.202508030700
+- 문제: 원본에 있던 </if> 태그가 변환 과정에서 누락 (mismatched tag)
+- 수정: 원본 XML 구조 참조하여 누락된 </if> 태그 정확한 위치에 추가
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbNvrFb600TmpMapper_Custom_tgt-01-insert-insertCombineFareTmp.xml - FIXED
+- 백업: TbNvrFb600TmpMapper_Custom_tgt-01-insert-insertCombineFareTmp.xml.202508030700
+- 문제: Oracle PL/SQL 블록을 MySQL 저장 프로시저 호출로 변환했으나 긴 주석 블록으로 인한 XML 파싱 에러
+- 수정: 임시 프로시저 생성→실행→삭제 방식으로 재구성, #{} → ${} 파라미터 변경
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAirTk110Mapper_Custom_tgt-127-select-selectOnlineResultStatisticsInfo.xml - FIXED
+- 백업: TbAirTk110Mapper_Custom_tgt-127-select-selectOnlineResultStatisticsInfo.xml.202508030700
+- 문제: Oracle 함수와 서브쿼리 별칭 누락으로 인한 XML 파싱 에러
+- 수정: 원본 기반 Oracle→MySQL 변환 (NVL→IFNULL, SUBSTR→SUBSTRING, TO_CHAR/TO_NUMBER→CAST), 서브쿼리 별칭 추가
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAirTk120Mapper_Custom_tgt-09-insert-insertCustom.xml - FIXED
+- 백업: TbAirTk120Mapper_Custom_tgt-09-insert-insertCustom.xml.202508030700
+- 문제: Oracle CONNECT BY LEVEL 변환 시 XML 특수문자 이스케이프 해제 및 구조 변경
+- 수정: 원본 의도 보존하여 CONNECT BY LEVEL→WITH RECURSIVE NUMBERS 변환, &lt;= 이스케이프 복원
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAnoRv410Mapper_Custom_tgt-08-select-selectDepositPromotionInfo.xml - FIXED
+- 백업: TbAnoRv410Mapper_Custom_tgt-08-select-selectDepositPromotionInfo.xml.202508030700
+- 문제: Oracle→MySQL 변환 시 WHERE 절과 CDATA 구조 누락으로 인한 태그 불일치
+- 수정: 누락된 WHERE 키워드와 CDATA 종료 태그(]]>) 추가, GROUP BY 절 복원
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbVofBd110Mapper_Custom_tgt-03-select-getFareSeatInquireByCustomQuery.xml - FIXED
+- 백업: TbVofBd110Mapper_Custom_tgt-03-select-getFareSeatInquireByCustomQuery.xml.202508030700
+- 문제: Oracle CONNECT BY 계층 쿼리를 MySQL WITH RECURSIVE로 변환 시 XML 특수문자 이스케이프 누락
+- 수정: BBS_LEVEL < 10 → BBS_LEVEL &lt; 10 이스케이프 처리, 원본 의도 보존
+- 결과: XML 파싱 성공
+
+2025-08-03 07:00 - TbAirEd130Mapper_Custom_tgt-09-select-selectAccountRequestInfo.xml - FIXED
+- 백업: TbAirEd130Mapper_Custom_tgt-09-select-selectAccountRequestInfo.xml.202508030700
+- 문제: Oracle → MySQL 변환 시 태그 매칭 문제 (mismatched tag)
+- 수정: CDATA 블록 내 XML 태그 구조 정리, 들여쓰기 일치 처리
+- Oracle→MySQL 변환 확인: 페이징 처리 로직 완전 보존
+- 결과: XML 파싱 성공, 계정 요청 정보 조회 로직 100% 보존
