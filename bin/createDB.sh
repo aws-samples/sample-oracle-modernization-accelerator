@@ -23,14 +23,14 @@ print_separator() {
 check_target_dbms_type() {
     if [ -z "$TARGET_DBMS_TYPE" ]; then
         echo -e "${RED}${BOLD}오류: TARGET_DBMS_TYPE 환경 변수가 설정되지 않았습니다.${NC}"
-        echo -e "${YELLOW}TARGET_DBMS_TYPE을 'pg' (PostgreSQL) 또는 'mysql' (MySQL)로 설정하세요.${NC}"
+        echo -e "${YELLOW}TARGET_DBMS_TYPE을 'postgres' (PostgreSQL) 또는 'mysql' (MySQL)로 설정하세요.${NC}"
         echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
         exit 1
     fi
     
     case "$TARGET_DBMS_TYPE" in
-        "pg"|"postgresql")
-            TARGET_DBMS_TYPE="pg"
+        "postgres"|"postgresql")
+            TARGET_DBMS_TYPE="postgres"
             echo -e "${GREEN}✓ 타겟 DBMS: PostgreSQL${NC}"
             ;;
         "mysql")
@@ -38,7 +38,7 @@ check_target_dbms_type() {
             ;;
         *)
             echo -e "${RED}${BOLD}오류: 지원하지 않는 TARGET_DBMS_TYPE입니다: $TARGET_DBMS_TYPE${NC}"
-            echo -e "${YELLOW}지원되는 값: 'pg', 'postgresql', 'mysql'${NC}"
+            echo -e "${YELLOW}지원되는 값: 'postgres', 'postgresql', 'mysql'${NC}"
             exit 1
             ;;
     esac
@@ -53,12 +53,21 @@ check_postgresql_environment() {
         exit 1
     fi
     
+    if [ -z "$PG_SVC_USER" ] || [ -z "$PG_SVC_PASSWORD" ]; then
+        echo -e "${RED}${BOLD}오류: PostgreSQL 서비스 사용자 환경 변수가 설정되지 않았습니다.${NC}"
+        echo -e "${YELLOW}필요한 환경 변수: PG_SVC_USER, PG_SVC_PASSWORD${NC}"
+        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        exit 1
+    fi
+    
     echo -e "${GREEN}✓ PostgreSQL 연결 환경 변수 확인 완료${NC}"
     echo -e "${CYAN}  PGHOST: $PGHOST${NC}"
     echo -e "${CYAN}  PGPORT: $PGPORT${NC}"
     echo -e "${CYAN}  PG_ADM_USER: $PG_ADM_USER${NC}"
     echo -e "${CYAN}  PG_ADM_PASSWORD: [설정됨]${NC}"
     echo -e "${CYAN}  PGDATABASE: $PGDATABASE${NC}"
+    echo -e "${CYAN}  PG_SVC_USER: $PG_SVC_USER${NC}"
+    echo -e "${CYAN}  PG_SVC_PASSWORD: [설정됨]${NC}"
 }
 
 # MySQL 환경 변수 확인 함수
@@ -115,6 +124,117 @@ test_mysql_connection() {
         echo -e "${YELLOW}  Port: $MYSQL_TCP_PORT${NC}"
         echo -e "${YELLOW}  User: $MYSQL_ADM_USER${NC}"
         return 1
+    fi
+}
+
+# PostgreSQL 서비스 사용자 생성 함수
+create_postgresql_service_user() {
+    local db_name="$1"
+    
+    print_separator
+    echo -e "${BLUE}${BOLD}PostgreSQL 서비스 사용자 생성${NC}"
+    print_separator
+    
+    echo -e "${CYAN}생성할 서비스 사용자 정보:${NC}"
+    echo -e "${CYAN}  사용자명: $PG_SVC_USER${NC}"
+    echo -e "${CYAN}  패스워드: [설정됨]${NC}"
+    echo -e "${CYAN}  대상 데이터베이스: $db_name${NC}"
+    print_separator
+    
+    # 사용자 존재 여부 확인
+    echo -e "${BLUE}${BOLD}기존 사용자 확인 중...${NC}"
+    
+    USER_EXISTS=$(PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -t -c "SELECT 1 FROM pg_roles WHERE rolname = '$PG_SVC_USER';" 2>/dev/null | grep -c "1")
+    
+    if [ "$USER_EXISTS" -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  사용자 '$PG_SVC_USER'가 이미 존재합니다.${NC}"
+        echo -ne "${BLUE}${BOLD}기존 사용자를 삭제하고 다시 생성하시겠습니까? (y/N): ${NC}"
+        read recreate_user
+        
+        if [[ "$recreate_user" =~ ^[Yy]$ ]]; then
+            echo -e "${YELLOW}기존 사용자를 삭제합니다...${NC}"
+            
+            # 사용자 삭제
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "DROP USER IF EXISTS \"$PG_SVC_USER\";" 2>/dev/null
+            
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}✓ 기존 사용자 삭제 완료${NC}"
+            else
+                echo -e "${RED}✗ 기존 사용자 삭제 실패${NC}"
+                return 1
+            fi
+        else
+            echo -e "${YELLOW}사용자 생성을 취소합니다.${NC}"
+            return 0
+        fi
+    fi
+    
+    # 사용자 생성 SQL 구성
+    CREATE_USER_SQL="CREATE USER \"$PG_SVC_USER\" WITH PASSWORD '$PG_SVC_PASSWORD';"
+    GRANT_CONNECT_SQL="GRANT CONNECT ON DATABASE \"$db_name\" TO \"$PG_SVC_USER\";"
+    GRANT_USAGE_SQL="GRANT USAGE ON SCHEMA public TO \"$PG_SVC_USER\";"
+    GRANT_ALL_SQL="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$PG_SVC_USER\";"
+    GRANT_SEQUENCES_SQL="GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$PG_SVC_USER\";"
+    ALTER_DEFAULT_PRIVILEGES_TABLES_SQL="ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$PG_SVC_USER\";"
+    ALTER_DEFAULT_PRIVILEGES_SEQUENCES_SQL="ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO \"$PG_SVC_USER\";"
+    
+    echo -e "${BLUE}${BOLD}실행할 SQL:${NC}"
+    echo -e "${CYAN}$CREATE_USER_SQL${NC}"
+    echo -e "${CYAN}$GRANT_CONNECT_SQL${NC}"
+    echo -e "${CYAN}$GRANT_USAGE_SQL${NC}"
+    echo -e "${CYAN}$GRANT_ALL_SQL${NC}"
+    echo -e "${CYAN}$GRANT_SEQUENCES_SQL${NC}"
+    echo -e "${CYAN}$ALTER_DEFAULT_PRIVILEGES_TABLES_SQL${NC}"
+    echo -e "${CYAN}$ALTER_DEFAULT_PRIVILEGES_SEQUENCES_SQL${NC}"
+    print_separator
+    
+    echo -ne "${BLUE}${BOLD}서비스 사용자를 생성하시겠습니까? (Y/n): ${NC}"
+    read confirm_create_user
+    
+    if [[ ! "$confirm_create_user" =~ ^[Nn]$ ]]; then
+        echo -e "${BLUE}${BOLD}서비스 사용자 생성 중...${NC}"
+        
+        # 사용자 생성
+        PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "$CREATE_USER_SQL"
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✓ 사용자 '$PG_SVC_USER' 생성 성공${NC}"
+            
+            # 데이터베이스 연결 권한 부여
+            echo -e "${BLUE}${BOLD}데이터베이스 연결 권한 부여 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "$GRANT_CONNECT_SQL"
+            
+            # 스키마 사용 권한 부여
+            echo -e "${BLUE}${BOLD}스키마 사용 권한 부여 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$GRANT_USAGE_SQL"
+            
+            # 테이블 권한 부여
+            echo -e "${BLUE}${BOLD}테이블 권한 부여 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$GRANT_ALL_SQL"
+            
+            # 시퀀스 권한 부여
+            echo -e "${BLUE}${BOLD}시퀀스 권한 부여 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$GRANT_SEQUENCES_SQL"
+            
+            # 기본 권한 설정 (향후 생성될 테이블에 대한 권한)
+            echo -e "${BLUE}${BOLD}기본 권한 설정 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$ALTER_DEFAULT_PRIVILEGES_TABLES_SQL"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$ALTER_DEFAULT_PRIVILEGES_SEQUENCES_SQL"
+            
+            echo -e "${GREEN}✓ 서비스 사용자 '$PG_SVC_USER' 권한 설정 완료${NC}"
+            
+            # 생성된 사용자 정보 확인
+            echo -e "${BLUE}${BOLD}생성된 사용자 정보 확인:${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "SELECT rolname, rolcanlogin, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = '$PG_SVC_USER';"
+            
+            return 0
+        else
+            echo -e "${RED}✗ 서비스 사용자 생성 실패${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}서비스 사용자 생성을 취소합니다.${NC}"
+        return 0
     fi
 }
 
@@ -327,24 +447,39 @@ get_postgresql_settings() {
     create_postgresql_database "$db_name" "$encoding" "$lc_collate" "$lc_ctype" "$template"
     
     if [ $? -eq 0 ]; then
-        print_separator
-        echo -e "${GREEN}${BOLD}PostgreSQL 데이터베이스 생성 작업이 완료되었습니다.${NC}"
-        print_separator
+        # 서비스 사용자 생성
+        create_postgresql_service_user "$db_name"
         
-        echo -e "${CYAN}${BOLD}생성된 데이터베이스 연결 정보:${NC}"
-        echo -e "${CYAN}  Host: $PGHOST${NC}"
-        echo -e "${CYAN}  Port: $PGPORT${NC}"
-        echo -e "${CYAN}  Database: $db_name${NC}"
-        echo -e "${CYAN}  ENCODING: $encoding${NC}"
-        echo -e "${CYAN}  LC_COLLATE: $lc_collate${NC}"
-        echo -e "${CYAN}  LC_CTYPE: $lc_ctype${NC}"
-        echo -e "${CYAN}  TEMPLATE: $template${NC}"
-        
-        echo -e "${YELLOW}${BOLD}연결 테스트:${NC}"
-        echo -e "${YELLOW}PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d $db_name${NC}"
-        
-        print_separator
-        return 0
+        if [ $? -eq 0 ]; then
+            print_separator
+            echo -e "${GREEN}${BOLD}PostgreSQL 데이터베이스 및 서비스 사용자 생성 작업이 완료되었습니다.${NC}"
+            print_separator
+            
+            echo -e "${CYAN}${BOLD}생성된 데이터베이스 연결 정보:${NC}"
+            echo -e "${CYAN}  Host: $PGHOST${NC}"
+            echo -e "${CYAN}  Port: $PGPORT${NC}"
+            echo -e "${CYAN}  Database: $db_name${NC}"
+            echo -e "${CYAN}  ENCODING: $encoding${NC}"
+            echo -e "${CYAN}  LC_COLLATE: $lc_collate${NC}"
+            echo -e "${CYAN}  LC_CTYPE: $lc_ctype${NC}"
+            echo -e "${CYAN}  TEMPLATE: $template${NC}"
+            
+            echo -e "${CYAN}${BOLD}생성된 서비스 사용자 정보:${NC}"
+            echo -e "${CYAN}  Service User: $PG_SVC_USER${NC}"
+            echo -e "${CYAN}  Service Password: [설정됨]${NC}"
+            
+            echo -e "${YELLOW}${BOLD}관리자 연결 테스트:${NC}"
+            echo -e "${YELLOW}PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d $db_name${NC}"
+            
+            echo -e "${YELLOW}${BOLD}서비스 사용자 연결 테스트:${NC}"
+            echo -e "${YELLOW}PGPASSWORD=$PG_SVC_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_SVC_USER -d $db_name${NC}"
+            
+            print_separator
+            return 0
+        else
+            echo -e "${RED}서비스 사용자 생성에 실패했습니다.${NC}"
+            return 1
+        fi
     else
         echo -e "${RED}PostgreSQL 데이터베이스 생성에 실패했습니다.${NC}"
         return 1
@@ -421,7 +556,7 @@ check_target_dbms_type
 
 # TARGET_DBMS_TYPE에 따른 분기 처리
 case "$TARGET_DBMS_TYPE" in
-    "pg")
+    "postgres")
         # PostgreSQL 환경 변수 확인
         check_postgresql_environment
         
