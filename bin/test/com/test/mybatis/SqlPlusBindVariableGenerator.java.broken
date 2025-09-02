@@ -1,0 +1,1274 @@
+package com.test.mybatis;
+
+import java.io.*;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * sqlplus를 사용하는 바인드 변수 생성기
+ * Oracle DB 메타데이터를 수집하고 SQL 매퍼 파일의 바인드 변수에 적절한 값을 생성합니다.
+ */
+public class SqlPlusBindVariableGenerator {
+    
+    // Oracle 연결 설정
+    private static final String ORACLE_SVC_USER = System.getenv("ORACLE_SVC_USER");
+    private static final String ORACLE_SVC_PASSWORD = System.getenv("ORACLE_SVC_PASSWORD");
+    private static final String ORACLE_CONNECT_STRING = System.getenv().getOrDefault("ORACLE_SVC_CONNECT_STRING", 
+                                                        System.getenv().getOrDefault("ORACLE_SID", "orcl"));
+    private static final String ORACLE_SVC_USER_LIST = System.getenv("ORACLE_SVC_USER_LIST");
+    private static final String SOURCE_SQL_MAPPER_FOLDER = System.getenv("SOURCE_SQL_MAPPER_FOLDER");
+    
+    // Q Chat 기반 지능형 값 생성 시스템 설정 (빠른 응답 최적화)
+    private static final int Q_CHAT_TIMEOUT = Integer.parseInt(System.getenv().getOrDefault("Q_CHAT_TIMEOUT", "5")); // 5초로 단축
+    private static final int MAX_WORD_LENGTH = Integer.parseInt(System.getenv().getOrDefault("MAX_WORD_LENGTH", "20"));
+    private static final int SIMILARITY_THRESHOLD = Integer.parseInt(System.getenv().getOrDefault("SIMILARITY_THRESHOLD", "50"));
+    private static final int MAX_SAMPLE_TABLES = Integer.parseInt(System.getenv().getOrDefault("MAX_SAMPLE_TABLES", "3")); // 3개로 축소
+    
+    // 최소한의 fallback 값들 (Q Chat 완전 실패시에만 사용)
+    private static final String FALLBACK_DATE = "2025-08-23";
+    private static final String FALLBACK_TIMESTAMP = "2025-08-23 10:30:00";
+    private static final String FALLBACK_YEAR = "2025";
+    private static final int FALLBACK_ID = 1;
+    private static final int FALLBACK_AMOUNT = 1000;
+    private static final int FALLBACK_DAYS = 30;
+    private static final int FALLBACK_LIMIT = 10;
+    private static final int FALLBACK_OFFSET = 0;
+    
+    private String connectionString;
+    private Map<String, Map<String, Map<String, ColumnInfo>>> dictionary = new HashMap<>();
+    private Map<String, BindVariable> bindVariables = new HashMap<>();
+    private String primarySchema; // 첫 번째 스키마를 기본 스키마로 사용
+    
+    public static void main(String[] args) {
+        SqlPlusBindVariableGenerator generator = new SqlPlusBindVariableGenerator();
+        try {
+            generator.run();
+        } catch (Exception e) {
+            System.err.println("오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    public void run() throws Exception {
+        System.out.println("=== 바인드 변수 생성기 시작 ===\n");
+        
+        // 1단계: Oracle 접속
+        step1ConnectOracle();
+        
+        // 2단계: 메타데이터 수집
+        step2CollectMetadata();
+        
+        // 3단계: 서비스 유저 확인
+        step3GetServiceUsers();
+        
+        // 4단계: 바인드 변수 추출
+        step4ExtractBindVariables();
+        
+        // 5단계: 자동 매칭
+        step5MatchBindVariables();
+        
+        // 6단계: 수동 매칭
+        step6ManualMatching();
+        
+        // 7단계: parameters.properties 파일 생성
+        step7GeneratePropertiesFile();
+        
+        System.out.println("\n=== 바인드 변수 생성기 완료 ===");
+        System.out.println("결과 파일:");
+        System.out.println("- parameters.properties: 바인드 변수=값 형태");
+    }
+    
+    private void step1ConnectOracle() throws Exception {
+        System.out.println("1단계: Oracle DB 접속 테스트...");
+        
+        if (ORACLE_SVC_USER == null || ORACLE_SVC_PASSWORD == null) {
+            throw new RuntimeException("Oracle 접속 정보가 환경변수에 설정되지 않았습니다.");
+        }
+        
+        connectionString = ORACLE_SVC_USER + "/" + ORACLE_SVC_PASSWORD + "@" + ORACLE_CONNECT_STRING;
+        
+        // sqlplus로 접속 테스트
+        String testResult = executeSqlPlus("SELECT 1 FROM DUAL;");
+        if (testResult.contains("1")) {
+            System.out.println("✓ Oracle DB 접속 성공");
+        } else {
+            throw new RuntimeException("Oracle DB 접속 실패");
+        }
+    }
+    
+    private String executeSqlPlus(String sql) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder("sqlplus", "-S", connectionString);
+        Process process = pb.start();
+        
+        try (PrintWriter writer = new PrintWriter(process.getOutputStream())) {
+            writer.println(sql);
+            writer.println("EXIT;");
+            writer.flush();
+        }
+        
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        
+        process.waitFor();
+        return output.toString();
+    }
+    
+    private void step2CollectMetadata() throws Exception {
+        System.out.println("2단계: 테이블 메타데이터 수집 중...");
+        
+        String[] serviceUsers = ORACLE_SVC_USER_LIST != null ? 
+            ORACLE_SVC_USER_LIST.split(",") : new String[]{ORACLE_SVC_USER};
+        
+        StringBuilder userList = new StringBuilder();
+        for (int i = 0; i < serviceUsers.length; i++) {
+            if (i > 0) userList.append(",");
+            userList.append("'").append(serviceUsers[i].trim()).append("'");
+        }
+        
+        String sql = String.format("""
+            SET PAGESIZE 0
+            SET FEEDBACK OFF
+            SET HEADING OFF
+            SET LINESIZE 4000
+            
+            SELECT 
+                OWNER || '|' || TABLE_NAME || '|' || COLUMN_NAME || '|' || DATA_TYPE || '|' || 
+                CASE 
+                    WHEN DATA_TYPE IN ('VARCHAR2', 'CHAR') THEN DATA_LENGTH
+                    WHEN DATA_TYPE = 'NUMBER' THEN NVL(DATA_PRECISION, 38)
+                    ELSE NULL
+                END || '|' || 
+                CASE 
+                    WHEN DATA_TYPE IN ('VARCHAR2', 'CHAR') THEN NVL(DATA_SCALE, 0)
+                    WHEN DATA_TYPE = 'NUMBER' THEN NVL(DATA_SCALE, 0)
+                    ELSE NULL
+                END
+            FROM ALL_TAB_COLUMNS 
+            WHERE OWNER IN (%s)
+            ORDER BY OWNER, TABLE_NAME, COLUMN_ID;
+            """, userList.toString());
+        
+        String result = executeSqlPlus(sql);
+        String[] lines = result.split("\n");
+        
+        for (String line : lines) {
+            if (line.contains("|")) {
+                String[] parts = line.split("\\|");
+                if (parts.length >= 6) {
+                    String owner = parts[0].trim();
+                    String tableName = parts[1].trim();
+                    String columnName = parts[2].trim();
+                    String dataType = parts[3].trim();
+                    String lengthStr = parts[4].trim();
+                    String scaleStr = parts[5].trim();
+                    
+                    // 안전한 숫자 파싱
+                    int dataLength = parseIntSafely(lengthStr, 0);
+                    int dataScale = parseIntSafely(scaleStr, 0);
+                    
+                    // 샘플 데이터 가져오기
+                    String sampleData = getSampleData(owner, tableName, columnName, dataType);
+                    
+                    ColumnInfo columnInfo = new ColumnInfo(dataType, dataLength, 0, dataScale, sampleData);
+                    
+                    dictionary.computeIfAbsent(owner, k -> new HashMap<>())
+                             .computeIfAbsent(tableName, k -> new HashMap<>())
+                             .put(columnName, columnInfo);
+                }
+            }
+        }
+        
+        int totalTables = dictionary.values().stream()
+            .mapToInt(schema -> schema.size()).sum();
+        int totalColumns = dictionary.values().stream()
+            .mapToInt(schema -> schema.values().stream()
+                .mapToInt(table -> table.size()).sum()).sum();
+        
+        System.out.printf("✓ 메타데이터 수집 완료 (%d 스키마, %d 테이블, %d 컬럼)%n", 
+            dictionary.size(), totalTables, totalColumns);
+        
+        // 딕셔너리를 out 폴더에 JSON 파일로 저장
+        saveDictionaryToFile();
+    }
+    
+    /**
+     * 딕셔너리를 out 폴더에 JSON 파일로 저장
+     */
+    private void saveDictionaryToFile() {
+        try {
+            // out 디렉토리 생성
+            Path outDir = Paths.get("out");
+            if (!Files.exists(outDir)) {
+                Files.createDirectories(outDir);
+            }
+            
+            // 딕셔너리를 JSON 형태로 변환
+            StringBuilder json = new StringBuilder();
+            json.append("{\n");
+            json.append("  \"metadata\": {\n");
+            json.append("    \"generatedAt\": \"").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("\",\n");
+            json.append("    \"schemas\": ").append(dictionary.size()).append(",\n");
+            json.append("    \"totalTables\": ").append(dictionary.values().stream().mapToInt(schema -> schema.size()).sum()).append(",\n");
+            json.append("    \"totalColumns\": ").append(dictionary.values().stream().mapToInt(schema -> schema.values().stream().mapToInt(table -> table.size()).sum()).sum()).append("\n");
+            json.append("  },\n");
+            json.append("  \"dictionary\": {\n");
+            
+            boolean firstSchema = true;
+            for (Map.Entry<String, Map<String, Map<String, ColumnInfo>>> schemaEntry : dictionary.entrySet()) {
+                if (!firstSchema) json.append(",\n");
+                firstSchema = false;
+                
+                String schema = schemaEntry.getKey();
+                json.append("    \"").append(schema).append("\": {\n");
+                
+                boolean firstTable = true;
+                for (Map.Entry<String, Map<String, ColumnInfo>> tableEntry : schemaEntry.getValue().entrySet()) {
+                    if (!firstTable) json.append(",\n");
+                    firstTable = false;
+                    
+                    String table = tableEntry.getKey();
+                    json.append("      \"").append(table).append("\": {\n");
+                    
+                    boolean firstColumn = true;
+                    for (Map.Entry<String, ColumnInfo> columnEntry : tableEntry.getValue().entrySet()) {
+                        if (!firstColumn) json.append(",\n");
+                        firstColumn = false;
+                        
+                        String column = columnEntry.getKey();
+                        ColumnInfo info = columnEntry.getValue();
+                        json.append("        \"").append(column).append("\": {\n");
+                        json.append("          \"dataType\": \"").append(info.dataType).append("\",\n");
+                        json.append("          \"dataLength\": ").append(info.dataLength).append(",\n");
+                        json.append("          \"dataScale\": ").append(info.dataScale).append(",\n");
+                        json.append("          \"sampleData\": \"").append(info.sampleData != null ? info.sampleData.replace("\"", "\\\"") : "").append("\"\n");
+                        json.append("        }");
+                    }
+                    json.append("\n      }");
+                }
+                json.append("\n    }");
+            }
+            json.append("\n  }\n");
+            json.append("}\n");
+            
+            // 파일 저장
+            String fileName = "out/oracle_dictionary_" + System.currentTimeMillis() + ".json";
+            Files.write(Paths.get(fileName), json.toString().getBytes());
+            System.out.println("✓ 딕셔너리 파일 저장: " + fileName);
+            
+        } catch (Exception e) {
+            System.err.println("딕셔너리 파일 저장 실패: " + e.getMessage());
+        }
+    }
+    
+    private String getSampleData(String owner, String tableName, String columnName, String dataType) {
+        // CLOB, BLOB 등 대용량 데이터는 기본값 사용
+        if (isLargeDataType(dataType)) {
+            return generateDefaultValueForType(dataType);
+        }
+        
+        try {
+            String sql = String.format("""
+                SET PAGESIZE 0
+                SET FEEDBACK OFF
+                SET HEADING OFF
+                SELECT %s FROM %s.%s WHERE ROWNUM = 1;
+                """, columnName, owner, tableName);
+            
+            String result = executeSqlPlus(sql);
+            String[] lines = result.split("\n");
+            
+            for (String line : lines) {
+                line = line.trim();
+                if (!line.isEmpty() && !line.startsWith("SQL>") && !line.startsWith("Connected")) {
+                    return line;
+                }
+            }
+        } catch (Exception e) {
+            // 샘플 데이터 가져오기 실패시 기본값 사용
+        }
+        
+        return generateDefaultValueForType(dataType);
+    }
+    
+    private boolean isLargeDataType(String dataType) {
+        return Arrays.asList("CLOB", "BLOB", "RAW", "LONG RAW", "BFILE", "XMLTYPE", "JSON")
+                    .contains(dataType.toUpperCase());
+    }
+    
+    private String generateDefaultValueForType(String dataType) {
+        switch (dataType.toUpperCase()) {
+            case "VARCHAR2":
+            case "CHAR":
+                return String.valueOf(FALLBACK_ID);
+            case "CLOB":
+                return "CLOB_DATA";
+            case "BLOB":
+                return "424C4F42"; // "BLOB"의 HEX
+            case "RAW":
+            case "LONG RAW":
+                return "52415744415441"; // "RAWDATA"의 HEX
+            case "BFILE":
+                return "BFILE_PATH";
+            case "NUMBER":
+                return String.valueOf(FALLBACK_ID);
+            case "DATE":
+                return FALLBACK_DATE;
+            case "TIMESTAMP":
+                return FALLBACK_TIMESTAMP;
+            case "XMLTYPE":
+                return "XML_DATA";
+            case "JSON":
+                return "JSON_DATA";
+            default:
+                return "DEFAULT_VALUE";
+        }
+    }
+    
+    private void step3GetServiceUsers() {
+        System.out.println("3단계: 서비스 유저 목록 확인...");
+        String[] users = ORACLE_SVC_USER_LIST != null ? 
+            ORACLE_SVC_USER_LIST.split(",") : new String[]{ORACLE_SVC_USER};
+        System.out.println("✓ 서비스 유저: " + Arrays.toString(users));
+    }
+    
+    private void step4ExtractBindVariables() throws Exception {
+        System.out.println("4단계: 바인드 변수 추출 중...");
+        
+        String mapperFolder = SOURCE_SQL_MAPPER_FOLDER != null ? 
+            SOURCE_SQL_MAPPER_FOLDER : "./mappers";
+        
+        Path mapperPath = Paths.get(mapperFolder);
+        if (!Files.exists(mapperPath)) {
+            throw new RuntimeException("매퍼 폴더를 찾을 수 없습니다: " + mapperFolder);
+        }
+        
+        Pattern bindVarPattern = Pattern.compile("[#$]\\{([^}]+)\\}");
+        
+        Files.walk(mapperPath)
+             .filter(path -> path.toString().endsWith(".xml") || path.toString().endsWith(".sql"))
+             .forEach(path -> {
+                 try {
+                     String content = Files.readString(path);
+                     Matcher matcher = bindVarPattern.matcher(content);
+                     
+                     while (matcher.find()) {
+                         String varName = matcher.group(1).trim();
+                         bindVariables.computeIfAbsent(varName, k -> new BindVariable(k))
+                                     .addFile(path.toString());
+                     }
+                 } catch (IOException e) {
+                     System.err.println("파일 읽기 오류 " + path + ": " + e.getMessage());
+                 }
+             });
+        
+        System.out.printf("✓ 바인드 변수 추출 완료 (%d개)%n", bindVariables.size());
+    }
+    
+    private void step5MatchBindVariables() {
+        System.out.println("5단계: 바인드 변수 매칭 및 값 생성...");
+        
+        int matchedCount = 0;
+        
+        for (BindVariable bindVar : bindVariables.values()) {
+            if (bindVar.getValue() != null) continue; // 이미 값이 있으면 스킵
+            
+            // 딕셔너리에서 유사한 컬럼 찾기
+            ColumnMatch match = findBestColumnMatch(bindVar.getName());
+            if (match != null) {
+                String value = generateValueForColumn(bindVar.getName(), match.columnInfo);
+                bindVar.setValue(value);
+                bindVar.setMatchedColumn(match.fullColumnName);
+                matchedCount++;
+            }
+        }
+        
+        System.out.printf("✓ 자동 매칭 완료 (%d/%d개)%n", matchedCount, bindVariables.size());
+    }
+    
+    private ColumnMatch findBestColumnMatch(String varName) {
+        String varLower = varName.toLowerCase().replaceAll("[_-]", "");
+        
+        ColumnMatch bestMatch = null;
+        int bestScore = 0;
+        
+        for (Map.Entry<String, Map<String, Map<String, ColumnInfo>>> schemaEntry : dictionary.entrySet()) {
+            String schema = schemaEntry.getKey();
+            
+            for (Map.Entry<String, Map<String, ColumnInfo>> tableEntry : schemaEntry.getValue().entrySet()) {
+                String table = tableEntry.getKey();
+                
+                for (Map.Entry<String, ColumnInfo> columnEntry : tableEntry.getValue().entrySet()) {
+                    String column = columnEntry.getKey();
+                    String colLower = column.toLowerCase().replaceAll("[_-]", "");
+                    
+                    int score = calculateSimilarityScore(varLower, colLower);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMatch = new ColumnMatch(
+                            schema + "." + table + "." + column,
+                            columnEntry.getValue()
+                        );
+                    }
+                }
+            }
+        }
+        
+        return bestScore >= SIMILARITY_THRESHOLD ? bestMatch : null; // 설정된 임계값 이상 유사도만 매칭
+    }
+    
+    private int calculateSimilarityScore(String var, String col) {
+        if (var.equals(col)) return 100;
+        if (var.contains(col) || col.contains(var)) return 80;
+        
+        // 공통 부분 문자열 계산
+        int commonLength = 0;
+        int minLength = Math.min(var.length(), col.length());
+        
+        for (int i = 0; i < minLength; i++) {
+            if (var.charAt(i) == col.charAt(i)) {
+                commonLength++;
+            } else {
+                break;
+            }
+        }
+        
+        return (commonLength * 100) / Math.max(var.length(), col.length());
+    }
+    
+    private String generateValueForColumn(String varName, ColumnInfo columnInfo) {
+        String varLower = varName.toLowerCase();
+        
+        // 변수명 기반 타입 판단
+        if (isNumericVariable(varLower)) {
+            return generateNumericValue(varLower);
+        } else if (isDateVariable(varLower)) {
+            if (varLower.contains("time") || varLower.endsWith("at")) {
+                return FALLBACK_TIMESTAMP;
+            } else {
+                return FALLBACK_DATE;
+            }
+        } else {
+            // 문자열
+            if (columnInfo.sampleData != null && !columnInfo.sampleData.equals("DEFAULT_VALUE")) {
+                return cleanSampleData(columnInfo.sampleData);
+            } else {
+                return generateStringValue(varLower);
+            }
+        }
+    }
+    
+    private String cleanSampleData(String sampleData) {
+        // CLOB 객체 참조 제거
+        if (sampleData.contains("oracle.sql.CLOB@")) {
+            return "CLOB_DATA";
+        }
+        // 기타 특수 문자 제거
+        return sampleData.replaceAll("[\\r\\n\\t]", " ").trim();
+    }
+    
+    private boolean isNumericVariable(String varName) {
+        return varName.endsWith("id") || varName.startsWith("id") ||
+               varName.contains("count") || varName.contains("limit") || 
+               varName.contains("offset") || varName.contains("amount") ||
+               varName.contains("price") || varName.contains("spent") ||
+               varName.contains("days") || varName.contains("score") ||
+               varName.contains("weight") || varName.contains("probability") ||
+               varName.contains("risk") || varName.equals("year");
+    }
+    
+    private boolean isDateVariable(String varName) {
+        return varName.contains("date") || varName.contains("time") ||
+               varName.endsWith("at") || varName.equals("createdat") ||
+               varName.equals("updatedat") || varName.equals("deletedat");
+    }
+    
+    private String generateNumericValue(String varName) {
+        // Q Chat을 통해 컨텍스트 기반 값 생성 시도
+        try {
+            QChatResult result = callQChatForValue(varName, "숫자");
+            if (result != null && result.value != null && isValidNumeric(result.value)) {
+                return result.value;
+            }
+        } catch (Exception e) {
+            System.out.printf("Q Chat 숫자 값 생성 실패 (%s): %s%n", varName, e.getMessage());
+        }
+        
+        // Q Chat 실패시 최소한의 fallback
+        System.out.printf("Q Chat 실패, fallback 값 사용: %s%n", varName);
+        if (varName.contains("id")) return String.valueOf(FALLBACK_ID);
+        if (varName.contains("offset")) return String.valueOf(FALLBACK_OFFSET);
+        if (varName.contains("limit")) return String.valueOf(FALLBACK_LIMIT);
+        if (varName.contains("amount") || varName.contains("price") || varName.contains("spent")) return String.valueOf(FALLBACK_AMOUNT);
+        if (varName.contains("days")) return String.valueOf(FALLBACK_DAYS);
+        if (varName.equals("year")) return FALLBACK_YEAR;
+        return String.valueOf(FALLBACK_ID);
+    }
+    
+    private String generateStringValue(String varName) {
+        // Q Chat을 통해 컨텍스트 기반 값 생성 시도
+        try {
+            QChatResult result = callQChatForValue(varName, "문자열");
+            if (result != null && result.value != null && !result.value.trim().isEmpty()) {
+                return result.value;
+            }
+        } catch (Exception e) {
+            System.out.printf("Q Chat 문자열 값 생성 실패 (%s): %s%n", varName, e.getMessage());
+        }
+        
+        // Q Chat 실패시 최소한의 fallback (변수명 기반 추론)
+        System.out.printf("Q Chat 실패, fallback 값 사용: %s%n", varName);
+        if (varName.contains("name")) return "TEST_" + varName.toUpperCase();
+        if (varName.contains("status")) return "ACTIVE";
+        if (varName.contains("email")) return "test@example.com";
+        if (varName.contains("grade") || varName.contains("segment") || varName.contains("category")) return "VIP";
+        if (varName.contains("keyword")) return "TEST";
+        if (varName.contains("country")) return "USA";
+        return "DEFAULT_" + varName.toUpperCase();
+    }
+    
+    private void step6ManualMatching() {
+        System.out.println("6단계: Q Chat 기반 지능형 값 생성...");
+        
+        List<BindVariable> unmatchedVars = new ArrayList<>();
+        for (BindVariable var : bindVariables.values()) {
+            if (var.getValue() == null) {
+                unmatchedVars.add(var);
+            }
+        }
+        
+        if (unmatchedVars.isEmpty()) {
+            System.out.println("✓ 모든 변수가 자동 매칭되었습니다.");
+            return;
+        }
+        
+        System.out.printf("Q Chat 지능형 값 생성이 필요한 변수: %d개%n", unmatchedVars.size());
+        
+        int successCount = 0;
+        int fallbackCount = 0;
+        
+        for (BindVariable bindVar : unmatchedVars) {
+            System.out.printf("%n=== 변수: %s ===%n", bindVar.getName());
+            
+            try {
+                // Q Chat을 통한 컨텍스트 기반 값 생성
+                String dataType = determineDataType(bindVar.getName().toLowerCase());
+                QChatResult result = callQChatForValue(bindVar.getName(), dataType);
+                
+                if (result != null && result.value != null && !result.value.trim().isEmpty()) {
+                    String cleanValue = result.value.trim();
+                    
+                    // 값 유효성 검증
+                    if (isValidValue(cleanValue, dataType)) {
+                        bindVar.setValue(cleanValue);
+                        if (result.matchedColumn != null) {
+                            bindVar.setMatchedColumn(result.matchedColumn);
+                            System.out.printf("✓ Q Chat 성공: %s (매칭: %s)%n", cleanValue, result.matchedColumn);
+                        } else {
+                            System.out.printf("✓ Q Chat 성공: %s (컨텍스트 기반)%n", cleanValue);
+                        }
+                        successCount++;
+                        continue;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.printf("Q Chat 실행 오류: %s%n", e.getMessage());
+            }
+            
+            // Q Chat 실패시 fallback 값 사용
+            String fallbackValue = generateFallbackValue(bindVar.getName());
+            bindVar.setValue(fallbackValue);
+            System.out.printf("✓ Fallback 값 사용: %s%n", fallbackValue);
+            fallbackCount++;
+        }
+        
+        System.out.printf("%n✓ Q Chat 지능형 값 생성 완료%n");
+        System.out.printf("  - Q Chat 성공: %d개%n", successCount);
+        System.out.printf("  - Fallback 사용: %d개%n", fallbackCount);
+        System.out.printf("  - 성공률: %.1f%%%n", successCount * 100.0 / unmatchedVars.size());
+    }
+    
+    /**
+     * 값 유효성 검증
+     */
+    private boolean isValidValue(String value, String dataType) {
+        if (value == null || value.trim().isEmpty()) return false;
+        
+        switch (dataType) {
+            case "숫자":
+                return isValidNumeric(value);
+            case "날짜":
+                return isValidDate(value);
+            case "문자열":
+                return value.length() <= 255; // 일반적인 VARCHAR 길이 제한
+            default:
+                return true;
+        }
+    }
+    
+    /**
+     * 날짜 값 유효성 검증
+     */
+    private boolean isValidDate(String value) {
+        try {
+            // 간단한 날짜 형식 검증
+            return value.matches("\\d{4}-\\d{2}-\\d{2}") || 
+                   value.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Fallback 값 생성 (Q Chat 실패시)
+     */
+    private String generateFallbackValue(String varName) {
+        String varLower = varName.toLowerCase();
+        
+        if (isNumericVariable(varLower)) {
+            if (varLower.contains("id")) return String.valueOf(FALLBACK_ID);
+            if (varLower.contains("amount") || varLower.contains("price")) return String.valueOf(FALLBACK_AMOUNT);
+            if (varLower.contains("days")) return String.valueOf(FALLBACK_DAYS);
+            if (varLower.contains("limit")) return String.valueOf(FALLBACK_LIMIT);
+            if (varLower.contains("offset")) return String.valueOf(FALLBACK_OFFSET);
+            if (varLower.equals("year")) return FALLBACK_YEAR;
+            return String.valueOf(FALLBACK_ID);
+        } else if (isDateVariable(varLower)) {
+            if (varLower.contains("time") || varLower.endsWith("at")) {
+                return FALLBACK_TIMESTAMP;
+            } else {
+                return FALLBACK_DATE;
+            }
+        } else {
+            // 문자열 fallback
+            if (varLower.contains("status")) return "ACTIVE";
+            if (varLower.contains("email")) return "test@example.com";
+            if (varLower.contains("name")) return "TEST_" + varName.toUpperCase();
+            return "DEFAULT_" + varName.toUpperCase();
+        }
+    }
+    
+    private QChatResult callQChat(BindVariable bindVar) throws Exception {
+        String prompt = generateQChatPrompt(bindVar);
+        
+        System.out.println("Q Chat 실행 중...");
+        
+        ProcessBuilder pb = new ProcessBuilder("q", "chat", "--no-interactive");
+        pb.environment().put("Q_CHAT_TIMEOUT", String.valueOf(Q_CHAT_TIMEOUT));
+        pb.environment().put("NO_COLOR", "1");
+        pb.environment().put("TERM", "dumb");
+        
+        Process process = pb.start();
+        
+        try (PrintWriter writer = new PrintWriter(process.getOutputStream())) {
+            writer.println(prompt);
+            writer.flush();
+        }
+        
+        StringBuilder output = new StringBuilder();
+        StringBuilder error = new StringBuilder();
+        
+        // 출력 읽기
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        
+        // 에러 읽기
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                error.append(line).append("\n");
+            }
+        }
+        
+        boolean finished = process.waitFor(Q_CHAT_TIMEOUT, java.util.concurrent.TimeUnit.SECONDS);
+        if (!finished) {
+            process.destroyForcibly();
+            throw new RuntimeException("Q Chat 실행 시간 초과");
+        }
+        
+        if (process.exitValue() != 0) {
+            throw new RuntimeException("Q Chat 실행 실패: " + error.toString());
+        }
+        
+        return parseQChatResponse(output.toString(), bindVar.getName());
+    }
+    
+    private String generateQChatPrompt(BindVariable bindVar) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("바인드 변수 매칭 요청:\n\n");
+        prompt.append("변수명: ").append(bindVar.getName()).append("\n");
+        prompt.append("사용된 파일: ").append(String.join(", ", bindVar.getFiles())).append("\n");
+        prompt.append("컨텍스트: SQL 매퍼에서 데이터 필터링/조회 용도로 사용\n\n");
+        
+        // 동적으로 스키마 정보 생성
+        String[] schemas = ORACLE_SVC_USER_LIST != null ? 
+            ORACLE_SVC_USER_LIST.split(",") : new String[]{ORACLE_SVC_USER};
+        
+        prompt.append("Oracle DB 스키마 정보:\n");
+        for (String schema : schemas) {
+            schema = schema.trim();
+            if (dictionary.containsKey(schema)) {
+                prompt.append("- 스키마: ").append(schema).append("\n");
+                // 주요 테이블들만 샘플로 표시
+                int tableCount = 0;
+                for (String tableName : dictionary.get(schema).keySet()) {
+                    if (tableCount < MAX_SAMPLE_TABLES) { // 환경변수로 설정된 개수만 표시
+                        prompt.append("  * ").append(tableName).append("\n");
+                        tableCount++;
+                    }
+                }
+                if (dictionary.get(schema).size() > MAX_SAMPLE_TABLES) {
+                    prompt.append("  * ... 총 ").append(dictionary.get(schema).size()).append("개 테이블\n");
+                }
+            }
+        }
+        prompt.append("\n");
+        
+        prompt.append("이 바인드 변수와 가장 적합한 DB 컬럼을 찾아서 다음 중 하나로 응답해주세요:\n\n");
+        prompt.append("1. 매칭된 경우: \"값 (매칭: 스키마.테이블.컬럼)\"\n");
+        prompt.append("   예시: \"'VIP' (매칭: ").append(schemas[0].trim()).append(".USERS.USER_GRADE)\"\n");
+        prompt.append("   예시: \"1000 (매칭: ").append(schemas[0].trim()).append(".ORDERS.AMOUNT)\"\n\n");
+        prompt.append("2. 매칭되지 않은 경우: \"값\"\n");
+        prompt.append("   예시: \"'DEFAULT_VALUE'\"\n");
+        prompt.append("   예시: \"1\"\n\n");
+        prompt.append("변수명의 의미를 분석하여 가장 논리적으로 매칭되는 컬럼을 선택하고, ");
+        prompt.append("해당 컬럼의 데이터 타입에 맞는 적절한 테스트 값을 생성해주세요.\n");
+        prompt.append("숫자는 따옴표 없이, 문자열은 작은따옴표로 감싸서 응답해주세요.");
+        
+        return prompt.toString();
+    }
+    
+    private QChatResult parseQChatResponse(String response, String varName) {
+        if (response == null || response.trim().isEmpty()) {
+            return null;
+        }
+        
+        // ANSI 색상 코드 제거
+        String cleanResponse = response
+            .replaceAll("\\u001B\\[[;\\d]*m", "")
+            .replaceAll("\\u001B\\[[0-9;]*[a-zA-Z]", "")
+            .trim();
+        
+        // 라인별로 분리하여 마지막 유효한 값 찾기
+        String[] lines = cleanResponse.split("\n");
+        
+        for (int i = lines.length - 1; i >= 0; i--) {
+            String line = lines[i].trim();
+            
+            // 빈 줄이나 설명 스킵
+            if (line.isEmpty() || line.length() > 50) {
+                continue;
+            }
+            
+            // 숫자 값 (따옴표 없음)
+            if (line.matches("^\\d+(\\.\\d+)?$")) {
+                return new QChatResult(line, null);
+            }
+            
+            // 문자열/날짜 값 (따옴표 있음)
+            if (line.matches("^'[^']*'$")) {
+                return new QChatResult(line, null);
+            }
+            
+            // 따옴표 없는 간단한 값도 허용
+            if (line.matches("^[A-Za-z0-9_-]+$") && line.length() <= 20) {
+                return new QChatResult(line, null);
+            }
+        }
+        
+        return null;
+    }
+                line.contains("컬럼") || 
+                line.contains("제공된") || 
+                line.contains("확인") ||
+                line.contains("이는") ||
+                line.contains("이 중에서") ||
+                line.length() > 50) {  // 너무 긴 설명 텍스트 제외
+                continue;
+            }
+            
+            // 작은따옴표로 감싸진 값
+            if (line.matches("^'[^']*'$")) {
+                return new QChatResult(line, null);
+            }
+            
+            // 순수 숫자 값
+            if (line.matches("^[0-9]+\\.?[0-9]*$")) {
+                return new QChatResult(line, null);
+            }
+            
+            // 단어 하나만 있는 경우 (따옴표로 감싸기)
+            if (line.matches("^[A-Z_]+$") && line.length() <= MAX_WORD_LENGTH) {
+                return new QChatResult("'" + line + "'", null);
+            }
+        }
+        
+        // 아무것도 찾지 못한 경우 기본값 생성
+        System.out.printf("Q Chat 응답 파싱 실패, 기본값 사용: %s%n", varName);
+        return new QChatResult(generateDefaultValueByName(varName), null);
+    }
+    
+    // Q Chat 결과를 담는 내부 클래스
+    static class QChatResult {
+        String value;
+        String matchedColumn;
+        
+        QChatResult(String value, String matchedColumn) {
+            this.value = value;
+            this.matchedColumn = matchedColumn;
+        }
+    }
+    
+    private String generateDefaultValueByName(String varName) {
+        String varLower = varName.toLowerCase();
+        
+        // Q Chat을 통한 지능형 값 생성 시도
+        try {
+            String dataType = determineDataType(varLower);
+            QChatResult result = callQChatForValue(varName, dataType);
+            if (result != null && result.value != null) {
+                return result.value;
+            }
+        } catch (Exception e) {
+            System.out.printf("Q Chat 값 생성 실패 (%s): %s%n", varName, e.getMessage());
+        }
+        
+        // Q Chat 실패시 타입별 fallback
+        if (isNumericVariable(varLower)) {
+            return generateNumericValue(varLower);
+        } else if (isDateVariable(varLower)) {
+            if (varLower.contains("time") || varLower.endsWith("at")) {
+                return FALLBACK_TIMESTAMP;
+            } else {
+                return FALLBACK_DATE;
+            }
+        } else {
+            return generateStringValue(varLower);
+        }
+    }
+    
+    /**
+     * 변수명 기반 데이터 타입 결정
+     */
+    private String determineDataType(String varName) {
+        if (isNumericVariable(varName)) {
+            return "숫자";
+        } else if (isDateVariable(varName)) {
+            return "날짜";
+        } else {
+            return "문자열";
+        }
+    }
+    
+    private void step7GeneratePropertiesFile() throws Exception {
+        System.out.println("7단계: parameters.properties 파일 생성...");
+        
+        try (PrintWriter writer = new PrintWriter(new FileWriter("parameters.properties"))) {
+            writer.println("# 바인드 변수 매개변수 파일");
+            writer.println("# 생성일시: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println();
+            
+            // 변수명 순으로 정렬
+            List<String> sortedVarNames = new ArrayList<>(bindVariables.keySet());
+            Collections.sort(sortedVarNames);
+            
+            for (String varName : sortedVarNames) {
+                BindVariable bindVar = bindVariables.get(varName);
+                String comment = "";
+                
+                if (bindVar.getMatchedColumn() != null) {
+                    // 매칭된 컬럼 정보는 남기고 '- 매칭된 컬럼' 텍스트만 제거
+                    comment = "# " + bindVar.getMatchedColumn();
+                } else {
+                    comment = "# 매칭 없음";
+                }
+                
+                // 값 포맷팅 - 데이터 타입에 맞게 따옴표 처리
+                String formattedValue = formatValueForProperties(bindVar.getValue(), varName);
+                
+                writer.println(comment);
+                writer.println(varName + "=" + formattedValue);
+                writer.println();
+            }
+        }
+        
+        System.out.printf("✓ parameters.properties 파일 생성 완료 (%d개 변수)%n", bindVariables.size());
+    }
+    
+    /**
+     * parameters.properties 파일용 값 포맷팅
+     * 숫자는 따옴표 없이, 문자열과 날짜는 따옴표 있게
+     */
+    private String formatValueForProperties(String value, String varName) {
+        if (value == null) {
+            return "";
+        }
+        
+        String cleanValue = value.trim();
+        
+        // 이미 따옴표로 감싸져 있으면 제거
+        if (cleanValue.startsWith("'") && cleanValue.endsWith("'")) {
+            cleanValue = cleanValue.substring(1, cleanValue.length() - 1);
+        }
+        
+        String varLower = varName.toLowerCase();
+        
+        // 숫자 타입 변수는 따옴표 없이
+        if (isNumericVariable(varLower)) {
+            return cleanValue;
+        }
+        
+        // 문자열과 날짜는 따옴표 있게
+        return "'" + cleanValue + "'";
+    }
+    
+    /**
+     * Q Chat을 통한 컨텍스트 기반 값 생성 (빠른 응답 최적화)
+     */
+    private QChatResult callQChatForValue(String varName, String dataType) throws Exception {
+        StringBuilder prompt = new StringBuilder();
+        
+        // 바인드 변수 정보 가져오기
+        BindVariable bindVar = bindVariables.get(varName);
+        if (bindVar == null) {
+            throw new Exception("바인드 변수 정보를 찾을 수 없습니다: " + varName);
+        }
+        
+        // 간결한 프롬프트 (빠른 응답 최적화)
+        prompt.append("SQL 바인드 변수 값 생성:\n");
+        prompt.append("변수: #{").append(varName).append("}\n");
+        
+        // SQL 컨텍스트 (핵심만)
+        if (!bindVar.getFiles().isEmpty()) {
+            String xmlFile = bindVar.getFiles().iterator().next();
+            String sqlContext = extractSqlContextBrief(xmlFile, varName);
+            if (sqlContext != null && !sqlContext.trim().isEmpty()) {
+                prompt.append("SQL: ").append(sqlContext).append("\n");
+            }
+        }
+        
+        // 간단한 요청
+        if (dataType.equals("숫자")) {
+            prompt.append("숫자 값만 반환 (예: 1, 100, 2025)");
+        } else if (dataType.equals("날짜")) {
+            prompt.append("날짜 값을 작은따옴표로 감싸서 반환 (예: '2025-08-24')");
+        } else {
+            prompt.append("문자열 값을 작은따옴표로 감싸서 반환 (예: 'ACTIVE')");
+        }
+        
+        return callQChatWithPrompt(prompt.toString(), varName);
+    }
+    
+    /**
+     * 간결한 SQL 컨텍스트 추출 (빠른 응답용)
+     */
+    private String extractSqlContextBrief(String xmlFile, String varName) {
+        try {
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(xmlFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+            }
+            
+            String xmlContent = content.toString();
+            String[] lines = xmlContent.split("\n");
+            
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i].trim();
+                
+                // 바인드 변수가 포함된 라인 찾기
+                if (line.contains("#{" + varName + "}") || line.contains("${" + varName + "}")) {
+                    // 해당 라인만 간단히 반환
+                    return line.replaceAll("\\s+", " ").trim();
+                }
+            }
+            
+        } catch (Exception e) {
+            // 무시하고 계속
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 매퍼 파일에서 SQL 컨텍스트 추출
+     */
+    private String extractSqlContext(String xmlFile, String varName) {
+        try {
+            // XML 파일 읽기
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(xmlFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+            }
+            
+            String xmlContent = content.toString();
+            
+            // #{varName} 또는 ${varName}이 포함된 SQL 블록 찾기
+            String[] lines = xmlContent.split("\n");
+            List<String> contextLines = new ArrayList<>();
+            boolean inRelevantSql = false;
+            String currentSqlId = null;
+            
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i].trim();
+                
+                // SQL 시작 태그 찾기
+                if (line.contains("<select") || line.contains("<insert") || 
+                    line.contains("<update") || line.contains("<delete")) {
+                    // id 속성 추출
+                    if (line.contains("id=\"")) {
+                        int start = line.indexOf("id=\"") + 4;
+                        int end = line.indexOf("\"", start);
+                        if (end > start) {
+                            currentSqlId = line.substring(start, end);
+                        }
+                    }
+                    inRelevantSql = false;
+                    contextLines.clear();
+                }
+                
+                // 현재 라인에 바인드 변수가 있는지 확인
+                if (line.contains("#{" + varName + "}") || line.contains("${" + varName + "}")) {
+                    inRelevantSql = true;
+                    
+                    // 앞뒤 컨텍스트 라인들 수집
+                    int startLine = Math.max(0, i - 5);
+                    int endLine = Math.min(lines.length - 1, i + 5);
+                    
+                    contextLines.clear();
+                    if (currentSqlId != null) {
+                        contextLines.add("-- SQL ID: " + currentSqlId);
+                        contextLines.add("-- 라인 " + (i + 1) + "에서 #{" + varName + "} 발견");
+                        contextLines.add("");
+                    }
+                    
+                    for (int j = startLine; j <= endLine; j++) {
+                        String contextLine = lines[j].trim();
+                        if (!contextLine.isEmpty() && 
+                            !contextLine.startsWith("<!--") && 
+                            !contextLine.startsWith("-->") &&
+                            !contextLine.startsWith("<") && 
+                            !contextLine.endsWith(">")) {
+                            
+                            // 바인드 변수가 있는 라인 강조
+                            if (j == i) {
+                                contextLines.add(">>> " + contextLine + " <<<");
+                            } else {
+                                contextLines.add("    " + contextLine);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            if (!contextLines.isEmpty()) {
+                return String.join("\n", contextLines);
+            }
+            
+        } catch (Exception e) {
+            System.out.printf("SQL 컨텍스트 추출 실패 (%s): %s%n", xmlFile, e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 테이블이 변수와 관련있는지 확인
+     */
+    private boolean isTableRelevant(String tableName, String varName) {
+        String tableNameLower = tableName.toLowerCase();
+        String varNameLower = varName.toLowerCase();
+        
+        // 직접 매칭
+        if (varNameLower.contains(tableNameLower) || tableNameLower.contains(varNameLower)) {
+            return true;
+        }
+        
+        // 의미적 매칭
+        if (varNameLower.contains("user") && tableNameLower.contains("user")) return true;
+        if (varNameLower.contains("order") && tableNameLower.contains("order")) return true;
+        if (varNameLower.contains("product") && tableNameLower.contains("product")) return true;
+        if (varNameLower.contains("payment") && tableNameLower.contains("payment")) return true;
+        if (varNameLower.contains("seller") && tableNameLower.contains("seller")) return true;
+        
+        return false;
+    }
+    
+    /**
+     * 변수명과 컬럼명의 관련성 확인
+     */
+    private boolean isRelatedColumn(String varName, String columnName) {
+        String varLower = varName.toLowerCase();
+        String colLower = columnName.toLowerCase();
+        
+        // 직접 매칭
+        if (varLower.equals(colLower)) return true;
+        
+        // 부분 매칭
+        if (varLower.contains(colLower) || colLower.contains(varLower)) return true;
+        
+        // 의미적 매칭
+        if (varLower.contains("id") && colLower.contains("id")) return true;
+        if (varLower.contains("name") && colLower.contains("name")) return true;
+        if (varLower.contains("status") && colLower.contains("status")) return true;
+        if (varLower.contains("amount") && colLower.contains("amount")) return true;
+        if (varLower.contains("date") && colLower.contains("date")) return true;
+        if (varLower.contains("email") && colLower.contains("email")) return true;
+        
+        return false;
+    }
+    
+    /**
+     * Q Chat 호출 (프롬프트 기반)
+     */
+    private QChatResult callQChatWithPrompt(String prompt, String varName) throws Exception {
+        System.out.println("=".repeat(80));
+        System.out.printf("🤖 Q Chat 프롬프트 (변수: %s):%n", varName);
+        System.out.println("=".repeat(80));
+        System.out.println(prompt);
+        System.out.println("=".repeat(80));
+        
+        ProcessBuilder pb = new ProcessBuilder("q", "chat", prompt);
+        pb.environment().put("Q_CHAT_TIMEOUT", String.valueOf(Q_CHAT_TIMEOUT));
+        
+        Process process = pb.start();
+        
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        
+        boolean finished = process.waitFor(Q_CHAT_TIMEOUT, TimeUnit.SECONDS);
+        if (!finished) {
+            process.destroyForcibly();
+            throw new Exception("Q Chat 타임아웃");
+        }
+        
+        if (process.exitValue() != 0) {
+            throw new Exception("Q Chat 실행 실패");
+        }
+        
+        String response = output.toString();
+        System.out.printf("🤖 Q Chat 응답 (변수: %s):%n", varName);
+        System.out.println("-".repeat(40));
+        System.out.println(response);
+        System.out.println("-".repeat(40));
+        
+        return parseQChatResponse(response, varName);
+    }
+    
+    /**
+     * 숫자 값 유효성 검증
+     */
+    private boolean isValidNumeric(String value) {
+        if (value == null || value.trim().isEmpty()) return false;
+        try {
+            Double.parseDouble(value.trim());
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 안전한 정수 파싱 (SYSASM 같은 시스템 값 무시)
+     */
+    private int parseIntSafely(String str, int defaultValue) {
+        if (str == null || str.trim().isEmpty()) {
+            return defaultValue;
+        }
+        
+        String trimmed = str.trim();
+        
+        // Oracle 시스템 값들 무시
+        if (trimmed.equalsIgnoreCase("SYSASM") || 
+            trimmed.equalsIgnoreCase("SYSDBA") || 
+            trimmed.equalsIgnoreCase("SYSOPER") ||
+            trimmed.equalsIgnoreCase("NULL") ||
+            trimmed.equals("-")) {
+            return defaultValue;
+        }
+        
+        try {
+            return Integer.parseInt(trimmed);
+        } catch (NumberFormatException e) {
+            // 파싱 실패시 기본값 반환
+            return defaultValue;
+        }
+    }
+    
+    // 내부 클래스들
+    static class ColumnInfo {
+        String dataType;
+        int dataLength;
+        int dataPrecision;
+        int dataScale;
+        String sampleData;
+        
+        ColumnInfo(String dataType, int dataLength, int dataPrecision, int dataScale, String sampleData) {
+            this.dataType = dataType;
+            this.dataLength = dataLength;
+            this.dataPrecision = dataPrecision;
+            this.dataScale = dataScale;
+            this.sampleData = sampleData;
+        }
+    }
+    
+    static class BindVariable {
+        private String name;
+        private List<String> files = new ArrayList<>();
+        private String value;
+        private String matchedColumn;
+        
+        BindVariable(String name) {
+            this.name = name;
+        }
+        
+        void addFile(String file) {
+            if (!files.contains(file)) {
+                files.add(file);
+            }
+        }
+        
+        // Getters and Setters
+        String getName() { return name; }
+        List<String> getFiles() { return files; }
+        String getValue() { return value; }
+        void setValue(String value) { this.value = value; }
+        String getMatchedColumn() { return matchedColumn; }
+        void setMatchedColumn(String matchedColumn) { this.matchedColumn = matchedColumn; }
+    }
+    
+    static class ColumnMatch {
+        String fullColumnName;
+        ColumnInfo columnInfo;
+        
+        ColumnMatch(String fullColumnName, ColumnInfo columnInfo) {
+            this.fullColumnName = fullColumnName;
+            this.columnInfo = columnInfo;
+        }
+    }
+}

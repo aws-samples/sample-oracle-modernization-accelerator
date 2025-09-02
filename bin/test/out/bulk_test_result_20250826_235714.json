@@ -1,0 +1,70 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-26 23:57:14",
+    "directory" : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/",
+    "databaseType" : "ORACLE",
+    "totalTests" : 10,
+    "successCount" : 10,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderListWithAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectCustomerOrderPatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 6
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderTrendAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 199
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderItems",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderShippingInfo",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "OrderMapper.xml",
+    "totalTests" : 10,
+    "successCount" : 10,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

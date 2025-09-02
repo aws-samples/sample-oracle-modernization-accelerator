@@ -1,0 +1,313 @@
+=== 작업 시작: task_1756335722170 ===
+=== XML File Deletion Script Started ===
+CSV File: /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformTarget.csv
+SOURCE Path: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap
+TARGET Path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+  ✓ Successfully deleted
+Processing: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+  -> Transformed path: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+  ✓ Successfully deleted
+=== Task Completed ===
+Files deleted: 0
+Files not found: 0
+[H[2J[3J[0;34m[1m================================================================================[0m
+[0;34m[1mStep 3: 애플리케이션 SQL 변환 작업 스크립트[0m
+[0;34m[1m================================================================================[0m
+[0;32m현재 설정된 프로젝트: amzn[0m
+[0;34m[1m================================================================================[0m
+[0;34m[1m================================================================================[0m
+[0;34m[1mStep 3: SQL 변환 Merge 작업[0m
+[0;34m[1m================================================================================[0m
+[0;36m이 단계에서는 변환된 SQL들을 Merge 처리합니다.[0m
+[0;34m[1m================================================================================[0m
+[0;34m[1m실행 명령:[0m
+[0;34m[1mpython3 /home/ec2-user/workspace/oma/bin/application/sqlTransformTarget.py --mode merge[0m
+[0;34m[1m================================================================================[0m
+[0;34m[1m작업을 수행하기 이전에 3초 대기 합니다.[0m
+INFO: Starting sqlTransformTarget.py V3.0 (Improved with Batch Management)
+INFO: Execution Mode: MERGE
+INFO: Batch Size: 10
+INFO: Application Name: amzn
+INFO: OMA Base Directory: /home/ec2-user/workspace/oma
+INFO: Assessment Folder: /home/ec2-user/workspace/oma/amzn/application
+INFO: Transform Folder: /home/ec2-user/workspace/oma/amzn/application/transform
+INFO: Transform Target List: /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformTarget.csv
+INFO: Target DBMS Type: postgres
+INFO: Prompt File: /home/ec2-user/workspace/oma/bin/application/sqlTransformTargetPostgreRules.md
+INFO: Using transformation rules file: sqlTransformTargetPostgreRules.md
+INFO: Origin Suffix: _src
+INFO: Transform Suffix: _tgt
+INFO: Test Mode: False
+INFO: Thread Count: 1
+INFO: Application Source Folder: /home/ec2-user/workspace/src-orcl/src
+INFO: Including SampleTransformTarget.csv for merge mode
+INFO: Including SQLTransformTargetSelective.csv for merge mode
+INFO: Read 11 targets from 3 CSV file(s) for merge mode
+INFO: Starting transformation with 1 threads
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+INFO: Processing XML: PromotionMapper.xml (basename: PromotionMapper)
+INFO: [MERGE MODE] Starting MERGE phase for PromotionMapper
+INFO: [MERGE MODE] PromotionMapper File count validation: Extract(3) vs Transform(3) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/promotion/PromotionMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/promotion/PromotionMapper/merge/PromotionMapper.xml
+INFO: SUBPROCESS: Found 3 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.PromotionMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/promotion/PromotionMapper/merge/PromotionMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] PromotionMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/promotion/PromotionMapper/merge/PromotionMapper.xml
+INFO: [MERGE MODE] PromotionMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+INFO: [MERGE MODE] PromotionMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/promotion/PromotionMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+INFO: Processing XML: UserMapper.xml (basename: UserMapper)
+INFO: [MERGE MODE] Starting MERGE phase for UserMapper
+INFO: [MERGE MODE] UserMapper File count validation: Extract(17) vs Transform(17) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/merge/UserMapper.xml
+INFO: SUBPROCESS: Found 17 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.UserMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/merge/UserMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] UserMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/merge/UserMapper.xml
+INFO: [MERGE MODE] UserMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+INFO: [MERGE MODE] UserMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/user/UserMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+INFO: Processing XML: AnalyticsMapper.xml (basename: AnalyticsMapper)
+INFO: [MERGE MODE] Starting MERGE phase for AnalyticsMapper
+INFO: [MERGE MODE] AnalyticsMapper File count validation: Extract(12) vs Transform(12) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/merge/AnalyticsMapper.xml
+INFO: SUBPROCESS: Found 12 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.AnalyticsMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/merge/AnalyticsMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] AnalyticsMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/merge/AnalyticsMapper.xml
+INFO: [MERGE MODE] AnalyticsMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+INFO: [MERGE MODE] AnalyticsMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+INFO: Processing XML: OrderMapper.xml (basename: OrderMapper)
+INFO: [MERGE MODE] Starting MERGE phase for OrderMapper
+INFO: [MERGE MODE] OrderMapper File count validation: Extract(15) vs Transform(15) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/order/OrderMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/order/OrderMapper/merge/OrderMapper.xml
+INFO: SUBPROCESS: Found 15 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.OrderMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/order/OrderMapper/merge/OrderMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] OrderMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/order/OrderMapper/merge/OrderMapper.xml
+INFO: [MERGE MODE] OrderMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+INFO: [MERGE MODE] OrderMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/order/OrderMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+INFO: Processing XML: ShippingMapper.xml (basename: ShippingMapper)
+INFO: [MERGE MODE] Starting MERGE phase for ShippingMapper
+INFO: [MERGE MODE] ShippingMapper File count validation: Extract(3) vs Transform(3) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/shipping/ShippingMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/shipping/ShippingMapper/merge/ShippingMapper.xml
+INFO: SUBPROCESS: Found 3 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.ShippingMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/shipping/ShippingMapper/merge/ShippingMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] ShippingMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/shipping/ShippingMapper/merge/ShippingMapper.xml
+INFO: [MERGE MODE] ShippingMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+INFO: [MERGE MODE] ShippingMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/shipping/ShippingMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+INFO: Processing XML: PaymentMapper.xml (basename: PaymentMapper)
+INFO: [MERGE MODE] Starting MERGE phase for PaymentMapper
+INFO: [MERGE MODE] PaymentMapper File count validation: Extract(13) vs Transform(13) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/payment/PaymentMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/payment/PaymentMapper/merge/PaymentMapper.xml
+INFO: SUBPROCESS: Found 13 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.PaymentMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/payment/PaymentMapper/merge/PaymentMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] PaymentMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/payment/PaymentMapper/merge/PaymentMapper.xml
+INFO: [MERGE MODE] PaymentMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+INFO: [MERGE MODE] PaymentMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+INFO: Processing XML: ProductAdvancedMapper.xml (basename: ProductAdvancedMapper)
+INFO: [MERGE MODE] Starting MERGE phase for ProductAdvancedMapper
+INFO: [MERGE MODE] ProductAdvancedMapper File count validation: Extract(3) vs Transform(3) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductAdvancedMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductAdvancedMapper/merge/ProductAdvancedMapper.xml
+INFO: SUBPROCESS: Found 3 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.ProductAdvancedMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductAdvancedMapper/merge/ProductAdvancedMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] ProductAdvancedMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductAdvancedMapper/merge/ProductAdvancedMapper.xml
+INFO: [MERGE MODE] ProductAdvancedMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+INFO: [MERGE MODE] ProductAdvancedMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductAdvancedMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+INFO: Processing XML: ProductMapper.xml (basename: ProductMapper)
+INFO: [MERGE MODE] Starting MERGE phase for ProductMapper
+INFO: [MERGE MODE] ProductMapper File count validation: Extract(15) vs Transform(15) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductMapper/merge/ProductMapper.xml
+INFO: SUBPROCESS: Found 15 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.ProductMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductMapper/merge/ProductMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] ProductMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/product/ProductMapper/merge/ProductMapper.xml
+INFO: [MERGE MODE] ProductMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+INFO: [MERGE MODE] ProductMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/ProductMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+INFO: Processing XML: SellerMapper.xml (basename: SellerMapper)
+INFO: [MERGE MODE] Starting MERGE phase for SellerMapper
+INFO: [MERGE MODE] SellerMapper File count validation: Extract(2) vs Transform(2) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/seller/SellerMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/seller/SellerMapper/merge/SellerMapper.xml
+INFO: SUBPROCESS: Found 2 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.SellerMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/seller/SellerMapper/merge/SellerMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] SellerMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/seller/SellerMapper/merge/SellerMapper.xml
+INFO: [MERGE MODE] SellerMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+INFO: [MERGE MODE] SellerMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/seller/SellerMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+INFO: Processing XML: CustomerServiceMapper.xml (basename: CustomerServiceMapper)
+INFO: [MERGE MODE] Starting MERGE phase for CustomerServiceMapper
+INFO: [MERGE MODE] CustomerServiceMapper File count validation: Extract(4) vs Transform(4) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/customer-service/CustomerServiceMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/customer-service/CustomerServiceMapper/merge/CustomerServiceMapper.xml
+INFO: SUBPROCESS: Found 4 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.CustomerServiceMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/customer-service/CustomerServiceMapper/merge/CustomerServiceMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] CustomerServiceMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/customer-service/CustomerServiceMapper/merge/CustomerServiceMapper.xml
+INFO: [MERGE MODE] CustomerServiceMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+INFO: [MERGE MODE] CustomerServiceMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/customer-service/CustomerServiceMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Processing target file: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+INFO: Processing XML: InventoryMapper.xml (basename: InventoryMapper)
+INFO: [MERGE MODE] Starting MERGE phase for InventoryMapper
+INFO: [MERGE MODE] InventoryMapper File count validation: Extract(4) vs Transform(4) - ✓
+INFO: SUBPROCESS: Starting XML merge process from /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/inventory/InventoryMapper/transform to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/inventory/InventoryMapper/merge/InventoryMapper.xml
+INFO: SUBPROCESS: Found 4 XML files to merge
+INFO: SUBPROCESS: Using namespace: amzn.bo.mapper.InventoryMapper
+INFO: SUBPROCESS: Successfully wrote merged XML to /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/inventory/InventoryMapper/merge/InventoryMapper.xml
+INFO: SUBPROCESS: XML merge completed in 0.00 seconds
+INFO: SUBPROCESS: XML merge process completed successfully
+INFO: [MERGE MODE] InventoryMapper Merge completed: /home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/inventory/InventoryMapper/merge/InventoryMapper.xml
+INFO: [MERGE MODE] InventoryMapper Final file: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+INFO: [MERGE MODE] InventoryMapper Process completed: ✓
+INFO: Transform result updated (duplicate removed) in /home/ec2-user/workspace/oma/amzn/application/transform/SQLTransformResult.csv
+INFO: Updated CSV: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml Process: 'Completed' → 'Completed'
+INFO: [ThreadPoolExecutor-0_0] ✓ CSV updated: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml marked as Completed
+INFO: [ThreadPoolExecutor-0_0] Successfully processed /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+INFO: [ThreadPoolExecutor-0_0] Result: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml
+INFO: Starting validation process...
+INFO: Running validation with command: python3 /home/ec2-user/workspace/oma/bin/application/transformValidation.py
+INFO: Note: transformValidation.py uses environment variables (APP_TRANSFORM_FOLDER, TARGET_SQL_MAPPER_FOLDER)
+INFO: SUBPROCESS: MyBatis 호환 XML Validation 시작
+INFO: SUBPROCESS: Transform Folder: /home/ec2-user/workspace/oma/amzn/application/transform
+INFO: SUBPROCESS: Logs Folder: /home/ec2-user/workspace/oma/amzn/logs/application
+INFO: SUBPROCESS: Target Mapper Folder: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap
+INFO: SUBPROCESS: Origin Suffix: _origin
+INFO: SUBPROCESS: 기본 모드 (Transform): postCheck.csv에서 XML 리스트 가져오기 - /home/ec2-user/workspace/oma/amzn/application/transform/postCheck.csv
+WARNING: SUBPROCESS: postCheck.csv 파일이 존재하지 않습니다: /home/ec2-user/workspace/oma/amzn/application/transform/postCheck.csv
+INFO: SUBPROCESS: 총 0개의 XML 파일을 검증합니다.
+WARNING: SUBPROCESS: postCheck.csv 파일이 존재하지 않습니다: /home/ec2-user/workspace/oma/amzn/application/transform/postCheck.csv
+INFO: SUBPROCESS: XML 검증 결과가 저장되었습니다: /home/ec2-user/workspace/oma/amzn/application/transform/mybatisValidationResult.csv
+INFO: SUBPROCESS: Validation process completed
+INFO: SUBPROCESS: Total files checked: 0
+INFO: SUBPROCESS: XML validation failures: 0
+INFO: SUBPROCESS: xmllint validation: All files passed
+INFO: SUBPROCESS: All validations passed successfully.
+INFO: Validation process completed successfully
+INFO: XML validation process executed for MERGE mode
+INFO: ================================================================================
+INFO: TRANSFORM PROCESS COMPLETED
+INFO: ================================================================================
+INFO: Total target files: 11
+INFO: Total files processed: 11
+INFO: Successful processes: 11
+INFO: Failed processes: 0
+INFO: Fully completed (marked as Completed): 11
+INFO: Total execution time: 0.52 seconds
+INFO: Average time per file: 0.05 seconds
+INFO: ================================================================================
+INFO: All MERGE operations completed successfully
+INFO: ================================================================================
+Using target-specific rules file for postgres: /home/ec2-user/workspace/oma/bin/application/sqlTransformTargetPostgreRules.md
+[0;34m[1m================================================================================[0m
+[0;32mSQL 변환 Merge 작업이 완료되었습니다.[0m
+[0;34m[1m================================================================================[0m
+[0;32mStep 3: SQL 변환 Merge 작업이 완료되었습니다.[0m
+[0;34m[1m================================================================================[0m
+=== 작업 완료: task_1756335722170 ===

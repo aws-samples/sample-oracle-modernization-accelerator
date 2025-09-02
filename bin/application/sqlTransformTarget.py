@@ -1215,13 +1215,21 @@ def main():
         
         # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
         target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
-        if target_dbms_type == 'postgres':
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
+        if target_dbms_type in ['postgresql', 'postgres']:
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPostgreRules.md")
         elif target_dbms_type == 'mysql':
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMysqlRules.md")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMySqlRules.md")
         else:
             # 기본값으로 postgres 사용
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPostgreRules.md")
+        
+        # 파일이 존재하지 않으면 통합 파일 사용
+        if not os.path.exists(prompt_file):
+            print(f"Warning: Target-specific rules file not found: {prompt_file}")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTarget.md")
+            print(f"Using default rules file: {prompt_file}")
+        else:
+            print(f"Using target-specific rules file for {target_dbms_type}: {prompt_file}")
         
         log_level_str = 'DEBUG'
         java_source_folder = '/Users/changik//workspace/oracle-modernization-accelerator/SampleApp/jpetstore-6/src'
@@ -1239,13 +1247,21 @@ def main():
         
         # TARGET_DBMS_TYPE에 따른 프롬프트 파일 선택
         target_dbms_type = os.environ.get('TARGET_DBMS_TYPE', 'postgres').lower()
-        if target_dbms_type == 'postgres':
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
+        if target_dbms_type in ['postgresql', 'postgres']:
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPostgreRules.md")
         elif target_dbms_type == 'mysql':
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMysqlRules.md")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetMySqlRules.md")
         else:
             # 기본값으로 postgres 사용
-            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPgRules.md")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTargetPostgreRules.md")
+        
+        # 파일이 존재하지 않으면 통합 파일 사용
+        if not os.path.exists(prompt_file):
+            print(f"Warning: Target-specific rules file not found: {prompt_file}")
+            prompt_file = os.path.join(app_tools_folder, "sqlTransformTarget.md")
+            print(f"Using default rules file: {prompt_file}")
+        else:
+            print(f"Using target-specific rules file for {target_dbms_type}: {prompt_file}")
         
         java_source_folder = os.environ.get('JAVA_SOURCE_FOLDER')
         source_sql_mapper_folder = os.environ.get('SOURCE_SQL_MAPPER_FOLDER')
@@ -1309,9 +1325,10 @@ def main():
     # 프롬프트 파일 존재 여부 확인
     if not os.path.exists(prompt_file):
         logger.error(f"Prompt file not found: {prompt_file}")
-        logger.error("Please ensure the appropriate transformation rules file exists:")
-        logger.error("- For PostgreSQL: sqlTransformTargetPgRules.md")
-        logger.error("- For MySQL: sqlTransformTargetMysqlRules.md")
+        logger.error("Please ensure the transformation rules file exists:")
+        logger.error("- sqlTransformTarget.md (통합된 변환 규칙 파일)")
+        # logger.error("- For PostgreSQL: sqlTransformTargetPgRules.md")  # 주석 처리
+        # logger.error("- For MySQL: sqlTransformTargetMysqlRules.md")     # 주석 처리
         sys.exit(1)
     else:
         logger.info(f"Using transformation rules file: {os.path.basename(prompt_file)}")

@@ -1,0 +1,795 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-28 16:27:50",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper",
+    "databaseType" : "POSTGRES",
+    "totalTests" : 71,
+    "successCount" : 67,
+    "failureCount" : 4,
+    "successRate" : "94.4"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "PromotionMapper_tgt-03-select-selectPromotionABTestAnalysis.xml",
+    "sqlId" : "selectPromotionABTestAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "PromotionMapper_tgt-02-select-selectCouponUsagePatternAnalysis.xml",
+    "sqlId" : "selectCouponUsagePatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "PromotionMapper_tgt-01-select-selectPromotionEffectivenessAnalysis.xml",
+    "sqlId" : "selectPromotionEffectivenessAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "UserMapper_tgt-10-select-selectUserHierarchyStats.xml",
+    "sqlId" : "selectUserHierarchyStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 16
+  }, {
+    "xmlFile" : "UserMapper_tgt-09-select-selectUserGradeStatistics.xml",
+    "sqlId" : "selectUserGradeStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "UserMapper_tgt-06-select-selectUserRegistrationTrend.xml",
+    "sqlId" : "selectUserRegistrationTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 7
+  }, {
+    "xmlFile" : "UserMapper_tgt-05-select-selectUserOrderHistory.xml",
+    "sqlId" : "selectUserOrderHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "UserMapper_tgt-04-select-selectUserActivityStats.xml",
+    "sqlId" : "selectUserActivityStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "UserMapper_tgt-03-select-selectUserDetail.xml",
+    "sqlId" : "selectUserDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "UserMapper_tgt-02-select-selectUserCount.xml",
+    "sqlId" : "selectUserCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper_tgt-01-select-selectUserList.xml",
+    "sqlId" : "selectUserList",
+    "sqlType" : "SELECT",
+    "rowCount" : 302
+  }, {
+    "xmlFile" : "UserMapper_tgt-17-select-selectUserReferralHierarchy.xml",
+    "sqlId" : "selectUserReferralHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper_tgt-13-select-selectUserLifecycleAnalysis.xml",
+    "sqlId" : "selectUserLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper_tgt-12-select-selectUserDemographicStats.xml",
+    "sqlId" : "selectUserDemographicStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "UserMapper_tgt-11-select-selectUserBehaviorPattern.xml",
+    "sqlId" : "selectUserBehaviorPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-10-select-selectCohortAnalysis.xml",
+    "sqlId" : "selectCohortAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 85
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-09-select-selectMonthlyGrowthRate.xml",
+    "sqlId" : "selectMonthlyGrowthRate",
+    "sqlType" : "SELECT",
+    "rowCount" : 13
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-08-select-selectWeeklyOrderPattern.xml",
+    "sqlId" : "selectWeeklyOrderPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 7
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-07-select-selectHourlyOrderPattern.xml",
+    "sqlId" : "selectHourlyOrderPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 22
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-06-select-selectRegionalRevenueAnalysis.xml",
+    "sqlId" : "selectRegionalRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-05-select-selectCustomerSegmentAnalysis.xml",
+    "sqlId" : "selectCustomerSegmentAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-04-select-selectCategoryRevenueAnalysis.xml",
+    "sqlId" : "selectCategoryRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 18
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-03-select-selectProductRevenueAnalysis.xml",
+    "sqlId" : "selectProductRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 784
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-02-select-selectRevenueTrend.xml",
+    "sqlId" : "selectRevenueTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 187
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-01-select-selectSalesDashboard.xml",
+    "sqlId" : "selectSalesDashboard",
+    "sqlType" : "SELECT",
+    "rowCount" : 232
+  }, {
+    "xmlFile" : "AnalyticsMapper_tgt-11-select-selectRFMAnalysis.xml",
+    "sqlId" : "selectRFMAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "OrderMapper_tgt-09-select-selectOrderShippingInfo.xml",
+    "sqlId" : "selectOrderShippingInfo",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "OrderMapper_tgt-08-select-selectOrderItems.xml",
+    "sqlId" : "selectOrderItems",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "OrderMapper_tgt-07-select-selectOrderDetail.xml",
+    "sqlId" : "selectOrderDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "OrderMapper_tgt-06-select-selectOrderCount.xml",
+    "sqlId" : "selectOrderCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper_tgt-05-select-selectPaymentMethodStatistics.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper_tgt-04-select-selectOrderTrendAnalysis.xml",
+    "sqlId" : "selectOrderTrendAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 198
+  }, {
+    "xmlFile" : "OrderMapper_tgt-03-select-selectOrderStatusStatistics.xml",
+    "sqlId" : "selectOrderStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 6
+  }, {
+    "xmlFile" : "OrderMapper_tgt-02-select-selectOrderProcessingTimeAnalysis.xml",
+    "sqlId" : "selectOrderProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  }, {
+    "xmlFile" : "OrderMapper_tgt-01-select-selectOrderListWithAnalysis.xml",
+    "sqlId" : "selectOrderListWithAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 556
+  }, {
+    "xmlFile" : "ShippingMapper_tgt-03-select-selectShippingRouteOptimizationAnalysis.xml",
+    "sqlId" : "selectShippingRouteOptimizationAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ShippingMapper_tgt-02-select-selectShippingDelayPatternAnalysis.xml",
+    "sqlId" : "selectShippingDelayPatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-10-select-selectPaymentFailureAnalysis.xml",
+    "sqlId" : "selectPaymentFailureAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-09-select-selectDailyPaymentTrend.xml",
+    "sqlId" : "selectDailyPaymentTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 197
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-08-select-selectPaymentStatusStatistics.xml",
+    "sqlId" : "selectPaymentStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-07-select-selectPaymentMethodStatistics.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-06-select-selectPaymentDetail.xml",
+    "sqlId" : "selectPaymentDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-05-select-selectPaymentCount.xml",
+    "sqlId" : "selectPaymentCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-04-select-selectPaymentList.xml",
+    "sqlId" : "selectPaymentList",
+    "sqlType" : "SELECT",
+    "rowCount" : 556
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-03-select-selectPaymentMethodPerformanceAnalysis.xml",
+    "sqlId" : "selectPaymentMethodPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-02-select-selectPaymentFailurePatternAnalysis.xml",
+    "sqlId" : "selectPaymentFailurePatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-01-select-selectPaymentAnalyticsDashboard.xml",
+    "sqlId" : "selectPaymentAnalyticsDashboard",
+    "sqlType" : "SELECT",
+    "rowCount" : 8
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-12-select-selectPaymentProcessingTimeAnalysis.xml",
+    "sqlId" : "selectPaymentProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper_tgt-11-select-selectRefundStatistics.xml",
+    "sqlId" : "selectRefundStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductAdvancedMapper_tgt-03-select-selectInventoryForecastAnalysis.xml",
+    "sqlId" : "selectInventoryForecastAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1300
+  }, {
+    "xmlFile" : "ProductAdvancedMapper_tgt-02-select-selectProductLifecycleAnalysis.xml",
+    "sqlId" : "selectProductLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper_tgt-01-select-selectPriceHistoryAnalysis.xml",
+    "sqlId" : "selectPriceHistoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductMapper_tgt-08-select-selectProductPriceHistory.xml",
+    "sqlId" : "selectProductPriceHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper_tgt-07-select-selectProductInventoryStatus.xml",
+    "sqlId" : "selectProductInventoryStatus",
+    "sqlType" : "SELECT",
+    "rowCount" : 1365
+  }, {
+    "xmlFile" : "ProductMapper_tgt-06-select-selectCategoryStatistics.xml",
+    "sqlId" : "selectCategoryStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper_tgt-05-select-selectBrandStatistics.xml",
+    "sqlId" : "selectBrandStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 31
+  }, {
+    "xmlFile" : "ProductMapper_tgt-04-select-selectProductDetail.xml",
+    "sqlId" : "selectProductDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper_tgt-03-select-selectProductCount.xml",
+    "sqlId" : "selectProductCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper_tgt-02-select-selectProductList.xml",
+    "sqlId" : "selectProductList",
+    "sqlType" : "SELECT",
+    "rowCount" : 800
+  }, {
+    "xmlFile" : "ProductMapper_tgt-01-select-selectCategoryHierarchy.xml",
+    "sqlId" : "selectCategoryHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "InventoryMapper_tgt-03-select-selectInventoryMovementTracking.xml",
+    "sqlId" : "selectInventoryMovementTracking",
+    "sqlType" : "SELECT",
+    "rowCount" : 1075
+  }, {
+    "xmlFile" : "InventoryMapper_tgt-02-select-selectWarehouseInventoryAnalysis.xml",
+    "sqlId" : "selectWarehouseInventoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "SellerMapper_tgt-02-select-selectSellerProductPortfolioAnalysis.xml",
+    "sqlId" : "selectSellerProductPortfolioAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "SellerMapper_tgt-01-select-selectSellerPerformanceAnalysis.xml",
+    "sqlId" : "selectSellerPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "CustomerServiceMapper_tgt-04-select-selectCustomerSupportEscalationChain.xml",
+    "sqlId" : "selectCustomerSupportEscalationChain",
+    "sqlType" : "SELECT",
+    "rowCount" : 85
+  }, {
+    "xmlFile" : "CustomerServiceMapper_tgt-03-select-selectCustomerSatisfactionAnalysis.xml",
+    "sqlId" : "selectCustomerSatisfactionAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "CustomerServiceMapper_tgt-02-select-selectCustomerInquiryPatternAnalysis.xml",
+    "sqlId" : "selectCustomerInquiryPatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  } ],
+  "failedTests" : [ {
+    "xmlFile" : "UserMapper_tgt-14-select-selectDormantUserAnalysis.xml",
+    "sqlId" : "selectDormantUserAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: org.postgresql.util.PSQLException: ERROR: operator does not exist: character varying = bigint\n  Hint: No operator matches the given name and argument types. You might need to add explicit type casts.\n  Position: 3535\n### The error may exist in file:///tmp/mapper-15219847285204854577.xml\n### The error may involve amzn.bo.mapper.UserMapper.selectDormantUserAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              u.USER_ID,             u.EMAIL,             CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME) as FULL_NAME,             u.CREATED_AT as REGISTRATION_DATE,             dormant_stats.LAST_ORDER_DATE,             dormant_stats.DAYS_DORMANT,             dormant_stats.TOTAL_ORDERS,             dormant_stats.TOTAL_SPENT,             dormant_stats.AVG_ORDER_VALUE,             dormant_stats.FAVORITE_CATEGORY,             dormant_stats.LAST_VIEWED_PRODUCT,             dormant_stats.REACTIVATION_PROBABILITY,             dormant_stats.RECOMMENDED_INCENTIVE,             RANK() OVER (ORDER BY dormant_stats.REACTIVATION_PROBABILITY DESC, dormant_stats.TOTAL_SPENT DESC) as REACTIVATION_PRIORITY         FROM USERS u         JOIN (SELECT                  o.USER_ID,                 MAX(o.ORDERED_AT) as LAST_ORDER_DATE,                 (CURRENT_DATE - MAX(o.ORDERED_AT)::date) as DAYS_DORMANT,                 COUNT(*) as TOTAL_ORDERS,                 SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT,                 AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,                 -- 가장 많이 구매한 카테고리                 (SELECT c.CATEGORY_NAME                   FROM (SELECT p.CATEGORY_ID, COUNT(*) as cnt                        FROM ORDER_ITEMS oi                        JOIN PRODUCTS p ON oi.PRODUCT_ID = p.PRODUCT_ID                        WHERE oi.ORDER_ID IN (SELECT ORDER_ID FROM ORDERS WHERE USER_ID = o.USER_ID)                        GROUP BY p.CATEGORY_ID                        ORDER BY cnt DESC, p.CATEGORY_ID ASC                        LIMIT 1) AS top_cat                  JOIN CATEGORIES c ON top_cat.CATEGORY_ID = c.CATEGORY_ID) as FAVORITE_CATEGORY,                 -- 마지막으로 본 상품                 (SELECT p.PRODUCT_NAME                  FROM PRODUCT_VIEWS pv                  JOIN PRODUCTS p ON pv.PRODUCT_ID = p.PRODUCT_ID                  WHERE pv.USER_ID = o.USER_ID                  AND pv.VIEWED_AT = (SELECT MAX(VIEWED_AT) FROM PRODUCT_VIEWS WHERE USER_ID = o.USER_ID)) as LAST_VIEWED_PRODUCT,                 -- 재활성화 확률 계산                                   CASE                      WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) BETWEEN 90 AND 180 AND COUNT(*) >= 3 THEN 75                     WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) BETWEEN 90 AND 180 AND COUNT(*) >= 1 THEN 60                     WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) BETWEEN 181 AND 365 AND SUM(o.TOTAL_AMOUNT) >= 500 THEN 45                     WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) BETWEEN 181 AND 365 THEN 30                     WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) > 365 AND SUM(o.TOTAL_AMOUNT) >= 1000 THEN 25                     ELSE 15                 END as REACTIVATION_PROBABILITY,                                   -- 추천 인센티브                                   CASE                      WHEN AVG(o.TOTAL_AMOUNT) >= 200 THEN 'PREMIUM_DISCOUNT'                     WHEN COUNT(*) >= 5 THEN 'LOYALTY_BONUS'                     WHEN (CURRENT_DATE - MAX(o.ORDERED_AT)::date) > 365 THEN 'WELCOME_BACK_OFFER'                     ELSE 'STANDARD_COUPON'                 END as RECOMMENDED_INCENTIVE                                 FROM ORDERS o               WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                 AND (CURRENT_DATE - o.ORDERED_AT::date) >= ?::integer                 GROUP BY o.USER_ID                 HAVING MAX(o.ORDERED_AT) < CURRENT_DATE - MAKE_INTERVAL(days => ?::integer)  ) AS dormant_stats ON u.USER_ID = dormant_stats.USER_ID         LEFT JOIN CATEGORIES c ON dormant_stats.FAVORITE_CATEGORY = c.CATEGORY_ID         WHERE 1=1                   ORDER BY REACTIVATION_PRIORITY\n### Cause: org.postgresql.util.PSQLException: ERROR: operator does not exist: character varying = bigint\n  Hint: No operator matches the given name and argument types. You might need to add explicit type casts.\n  Position: 3535"
+  }, {
+    "xmlFile" : "ShippingMapper_tgt-01-select-selectShippingPerformanceAnalysis.xml",
+    "sqlId" : "selectShippingPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: org.postgresql.util.PSQLException: ERROR: cannot cast type integer to interval\n  Position: 736\n### The error may exist in file:///tmp/mapper-4988310277687845770.xml\n### The error may involve amzn.bo.mapper.ShippingMapper.selectShippingPerformanceAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              s.SHIPPING_METHOD,             s.SHIPPING_CARRIER as CARRIER,             COUNT(DISTINCT s.SHIPMENT_ID) as TOTAL_SHIPMENTS,             COUNT(CASE WHEN s.SHIPMENT_STATUS = 'DELIVERED' THEN 1 END) as DELIVERED_COUNT,             COUNT(CASE WHEN s.SHIPMENT_STATUS = 'IN_TRANSIT' THEN 1 END) as IN_TRANSIT_COUNT,             COUNT(CASE WHEN s.SHIPMENT_STATUS = 'DELAYED' THEN 1 END) as DELAYED_COUNT,             ROUND(COUNT(CASE WHEN s.SHIPMENT_STATUS = 'DELIVERED' THEN 1 END) * 100.0 / COUNT(*), 2) as DELIVERY_SUCCESS_RATE,             ROUND(AVG(CASE WHEN s.ACTUAL_DELIVERY_DATE IS NOT NULL AND s.SHIPPED_DATE IS NOT NULL                  THEN EXTRACT(DAY FROM (s.ACTUAL_DELIVERY_DATE::date - s.SHIPPED_DATE::date)::interval) END), 2) as AVG_DELIVERY_DAYS,             COALESCE(SUM(s.SHIPPING_COST), 0) as TOTAL_SHIPPING_COST,             ROUND(COALESCE(AVG(s.SHIPPING_COST), 0), 2) as AVG_SHIPPING_COST         FROM SHIPMENTS s         WHERE s.CREATED_AT >= CURRENT_TIMESTAMP - INTERVAL '30 days'         GROUP BY s.SHIPPING_METHOD, s.SHIPPING_CARRIER         ORDER BY DELIVERY_SUCCESS_RATE DESC, TOTAL_SHIPMENTS DESC\n### Cause: org.postgresql.util.PSQLException: ERROR: cannot cast type integer to interval\n  Position: 736"
+  }, {
+    "xmlFile" : "InventoryMapper_tgt-01-select-selectInventoryStatusAnalysis.xml",
+    "sqlId" : "selectInventoryStatusAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: org.postgresql.util.PSQLException: ERROR: column \"restock_priority\" does not exist\n  Position: 4841\n### The error may exist in file:///tmp/mapper-1648703967120452644.xml\n### The error may involve amzn.bo.mapper.InventoryMapper.selectInventoryStatusAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              i.INVENTORY_ID,             i.PRODUCT_ID,             p.PRODUCT_NAME,             p.SKU as PRODUCT_SKU,             p.BRAND,             c.CATEGORY_NAME,             i.WAREHOUSE_ID,             i.QUANTITY_ON_HAND,             i.QUANTITY_RESERVED,             i.QUANTITY_AVAILABLE,             i.REORDER_LEVEL,             i.LAST_UPDATED,             -- 재고 상태 분류                           CASE                  WHEN i.QUANTITY_AVAILABLE <= 0 THEN 'OUT_OF_STOCK'                 WHEN i.QUANTITY_AVAILABLE <= i.REORDER_LEVEL THEN 'LOW_STOCK'                 WHEN i.QUANTITY_AVAILABLE <= i.REORDER_LEVEL * 2 THEN 'MEDIUM_STOCK'                 ELSE 'HIGH_STOCK'             END as STOCK_STATUS,                           -- 재고 회전율 계산             ROUND(COALESCE(                 sales_stats.MONTHLY_SALES_AVG / NULLIF(i.QUANTITY_ON_HAND, 0) * 12, 0             ), 2) as INVENTORY_TURNOVER_RATE,             -- 재고 일수 (현재 재고로 몇 일간 판매 가능한지)             CASE                  WHEN sales_stats.DAILY_SALES_AVG > 0                  THEN ROUND(i.QUANTITY_AVAILABLE / sales_stats.DAILY_SALES_AVG, 1)                 ELSE 999             END as DAYS_OF_INVENTORY,             -- 재고 가치             ROUND(i.QUANTITY_ON_HAND * COALESCE(p.BASE_PRICE, 0), 2) as INVENTORY_VALUE,             -- 카테고리 내 재고 순위             DENSE_RANK() OVER (                 PARTITION BY p.CATEGORY_ID                  ORDER BY i.QUANTITY_AVAILABLE DESC             ) as CATEGORY_STOCK_RANK,             -- 브랜드 내 재고 순위             DENSE_RANK() OVER (                 PARTITION BY p.BRAND                  ORDER BY i.QUANTITY_AVAILABLE DESC             ) as BRAND_STOCK_RANK,             -- 창고 내 재고 순위             DENSE_RANK() OVER (                 PARTITION BY i.WAREHOUSE_ID                  ORDER BY i.QUANTITY_AVAILABLE DESC             ) as WAREHOUSE_STOCK_RANK,             -- 판매 속도 기반 우선순위                           CASE                  WHEN sales_stats.DAILY_SALES_AVG > 0 AND i.QUANTITY_AVAILABLE / sales_stats.DAILY_SALES_AVG <= 7 THEN 'URGENT'                 WHEN sales_stats.DAILY_SALES_AVG > 0 AND i.QUANTITY_AVAILABLE / sales_stats.DAILY_SALES_AVG <= 14 THEN 'HIGH'                 WHEN sales_stats.DAILY_SALES_AVG > 0 AND i.QUANTITY_AVAILABLE / sales_stats.DAILY_SALES_AVG <= 30 THEN 'MEDIUM'                 ELSE 'LOW'             END as RESTOCK_PRIORITY,                           -- 예상 재고 소진일             CASE                  WHEN sales_stats.DAILY_SALES_AVG > 0                  THEN TO_CHAR(DATE '2025-01-01' + (i.QUANTITY_AVAILABLE / sales_stats.DAILY_SALES_AVG)::integer, 'YYYY-MM-DD')                 ELSE NULL             END as ESTIMATED_STOCKOUT_DATE,             -- 안전 재고 권장량             CEIL(                 COALESCE(sales_stats.DAILY_SALES_AVG, 0) * 14 +                  COALESCE(sales_stats.SALES_VOLATILITY, 0) * 2             ) as RECOMMENDED_SAFETY_STOCK         FROM INVENTORY i         JOIN PRODUCTS p ON i.PRODUCT_ID = p.PRODUCT_ID         JOIN CATEGORIES c ON p.CATEGORY_ID = c.CATEGORY_ID         LEFT JOIN (SELECT                  oi.PRODUCT_ID,                 ROUND(AVG(daily_sales.DAILY_QUANTITY), 4) as DAILY_SALES_AVG,                 ROUND(AVG(monthly_sales.MONTHLY_QUANTITY), 4) as MONTHLY_SALES_AVG,                 ROUND(STDDEV(daily_sales.DAILY_QUANTITY), 4) as SALES_VOLATILITY               FROM ORDER_ITEMS oi               JOIN ORDERS o ON oi.ORDER_ID = o.ORDER_ID               JOIN (SELECT                        oi2.PRODUCT_ID,                       DATE_TRUNC('day', o2.ORDERED_AT) as SALE_DATE,                       SUM(oi2.QUANTITY) as DAILY_QUANTITY                     FROM ORDER_ITEMS oi2                      JOIN ORDERS o2 ON oi2.ORDER_ID = o2.ORDER_ID                     WHERE o2.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                       AND o2.ORDERED_AT >= CURRENT_TIMESTAMP - INTERVAL '90 days'                       GROUP BY oi2.PRODUCT_ID, DATE_TRUNC('day', o2.ORDERED_AT)) daily_sales ON oi.PRODUCT_ID = daily_sales.PRODUCT_ID               JOIN (SELECT                        oi3.PRODUCT_ID,                       TO_CHAR(o3.ORDERED_AT, 'YYYY-MM') as SALE_MONTH,                       SUM(oi3.QUANTITY) as MONTHLY_QUANTITY                     FROM ORDER_ITEMS oi3                      JOIN ORDERS o3 ON oi3.ORDER_ID = o3.ORDER_ID                     WHERE o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                       AND o3.ORDERED_AT >= CURRENT_TIMESTAMP - INTERVAL '365 days'                       GROUP BY oi3.PRODUCT_ID, TO_CHAR(o3.ORDERED_AT, 'YYYY-MM')) monthly_sales ON oi.PRODUCT_ID = monthly_sales.PRODUCT_ID               WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')               GROUP BY oi.PRODUCT_ID) sales_stats ON i.PRODUCT_ID = sales_stats.PRODUCT_ID         WHERE 1=1                                       ORDER BY              CASE RESTOCK_PRIORITY WHEN 'URGENT' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END,             DAYS_OF_INVENTORY,             p.PRODUCT_NAME\n### Cause: org.postgresql.util.PSQLException: ERROR: column \"restock_priority\" does not exist\n  Position: 4841"
+  }, {
+    "xmlFile" : "CustomerServiceMapper_tgt-01-select-selectCustomerServicePerformanceAnalysis.xml",
+    "sqlId" : "selectCustomerServicePerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: org.postgresql.util.PSQLException: ERROR: cannot cast type integer to interval\n  Position: 491\n### The error may exist in file:///tmp/mapper-10913473428554914404.xml\n### The error may involve amzn.bo.mapper.CustomerServiceMapper.selectCustomerServicePerformanceAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              ci.INQUIRY_TYPE,             ci.PRIORITY,             COUNT(*) as INQUIRY_COUNT,             COUNT(CASE WHEN ci.STATUS = 'RESOLVED' THEN 1 END) as RESOLVED_COUNT,             ROUND((COUNT(CASE WHEN ci.STATUS = 'RESOLVED' THEN 1 END) * 100.0 / COUNT(*))::numeric, 2) as RESOLUTION_RATE,             ROUND(AVG(CASE WHEN ci.STATUS = 'RESOLVED' AND ci.UPDATED_AT IS NOT NULL                  THEN EXTRACT(HOUR FROM (CAST(ci.UPDATED_AT AS DATE) - CAST(ci.CREATED_AT AS DATE))::interval) END)::numeric, 2) as AVG_RESOLUTION_HOURS         FROM CUSTOMER_INQUIRIES ci           WHERE ci.CREATED_AT >= CURRENT_TIMESTAMP - MAKE_INTERVAL(days => 30)           GROUP BY ci.INQUIRY_TYPE, ci.PRIORITY         ORDER BY INQUIRY_COUNT DESC\n### Cause: org.postgresql.util.PSQLException: ERROR: cannot cast type integer to interval\n  Position: 491"
+  } ],
+  "fileStatistics" : [ {
+    "fileName" : "PaymentMapper_tgt-06-select-selectPaymentDetail.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-01-select-selectUserList.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-02-select-selectPaymentFailurePatternAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-01-select-selectSalesDashboard.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-08-select-selectPaymentStatusStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-07-select-selectOrderDetail.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-10-select-selectUserHierarchyStats.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-06-select-selectOrderCount.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-02-select-selectUserCount.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "InventoryMapper_tgt-03-select-selectInventoryMovementTracking.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-12-select-selectUserDemographicStats.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-06-select-selectRegionalRevenueAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-07-select-selectHourlyOrderPattern.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PromotionMapper_tgt-02-select-selectCouponUsagePatternAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "CustomerServiceMapper_tgt-01-select-selectCustomerServicePerformanceAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 0,
+    "failureCount" : 1,
+    "successRate" : "0.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-07-select-selectProductInventoryStatus.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-02-select-selectRevenueTrend.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-05-select-selectPaymentMethodStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "CustomerServiceMapper_tgt-03-select-selectCustomerSatisfactionAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-05-select-selectPaymentCount.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-09-select-selectDailyPaymentTrend.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-02-select-selectProductList.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-17-select-selectUserReferralHierarchy.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PromotionMapper_tgt-01-select-selectPromotionEffectivenessAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-12-select-selectPaymentProcessingTimeAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-07-select-selectPaymentMethodStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-02-select-selectOrderProcessingTimeAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "InventoryMapper_tgt-02-select-selectWarehouseInventoryAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-01-select-selectOrderListWithAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ShippingMapper_tgt-01-select-selectShippingPerformanceAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 0,
+    "failureCount" : 1,
+    "successRate" : "0.0"
+  }, {
+    "fileName" : "UserMapper_tgt-09-select-selectUserGradeStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-03-select-selectOrderStatusStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-04-select-selectCategoryRevenueAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-05-select-selectUserOrderHistory.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-04-select-selectUserActivityStats.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-01-select-selectCategoryHierarchy.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-03-select-selectProductCount.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-03-select-selectProductRevenueAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "CustomerServiceMapper_tgt-02-select-selectCustomerInquiryPatternAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-03-select-selectUserDetail.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "InventoryMapper_tgt-01-select-selectInventoryStatusAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 0,
+    "failureCount" : 1,
+    "successRate" : "0.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-11-select-selectRefundStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ShippingMapper_tgt-02-select-selectShippingDelayPatternAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-06-select-selectUserRegistrationTrend.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-09-select-selectMonthlyGrowthRate.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "CustomerServiceMapper_tgt-04-select-selectCustomerSupportEscalationChain.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "SellerMapper_tgt-02-select-selectSellerProductPortfolioAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-03-select-selectPaymentMethodPerformanceAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-05-select-selectCustomerSegmentAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-06-select-selectCategoryStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-08-select-selectWeeklyOrderPattern.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper_tgt-03-select-selectInventoryForecastAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-14-select-selectDormantUserAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 0,
+    "failureCount" : 1,
+    "successRate" : "0.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-01-select-selectPaymentAnalyticsDashboard.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-10-select-selectPaymentFailureAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-08-select-selectProductPriceHistory.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-08-select-selectOrderItems.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-09-select-selectOrderShippingInfo.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-13-select-selectUserLifecycleAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper_tgt-02-select-selectProductLifecycleAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper_tgt-04-select-selectPaymentList.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-04-select-selectProductDetail.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PromotionMapper_tgt-03-select-selectPromotionABTestAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-11-select-selectRFMAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper_tgt-11-select-selectUserBehaviorPattern.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper_tgt-01-select-selectPriceHistoryAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ShippingMapper_tgt-03-select-selectShippingRouteOptimizationAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper_tgt-10-select-selectCohortAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper_tgt-05-select-selectBrandStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "SellerMapper_tgt-01-select-selectSellerPerformanceAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper_tgt-04-select-selectOrderTrendAnalysis.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

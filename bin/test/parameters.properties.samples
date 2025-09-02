@@ -1,0 +1,171 @@
+# 바인드 변수 매개변수 파일
+# 생성일시: 2025-08-24 11:20:34
+# 총 변수: 53개 (매칭: 31개, 매칭 없음: 22개)
+
+# =============================================================================
+# 매칭된 변수들 (Oracle DB 컬럼과 매칭됨)
+# =============================================================================
+
+# OMA.SELLERS.SELLER_ID
+baseProductId=1
+
+# OMA.PRODUCTS.BRAND
+brand='TEST_BRAND'
+
+# OMA.SELLERS.SELLER_ID
+categoryId=1
+
+# OMA.PROMOTIONS.DESCRIPTION
+description='DEFAULT_VALUE'
+
+# OMA.PRODUCTS.DIMENSIONS
+dimensions='TEST_DIMENSIONS'
+
+# OMA.SELLERS.EMAIL
+email='test@example.com'
+
+# OMA.COUPONS.USAGE_LIMIT
+limit=1
+
+# OMA.PAYMENTS.AMOUNT
+maxAmount=1000
+
+# OMA.PRODUCT_VARIANTS.PRICE
+maxPrice=1000
+
+# OMA.PAYMENTS.AMOUNT
+minAmount=1000
+
+# OMA.RECOMMENDATIONS.SCORE
+minEngagementScore=1
+
+# OMA.PRODUCT_VARIANTS.PRICE
+minPrice=1000
+
+# OMA.RECOMMENDATIONS.SCORE
+minScore=1
+
+# OMA.SELLERS.SELLER_ID
+orderId=1
+
+# OMA.SELLERS.STATUS
+orderStatus='ACTIVE'
+
+# OMA.SELLERS.SELLER_ID
+paymentId=1
+
+# OMA.SELLERS.STATUS
+paymentStatus='ACTIVE'
+
+# OMA.SELLERS.PHONE
+phone='TEST_PHONE'
+
+# OMA.SELLER_PRODUCTS.SELLER_PRICE
+price=1000
+
+# OMA.SELLERS.SELLER_ID
+productId=1
+
+# OMA.WISHLIST_ITEMS.PRIORITY
+restockPriority=1
+
+# OMA.WAREHOUSES.COUNTRY
+shippingCountry='TEST_SHIPPINGCOUNTRY'
+
+# OMA.SELLER_PRODUCTS.SELLER_SKU
+sku='TEST_SKU'
+
+# OMA.SELLERS.STATUS
+status='ACTIVE'
+
+# OMA.SELLERS.STATUS
+statusFilter='ACTIVE'
+
+# OMA.SELLERS.STATUS
+stockStatus='ACTIVE'
+
+# OMA.SELLERS.EMAIL
+userEmail='test@example.com'
+
+# OMA.SELLERS.SELLER_ID
+userId=1
+
+# OMA.SELLERS.SELLER_ID
+warehouseId=1
+
+# OMA.PRODUCTS.WEIGHT
+weight=1
+
+# OMA.PAYMENT_METHODS.EXPIRY_YEAR
+year=2025
+
+# =============================================================================
+# 매칭되지 않은 변수들 (수동으로 값을 설정해주세요)
+# =============================================================================
+
+# 매칭 없음
+customerSegment='VIP'
+
+# 매칭 없음
+endDate='2025-08-24'
+
+# 매칭 없음
+firstName='John'
+
+# 매칭 없음
+lastName='Doe'
+
+# 매칭 없음
+maxSpent=10000
+
+# 매칭 없음
+minChurnRisk=10
+
+# 매칭 없음
+minDormantDays=30
+
+# 매칭 없음
+minReactivationProbability=75
+
+# 매칭 없음
+minSpent=100
+
+# 매칭 없음
+minTotalSpent=10000
+
+# 매칭 없음
+offset=0
+
+# 매칭 없음
+orderNumber='ORD00000007'
+
+# 매칭 없음
+orderValueCategory='HIGH_VALUE'
+
+# 매칭 없음
+params='DEFAULT_PARAMS'
+
+# 매칭 없음
+paymentMethod='CASH'
+
+# 매칭 없음
+paymentMethodFilter='HIGH_VALUE'
+
+# 매칭 없음
+performanceCategory='TOP_SELLER'
+
+# 매칭 없음
+productName='TEST_PRODUCTNAME'
+
+# 매칭 없음
+rfmSegment='CHAMPIONS'
+
+# 매칭 없음
+searchKeyword='ORD000000'
+
+# 매칭 없음
+startDate='2025-01-24'
+
+# 매칭 없음
+userGrade='VIP'
+

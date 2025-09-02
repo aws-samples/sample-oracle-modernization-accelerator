@@ -1,0 +1,25 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-28 06:55:01",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/payment/PaymentMapper/transform/PaymentMapper_tgt-04-select-selectPaymentList.xml",
+    "databaseType" : "POSTGRESQL",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "PaymentMapper_tgt-04-select-selectPaymentList.xml",
+    "sqlId" : "selectPaymentList",
+    "sqlType" : "SELECT",
+    "rowCount" : 556
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "PaymentMapper_tgt-04-select-selectPaymentList.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

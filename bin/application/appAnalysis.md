@@ -521,13 +521,95 @@ grep -r "mybatis" $JAVA_SOURCE_FOLDER --include="pom.xml" --include="build.gradl
    - UsageRank: Overall usage ranking confirmed in Oracle.md
    - Sort by usage for clear prioritization
 
-5. **Sample SQL Extraction**:
+5. **Additional Random Sample Selection**:
+   ```bash
+   # Add 10 random mapper files to SampleMapperlist.csv for broader coverage
+   # This provides additional samples beyond pattern-based selection
+   
+   mapperlist_file="$APPLICATION_FOLDER/discovery/Mapperlist.csv"
+   sample_file="$APPLICATION_FOLDER/discovery/SampleMapperlist.csv"
+   
+   # Get total mapper count (excluding header)
+   total_mappers=$(tail -n +2 "$mapperlist_file" | wc -l | tr -d '\n')
+   total_mappers=${total_mappers:-0}
+   
+   if [ "$total_mappers" -gt 10 ]; then
+       # Create temporary file with all mappers (excluding header)
+       temp_mappers="/tmp/all_mappers.csv"
+       tail -n +2 "$mapperlist_file" > "$temp_mappers"
+       
+       # Get existing sample files to avoid duplicates
+       existing_samples="/tmp/existing_samples.txt"
+       if [ -f "$sample_file" ]; then
+           tail -n +2 "$sample_file" | cut -d',' -f2 > "$existing_samples"
+       else
+           touch "$existing_samples"
+       fi
+       
+       # Filter out already selected files
+       available_mappers="/tmp/available_mappers.csv"
+       while IFS=',' read -r no filename namespace sqlcount; do
+           if ! grep -Fxq "$filename" "$existing_samples" 2>/dev/null; then
+               echo "$no,$filename,$namespace,$sqlcount" >> "$available_mappers"
+           fi
+       done < "$temp_mappers"
+       
+       # Get available mapper count
+       available_count=$(wc -l < "$available_mappers" 2>/dev/null | tr -d '\n')
+       available_count=${available_count:-0}
+       
+       # Select random samples (up to 10 or available count, whichever is smaller)
+       if [ "$available_count" -gt 0 ]; then
+           sample_count=10
+           if [ "$available_count" -lt 10 ]; then
+               sample_count="$available_count"
+           fi
+           
+           # Randomly select samples using shuf (if available) or sort -R
+           random_samples="/tmp/random_samples.csv"
+           if command -v shuf >/dev/null 2>&1; then
+               shuf -n "$sample_count" "$available_mappers" > "$random_samples"
+           else
+               sort -R "$available_mappers" | head -n "$sample_count" > "$random_samples"
+           fi
+           
+           # Add random samples to SampleMapperlist.csv
+           # Note: Do not add separator lines or comments to maintain CSV format integrity
+           
+           # Get current max number from existing samples
+           current_max=0
+           if [ -f "$sample_file" ]; then
+               current_max=$(tail -n +2 "$sample_file" | grep -E "^[0-9]" | cut -d',' -f1 | sort -n | tail -1 2>/dev/null | tr -d '\n')
+               current_max=${current_max:-0}
+           fi
+           
+           # Add random samples with incremented numbers
+           sample_no=$((current_max + 1))
+           while IFS=',' read -r no filename namespace sqlcount; do
+               echo "$sample_no,$filename,Random,Low,0,999,Random sample for broader analysis coverage" >> "$sample_file"
+               sample_no=$((sample_no + 1))
+           done < "$random_samples"
+           
+           echo "✓ Added $sample_count random mapper samples to SampleMapperlist.csv"
+       else
+           echo "ℹ All available mappers already selected - no additional random samples added"
+       fi
+   else
+       echo "ℹ Total mapper count ($total_mappers) is 10 or less - no additional random samples needed"
+   fi
+   
+   # Clean up temporary files
+   rm -f /tmp/all_mappers.csv /tmp/existing_samples.txt /tmp/available_mappers.csv /tmp/random_samples.csv
+   ```
+
+6. **Sample SQL Extraction**:
    - Extract representative SQL statements for each pattern from all selected files
    - Select SQL that clearly shows pattern characteristics (within 20-30 lines)
    - Utilize conversion plan information from Oracle.md
+   - Include SQL samples from random selections for comprehensive coverage
 
 **Output Files**: 
-- `$APPLICATION_FOLDER/discovery/SampleMapperlist.csv` (priority-based, variable per project)
+- `$APPLICATION_FOLDER/discovery/SampleMapperlist.csv` (pattern-based + 10 random samples, variable per project)
 - `$APPLICATION_FOLDER/discovery/SampleOracleSQL.txt`
 
 ---

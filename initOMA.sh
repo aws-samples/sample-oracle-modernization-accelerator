@@ -31,23 +31,7 @@ print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
 
-print_separator
-echo -e "${BLUE}${BOLD}OMA 프로젝트 디렉토리 구조${NC}"
-print_separator
-echo -e "${CYAN}sample-oracle-modernization-accelerator          OMA 루트 폴더${NC}"
-echo -e "${CYAN}├── initOMA.sh                                   메인 실행 스크립트 (통합 진입점)${NC}"
-echo -e "${CYAN}├── oma_env_[프로젝트명].sh                        프로젝트별 환경 변수 파일${NC}"
-echo -e "${CYAN}├── config/                                      프로젝트 설정 파일 디렉토리${NC}"
-echo -e "${CYAN}│   └── oma.properties                           - 환경 변수로 사용되는 설정 파일${NC}"
-echo -e "${CYAN}├── [프로젝트명]/                                  분석 및 변환 단위 : 애플리케이션명으로 구분${NC}"
-echo -e "${CYAN}│   ├── dbms/                                    - 데이터베이스 스키마 변환 결과${NC}"
-echo -e "${CYAN}│   ├── logs/                                    - 전체 프로세스 로그 디렉토리${NC}"
-echo -e "${CYAN}│   ├── application/                             - 애플리케이션 분석 및 변환 결과${NC}"
-echo -e "${CYAN}│   │   ├── *.csv                                - JNDI, Mapper 분석 결과 파일들${NC}"
-echo -e "${CYAN}│   │   ├── Discovery-Report.html                - 애플리케이션 분석 리포트${NC}"
-echo -e "${CYAN}│   │   └── transform/                           - SQL 변환 결과 및 로그${NC}"
-echo -e "${CYAN}│   └── test/                                    - Unit 테스트 수행 결과 및 도구${NC}"
-echo -e "${CYAN}└── bin/                                         OMA 실행 스크립트 및 템플릿${NC}"
+
 
 # ====================================================
 # 환경 변수 확인 함수
@@ -260,26 +244,53 @@ execute_app_reporting() {
     print_separator
 }
 
-# SQL 변환
-execute_sql_transform() {
+# SQL 샘플 변환
+execute_sql_sample_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    echo -e "${BLUE}${BOLD}SQL 샘플 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
     echo ""
-    echo -e "${BLUE}${BOLD}변환 실패 항목 리스트 (Assessment/SQLTransformFailure.csv)를 새로 생성한 이후에 실행 됩니다...${NC}"
+    echo -e "${BLUE}${BOLD}샘플 변환: SampleTransformTarget.csv의 샘플 항목만 변환합니다...${NC}"
     sleep 3
-    echo -e "${BLUE}${BOLD}SQL 변환 스크립트 실행${NC}"
+    echo -e "${BLUE}${BOLD}SQL 샘플 변환 스크립트 실행${NC}"
     
-    if [ -f "$OMA_BASE_DIR/bin/processSqlTransform.sh" ]; then
-        echo -e "${CYAN}processSqlTransform.sh를 실행합니다...${NC}"
+    if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
+        echo -e "${CYAN}sqlTransformTarget.py를 샘플 모드로 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py --file $APP_TRANSFORM_FOLDER/SampleTransformTarget.csv${NC}"
         cd "$OMA_BASE_DIR/bin"
-        ./processSqlTransform.sh
+        python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
+            echo -e "${GREEN}SQL 샘플 변환 작업이 완료되었습니다.${NC}"
         else
-            echo -e "${RED}SQL 변환 작업 중 오류가 발생했습니다.${NC}"
+            echo -e "${RED}SQL 샘플 변환 작업 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTransform.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/sqlTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
+# SQL 전체 변환
+execute_sql_full_transform() {
+    print_separator
+    echo -e "${BLUE}${BOLD}SQL 전체 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    echo ""
+    echo -e "${BLUE}${BOLD}전체 변환: SQLTransformTarget.csv의 모든 항목을 변환합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}SQL 전체 변환 스크립트 실행${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
+        echo -e "${CYAN}sqlTransformTarget.py를 전체 모드로 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py${NC}"
+        cd "$OMA_BASE_DIR/bin"
+        python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}SQL 전체 변환 작업이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}SQL 전체 변환 작업 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/sqlTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     print_separator
@@ -331,286 +342,28 @@ execute_sql_unittest() {
     print_separator
 }
 
-# Oracle Function 제거
-execute_oracle_function_removal() {
+# 샘플 테스트 및 결과 수정
+execute_sample_test_fix() {
     print_separator
-    echo -e "${BLUE}${BOLD}Oracle Function 제거 작업을 시작하기 전 3초 대기합니다...${NC}"
+    echo -e "${BLUE}${BOLD}샘플 테스트 및 결과 수정을 시작하기 전 3초 대기합니다...${NC}"
     sleep 3
-    echo -e "${BLUE}${BOLD}Oracle Function 제거 작업을 수행합니다...${NC}"
+    echo -e "${BLUE}${BOLD}샘플 테스트 및 결과 수정을 수행합니다...${NC}"
     
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/postTransCheckSource.py" ]; then
-        echo -e "${CYAN}postTransCheckSource.py를 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/../postTransform/postTransCheckSource.py${NC}"
-        python3 "$APP_TOOLS_FOLDER/../postTransform/postTransCheckSource.py"
+    if [ -f "$APP_TOOLS_FOLDER/../postTransform/editErrors.md" ]; then
+        echo -e "${CYAN}editErrors.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editErrors.md\"${NC}"
+        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Oracle Function 제거 작업이 완료되었습니다.${NC}"
+            echo -e "${GREEN}샘플 테스트 및 결과 수정이 완료되었습니다.${NC}"
         else
-            echo -e "${RED}Oracle Function 제거 작업 중 오류가 발생했습니다.${NC}"
+            echo -e "${RED}샘플 테스트 및 결과 수정 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/postTransCheckSource.py 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/editErrors.md 파일을 찾을 수 없습니다.${NC}"
         return 1
     fi
     
     print_separator
-}
-
-# Target XML 검증
-execute_target_xml_validation() {
-    print_separator
-    echo -e "${BLUE}${BOLD}Target XML 검증을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}Target XML 검증을 수행합니다...${NC}"
-    
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md" ]; then
-        echo -e "${CYAN}transformxml_validation_prompt.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md\"${NC}"
-        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Target XML 검증이 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}Target XML 검증 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/transformxml_validation_prompt.md 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# Target DBMS Function 문법 확인 (MySQL)
-execute_target_dbms_function_check() {
-    print_separator
-    echo -e "${BLUE}${BOLD}(MySQL) Target DBMS Function 문법 확인을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}(MySQL) Target DBMS Function 문법 확인을 수행합니다...${NC}"
-    
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/checkFunctionAll.sh" ]; then
-        echo -e "${CYAN}checkFunctionAll.sh를 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../postTransform/checkFunctionAll.sh${NC}"
-        "$APP_TOOLS_FOLDER/../postTransform/checkFunctionAll.sh"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}(MySQL) Target DBMS Function 문법 확인이 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}(MySQL) Target DBMS Function 문법 확인 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/checkFunctionAll.sh 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# Target DBMS Function 문법 오류 수정 (MySQL)
-execute_target_dbms_function_error_fix() {
-    print_separator
-    echo -e "${BLUE}${BOLD}(MySQL) Target DBMS Function 문법 오류 수정을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}(MySQL) Target DBMS Function 문법 오류 수정을 수행합니다...${NC}"
-    
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/function/editFunctionErrors.md" ]; then
-        echo -e "${CYAN}editFunctionErrors.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/function/editFunctionErrors.md\"${NC}"
-        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/function/editFunctionErrors.md"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}(MySQL) Target DBMS Function 문법 오류 수정이 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}(MySQL) Target DBMS Function 문법 오류 수정 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/function/editFunctionErrors.md 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# POST 결과 분석
-execute_post_result_analysis() {
-    print_separator
-    echo -e "${BLUE}${BOLD}POST 결과 분석을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}POST 결과 분석을 수행합니다...${NC}"
-    
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/genFunctionReport.py" ]; then
-        echo -e "${CYAN}genFunctionReport.py를 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/../postTransform/genFunctionReport.py${NC}"
-        python3 "$APP_TOOLS_FOLDER/../postTransform/genFunctionReport.py"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}POST 결과 분석이 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}POST 결과 분석 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/genFunctionReport.py 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# UI 오류-XML 재수정
-execute_ui_error_xml_fix() {
-    print_separator
-    echo -e "${BLUE}${BOLD}UI 오류-XML 재수정을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}UI 오류-XML 재수정을 수행합니다...${NC}"
-    
-    if [ -f "$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md" ]; then
-        echo -e "${CYAN}editUIErrors.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md\"${NC}"
-        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editUIErrors.md"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}UI 오류-XML 재수정이 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}UI 오류-XML 재수정 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/editUIErrors.md 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# MyBatis SQL Test 실행
-execute_mybatis_sql_test() {
-    print_separator
-    echo -e "${BLUE}${BOLD}(Experimental) MyBatis SQL Test를 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}MyBatis SQL Test를 수행합니다...${NC}"
-    echo ""
-    
-    # Source/Target 선택
-    echo -e "${YELLOW}${BOLD}테스트할 데이터베이스를 선택하세요:${NC}"
-    echo -e "${CYAN}1. Source (Oracle)${NC}"
-    echo -e "${CYAN}2. Target (PostgreSQL/MySQL)${NC}"
-    echo ""
-    echo -ne "${BLUE}${BOLD}데이터베이스 선택 (1 또는 2): ${NC}"
-    read db_choice
-    
-    case $db_choice in
-        1)
-            dbms_param="src"
-            db_name="Source (Oracle)"
-            ;;
-        2)
-            dbms_param="tgt"
-            db_name="Target (PostgreSQL/MySQL)"
-            ;;
-        *)
-            echo -e "${RED}잘못된 선택입니다. 1 또는 2를 입력하세요.${NC}"
-            return 1
-            ;;
-    esac
-    
-    echo -e "${GREEN}선택된 데이터베이스: $db_name${NC}"
-    echo ""
-    
-    # 테스트 범위 입력
-    echo -e "${YELLOW}${BOLD}테스트할 SQL 범위를 입력하세요:${NC}"
-    echo -e "${CYAN}- 숫자 입력: 해당 개수만큼 테스트${NC}"
-    echo -e "${CYAN}- ALL 입력: 전체 SQL 테스트${NC}"
-    echo ""
-    echo -ne "${BLUE}${BOLD}테스트 범위 (숫자 또는 ALL): ${NC}"
-    read test_limit
-    
-    if [ -f "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" ]; then
-        echo -e "${CYAN}mybatis_db_test.py를 실행합니다...${NC}"
-        
-        if [[ "$test_limit" =~ ^[Aa][Ll][Ll]$ ]]; then
-            echo -e "${BLUE}${BOLD}python3 $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py --dbms $dbms_param${NC}"
-            python3 "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" --dbms "$dbms_param"
-        elif [[ "$test_limit" =~ ^[0-9]+$ ]]; then
-            echo -e "${BLUE}${BOLD}python3 $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py --dbms $dbms_param --limit $test_limit${NC}"
-            python3 "$OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py" --dbms "$dbms_param" --limit "$test_limit"
-        else
-            echo -e "${RED}잘못된 입력입니다. 숫자 또는 ALL을 입력하세요.${NC}"
-            return 1
-        fi
-        
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}MyBatis SQL Test가 완료되었습니다.${NC}"
-        else
-            echo -e "${RED}MyBatis SQL Test 중 오류가 발생했습니다.${NC}"
-        fi
-    else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/postTransform/mybatis_db_test.py 파일을 찾을 수 없습니다.${NC}"
-        return 1
-    fi
-    
-    print_separator
-}
-
-# Post 변환 작업 서브 메뉴
-show_post_transform_menu() {
-    while true; do
-        print_separator
-        echo -e "${BLUE}${BOLD}5. Post 변환 작업 메뉴${NC}"
-        print_separator
-        echo -e "${CYAN}1. Oracle Function 제거${NC}"
-        echo -e "${CYAN}2. Target XML 검증${NC}"
-        echo -e "${CYAN}3. (MySQL) Target DBMS Function 문법 확인${NC}"
-        echo -e "${CYAN}4. (MySQL) Target DBMS Function 문법 오류 수정${NC}"
-        echo ""
-        echo -e "${CYAN}5. (MySQL) POST 결과 분석${NC}"
-        echo -e "${CYAN}6. (Experimental) MyBatis SQL Test${NC}"
-        echo -e "${YELLOW}b. 상위 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
-        print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,6,b,q): ${NC}"
-        read choice
-        
-        case $choice in
-            1)
-                clear
-                execute_oracle_function_removal
-                ;;
-            2)
-                clear
-                execute_target_xml_validation
-                ;;
-            3)
-                clear
-                execute_target_dbms_function_check
-                ;;
-            4)
-                clear
-                execute_target_dbms_function_error_fix
-                ;;
-            5)
-                clear
-                execute_post_result_analysis
-                ;;
-            6)
-                clear
-                execute_mybatis_sql_test
-                ;;
-            b|B)
-                clear
-                return
-                ;;
-            q|Q)
-                clear
-                print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
-                print_separator
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
-                sleep 2
-                clear
-                ;;
-        esac
-    done
-}
-
-# Post 변환 작업 (수정된 버전)
-execute_post_transform() {
-    show_post_transform_menu
 }
 
 # SQL 변환 Merge
@@ -684,18 +437,31 @@ execute_postgresql_meta() {
     sleep 3
     echo -e "${BLUE}${BOLD}PostgreSQL 메타데이터 작성 스크립트 실행${NC}"
     
-    if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md" ]; then
-        echo -e "${CYAN}genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
+    if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh" ]; then
+        echo -e "${CYAN}genPostgreSqlMeta.sh를 직접 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh${NC}"
+        "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh"
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
         else
             echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSqlMeta.md 파일을 찾을 수 없습니다.${NC}"
-        return 1
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSqlMeta.sh 파일을 찾을 수 없습니다.${NC}"
+        echo -e "${YELLOW}대안: 기존 AI 방식을 사용합니다...${NC}"
+        if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md" ]; then
+            echo -e "${CYAN}genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+            echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
+            q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
+            else
+                echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
+            fi
+        else
+            echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSqlMeta.md 파일도 찾을 수 없습니다.${NC}"
+            return 1
+        fi
     fi
     print_separator
 }
@@ -782,12 +548,12 @@ show_analysis_menu() {
         print_separator
         echo -e "${BLUE}${BOLD}1. 애플리케이션 분석 메뉴${NC}"
         print_separator
-        echo -e "${CYAN}1. 애플리케이션 분석${NC}"
-        echo -e "${YELLOW}   - Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
-        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}"
-        echo -e "${YELLOW}   - HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
-        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}"
-        echo -e "${YELLOW}   - PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
+        echo ""
+        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}${YELLOW} : HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
+        echo ""
+        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}${YELLOW} : PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
@@ -833,15 +599,14 @@ show_analysis_menu() {
         print_separator
         echo -e "${BLUE}${BOLD}1. 애플리케이션 분석 메뉴${NC}"
         print_separator
-        echo -e "${CYAN}1. 애플리케이션 분석${NC}"
-        echo -e "${YELLOW}   - Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
-        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}"
-        echo -e "${YELLOW}   - HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
-        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}"
-        echo -e "${YELLOW}   - PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
+        echo ""
+        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}${YELLOW} : HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
+        echo ""
+        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}${YELLOW} : PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
-        print_separator
         echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
         read choice
         
@@ -878,30 +643,70 @@ show_analysis_menu() {
     done
 }
 
+# Compare XMLs 실행
+execute_compare_xmls() {
+    print_separator
+    echo -e "${BLUE}${BOLD}XML 파일 비교 도구를 실행합니다...${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/compareXMLs.sh" ]; then
+        echo -e "${CYAN}compareXMLs.sh를 실행합니다...${NC}"
+        "$APP_TOOLS_FOLDER/compareXMLs.sh"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}XML 파일 비교가 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}XML 파일 비교 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/compareXMLs.sh 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
 # 애플리케이션 변환 메뉴
 show_application_menu() {
     while true; do
         print_separator
         echo -e "${BLUE}${BOLD}2. 애플리케이션 변환 메뉴${NC}"
         print_separator
-        echo -e "${CYAN}1. 애플리케이션 SQL 변환 작업 : SQLID별 변환 ( 전체, 선택, 샘플 )${NC}"
-        # echo -e "${YELLOW}   # Source SQL → Target SQL 변환 (전체/재시도 모드)${NC}"
-        echo -e "${CYAN}2. Post 변환 작업${NC}"
-        # echo -e "${YELLOW}   # 변환 후 후처리 작업 (미구현)${NC}"
+        echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
+        echo -e "${YELLOW}Sample 변환을 수행한 이후에, 테스트 및 결과 수정을 먼저 수행해야 합니다.${NC}"
+        echo -e "${YELLOW}이를 통해서 변환 프롬프트를 프로젝트 특성에 맞게 조정해야 합니다.${NC}"
+        print_separator
+        echo -e "${CYAN}1. 샘플 변환${NC}"
+        echo -e "${CYAN}2. 애플리케이션 SQL 전체 변환 작업${NC}"
+        echo ""
+        echo -e "${CYAN}3. Compare XMLs${NC}${YELLOW} : 원본과 변환된 XML 파일 비교${NC}"
+        echo -e "${CYAN}4. 변환 테스트 및 결과 수정${NC}"
+        echo ""
+        echo -e "${CYAN}5. XML Merge 작업 - SQLID to XML${NC}"
+        echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,b,q): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,b,q): ${NC}"
         read choice
         
         case $choice in
             1)
                 clear
-                execute_sql_transform
+                execute_sql_sample_transform
                 ;;
             2)
                 clear
-                execute_post_transform
+                execute_sql_full_transform
+                ;;
+            3)
+                clear
+                execute_compare_xmls
+                ;;
+            4)
+                clear
+                execute_sample_test_fix
+                ;;
+            5)
+                clear
+                execute_sql_transform_merge
                 ;;
             b|B)
                 clear
@@ -929,10 +734,8 @@ show_test_menu() {
         print_separator
         echo -e "${BLUE}${BOLD}3. SQL 테스트 수행 메뉴${NC}"
         print_separator
-        echo -e "${CYAN}1. XML List 생성${NC}"
-        echo -e "${YELLOW}   - Unit Test용 XML 목록 생성${NC}"
-        echo -e "${CYAN}2. 애플리케이션 SQL Unit Test${NC}"
-        echo -e "${YELLOW}   - 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
+        echo -e "${CYAN}1. XML List 생성${NC}${YELLOW} : Unit Test용 XML 목록 생성${NC}"
+        echo -e "${CYAN}2. 애플리케이션 SQL Unit Test${NC}${YELLOW} : 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
@@ -968,55 +771,10 @@ show_test_menu() {
     done
 }
 
-# 변환 작업 완료 메뉴
+# 변환 작업 보고서 메뉴
 show_completion_menu() {
-    while true; do
-        print_separator
-        echo -e "${BLUE}${BOLD}4. 변환 작업 완료 메뉴${NC}"
-        print_separator
-        echo -e "${CYAN}1. XML Merge 작업 - SQLID to XML${NC}"
-        echo -e "${CYAN}2. 변환 작업 보고서${NC}"
-        echo -e "${YELLOW}   - SQL 변환 결과 보고서 생성${NC}"
-        echo -e "${BLUE}${BOLD}   ────────────────────────────────────────────────────────────────${NC}"
-        echo -e "${CYAN}3. 애플리케이션 Java Source 변환 작업${NC}"
-        echo -e "${YELLOW}   - Java 소스 코드 내 Source 관련 코드 변환${NC}"
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
-        print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
-        read choice
-        
-        case $choice in
-            1)
-                clear
-                execute_sql_transform_merge
-                ;;
-            2)
-                clear
-                execute_transform_report
-                ;;
-            3)
-                clear
-                execute_java_transform
-                ;;
-            b|B)
-                clear
-                return
-                ;;
-            q|Q)
-                clear
-                print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
-                print_separator
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
-                sleep 2
-                clear
-                ;;
-        esac
-    done
+    clear
+    execute_transform_report
 }
 
 # ====================================================
@@ -1043,11 +801,10 @@ while true; do
     echo -e "${CYAN}1. 애플리케이션 분석${NC}"
     echo -e "${CYAN}2. 애플리케이션 변환${NC}"
     echo -e "${CYAN}3. SQL 테스트 수행${NC}"
-    echo -e "${CYAN}4. 변환 작업 완료${NC}"
-    echo -e "${CYAN}5. UI 오류-XML 재수정${NC}"
+    echo -e "${CYAN}4. 변환 작업 보고서${NC}"
     echo -e "${YELLOW}q. 종료${NC}"
     print_separator
-    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,5,q): ${NC}"
+    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,q): ${NC}"
     read choice
 
     case $choice in
@@ -1070,10 +827,6 @@ while true; do
         4)
             clear
             show_completion_menu
-            ;;
-        5)
-            clear
-            execute_ui_error_xml_fix
             ;;
         q|Q)
             clear

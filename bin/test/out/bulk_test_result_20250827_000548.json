@@ -1,0 +1,91 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-27 00:05:48",
+    "directory" : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/product/",
+    "databaseType" : "ORACLE",
+    "totalTests" : 13,
+    "successCount" : 13,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectPriceHistoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectProductLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectInventoryForecastAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1300
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectCategoryHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductList",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductRecommendations",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectBrandStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 31
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectCategoryStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductInventoryStatus",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductPriceHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "ProductMapper.xml",
+    "totalTests" : 10,
+    "successCount" : 10,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper.xml",
+    "totalTests" : 3,
+    "successCount" : 3,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

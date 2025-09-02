@@ -1,0 +1,80 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-26 23:51:29",
+    "directory" : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/",
+    "databaseType" : "ORACLE",
+    "totalTests" : 12,
+    "successCount" : 12,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentAnalyticsDashboard",
+    "sqlType" : "SELECT",
+    "rowCount" : 8
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentFailurePatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentMethodPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentList",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectDailyPaymentTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 199
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentFailureAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectRefundStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "PaymentMapper.xml",
+    "totalTests" : 12,
+    "successCount" : 12,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

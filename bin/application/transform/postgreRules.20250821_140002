@@ -1,0 +1,1319 @@
+# ORACLE TO POSTGRESQL SQL TRANSFORMATION RULES
+
+## 🎯 POSTGRESQL MIGRATION EXPERT MODE
+
+**MIGRATION EXPERT MODE ACTIVATED**: This document operates in PostgreSQL migration expert mode, applying comprehensive database expertise for Oracle to PostgreSQL migrations.
+
+**CORE MIGRATION PRINCIPLES**:
+- **NO OPTIMIZATION**: Do not optimize or improve the source code structure
+- **NO CODE CHANGES**: Do not modify logic, algorithms, or business rules
+- **PRESERVE SOURCE STRUCTURE**: Maintain the exact same structure, flow, and organization as the original Oracle code
+- **DIRECT CONVERSION ONLY**: Convert Oracle syntax to PostgreSQL syntax while preserving identical functionality and behavior
+
+**UNDOCUMENTED RULE HANDLING**: For Oracle constructs not explicitly documented in this guide, apply PostgreSQL migration expert knowledge to provide semantically equivalent conversions while maintaining the exact source structure and functionality.
+
+## 📋 OVERVIEW
+
+This section provides complete Oracle to PostgreSQL SQL conversion guidelines.
+All PostgreSQL-specific rules are embedded directly in this section.
+**CRITICAL**: This processes MyBatis XML mapper files - XML structure and CDATA sections must be preserved.
+
+## 🎯 PROCESSING METHODOLOGY
+
+### Individual File Processing (MANDATORY)
+- Process EXACTLY ONE file at a time
+- Read each file completely before making any changes
+- Apply conversion rules step by step for each individual file
+- Validate each conversion before proceeding to the next file
+- Treat each file as completely unique - never assume similarity
+- **XML Structure Preservation**: Maintain all XML tags, attributes, and hierarchy
+- **CDATA Protection**: Preserve CDATA sections while converting SQL content within
+
+## 📄 XML TAG PROCESSING
+
+### Target Tags for SQL Conversion
+Apply conversions to SQL content within these tags:
+
+#### Basic SQL Tags
+- `<sql>`
+- `<select>`
+- `<insert>`
+- `<update>`
+- `<delete>`
+
+#### Subquery and Key Tags
+- `<include>`
+- `<selectKey>`
+
+#### Result Mapping Tags
+- `<resultMap>`
+  - `<id>`
+  - `<r>`
+  - `<constructor>`
+  - `<collection>`
+  - `<association>`
+  - `<discriminator>`
+
+#### Parameter Mapping Tags
+- `<parameterMap>`
+- `<parameter>`
+
+#### Cache Tags
+- `<cache>`
+- `<cache-ref>`
+
+### Protected Dynamic Tags (DO NOT MODIFY)
+- Flow control: `<if>`, `<choose>`, `<when>`, `<otherwise>`
+- Iteration: `<foreach>`
+- Variable binding: `<bind>`
+- Parameters: `#{variable_name}`, `${variable_name}`
+
+### CDATA Processing
+**CRITICAL**: Preserve CDATA structure while converting SQL content
+
+#### XML Parsing Error Prevention Rules
+**MANDATORY CDATA Usage**: To prevent XML parsing errors during SQL conversion, apply the following rules:
+
+- **Comparison Operators**: Always wrap conditions containing `<`, `>`, `<=`, `>=` operators in CDATA sections
+- **Recursive CTE Conditions**: Pay special attention when adding WHERE clauses with LEVEL or depth limiting conditions in recursive CTEs
+- **Complex Expressions**: Use CDATA for any SQL containing XML-sensitive characters
+
+#### CDATA Wrapping Examples
+```xml
+<!-- REQUIRED: Comparison operators in CDATA -->
+<select id="getEmployeesByLevel">
+    <![CDATA[
+        WITH RECURSIVE emp_hierarchy AS (
+            SELECT employee_id, manager_id, 1 as level
+            FROM employees 
+            WHERE manager_id IS NULL
+            
+            UNION ALL
+            
+            SELECT e.employee_id, e.manager_id, eh.level + 1
+            FROM employees e
+            JOIN emp_hierarchy eh ON e.manager_id = eh.employee_id
+            WHERE eh.level < #{maxLevel}
+        )
+        SELECT * FROM emp_hierarchy
+        WHERE level <= #{targetLevel}
+    ]]>
+</select>
+
+<!-- REQUIRED: Multiple comparison operators -->
+<select id="getRangeData">
+    <![CDATA[
+        SELECT * FROM sales 
+        WHERE amount >= #{minAmount} 
+        AND amount <= #{maxAmount}
+        AND created_date > #{startDate}
+    ]]>
+</select>
+```
+
+#### Basic CDATA Conversion Example
+```xml
+<!-- Original -->
+<select id="getEmployee">
+    <![CDATA[
+        SELECT * FROM emp
+        WHERE rownum <= 10  /* Requires conversion */
+    ]]>
+</select>
+
+<!-- Convert to -->
+<select id="getEmployee">
+    <![CDATA[
+        SELECT * FROM emp
+        LIMIT 10
+    ]]>
+</select>
+```
+
+## 🗺️ RESULTMAP PROCESSING
+
+### Java Type Conversions
+- `javaType="java.math.BigDecimal"` → `javaType="java.math.BigDecimal"` (keep as is)
+- `javaType="oracle.sql.TIMESTAMP"` → `javaType="java.sql.Timestamp"`
+- `javaType="oracle.sql.CLOB"` → `javaType="java.lang.String"`
+- `javaType="oracle.sql.BLOB"` → `javaType="byte[]"`
+
+### JDBC Type Conversions (PostgreSQL Compatible)
+- `jdbcType="NUMBER"` → `jdbcType="NUMERIC"`
+- `jdbcType="VARCHAR2"` → `jdbcType="VARCHAR"`
+- `jdbcType="CLOB"` → `jdbcType="LONGVARCHAR"`
+- `jdbcType="BLOB"` → `jdbcType="LONGVARBINARY"`
+- `jdbcType="DATE"` → `jdbcType="DATE"`
+
+### MyBatis Bind Variable Type Conversion Rules
+
+#### JDBC Type Conversion for Bind Variables (MANDATORY)
+When original bind variables have type specifications, convert to PostgreSQL compatible types:
+
+**Basic Type Conversions:**
+- `#{param:CLOB}` → `#{param:LONGVARCHAR}`
+- `#{param:BLOB}` → `#{param:LONGVARBINARY}`
+- `#{param:NUMBER}` → `#{param:NUMERIC}`
+- `#{param:VARCHAR2}` → `#{param:VARCHAR}`
+- `#{param:DATE}` → `#{param:TIMESTAMP}`
+- `#{param:INTEGER}` → `#{param:INTEGER}` (keep as is)
+- `#{param:DECIMAL}` → `#{param:NUMERIC}`
+- `#{param:CHAR}` → `#{param:VARCHAR}`
+
+**Complex Parameter Conversions:**
+- `#{param,mode=IN,jdbcType=CLOB}` → `#{param,mode=IN,jdbcType=LONGVARCHAR}`
+- `#{param,mode=OUT,jdbcType=NUMBER}` → `#{param,mode=OUT,jdbcType=NUMERIC}`
+- `#{param,mode=IN,jdbcType=VARCHAR2}` → `#{param,mode=IN,jdbcType=VARCHAR}`
+
+#### Type Information Preservation Principles
+- **Type Specified**: Convert to PostgreSQL compatible type (DO NOT remove)
+- **Type Not Specified**: Keep as is (`#{param}` remains `#{param}`)
+- **Mode Information**: Preserve `mode=IN`, `mode=OUT`, `mode=INOUT`
+- **Additional Attributes**: Preserve `javaType`, `typeHandler`, etc.
+
+#### Conversion Examples
+```xml
+<!-- Oracle Original -->
+#{reqCont:CLOB}
+#{amount:NUMBER}
+#{param,mode=IN,jdbcType=VARCHAR2}
+#{data,javaType=String,jdbcType=CLOB}
+
+<!-- PostgreSQL Conversion -->
+#{reqCont:LONGVARCHAR}
+#{amount:NUMERIC}
+#{param,mode=IN,jdbcType=VARCHAR}
+#{data,javaType=String,jdbcType=LONGVARCHAR}
+```
+
+#### Critical Rule: NO TYPE REMOVAL
+- **WRONG**: `#{reqCont:CLOB}` → `#{reqCont}` (type information lost)
+- **CORRECT**: `#{reqCont:CLOB}` → `#{reqCont:LONGVARCHAR}` (type converted)
+
+### Column Mapping Verification
+- Check column names match PostgreSQL case sensitivity
+- Verify column data types are compatible
+- Ensure property names in resultMap match Java entity fields
+
+### Implementation Example
+```xml
+<!-- Original -->
+<resultMap id="empMap" type="Employee">
+    <result property="salary" column="SALARY" javaType="java.math.BigDecimal" jdbcType="NUMBER"/>
+    <result property="description" column="DESCRIPTION" javaType="oracle.sql.CLOB" jdbcType="CLOB"/>
+</resultMap>
+
+<!-- Convert to -->
+<resultMap id="empMap" type="Employee">
+    <result property="salary" column="SALARY" javaType="java.math.BigDecimal" jdbcType="NUMERIC"/>
+    <result property="description" column="DESCRIPTION" javaType="java.lang.String" jdbcType="LONGVARCHAR"/>
+</resultMap>
+```
+
+## 🚨 SQL PARAMETER CAST PROCESSING (CRITICAL)
+
+### Scope and Trigger Conditions
+Apply to ALL SQL statements with parameters:
+
+- **SELECT**: WHERE, JOIN, HAVING clauses with `column = #{variable}` or `column = ?`
+- **INSERT**: VALUES clause with `#{variable}` or `?` for specific columns
+- **UPDATE**: SET and WHERE clauses with `column = #{variable}` or `column = ?`
+- **DELETE**: WHERE clause with `column = #{variable}` or `column = ?`
+
+### Metadata Lookup Process
+1. **File Source**: `$APP_TRANSFORM_FOLDER/oma_metadata.txt` (PostgreSQL psql output format)
+2. **File Format**: `table_schema | table_name | column_name | data_type`
+3. **Search Method**: `grep -i "table_name" $APP_TRANSFORM_FOLDER/oma_metadata.txt | grep -i "column_name"`
+4. **Parse Format**: Extract data_type from pipe-separated fields
+5. **Apply CAST**: Based on data_type, apply appropriate PostgreSQL casting
+
+### Enhanced CAST Decision Rules
+| PostgreSQL Data Type | CAST Applied | Example |
+|---------------------|--------------|---------|
+| integer, int4 | `#{param}::integer` | `WHERE id = #{id}::integer` |
+| bigint, int8 | `#{param}::bigint` | `WHERE big_id = #{bigId}::bigint` |
+| numeric, decimal | `#{param}::numeric` | `WHERE amount = #{amount}::numeric` |
+| double precision | `#{param}::double precision` | `WHERE rate = #{rate}::double precision` |
+| real, float4 | `#{param}::real` | `WHERE price = #{price}::real` |
+| date | `#{param}::date` | `WHERE created_date = #{date}::date` |
+| timestamp, timestamp without time zone | `#{param}::timestamp` | `WHERE updated_at = #{timestamp}::timestamp` |
+| timestamp with time zone, timestamptz | `#{param}::timestamptz` | `WHERE event_time = #{eventTime}::timestamptz` |
+| character varying, varchar | **NO CAST** | `WHERE code = #{code}` |
+| character, char | **NO CAST** | `WHERE status = #{status}` |
+| text | **NO CAST** | `WHERE description = #{desc}` |
+| boolean | `#{param}::boolean` | `WHERE active = #{active}::boolean` |
+
+### String Type Policy (SIMPLIFIED)
+**RULE**: String types (character varying, varchar, char, text) do NOT require casting
+**REASON**: PostgreSQL handles string parameter binding automatically
+
+### Critical Application Patterns (Priority Order)
+
+#### 🔥 **CRITICAL - BETWEEN Clauses**
+**Rule**: Both parameters in BETWEEN clause MUST be cast to column data type
+```sql
+-- Metadata lookup: users.created_at = timestamp without time zone
+-- Original
+WHERE u.created_at BETWEEN #{startDate} AND #{endDate}
+-- Convert to
+WHERE u.created_at BETWEEN #{startDate}::timestamp AND #{endDate}::timestamp
+
+-- Metadata lookup: orders.total_amount = numeric  
+-- Original
+WHERE o.total_amount BETWEEN #{minAmount} AND #{maxAmount}
+-- Convert to
+WHERE o.total_amount BETWEEN #{minAmount}::numeric AND #{maxAmount}::numeric
+```
+
+#### ⚠️ **HIGH - Comparison Operators**
+**Rule**: All comparison operators (=, !=, <, >, <=, >=) require parameter casting
+```sql
+-- Metadata lookup: products.price = numeric
+-- Original
+WHERE p.price >= #{minPrice}
+-- Convert to  
+WHERE p.price >= #{minPrice}::numeric
+
+-- Metadata lookup: sessions.session_start = timestamp without time zone
+-- Original
+WHERE s.session_start > #{cutoffTime}
+-- Convert to
+WHERE s.session_start > #{cutoffTime}::timestamp
+```
+
+#### 🔶 **MEDIUM - IN Clauses**
+**Rule**: All parameters in IN clause must be cast consistently
+```sql
+-- Metadata lookup: employees.dept_id = integer
+-- Original
+WHERE e.dept_id IN (#{dept1}, #{dept2}, #{dept3})
+-- Convert to
+WHERE e.dept_id IN (#{dept1}::integer, #{dept2}::integer, #{dept3}::integer)
+```
+
+#### 🔷 **LOW - CASE WHEN Conditions**
+**Rule**: Parameters in CASE WHEN conditions require casting
+```sql
+-- Metadata lookup: orders.status_code = integer
+-- Original
+CASE WHEN o.status_code = #{activeStatus} THEN 'Active' ELSE 'Inactive' END
+-- Convert to
+CASE WHEN o.status_code = #{activeStatus}::integer THEN 'Active' ELSE 'Inactive' END
+```
+
+### Real-world Metadata Mapping Examples
+
+#### Sample oma_metadata.txt entries:
+```
+oma | users | created_at | timestamp without time zone
+oma | orders | total_amount | numeric  
+oma | user_sessions | session_start | timestamp without time zone
+oma | products | price | numeric
+oma | employees | emp_id | integer
+oma | departments | dept_code | character varying
+```
+
+#### Conversion Examples:
+```sql
+-- Example 1: Timestamp range query
+-- Metadata: users.created_at = timestamp without time zone
+SELECT * FROM users u 
+WHERE u.created_at BETWEEN #{startDate}::timestamp AND #{endDate}::timestamp
+
+-- Example 2: Numeric comparison  
+-- Metadata: orders.total_amount = numeric
+SELECT * FROM orders o 
+WHERE o.total_amount >= #{minAmount}::numeric 
+AND o.total_amount <= #{maxAmount}::numeric
+
+-- Example 3: Mixed types in complex query
+-- Metadata: products.price = numeric, products.category_id = integer
+SELECT * FROM products p
+WHERE p.price > #{minPrice}::numeric
+AND p.category_id IN (#{cat1}::integer, #{cat2}::integer)
+```
+
+### CDATA Section Casting (CRITICAL)
+**Rule**: Apply casting rules even within CDATA sections
+
+#### CDATA Parameter Casting Priority (MANDATORY)
+1. **BETWEEN Clauses**: Both parameters MUST be cast
+2. **Comparison Operators** (`>=`, `<=`, `>`, `<`, `=`, `!=`): Parameters MUST be cast
+3. **IN Clauses**: All parameters MUST be cast consistently
+4. **String Types**: NO casting required (character varying, varchar, char, text)
+
+#### CDATA Conversion Examples
+```xml
+<!-- Example 1: Numeric comparisons in CDATA -->
+<if test="minAmount != null">
+    <![CDATA[ AND o.TOTAL_AMOUNT >= #{minAmount}::double precision ]]>
+</if>
+<if test="maxAmount != null">
+    <![CDATA[ AND o.TOTAL_AMOUNT <= #{maxAmount}::double precision ]]>
+</if>
+
+<!-- Example 2: Date comparisons in CDATA -->
+<if test="startDate != null">
+    <![CDATA[ AND o.ORDERED_AT >= #{startDate}::timestamp ]]>
+</if>
+
+<!-- Example 3: String comparisons in CDATA (NO CAST) -->
+<if test="statusFilter != null">
+    <![CDATA[ AND o.ORDER_STATUS = #{statusFilter} ]]>
+</if>
+
+<!-- Example 4: BETWEEN with casting -->
+<select id="getOrdersByAmountRange">
+    <![CDATA[
+        SELECT * FROM orders o
+        WHERE o.total_amount BETWEEN #{minAmount}::double precision AND #{maxAmount}::double precision
+        AND o.created_date BETWEEN #{startDate}::timestamp AND #{endDate}::timestamp
+    ]]>
+</select>
+```
+
+#### CDATA String Concatenation (CRITICAL)
+**Rule**: Convert ALL `||` operators to `CONCAT()` even within CDATA sections
+```xml
+<!-- WRONG -->
+<if test="searchKeyword != null">
+    <![CDATA[
+        AND UPPER(u.FIRST_NAME || ' ' || u.LAST_NAME) LIKE UPPER('%' || #{searchKeyword} || '%')
+    ]]>
+</if>
+
+<!-- CORRECT -->
+<if test="searchKeyword != null">
+    <![CDATA[
+        AND UPPER(CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME)) LIKE UPPER(CONCAT('%', #{searchKeyword}, '%'))
+    ]]>
+</if>
+```
+
+### Conversion Checklist (MANDATORY)
+Before completing conversion, verify:
+- ✅ **Metadata Lookup**: All used columns checked in `$APP_TRANSFORM_FOLDER/oma_metadata.txt`
+- ✅ **BETWEEN Clauses**: Both parameters cast to column data type
+- ✅ **Comparison Operators**: All `=`, `!=`, `<`, `>`, `<=`, `>=` parameters cast
+- ✅ **IN Clauses**: All list parameters consistently cast
+- ✅ **CASE WHEN**: Conditional parameters properly cast
+- ✅ **CDATA Sections**: Casting applied within CDATA blocks
+- ✅ **Complex Queries**: Subqueries and joins include proper casting
+
+### Error Handling (Conservative Approach)
+- **Metadata File Not Found**: Skip CAST processing, log warning
+- **Column Not Found**: Skip CAST processing, log warning
+- **File Read Issues**: Skip CAST processing, no retry
+- **Ambiguous Column**: Use table alias to resolve, log info
+- **Policy**: Never apply CAST without metadata confirmation
+
+### Logging Requirements
+- "METADATA LOOKUP: table.column → data_type"
+- "Applied CAST: #{param} → #{param}::{pg_type}"
+- "Skipped CAST: #{param} (string type/metadata not found)"
+- "BETWEEN CAST: #{start}::type AND #{end}::type"
+
+**Note**: Metadata file location is `$APP_TRANSFORM_FOLDER/oma_metadata.txt`
+
+## 🔧 POSTGRESQL CONVERSION RULES
+
+### Basic Functions
+- `NVL(a, b)` → `COALESCE(a, b)`
+- `SYSDATE` → `CURRENT_TIMESTAMP`
+- `SUBSTR(str, pos, len)` → `SUBSTRING(str, pos, len)`
+- `DECODE(...)` → `CASE WHEN ... END`
+- `USER` → `CURRENT_USER`
+- `SYS_GUID()` → `gen_random_uuid()`
+
+### Pagination and Row Limiting
+- `ROWNUM <= n` → `LIMIT n`
+- `ROWNUM = 1` → `LIMIT 1`
+
+### DUAL Table Removal
+- `FROM DUAL` → remove completely
+- `SELECT 'Hello' FROM DUAL` → `SELECT 'Hello'`
+- `SELECT #{variable} FROM DUAL` → `SELECT #{variable}`
+
+### Oracle Outer Join Conversion
+- `(+)` outer join → `LEFT JOIN` or `RIGHT JOIN`
+- Convert Oracle (+) syntax to explicit JOIN syntax
+
+### Stored Procedure Calls
+- `{call PROC()}` → `CALL PROC()`
+- Remove curly braces from stored procedure calls
+
+### Aggregate Functions
+- `LISTAGG(col, delim)` → `STRING_AGG(col, delim)`
+
+### Oracle Hint Removal
+- Remove all Oracle optimizer hints from SQL
+- `SELECT /*+ FIRST_ROWS(10) */ * FROM table` → `SELECT * FROM table`
+- `SELECT /*+ INDEX(t, idx_name) */ * FROM table t` → `SELECT * FROM table t`
+- `SELECT /*+ USE_NL(a b) */ * FROM a, b` → `SELECT * FROM a, b`
+- **Pattern**: Remove `/*+ ... */` comments entirely
+
+### Date Functions
+- `ADD_MONTHS(date, n)` → `date + INTERVAL 'n months'` (for literal n) or `date + (n::text || ' months')::interval` (for variable n)
+- `MONTHS_BETWEEN(d1, d2)` → `(EXTRACT(YEAR FROM AGE(d1, d2)) * 12 + EXTRACT(MONTH FROM AGE(d1, d2)))::numeric`
+- `LAST_DAY(date)` → `(DATE_TRUNC('MONTH', date) + INTERVAL '1 MONTH' - INTERVAL '1 day')::date`
+- `TRUNC(date, 'DD')` → `DATE_TRUNC('day', date)`
+- `TRUNC(date, 'MM')` → `DATE_TRUNC('month', date)`
+- `TRUNC(date, 'YYYY')` → `DATE_TRUNC('year', date)`
+
+### Sequence Handling
+- `SEQ_NAME.NEXTVAL` → `nextval('seq_name')` (always convert to lowercase)
+- `SEQ_NAME.CURRVAL` → `currval('seq_name')` (always convert to lowercase)
+
+#### SelectKey Pattern Processing
+```xml
+<!-- Original -->
+<selectKey keyProperty="id" resultType="long" order="BEFORE">
+    SELECT SEQ_EMPLOYEE_ID.NEXTVAL FROM DUAL
+</selectKey>
+
+<!-- Convert to -->
+<selectKey keyProperty="id" resultType="long" order="BEFORE">
+    SELECT nextval('seq_employee_id')
+</selectKey>
+```
+
+### Subquery Alias Requirements (CRITICAL - MANDATORY)
+- **ALL FROM clause subqueries MUST have alias in PostgreSQL**
+- **NO EXCEPTIONS**: Every `(SELECT ...)` in FROM clause requires alias
+- **SCAN RULE**: Search for ALL occurrences of `FROM (` and `JOIN (` patterns
+
+#### Mandatory Alias Patterns
+1. **Simple Subquery**: `FROM (SELECT...)` → `FROM (SELECT...) AS sub`
+2. **Multiple Subqueries**: Use sequential numbering `AS sub1`, `AS sub2`, `AS sub3`
+3. **Nested Subqueries**: Each nesting level gets unique alias
+4. **JOIN Subqueries**: `JOIN (SELECT...)` → `JOIN (SELECT...) AS join_sub`
+5. **UNION Subqueries**: `FROM (SELECT ... UNION SELECT ...)` → `FROM (SELECT ... UNION SELECT ...) AS union_sub`
+
+#### Systematic Alias Naming Convention
+- **Level 1**: `AS sub1`, `AS sub2`, `AS sub3` (sequential)
+- **Level 2 (nested)**: `AS inner1`, `AS inner2`, `AS inner3`
+- **Level 3 (deep nested)**: `AS deep1`, `AS deep2`, `AS deep3`
+- **JOIN subqueries**: `AS join_sub1`, `AS join_sub2`
+- **UNION subqueries**: `AS union_sub1`, `AS union_sub2`
+
+#### Detection and Conversion Rules
+**CRITICAL SCAN PATTERNS** (Must check ALL):
+1. `FROM (SELECT` → `FROM (SELECT ... ) AS sub1`
+2. `FROM ( SELECT` → `FROM ( SELECT ... ) AS sub1` (with spaces)
+3. `JOIN (SELECT` → `JOIN (SELECT ... ) AS join_sub1`
+4. `LEFT JOIN (SELECT` → `LEFT JOIN (SELECT ... ) AS left_sub1`
+5. `RIGHT JOIN (SELECT` → `RIGHT JOIN (SELECT ... ) AS right_sub1`
+6. `INNER JOIN (SELECT` → `INNER JOIN (SELECT ... ) AS inner_sub1`
+7. `FROM (SELECT ... UNION` → `FROM (SELECT ... UNION ... ) AS union_sub1`
+
+#### Conversion Examples
+```sql
+-- Pattern 1: Simple subquery (COMMON MISS)
+-- Oracle
+SELECT * FROM (SELECT emp_id FROM employees)
+-- PostgreSQL
+SELECT * FROM (SELECT emp_id FROM employees) AS sub1
+
+-- Pattern 2: UNION subquery (FREQUENTLY MISSED)
+-- Oracle
+SELECT * FROM (
+    SELECT emp_id, 'A' as type FROM employees_a
+    UNION
+    SELECT emp_id, 'B' as type FROM employees_b
+)
+-- PostgreSQL
+SELECT * FROM (
+    SELECT emp_id, 'A' as type FROM employees_a
+    UNION
+    SELECT emp_id, 'B' as type FROM employees_b
+) AS union_sub1
+
+-- Pattern 3: Nested subqueries (FREQUENT ERROR)
+-- Oracle
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id FROM employees WHERE active = 'Y'
+    ) WHERE dept_id = 10
+)
+-- PostgreSQL
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id FROM employees WHERE active = 'Y'
+    ) AS inner1 WHERE dept_id = 10
+) AS sub1
+
+-- Pattern 4: Nested UNION (HIGH ERROR RATE)
+-- Oracle
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id FROM dept_a
+        UNION
+        SELECT emp_id FROM dept_b
+    ) WHERE emp_id > 100
+)
+-- PostgreSQL
+SELECT * FROM (
+    SELECT * FROM (
+        SELECT emp_id FROM dept_a
+        UNION
+        SELECT emp_id FROM dept_b
+    ) AS inner_union WHERE emp_id > 100
+) AS sub1
+```
+
+#### MyBatis XML Implementation (CRITICAL CHECKS)
+```xml
+<!-- Pattern 1: Basic subquery (CHECK FOR MISSING ALIAS) -->
+<!-- WRONG -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id FROM employees WHERE dept_id = #{deptId}
+        )
+    ]]>
+</select>
+
+<!-- CORRECT -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id FROM employees WHERE dept_id = #{deptId}
+        ) AS sub1
+    ]]>
+</select>
+
+<!-- Pattern 2: UNION subquery (FREQUENTLY MISSED) -->
+<!-- WRONG -->
+<select id="getAllEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id, name FROM permanent_emp
+            UNION
+            SELECT emp_id, name FROM contract_emp
+        )
+        WHERE active = 'Y'
+    ]]>
+</select>
+
+<!-- CORRECT -->
+<select id="getAllEmployees">
+    <![CDATA[
+        SELECT * FROM (
+            SELECT emp_id, name FROM permanent_emp
+            UNION
+            SELECT emp_id, name FROM contract_emp
+        ) AS union_sub1
+        WHERE active = 'Y'
+    ]]>
+</select>
+```
+
+#### Validation Checklist (MANDATORY)
+**Before completing conversion, verify:**
+1. ✅ **Every `FROM (SELECT` has corresponding `) AS alias`**
+2. ✅ **Every `JOIN (SELECT` has corresponding `) AS alias`**  
+3. ✅ **Every `FROM (SELECT ... UNION` has corresponding `) AS alias`**
+4. ✅ **Nested subqueries have unique aliases at each level**
+5. ✅ **No duplicate alias names within same query scope**
+6. ✅ **All parentheses are properly balanced**
+```
+
+### Pagination
+- `ROWNUM <= n` → `LIMIT n`
+- Complex ROWNUM pagination → `LIMIT n OFFSET m`
+
+#### ROWNUM Based Pagination Pattern
+```xml
+<!-- Original -->
+<select id="getList">
+    SELECT * FROM (
+        SELECT ROWNUM AS rnum, a.* FROM (
+            ${originalQuery}
+        ) a WHERE ROWNUM <= #{end}
+    ) WHERE rnum >= #{start}
+</select>
+
+<!-- Convert to -->
+<select id="getList">
+    ${originalQuery}
+    LIMIT #{pageSize} OFFSET #{start}
+</select>
+```
+
+## 🎯 CRITICAL CONVERSION RULES (UNIVERSAL & COMPREHENSIVE)
+
+### 1. STRING CONCATENATION (ABSOLUTE PRIORITY)
+**UNIVERSAL RULE**: Convert ALL `||` operators to `CONCAT()` - NO EXCEPTIONS
+
+#### Detection Algorithm (COMPREHENSIVE)
+1. **Scan Pattern**: Search for ALL occurrences of ` || ` (space-pipe-pipe-space)
+2. **Context Awareness**: Apply in ALL contexts (SELECT, WHERE, HAVING, ORDER BY, functions, CDATA)
+3. **Nesting Awareness**: Handle nested concatenations and function wrapping
+
+#### Conversion Logic (SYSTEMATIC)
+```
+INPUT: expr1 || expr2 || expr3 || ... || exprN
+OUTPUT: CONCAT(expr1, expr2, expr3, ..., exprN)
+```
+
+#### Critical Patterns (MUST HANDLE ALL)
+- **Simple**: `col1 || col2` → `CONCAT(col1, col2)`
+- **Literal**: `'text' || col` → `CONCAT('text', col)`
+- **Multi-operand**: `a || b || c || d` → `CONCAT(a, b, c, d)`
+- **Function-wrapped**: `UPPER(a || b)` → `UPPER(CONCAT(a, b))`
+- **Nested in conditions**: `WHERE (a || b) = 'value'` → `WHERE CONCAT(a, b) = 'value'`
+- **Parameter mixed**: `col || #{param} || 'suffix'` → `CONCAT(col, #{param}, 'suffix')`
+
+### 2. NESTED FUNCTION HANDLING (RECURSIVE PROCESSING)
+**UNIVERSAL RULE**: Process concatenation INSIDE functions first, then apply function-specific rules
+
+#### Processing Order (CRITICAL)
+1. **Inner-to-Outer**: Process deepest nested concatenations first
+2. **Function Preservation**: Maintain function structure while converting inner content
+3. **Parameter Protection**: Never modify `#{param}` or `${param}` syntax
+
+#### Common Nested Patterns
+```sql
+-- Pattern 1: Function wrapping concatenation
+UPPER(col1 || ' ' || col2) → UPPER(CONCAT(col1, ' ', col2))
+LOWER(a || b || c) → LOWER(CONCAT(a, b, c))
+TRIM(prefix || col || suffix) → TRIM(CONCAT(prefix, col, suffix))
+
+-- Pattern 2: Concatenation in LIKE patterns  
+LIKE '%' || #{param} || '%' → LIKE CONCAT('%', #{param}, '%')
+LIKE UPPER('%' || #{search} || '%') → LIKE UPPER(CONCAT('%', #{search}, '%'))
+
+-- Pattern 3: Complex nesting
+COALESCE(col1 || col2, 'default') → COALESCE(CONCAT(col1, col2), 'default')
+CASE WHEN col1 || col2 = 'value' → CASE WHEN CONCAT(col1, col2) = 'value'
+```
+
+### 3. PARAMETER CASTING (METADATA-DRIVEN & COMPREHENSIVE)
+**UNIVERSAL RULE**: Cast parameters based on target column metadata - Apply to ALL comparison contexts
+
+#### Metadata Lookup Process (SYSTEMATIC)
+1. **File**: `$APP_TRANSFORM_FOLDER/oma_metadata.txt`
+2. **Format**: `schema | table | column | data_type`
+3. **Lookup**: Match `table.column` to get `data_type`
+4. **Apply**: Cast parameter based on data_type mapping
+
+#### Case-Insensitive Matching (CRITICAL)
+- **SQL Columns**: May be uppercase (e.g., `o.TOTAL_AMOUNT`, `u.FIRST_NAME`)
+- **Metadata**: Contains lowercase (e.g., `orders.total_amount`, `users.first_name`)
+- **Matching Rule**: Convert SQL references to lowercase for metadata lookup
+- **Examples**:
+  - `o.TOTAL_AMOUNT` → lookup `orders.total_amount`
+  - `u.FIRST_NAME` → lookup `users.first_name`
+  - `e.EMP_ID` → lookup `employees.emp_id`
+
+#### Table Alias Resolution (MANDATORY)
+- **FROM/JOIN Analysis**: Identify table aliases from FROM and JOIN clauses
+- **Alias Mapping**: `o` → `orders`, `u` → `users`, `e` → `employees`
+- **Column Resolution**: `alias.COLUMN` → `table.column` (lowercase)
+
+#### Cast Mapping (DEFINITIVE)
+```
+PostgreSQL Data Type → Cast Syntax
+integer, int4 → ::integer
+bigint, int8 → ::bigint  
+numeric, decimal → ::numeric
+double precision → ::double precision
+real, float4 → ::real
+date → ::date
+timestamp, timestamp without time zone → ::timestamp
+timestamp with time zone, timestamptz → ::timestamptz
+boolean → ::boolean
+character varying, varchar, char, text → NO CAST (string types)
+```
+
+#### Application Contexts (ALL MUST BE COVERED)
+- **Comparison Operators**: `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=`
+- **BETWEEN Clauses**: `BETWEEN #{param1} AND #{param2}` → `BETWEEN #{param1}::type AND #{param2}::type`
+- **IN Clauses**: `IN (#{p1}, #{p2}, #{p3})` → `IN (#{p1}::type, #{p2}::type, #{p3}::type)`
+- **CASE Conditions**: `WHEN col = #{param}` → `WHEN col = #{param}::type`
+
+#### CDATA Section Processing (CRITICAL)
+**RULE**: Apply casting rules INSIDE CDATA sections with same logic
+```xml
+<!-- Input -->
+<![CDATA[ AND o.TOTAL_AMOUNT >= #{minAmount} ]]>
+
+<!-- Output (if TOTAL_AMOUNT is double precision) -->
+<![CDATA[ AND o.TOTAL_AMOUNT >= #{minAmount}::double precision ]]>
+```
+
+### 4. COMBINED PROCESSING (CONCATENATION + CASTING)
+**EXECUTION ORDER** (CRITICAL SEQUENCE):
+1. **First**: Process string concatenation (`||` → `CONCAT()`)
+2. **Second**: Apply parameter casting based on metadata
+3. **Third**: Apply other Oracle function conversions
+
+#### Complex Example Processing
+```sql
+-- Input (Oracle)
+WHERE UPPER(u.FIRST_NAME || ' ' || u.LAST_NAME) LIKE UPPER('%' || #{searchKeyword} || '%')
+AND o.TOTAL_AMOUNT >= #{minAmount}
+
+-- Step 1: Concatenation conversion
+WHERE UPPER(CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME)) LIKE UPPER(CONCAT('%', #{searchKeyword}, '%'))
+AND o.TOTAL_AMOUNT >= #{minAmount}
+
+-- Step 2: Parameter casting (if TOTAL_AMOUNT is double precision)
+WHERE UPPER(CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME)) LIKE UPPER(CONCAT('%', #{searchKeyword}, '%'))
+AND o.TOTAL_AMOUNT >= #{minAmount}::double precision
+
+-- Final Output (PostgreSQL)
+WHERE UPPER(CONCAT(u.FIRST_NAME, ' ', u.LAST_NAME)) LIKE UPPER(CONCAT('%', #{searchKeyword}, '%'))
+AND o.TOTAL_AMOUNT >= #{minAmount}::double precision
+```
+
+### Additional Oracle to PostgreSQL Conversions
+- `LISTAGG(column, delimiter)` → `STRING_AGG(column, delimiter)`
+- `CHR(ASCII('A')+n)` → `CHR((ASCII('A')::integer)+n)`
+- `v$session` → `pg_stat_activity`
+- **TO_DATE conversion**:
+  - Date only: `TO_DATE('20250424', 'YYYYMMDD')` → `to_date('20250424', 'YYYYMMDD')`
+  - Date with time: `TO_DATE('2025-04-24 13:45:00', 'YYYY-MM-DD HH24:MI:SS')` → `to_timestamp('2025-04-24 13:45:00', 'YYYY-MM-DD HH24:MI:SS')`
+  - **Note**: PostgreSQL uses lowercase function names
+- **Date format patterns** (maintain as is):
+  - MI, HH24, DD, MM, YYYY, YYYYMMDD, YYYY-MM-DD HH24:MI:SS
+- **Explicit type casting for comparisons**:
+  - `SUBSTRING(date_column,1,8)::date = TO_DATE('20250424', 'YYYYMMDD')`
+- **INTERVAL for date calculations**:
+  - `TO_DATE(date, 'YYYYMMDD') + INTERVAL '3 days'`
+- **Preserve special characters**: Maintain `&lt;` and `&gt;` in original SQL
+- **Remove ORDER BY for aggregate functions without GROUP BY**:
+  - `SELECT COUNT(empno) FROM emp ORDER BY reg_dttm` → `SELECT COUNT(empno) FROM emp`
+- **Oracle Hint Removal**:
+  - Remove all Oracle optimizer hints from SQL
+  - `SELECT /*+ FIRST_ROWS(10) */ * FROM table` → `SELECT * FROM table`
+  - `SELECT /*+ INDEX(t, idx_name) */ * FROM table t` → `SELECT * FROM table t`
+  - `SELECT /*+ USE_NL(a b) */ * FROM a, b` → `SELECT * FROM a, b`
+  - **Pattern**: Remove `/*+ ... */` comments entirely
+
+### Oracle Date Literals
+- `DATE '2023-01-01'` → `'2023-01-01'::date`
+- `TIMESTAMP '2023-01-01 12:00:00'` → `'2023-01-01 12:00:00'::timestamp`
+
+### Oracle System Functions
+- `USER` → `CURRENT_USER`
+- `SYS_CONTEXT('USERENV', 'SESSION_USER')` → `SESSION_USER`
+- `USERENV('SESSIONID')` → `pg_backend_pid()`
+- `SYS_GUID()` → `gen_random_uuid()` (requires pgcrypto extension)
+
+### Advanced NULL Handling (CRITICAL DIFFERENCES)
+
+#### Core NULL Function Conversions
+- `NVL(expr1, expr2)` → `COALESCE(expr1, expr2)`
+- `NVL2(expr1, expr2, expr3)` → `CASE WHEN expr1 IS NOT NULL THEN expr2 ELSE expr3 END`
+- `NULLIF(expr1, expr2)` → `NULLIF(expr1, expr2)` (same syntax)
+
+#### Mixed Type COALESCE Handling
+```sql
+-- Numeric to String
+COALESCE(employee_id, 'N/A') → COALESCE(employee_id::text, 'N/A')
+
+-- Date with Default
+COALESCE(hire_date, '1900-01-01') → COALESCE(hire_date, '1900-01-01'::date)
+
+-- Numeric with Zero
+COALESCE(salary, 0) → COALESCE(salary, 0::numeric)
+```
+
+#### Empty String vs NULL (MAJOR BEHAVIORAL DIFFERENCE)
+
+**Oracle Behavior:**
+- Empty string `''` is treated as NULL
+- `LENGTH('')` returns NULL
+- `'' IS NULL` returns TRUE
+- `CONCAT('Hello', '')` returns 'Hello'
+
+**PostgreSQL Behavior:**
+- Empty string `''` is distinct from NULL
+- `LENGTH('')` returns 0
+- `'' IS NULL` returns FALSE
+- `CONCAT('Hello', '')` returns 'Hello'
+
+**Critical Conversion Patterns:**
+
+```sql
+-- Pattern 1: NULL checks that should include empty strings
+-- Oracle: WHERE column IS NULL
+-- PostgreSQL: WHERE (column IS NULL OR column = '')
+
+-- Pattern 2: String concatenation with potential NULLs
+-- Oracle: column1 || column2 (NULL-safe)
+-- PostgreSQL: CONCAT(column1, column2) OR column1 || COALESCE(column2, '')
+
+-- Pattern 3: Length checks
+-- Oracle: WHERE LENGTH(column) IS NULL (includes empty strings)
+-- PostgreSQL: WHERE (column IS NULL OR LENGTH(column) = 0)
+
+-- Pattern 4: Default value assignment
+-- Oracle: NVL(column, 'default') (handles both NULL and empty)
+-- PostgreSQL: CASE WHEN (column IS NULL OR column = '') THEN 'default' ELSE column END
+```
+
+#### String Concatenation NULL Handling
+
+**Oracle NULL-Safe Concatenation:**
+```sql
+-- Oracle: Returns 'Hello' even if column2 is NULL
+SELECT 'Hello' || column2 FROM table;
+```
+
+**PostgreSQL NULL-Propagating Concatenation:**
+```sql
+-- PostgreSQL: Returns NULL if column2 is NULL
+SELECT 'Hello' || column2 FROM table;
+
+-- Conversion Options:
+-- Option 1: Use CONCAT (NULL-safe)
+SELECT CONCAT('Hello', column2) FROM table;
+
+-- Option 2: Use COALESCE
+SELECT 'Hello' || COALESCE(column2, '') FROM table;
+
+-- Option 3: Use CASE for complex logic
+SELECT CASE 
+    WHEN column2 IS NULL THEN 'Hello'
+    ELSE 'Hello' || column2 
+END FROM table;
+```
+
+#### NULL in Conditional Logic
+
+**Oracle DECODE with NULL:**
+```sql
+-- Oracle
+DECODE(column, NULL, 'Empty', column)
+
+-- PostgreSQL
+CASE WHEN column IS NULL THEN 'Empty' ELSE column END
+```
+
+**NULL in CASE Statements:**
+```sql
+-- Both Oracle and PostgreSQL (same behavior)
+CASE 
+    WHEN column IS NULL THEN 'NULL_VALUE'
+    WHEN column = '' THEN 'EMPTY_STRING'  -- Different behavior!
+    ELSE column 
+END
+```
+
+#### NULL in Aggregate Functions
+
+**COUNT with NULL:**
+```sql
+-- Both databases: COUNT ignores NULL values
+COUNT(column)  -- Same behavior
+
+-- COUNT with empty strings
+-- Oracle: COUNT('') counts as 1 (empty string = NULL, but COUNT handles differently)
+-- PostgreSQL: COUNT('') counts as 1
+```
+
+**STRING_AGG/LISTAGG with NULL:**
+```sql
+-- Oracle LISTAGG ignores NULL values
+LISTAGG(column, ',') → STRING_AGG(column, ',')  -- Same NULL handling
+
+-- Custom NULL handling in aggregation
+STRING_AGG(COALESCE(column, 'NULL_PLACEHOLDER'), ',')
+```
+
+#### NULL Comparison Patterns
+
+**Safe NULL Comparisons:**
+```sql
+-- Both databases: Use IS NULL / IS NOT NULL
+WHERE column IS NULL
+WHERE column IS NOT NULL
+
+-- Avoid direct NULL comparison (returns NULL, not boolean)
+WHERE column = NULL     -- WRONG in both databases
+WHERE column != NULL    -- WRONG in both databases
+```
+
+**NULL-Safe Equality:**
+```sql
+-- Oracle: NVL(col1, 'X') = NVL(col2, 'X')
+-- PostgreSQL: 
+COALESCE(col1, 'X') = COALESCE(col2, 'X')
+-- OR use IS NOT DISTINCT FROM
+col1 IS NOT DISTINCT FROM col2  -- PostgreSQL specific
+```
+
+#### NULL in Sorting (ORDER BY)
+
+**NULL Positioning:**
+```sql
+-- Oracle default: NULLs LAST
+ORDER BY column
+
+-- PostgreSQL default: NULLs LAST (same as Oracle)
+ORDER BY column
+
+-- Explicit NULL positioning (both databases)
+ORDER BY column NULLS FIRST
+ORDER BY column NULLS LAST
+```
+
+#### Practical Conversion Examples
+
+```xml
+<!-- Oracle MyBatis Example -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT emp_id, 
+               NVL(emp_name, 'Unknown') as name,
+               emp_name || ' - ' || dept_name as full_desc
+        FROM employees 
+        WHERE emp_name IS NULL OR LENGTH(emp_name) = 0
+    ]]>
+</select>
+
+<!-- PostgreSQL Conversion -->
+<select id="getEmployees">
+    <![CDATA[
+        SELECT emp_id, 
+               COALESCE(emp_name, 'Unknown') as name,
+               CONCAT(COALESCE(emp_name, ''), ' - ', COALESCE(dept_name, '')) as full_desc
+        FROM employees 
+        WHERE (emp_name IS NULL OR emp_name = '')
+    ]]>
+</select>
+```
+
+#### NULL Handling Best Practices
+
+1. **Always use COALESCE instead of NVL**
+2. **Use CONCAT for NULL-safe string concatenation**
+3. **Explicitly handle empty strings when Oracle behavior is expected**
+4. **Use IS NOT DISTINCT FROM for NULL-safe equality in PostgreSQL**
+5. **Test NULL behavior thoroughly in converted queries**
+
+### Stored Procedure Enhancement
+- **PostgreSQL Procedure Conversion**: Always use `CALL` format
+- `{call PROC()}` → `CALL PROC()`
+- **Type Casting for Procedure Parameters**:
+  - `#{param,mode=IN,jdbcType=DECIMAL}` → `CAST(#{param,mode=IN,jdbcType=DECIMAL} AS numeric)`
+  - `#{param,mode=IN,jdbcType=INTEGER}` → `CAST(#{param,mode=IN,jdbcType=INTEGER} AS integer)`
+  - `#{param,mode=IN,jdbcType=DATE}` → `CAST(#{param,mode=IN,jdbcType=DATE} AS timestamp)`
+  - `#{param,mode=IN,jdbcType=VARCHAR}` → No CAST (keep as is)
+  - OUT parameters: Keep original format without CAST
+
+### DUAL Table Removal
+- `SELECT 'Hello' FROM DUAL` → `SELECT 'Hello'`
+- `SELECT #{variable} FROM DUAL` → `SELECT #{variable}`
+
+### ResultMap Column Names
+- Convert column attributes to lowercase in ResultMap tags
+- `column="EMP_ID"` → `column="emp_id"`
+- Apply only to `<r>`, `<id>`, `<association>`, `<collection>` tags
+
+## 🔧 PL/SQL DECLARE SECTION PROCESSING
+
+### Identification and Preprocessing
+- Scan for DECLARE sections in SQL content
+- Identify variable declarations and initializations
+- Preserve CDATA sections containing PL/SQL blocks
+
+### Critical Requirements
+- **ALL %TYPE references MUST be maintained**
+- **NO initializations in DECLARE section**
+- **Proper handling of bind variables is ESSENTIAL**
+- **Never modify anything within #{...} brackets - treat as sacred tokens**
+- **NEVER modify variable case**
+
+### Basic DECLARE Statement Structure
+- **Opening Declaration**: Oracle `DECLARE` → PostgreSQL `DO $$\nDECLARE`
+- **Closing Statement**: Add `$$ LANGUAGE plpgsql;` at the end of the block
+
+### Variable Declaration Rules
+
+#### %TYPE References (MANDATORY)
+- Convert to lowercase: `table_name.column_name%TYPE`
+- **NEVER convert to general data types**
+
+```sql
+-- Correct
+DECLARE
+    v_emp_id    employees.employee_id%TYPE;
+BEGIN
+    v_emp_id := 100;
+
+-- PROHIBITED
+DECLARE
+    v_emp_id    INTEGER;  /* WRONG! */
+```
+
+#### Data Type Mapping
+- `VARCHAR2(n)` → `VARCHAR`
+- `CHAR(n)` → `VARCHAR`
+- `NUMBER` → `NUMERIC`
+- `NUMBER(p)` → `INTEGER` (p <= 10)
+- `NUMBER(p,s)` → `NUMERIC(p,s)`
+- `DATE` → `TIMESTAMP`
+- `CLOB` → `TEXT`
+- `BLOB` → `BYTEA`
+- `BOOLEAN` → `BOOLEAN`
+- `RAW` → `BYTEA`
+- `LONG RAW` → `BYTEA`
+- `TIMESTAMP` → `TIMESTAMP`
+- `TIMESTAMP WITH TIME ZONE` → `TIMESTAMP WITH TIME ZONE`
+
+#### Special Cases
+- Remove VARCHAR length specifications
+- Detailed NUMBER handling:
+  - Plain `NUMBER` → `NUMERIC`
+  - `NUMBER(p)` → `INTEGER` (p ≤ 10)
+  - `NUMBER(p,s)` → `NUMERIC(p,s)`
+
+### Variable Management
+
+#### Initialization Rules
+- **NO initializations in DECLARE section**
+- **ALL initializations MUST move to BEGIN section**
+
+#### Bind Variable Handling
+- Maintain MyBatis bind variable syntax: `#{variable_name}`
+- Move all bind variable assignments to BEGIN section
+- For %TYPE variables, do not add type casts to bind variables
+- For explicitly typed variables, add appropriate type casts
+
+### Error Handling
+- `EXCEPTION WHEN` → `EXCEPTION WHEN`
+- `NO_DATA_FOUND` → `NO_DATA_FOUND`
+- `TOO_MANY_ROWS` → `TOO_MANY_ROWS`
+- `OTHERS` → `OTHERS`
+
+### Implementation Example
+
+```sql
+-- Original Oracle Code
+DECLARE
+    V_EMP_ID    EMPLOYEES.EMPLOYEE_ID%TYPE := #{EMPID};
+    V_NAME      VARCHAR2(100) := #{EMPNAME};
+    V_SALARY    NUMBER(10,2) := #{EMPSALARY};
+    V_DEPTNAME  DEPT.DEPTNAME%TYPE := NVL(#{DEPTNAME}, '');
+BEGIN
+    -- logic
+END;
+
+-- Correct PostgreSQL Conversion
+DO $$
+DECLARE
+    V_EMP_ID    employees.employee_id%TYPE;
+    V_NAME      VARCHAR;
+    V_SALARY    NUMERIC(10,2);
+    V_DEPTNAME  dept.deptname%TYPE;
+BEGIN
+    V_EMP_ID := #{EMPID};
+    V_NAME := #{EMPNAME};
+    V_SALARY := #{EMPSALARY};
+    V_DEPTNAME := COALESCE(#{DEPTNAME}, '');
+    -- logic
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## 🔬 ADVANCED CONVERSIONS
+
+### Hierarchical Queries (CONNECT BY)
+Convert to recursive CTEs with specific patterns:
+
+```sql
+-- Oracle CONNECT BY (Simple hierarchy)
+SELECT employee_id, manager_id, level
+FROM employees 
+START WITH manager_id IS NULL 
+CONNECT BY PRIOR employee_id = manager_id;
+
+-- PostgreSQL Recursive CTE
+WITH RECURSIVE emp_hierarchy AS (
+    -- Anchor: root nodes
+    SELECT employee_id, manager_id, 1 as level
+    FROM employees 
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive: child nodes
+    SELECT e.employee_id, e.manager_id, eh.level + 1
+    FROM employees e
+    JOIN emp_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT employee_id, manager_id, level FROM emp_hierarchy;
+```
+
+### ROWNUM Conversion Patterns
+
+#### Simple ROWNUM
+- `WHERE ROWNUM <= n` → `LIMIT n`
+- `WHERE ROWNUM = 1` → `LIMIT 1`
+
+#### Complex ROWNUM (Pagination)
+```sql
+-- Oracle nested ROWNUM
+SELECT * FROM (
+    SELECT ROWNUM as rn, a.* FROM (
+        SELECT * FROM table ORDER BY column
+    ) a WHERE ROWNUM <= 20
+) WHERE rn > 10;
+
+-- PostgreSQL LIMIT/OFFSET
+SELECT * FROM table 
+ORDER BY column 
+LIMIT 10 OFFSET 10;
+```
+
+#### ROWNUM in Subqueries
+- Convert to `ROW_NUMBER() OVER()` when ROWNUM is used in analytical context
+- Use `LIMIT` when ROWNUM is used for simple row limiting
+
+### MERGE Statements
+Convert to INSERT ... ON CONFLICT:
+```sql
+-- Oracle MERGE
+MERGE INTO target USING source ON (condition)
+WHEN MATCHED THEN UPDATE SET ...
+WHEN NOT MATCHED THEN INSERT ...
+
+-- PostgreSQL
+INSERT INTO target SELECT ... FROM source
+ON CONFLICT (key) DO UPDATE SET ...
+```
+
+### Regular Expressions
+- `REGEXP_LIKE(col, pattern)` → `col ~ 'pattern'`
+- `REGEXP_REPLACE(col, pattern, replacement)` → `REGEXP_REPLACE(col, pattern, replacement, 'g')`
+
+## 🎯 MIGRATION EXPERT-LEVEL CONVERSION GUIDANCE
+
+### Rule Application Priority (STRICT HIERARCHY)
+**Priority 1 (HIGHEST)**: Explicit rules documented in this file
+**Priority 2 (MEDIUM)**: Database migration expert knowledge for undocumented Oracle constructs
+
+### For Oracle Constructs Not Explicitly Listed
+**PostgreSQL Migration Expert Mode**: When encountering Oracle SQL constructs, functions, or syntax patterns that are not explicitly documented in the above rules, apply PostgreSQL migration expert knowledge to provide appropriate conversions while maintaining semantic equivalence and preserving the exact source structure.
+
+**MIGRATION CONSTRAINTS**:
+- **NO OPTIMIZATION**: Do not optimize queries, indexes, or performance
+- **NO REFACTORING**: Do not restructure or reorganize code
+- **PRESERVE LOGIC**: Maintain identical business logic and data flow
+- **DIRECT SYNTAX CONVERSION**: Convert only the database-specific syntax elements
+
+When encountering Oracle SQL constructs, functions, or syntax patterns that are not explicitly documented in the above rules:
+
+#### **Step 1: Check Explicit Rules First**
+- Scan all documented conversion rules in this file
+- If explicit rule exists → Apply it (Priority 1)
+- If no explicit rule exists → Proceed to Step 2
+
+#### **Step 2: Apply Database Migration Expert Knowledge** (Priority 2)
+Apply **database migration expert knowledge** to provide appropriate PostgreSQL equivalents:
+
+#### **Migration Conversion Principles:**
+1. **Semantic Equivalence**: Ensure the PostgreSQL conversion maintains the same logical behavior as the original Oracle construct
+2. **Structure Preservation**: Maintain the exact same code structure, organization, and flow
+3. **No Optimization**: Do not optimize performance, queries, or code structure - preserve original approach
+4. **Direct Syntax Conversion**: Convert only Oracle-specific syntax to PostgreSQL equivalents
+5. **Standards Compliance**: Prefer ANSI SQL standard approaches when available in PostgreSQL
+6. **PostgreSQL Compatibility**: Use PostgreSQL-specific features only when required for functional equivalence
+
+#### **Common Expert Conversion Patterns:**
+
+**Oracle Aggregate Functions:**
+- Apply PostgreSQL aggregate function equivalents with proper syntax
+- Consider `FILTER (WHERE condition)` for conditional aggregation
+- Use `STRING_AGG()` for string concatenation aggregates
+
+**Oracle Analytical Functions:**
+- Most Oracle window functions have direct PostgreSQL equivalents
+- Maintain `OVER()` clause syntax and partitioning logic
+- Convert Oracle-specific analytical functions to PostgreSQL alternatives
+
+**Oracle System Functions:**
+- Map Oracle system functions to appropriate PostgreSQL system information functions
+- Use `current_setting()`, `current_database()`, `version()` etc. as needed
+- Convert Oracle metadata queries to PostgreSQL information_schema or pg_catalog queries
+
+**Oracle Data Type Functions:**
+- Convert Oracle type conversion functions to PostgreSQL casting syntax
+- Use `::type` casting or `CAST(value AS type)` as appropriate
+- Handle Oracle-specific data types with PostgreSQL equivalents
+
+**Oracle PL/SQL Constructs:**
+- Convert Oracle PL/SQL blocks to PostgreSQL PL/pgSQL syntax
+- Adapt Oracle exception handling to PostgreSQL exception syntax
+- Transform Oracle cursor operations to PostgreSQL cursor equivalents
+
+## ⚙️ PROCESSING INSTRUCTIONS
+
+### Step-by-Step Process
+1. **Parse Input XML**: Extract ALL SQL content while preserving XML structure
+2. **Scan for DML Patterns**: Identify all bind variable patterns in SELECT, INSERT, UPDATE, DELETE
+3. **Metadata Lookup**: For each pattern, lookup column metadata from $APP_TRANSFORM_FOLDER/oma_metadata.txt
+4. **Apply CAST**: Based on retrieved data types, apply appropriate PostgreSQL casting
+5. **Apply Conversion Rules**: Execute all other PostgreSQL transformation rules
+6. **Process PL/SQL DECLARE**: Handle DECLARE sections with proper variable management
+7. **Validate Results**: Ensure XML structure and MyBatis functionality preserved
+
+### Comment Requirements
+
+#### Comment Location
+- Inside `<mapper>` tag
+- Above SQL definition tags
+
+#### Comment Format
+```xml
+<!-- YYYY-MM-DD Amazon Q Developer : PostgreSQL [feature/function] applied -->
+
+Example:
+<mapper namespace="AuthListDAO">
+    <!-- 2025-04-27 Amazon Q Developer : PostgreSQL date formatting applied -->
+    <sql id="selectAuthListQuery">
+```
+
+### Logging Requirements
+- "METADATA LOOKUP: table.column → data_type"
+- "Applied CAST: #{param} → #{param}::{pg_type}"
+- "Skipped CAST: #{param} (string type/metadata not found)"
+
+### Final Error Checks
+
+#### Structure Checks
+- **XML tag structure damage**: Verify all opening/closing tags match
+- **CDATA section integrity**: Ensure `<![CDATA[` and `]]>` pairs are intact
+- **Dynamic query tags**: Verify `<if>`, `<choose>`, `<foreach>` tags are preserved
+- **Attribute preservation**: Maintain all XML attributes (id, parameterType, resultType, etc.)
+
+#### Functional Checks
+- **Dynamic query tags operation**: Ensure flow control tags work correctly
+- **Variable binding syntax accuracy**: Verify `#{variable}` and `${variable}` patterns are intact
+- **ResultMap integrity**: Check that resultMap references and column mappings are valid
+- **Parameter mapping**: Ensure parameterMap and parameter tags function correctly
+
+#### SQL Syntax Validation
+- **PostgreSQL compatibility**: Verify converted SQL is valid PostgreSQL syntax
+- **Bind variable preservation**: Ensure MyBatis bind variables are not corrupted
+- **CDATA SQL conversion**: Confirm SQL within CDATA sections is properly converted
+
+## 🚀 PERFORMANCE CONSIDERATIONS
+
+- Cache metadata lookups to avoid repeated file reads
+- Apply CAST to parameters rather than columns when possible
+- Use efficient grep patterns for metadata file searches
+- Conservative fallback: Skip CAST if metadata unavailable
+
+## 🐛 COMMON ERROR PATTERNS TO FIX
+
+- `operator does not exist: integer = character varying` → Add `::integer` to parameter
+- `operator does not exist: timestamp = character varying` → Add `::timestamp` to parameter
+- `invalid input syntax for type numeric` → Add null/empty checks before casting
+- **NULL-related issues**:
+  - Unexpected NULL results in string concatenation → Use `CONCAT()` or `COALESCE()`
+  - Empty string vs NULL confusion → Check Oracle vs PostgreSQL empty string behavior
+  - `LENGTH('')` returning different values → Be aware of Oracle vs PostgreSQL differences

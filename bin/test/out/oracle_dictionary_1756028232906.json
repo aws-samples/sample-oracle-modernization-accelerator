@@ -1,0 +1,2140 @@
+{
+  "metadata": {
+    "generatedAt": "2025-08-24 09:37:12",
+    "schemas": 1,
+    "totalTables": 44,
+    "totalColumns": 340
+  },
+  "dictionary": {
+    "OMA": {
+      "SELLERS": {
+        "COMPANY_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Company 1"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "ACTIVE"
+        },
+        "SELLER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PHONE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "+15550001"
+        },
+        "TAX_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "TAX00000001"
+        },
+        "EMAIL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "seller100@company.com"
+        },
+        "SELLER_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Seller 1"
+        },
+        "COMMISSION_RATE": {
+          "dataType": "NUMBER",
+          "dataLength": 5,
+          "dataScale": 2,
+          "sampleData": "7.58"
+        }
+      },
+      "PRODUCT_VIEWS": {
+        "REFERRER_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "272"
+        },
+        "IP_ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 45,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "VIEW_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1150"
+        },
+        "VIEW_DURATION": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "286"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "514"
+        },
+        "SESSION_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "SESSION_872"
+        }
+      },
+      "PRODUCT_REVIEWS": {
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "APPROVED"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "96"
+        },
+        "RATING": {
+          "dataType": "NUMBER",
+          "dataLength": 2,
+          "dataScale": 1,
+          "sampleData": "4.7"
+        },
+        "HELPFUL_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "8"
+        },
+        "REVIEW_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "252"
+        },
+        "TITLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Love it!"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "666"
+        },
+        "IS_VERIFIED": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        }
+      },
+      "SELLER_PRODUCTS": {
+        "SELLER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SELLER_PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SELLER_PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SELLER_SKU": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "PRODUCT_IMAGES": {
+        "IS_PRIMARY": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "IMAGE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1150"
+        },
+        "SORT_ORDER": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "108"
+        },
+        "ALT_TEXT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Product image 1"
+        },
+        "IMAGE_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "https://images.amazon.com/product/108/image1.jpg"
+        }
+      },
+      "COUPONS": {
+        "USED_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "481"
+        },
+        "USAGE_LIMIT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "855"
+        },
+        "MAX_DISCOUNT_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "62.87"
+        },
+        "COUPON_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Special Discount Coupon 1"
+        },
+        "DISCOUNT_VALUE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "62.87"
+        },
+        "COUPON_CODE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "BONUS006"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "COUPON_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "DISCOUNT_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "FIXED_AMOUNT"
+        },
+        "MIN_ORDER_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "125.74"
+        }
+      },
+      "PAGE_VIEWS": {
+        "REFERRER_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_VIEW_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_TITLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SESSION_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TIME_ON_PAGE": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "BANNERS": {
+        "POSITION": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BANNER_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IMPRESSION_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BANNER_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CLICK_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SORT_ORDER": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BANNER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ALT_TEXT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "LINK_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IMAGE_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "SHIPPING_ZONES": {
+        "WAREHOUSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ZONE_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SHIPPING_COST_MULTIPLIER": {
+          "dataType": "NUMBER",
+          "dataLength": 3,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "STATE_LIST": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ZONE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "DELIVERY_TIME_HOURS": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRIORITY_LEVEL": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "INVENTORY": {
+        "WAREHOUSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "5"
+        },
+        "VARIANT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "QUANTITY_RESERVED": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "10"
+        },
+        "INVENTORY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1150"
+        },
+        "QUANTITY_AVAILABLE": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "261"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "490"
+        },
+        "REORDER_LEVEL": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "37"
+        },
+        "QUANTITY_ON_HAND": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "271"
+        }
+      },
+      "RECOMMENDATIONS": {
+        "SCORE": {
+          "dataType": "NUMBER",
+          "dataLength": 5,
+          "dataScale": 4,
+          "sampleData": "1"
+        },
+        "RECOMMENDATION_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RECOMMENDATION_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ALGORITHM_VERSION": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "ORDERS": {
+        "CURRENCY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 3,
+          "dataScale": 0,
+          "sampleData": "USD"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "498"
+        },
+        "PAYMENT_METHOD": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "CREDIT_CARD"
+        },
+        "BILLING_ADDRESS_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TAX_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "9.42"
+        },
+        "SHIPPING_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "16.45"
+        },
+        "SUBTOTAL": {
+          "dataType": "NUMBER",
+          "dataLength": 12,
+          "dataScale": 2,
+          "sampleData": "117.79"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SHIPPING_ADDRESS_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ORDER_NUMBER": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "ORD00000001"
+        },
+        "DISCOUNT_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "27.55"
+        },
+        "ORDER_STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "PENDING"
+        },
+        "TOTAL_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 12,
+          "dataScale": 2,
+          "sampleData": "116.11"
+        }
+      },
+      "CUSTOMER_SATISFACTION_SURVEYS": {
+        "SATISFACTION_SCORE": {
+          "dataType": "NUMBER",
+          "dataLength": 2,
+          "dataScale": 1,
+          "sampleData": "1"
+        },
+        "INQUIRY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SURVEY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "PROMOTIONS": {
+        "MIN_QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "MAX_USAGE_PER_USER": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "2"
+        },
+        "TOTAL_USAGE_LIMIT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "5568"
+        },
+        "CURRENT_USAGE_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1915"
+        },
+        "PROMOTION_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "FLASH_SALE"
+        },
+        "DISCOUNT_VALUE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "122.51"
+        },
+        "PROMOTION_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PROMOTION_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "FLASH_SALE - Fashion Week"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "N"
+        },
+        "DISCOUNT_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "FIXED_AMOUNT"
+        }
+      },
+      "PAYMENT_METHODS": {
+        "PAYMENT_METHOD_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "EXPIRY_YEAR": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "2029"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "287"
+        },
+        "CARD_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "MasterCard"
+        },
+        "EXPIRY_MONTH": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "8"
+        },
+        "IS_DEFAULT": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "N"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "CARD_LAST_FOUR": {
+          "dataType": "VARCHAR2",
+          "dataLength": 4,
+          "dataScale": 0,
+          "sampleData": "3679"
+        },
+        "METHOD_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "CREDIT_CARD"
+        }
+      },
+      "NOTIFICATIONS": {
+        "RELATED_ENTITY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IS_READ": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "NOTIFICATION_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "DELIVERY_METHOD": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TITLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RELATED_ENTITY_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "NOTIFICATION_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "WAREHOUSE_INVENTORY_REQUESTS": {
+        "WAREHOUSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRIORITY_SCORE": {
+          "dataType": "NUMBER",
+          "dataLength": 5,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "REQUEST_REASON": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "REQUESTED_QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SHORTAGE_QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "REQUEST_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CURRENT_STOCK": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "USER_SESSIONS": {
+        "REFERRER_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_VIEWS": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "6"
+        },
+        "BROWSER": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Chrome"
+        },
+        "DEVICE_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "TABLET"
+        },
+        "USER_AGENT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "Mozilla/5.0 (compatible)"
+        },
+        "LANDING_PAGE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "17"
+        },
+        "IP_ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 45,
+          "dataScale": 0,
+          "sampleData": "192.168.87.239"
+        },
+        "OPERATING_SYSTEM": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Windows"
+        },
+        "SESSION_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "SESSION_438"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "N"
+        }
+      },
+      "CONTENT_PAGES": {
+        "PAGE_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "META_DESCRIPTION": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_SLUG": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "AUTHOR_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_TITLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAGE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "PRODUCT_VARIANTS": {
+        "VARIANT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "VARIANT_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Red"
+        },
+        "PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "285.43"
+        },
+        "COLOR": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "Red"
+        },
+        "PRODUCT_SIZE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "735"
+        },
+        "SKU": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "VAR-000001"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "STOCK_QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "814"
+        }
+      },
+      "PAYMENTS": {
+        "CURRENCY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 3,
+          "dataScale": 0,
+          "sampleData": "USD"
+        },
+        "PAYMENT_STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "COMPLETED"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "5"
+        },
+        "AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 12,
+          "dataScale": 2,
+          "sampleData": "233.96"
+        },
+        "PAYMENT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PAYMENT_METHOD": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "CREDIT_CARD"
+        },
+        "TRANSACTION_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "TXN-20250822-00000082"
+        }
+      },
+      "SUBSCRIPTION_BENEFITS": {
+        "BENEFIT_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SUBSCRIPTION_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BENEFIT_VALUE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BENEFIT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "SUBSCRIPTIONS": {
+        "BILLING_CYCLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "AUTO_RENEW": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "SUBSCRIPTION_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SUBSCRIPTION_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "PROMOTION_PRODUCTS": {
+        "CATEGORY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "31"
+        },
+        "PROMOTIONAL_PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "147.02"
+        },
+        "PROMOTION_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "34"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "27"
+        },
+        "PROMOTION_PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1150"
+        }
+      },
+      "WISHLISTS": {
+        "WISHLIST_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "101"
+        },
+        "WISHLIST_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "My Wishlist"
+        },
+        "IS_PUBLIC": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "N"
+        },
+        "IS_DEFAULT": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        }
+      },
+      "SHIPPING_BATCH_LOG": {
+        "PROCESSED_ITEMS": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PROCESSED_ORDERS": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SUCCESS_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ERROR_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "LOG_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "BATCH_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "INQUIRY_RESPONSES": {
+        "ATTACHMENT_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RESPONDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "INQUIRY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RESPONSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RESPONDER_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "RETURNS": {
+        "RETURN_NUMBER": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TOTAL_REFUND_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 12,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "RETURN_REASON": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RETURN_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RETURN_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RETURN_SHIPPING_COST": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "RETURN_STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "WISHLIST_ITEMS": {
+        "WISHLIST_ITEM_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "NOTES": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "VARIANT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "WISHLIST_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRIORITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "3"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "566"
+        }
+      },
+      "SYSTEM_LOGS": {
+        "LOG_SOURCE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IP_ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 45,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "REQUEST_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SESSION_ID": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "LOG_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "LOG_LEVEL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "CATEGORIES": {
+        "CATEGORY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PARENT_CATEGORY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SORT_ORDER": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CATEGORY_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Electronics"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "IMAGE_URL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "ADMIN_USERS": {
+        "ROLE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "ADMIN"
+        },
+        "PASSWORD_HASH": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "admin_hash_1"
+        },
+        "ADMIN_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USERNAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "admin1"
+        },
+        "EMAIL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "admin10@company.com"
+        },
+        "LAST_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "User1"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "FIRST_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Admin1"
+        }
+      },
+      "SHOPPING_CART": {
+        "VARIANT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CART_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "CUSTOMER_INQUIRIES": {
+        "INQUIRY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "180"
+        },
+        "PRIORITY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "HIGH"
+        },
+        "ASSIGNED_TO": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "6"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ESCALATED_TO_INQUIRY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ASSIGNED_AGENT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "INQUIRY_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "RETURN_REQUEST"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "IN_PROGRESS"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "637"
+        },
+        "PARENT_INQUIRY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SUBJECT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Inquiry Subject 183"
+        },
+        "ESCALATION_REASON": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "ORDER_ITEMS": {
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "174"
+        },
+        "VARIANT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "3"
+        },
+        "TOTAL_PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 12,
+          "dataScale": 2,
+          "sampleData": "568.41"
+        },
+        "UNIT_PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "189.47"
+        },
+        "ORDER_ITEM_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1150"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "360"
+        }
+      },
+      "WAREHOUSES": {
+        "WAREHOUSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CAPACITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "100000"
+        },
+        "MANAGER_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "John Smith"
+        },
+        "CITY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Los Angeles"
+        },
+        "COUNTRY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "USA"
+        },
+        "POSTAL_CODE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "90210"
+        },
+        "ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1234 Industrial Blvd"
+        },
+        "PHONE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "555-0101"
+        },
+        "STATE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "CA"
+        },
+        "WAREHOUSE_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Central Processing Facility"
+        },
+        "EMAIL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "wc@warehouse.com"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        }
+      },
+      "EMAIL_TEMPLATES": {
+        "TEMPLATE_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TEMPLATE_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SUBJECT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IS_ACTIVE": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "TEMPLATE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "USER_ADDRESSES": {
+        "CITY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "City10"
+        },
+        "COUNTRY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "USA"
+        },
+        "POSTAL_CODE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "59812"
+        },
+        "ADDRESS_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "HOME"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "299"
+        },
+        "STATE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "State0"
+        },
+        "STREET_ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "460 Main St"
+        },
+        "IS_DEFAULT": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "Y"
+        },
+        "ADDRESS_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "SHIPMENTS": {
+        "SHIPMENT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "WAREHOUSE_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "4"
+        },
+        "SHIPMENT_STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "IN_TRANSIT"
+        },
+        "SHIPPING_METHOD": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Two-Day"
+        },
+        "SHIPPING_COST": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "21.86"
+        },
+        "ORDER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "647"
+        },
+        "TRACKING_NUMBER": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Amazon Logistics-0000000180"
+        },
+        "SHIPPING_CARRIER": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Amazon Logistics"
+        }
+      },
+      "SEARCH_HISTORY": {
+        "CLICKED_PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "USER_AGENT": {
+          "dataType": "VARCHAR2",
+          "dataLength": 1000,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SEARCH_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SEARCH_QUERY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "search query 1"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "222"
+        },
+        "RESULTS_COUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "57"
+        },
+        "IP_ADDRESS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 45,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "PRODUCTS": {
+        "CATEGORY_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "21"
+        },
+        "DIMENSIONS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "49x18x13 cm"
+        },
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "ACTIVE"
+        },
+        "BASE_PRICE": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "186.72"
+        },
+        "PRODUCT_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SKU": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "SKU-000001"
+        },
+        "PRODUCT_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "Zara History Book Model 077"
+        },
+        "WEIGHT": {
+          "dataType": "NUMBER",
+          "dataLength": 8,
+          "dataScale": 3,
+          "sampleData": "42.931"
+        },
+        "BRAND": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "Zara"
+        }
+      },
+      "RETURN_ITEMS": {
+        "REFUND_AMOUNT": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 2,
+          "sampleData": "1"
+        },
+        "QUANTITY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RETURN_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "CONDITION_RECEIVED": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "RETURN_ITEM_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "ORDER_ITEM_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "REASON": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "USERS": {
+        "STATUS": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "ACTIVE"
+        },
+        "PASSWORD_HASH": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "hash_270"
+        },
+        "REFERRAL_CODE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "REF000270"
+        },
+        "PHONE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 20,
+          "dataScale": 0,
+          "sampleData": "+15550270"
+        },
+        "USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "GENDER": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "M"
+        },
+        "EMAIL": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "user100@example.com"
+        },
+        "LAST_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "Last270"
+        },
+        "FIRST_NAME": {
+          "dataType": "VARCHAR2",
+          "dataLength": 100,
+          "dataScale": 0,
+          "sampleData": "First270"
+        },
+        "REFERRED_BY_USER_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 10,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      },
+      "SYSTEM_SETTINGS": {
+        "SETTING_ID": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "DESCRIPTION": {
+          "dataType": "VARCHAR2",
+          "dataLength": 500,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "UPDATED_BY": {
+          "dataType": "NUMBER",
+          "dataLength": 38,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "IS_ENCRYPTED": {
+          "dataType": "CHAR",
+          "dataLength": 1,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SETTING_TYPE": {
+          "dataType": "VARCHAR2",
+          "dataLength": 50,
+          "dataScale": 0,
+          "sampleData": "1"
+        },
+        "SETTING_KEY": {
+          "dataType": "VARCHAR2",
+          "dataLength": 255,
+          "dataScale": 0,
+          "sampleData": "1"
+        }
+      }
+    }
+  }
+}

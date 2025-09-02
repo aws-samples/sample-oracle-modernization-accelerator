@@ -1,0 +1,149 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-09-02 00:59:01",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/extract/AnalyticsMapper_src-07-select-selectHourlyOrderPattern.xml",
+    "databaseType" : "ORACLE",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "AnalyticsMapper_src-07-select-selectHourlyOrderPattern.xml",
+    "sqlId" : "selectHourlyOrderPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 20,
+    "resultData" : {
+      "count" : 20,
+      "data" : [ {
+        "HOUR_OF_DAY" : "2",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "329.29",
+        "AVG_ORDER_VALUE" : "164.645"
+      }, {
+        "HOUR_OF_DAY" : "4",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "76.24",
+        "AVG_ORDER_VALUE" : "76.24"
+      }, {
+        "HOUR_OF_DAY" : "5",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "275.96",
+        "AVG_ORDER_VALUE" : "275.96"
+      }, {
+        "HOUR_OF_DAY" : "6",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "310.44",
+        "AVG_ORDER_VALUE" : "155.22"
+      }, {
+        "HOUR_OF_DAY" : "7",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "405.22",
+        "AVG_ORDER_VALUE" : "405.22"
+      }, {
+        "HOUR_OF_DAY" : "8",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "695.44",
+        "AVG_ORDER_VALUE" : "347.72"
+      }, {
+        "HOUR_OF_DAY" : "9",
+        "ORDER_COUNT" : "4",
+        "ORDER_PERCENTAGE" : "10",
+        "TOTAL_REVENUE" : "1318.78",
+        "AVG_ORDER_VALUE" : "329.695"
+      }, {
+        "HOUR_OF_DAY" : "10",
+        "ORDER_COUNT" : "4",
+        "ORDER_PERCENTAGE" : "10",
+        "TOTAL_REVENUE" : "1005.19",
+        "AVG_ORDER_VALUE" : "251.2975"
+      }, {
+        "HOUR_OF_DAY" : "11",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "106.79",
+        "AVG_ORDER_VALUE" : "106.79"
+      }, {
+        "HOUR_OF_DAY" : "12",
+        "ORDER_COUNT" : "4",
+        "ORDER_PERCENTAGE" : "10",
+        "TOTAL_REVENUE" : "1042.43",
+        "AVG_ORDER_VALUE" : "260.6075"
+      }, {
+        "HOUR_OF_DAY" : "13",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "147.59",
+        "AVG_ORDER_VALUE" : "147.59"
+      }, {
+        "HOUR_OF_DAY" : "14",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "318.33",
+        "AVG_ORDER_VALUE" : "159.165"
+      }, {
+        "HOUR_OF_DAY" : "15",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "302.52",
+        "AVG_ORDER_VALUE" : "151.26"
+      }, {
+        "HOUR_OF_DAY" : "16",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "517.04",
+        "AVG_ORDER_VALUE" : "258.52"
+      }, {
+        "HOUR_OF_DAY" : "17",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "368.33",
+        "AVG_ORDER_VALUE" : "368.33"
+      }, {
+        "HOUR_OF_DAY" : "19",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "100.81",
+        "AVG_ORDER_VALUE" : "50.405"
+      }, {
+        "HOUR_OF_DAY" : "20",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "753.62",
+        "AVG_ORDER_VALUE" : "376.81"
+      }, {
+        "HOUR_OF_DAY" : "21",
+        "ORDER_COUNT" : "3",
+        "ORDER_PERCENTAGE" : "7.5",
+        "TOTAL_REVENUE" : "1165.31",
+        "AVG_ORDER_VALUE" : "388.436666666666666666666666666666666667"
+      }, {
+        "HOUR_OF_DAY" : "22",
+        "ORDER_COUNT" : "1",
+        "ORDER_PERCENTAGE" : "2.5",
+        "TOTAL_REVENUE" : "349.75",
+        "AVG_ORDER_VALUE" : "349.75"
+      }, {
+        "HOUR_OF_DAY" : "23",
+        "ORDER_COUNT" : "2",
+        "ORDER_PERCENTAGE" : "5",
+        "TOTAL_REVENUE" : "480.93",
+        "AVG_ORDER_VALUE" : "240.465"
+      } ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "AnalyticsMapper_src-07-select-selectHourlyOrderPattern.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

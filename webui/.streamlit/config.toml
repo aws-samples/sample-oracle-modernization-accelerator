@@ -1,0 +1,16 @@
+[theme]
+# 라이트 테마 설정
+primaryColor = "#FF6B6B"          # 주요 색상 (버튼, 링크 등) - 빨간색 계열
+backgroundColor = "#FFFFFF"       # 메인 배경색 - 흰색
+secondaryBackgroundColor = "#F0F2F6"  # 사이드바 및 위젯 배경색 - 연한 회색
+textColor = "#262730"             # 텍스트 색상 - 어두운 회색
+
+[server]
+# 서버 설정
+headless = true
+port = 8501
+address = "0.0.0.0"
+
+[browser]
+# 브라우저 설정
+gatherUsageStats = false

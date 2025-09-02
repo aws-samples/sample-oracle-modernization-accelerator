@@ -1,0 +1,29 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-28 00:52:38",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/analytics/AnalyticsMapper/extract/AnalyticsMapper_src-03-select-selectRevenueTrend.xml",
+    "databaseType" : "ORACLE",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "AnalyticsMapper_src-03-select-selectRevenueTrend.xml",
+    "sqlId" : "selectRevenueTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 0,
+    "resultData" : {
+      "count" : 0,
+      "data" : [ ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "AnalyticsMapper_src-03-select-selectRevenueTrend.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}
