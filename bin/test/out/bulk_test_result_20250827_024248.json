@@ -1,0 +1,51 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-27 02:42:48",
+    "directory" : "/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/product/",
+    "databaseType" : "POSTGRES",
+    "totalTests" : 5,
+    "successCount" : 5,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectPriceHistoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectProductLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectInventoryForecastAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1300
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectCategoryHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductRecommendations",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "ProductMapper.xml",
+    "totalTests" : 2,
+    "successCount" : 2,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper.xml",
+    "totalTests" : 3,
+    "successCount" : 3,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

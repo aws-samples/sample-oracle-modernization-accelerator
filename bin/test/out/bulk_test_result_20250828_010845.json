@@ -1,0 +1,31 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-28 01:08:45",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/order/OrderMapper/extract/OrderMapper_src-07-select-selectOrderCount.xml",
+    "databaseType" : "ORACLE",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "OrderMapper_src-07-select-selectOrderCount.xml",
+    "sqlId" : "selectOrderCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1,
+    "resultData" : {
+      "count" : 1,
+      "data" : [ {
+        "COUNT" : "559"
+      } ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "OrderMapper_src-07-select-selectOrderCount.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

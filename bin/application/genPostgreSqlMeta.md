@@ -3,7 +3,7 @@
 Reference: Apply environment information from $APP_TOOLS_FOLDER/environmentContext.md
 
 ## 요청사항
-PostgreSQL 데이터베이스에서 비즈니스 스키마의 테이블과 뷰의 컬럼 메타데이터를 추출하여 `/tmp/oma_metadata.txt` 파일을 생성해주세요.
+PostgreSQL 데이터베이스에서 비즈니스 스키마의 테이블과 뷰의 컬럼 메타데이터를 추출하여 `$APP_TRANSFORM_FOLDER/oma_metadata.txt` 파일을 생성해주세요.
 
 ## 접속 정보
 - 데이터베이스 접속 정보는 환경변수에 설정되어 있습니다
@@ -29,7 +29,7 @@ WHERE table_schema NOT IN (
     'public'
 )
 ORDER BY table_schema, table_name, ordinal_position;
-" > /tmp/oma_metadata.txt
+" > $APP_TRANSFORM_FOLDER/oma_metadata.txt
 ```
 
 ## 추출할 컬럼 정보
@@ -61,7 +61,7 @@ ORDER BY table_schema, table_name, ordinal_position;
 - `oas_own` - OAS 소유자
 
 ## 출력 파일
-- 파일명: `/tmp/oma_metadata.txt`
+- 파일명: `$APP_TRANSFORM_FOLDER/oma_metadata.txt`
 - 형식: PostgreSQL 테이블 형식 (헤더 포함)
 - 정렬: 스키마명, 테이블/뷰명, 컬럼 순서대로
 - 컬럼: 4개 컬럼 (스키마, 테이블/뷰명, 컬럼명, 데이터타입)
@@ -69,16 +69,16 @@ ORDER BY table_schema, table_name, ordinal_position;
 ## 검증 명령어
 ```bash
 # 파일 생성 확인
-ls -la /tmp/oma_metadata.txt
+ls -la $APP_TRANSFORM_FOLDER/oma_metadata.txt
 
 # 총 라인 수 확인
-wc -l /tmp/oma_metadata.txt
+wc -l $APP_TRANSFORM_FOLDER/oma_metadata.txt
 
 # 첫 10줄 확인
-head -10 /tmp/oma_metadata.txt
+head -10 $APP_TRANSFORM_FOLDER/oma_metadata.txt
 
 # 스키마별 테이블/뷰 개수 확인
-grep -v "^-" /tmp/oma_metadata.txt | grep -v "table_schema" | awk '{print $1}' | sort | uniq -c
+grep -v "^-" $APP_TRANSFORM_FOLDER/oma_metadata.txt | grep -v "table_schema" | awk '{print $1}' | sort | uniq -c
 ```
 
 ## 예상 출력 형식
@@ -96,4 +96,4 @@ grep -v "^-" /tmp/oma_metadata.txt | grep -v "table_schema" | awk '{print $1}' |
 - 뷰의 컬럼도 테이블 컬럼과 동일하게 메타데이터가 추출됩니다
 - 머티리얼라이즈드 뷰도 자동으로 포함됩니다
 
-이 프롬프트에 따라 비즈니스 스키마의 모든 테이블과 뷰의 메타데이터를 `/tmp/oma_metadata.txt` 파일로 추출해주세요.
+이 프롬프트에 따라 비즈니스 스키마의 모든 테이블과 뷰의 메타데이터를 `$APP_TRANSFORM_FOLDER/oma_metadata.txt` 파일로 추출해주세요.

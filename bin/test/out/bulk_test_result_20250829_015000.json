@@ -1,0 +1,56 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-29 01:50:00",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/extract/UserMapper_src-09-select-selectUserGradeStatistics.xml",
+    "databaseType" : "ORACLE",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "UserMapper_src-09-select-selectUserGradeStatistics.xml",
+    "sqlId" : "selectUserGradeStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3,
+    "resultData" : {
+      "count" : 3,
+      "data" : [ {
+        "TOTAL_ORDERS" : "198",
+        "AVG_REVENUE_PER_USER" : "1305.351041666666666666666666666666666667",
+        "TOTAL_REVENUE" : "62656.85",
+        "USER_GRADE" : "PREMIUM",
+        "AVG_ORDERS_PER_USER" : "4.125",
+        "USER_PERCENTAGE" : "9.6",
+        "REVENUE_PERCENTAGE" : "28.29",
+        "USER_COUNT" : "48"
+      }, {
+        "TOTAL_ORDERS" : "637",
+        "AVG_REVENUE_PER_USER" : "449.919376770538243626062322946175637394",
+        "TOTAL_REVENUE" : "158821.54",
+        "USER_GRADE" : "REGULAR",
+        "AVG_ORDERS_PER_USER" : "1.80453257790368271954674220963172804533",
+        "USER_PERCENTAGE" : "70.6",
+        "REVENUE_PERCENTAGE" : "71.71",
+        "USER_COUNT" : "353"
+      }, {
+        "TOTAL_ORDERS" : "0",
+        "AVG_REVENUE_PER_USER" : "0",
+        "TOTAL_REVENUE" : "0",
+        "USER_GRADE" : "NEW",
+        "AVG_ORDERS_PER_USER" : "0",
+        "USER_PERCENTAGE" : "19.8",
+        "REVENUE_PERCENTAGE" : "0",
+        "USER_COUNT" : "99"
+      } ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "UserMapper_src-09-select-selectUserGradeStatistics.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

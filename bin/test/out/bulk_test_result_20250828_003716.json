@@ -1,0 +1,49 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-28 00:37:16",
+    "directory" : ".",
+    "databaseType" : "ORACLE",
+    "totalTests" : 2,
+    "successCount" : 2,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "TestMapper.xml",
+    "sqlId" : "selectTest",
+    "sqlType" : "SELECT",
+    "rowCount" : 1,
+    "resultData" : {
+      "count" : 1,
+      "data" : [ {
+        "TEST_COL" : "1"
+      } ]
+    }
+  }, {
+    "xmlFile" : "TestCrudMapper.xml",
+    "sqlId" : "selectTest",
+    "sqlType" : "SELECT",
+    "rowCount" : 1,
+    "resultData" : {
+      "count" : 1,
+      "data" : [ {
+        "OPERATION" : "SELECT_TEST",
+        "TEST_COL" : "1"
+      } ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "TestCrudMapper.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "TestMapper.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

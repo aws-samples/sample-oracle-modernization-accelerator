@@ -46,12 +46,22 @@ process_app_reporting() {
     # 1. appReporting.md 실행 (HTML 리포트 생성)
     if [ -f "$APP_TOOLS_FOLDER/appReporting.md" ]; then
         echo -e "${CYAN}1. HTML 분석 리포트 생성 중...${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md"
+        
+        # q chat 로그 디렉토리 생성
+        mkdir -p "$APP_LOGS_FOLDER/qlogs"
+        
+        # 로그 파일에 시작 시간 기록
+        echo "=== q chat appReporting.md 실행 시작: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+        
+        # q chat 실행 및 로그 저장
+        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log" 2>&1
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ HTML 분석 리포트 생성이 완료되었습니다.${NC}"
+            echo "=== q chat appReporting.md 실행 완료: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
         else
             echo -e "${RED}오류: appReporting.md 실행 중 오류가 발생했습니다.${NC}"
+            echo "=== q chat appReporting.md 실행 실패: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
             return 1
         fi
     else
@@ -62,12 +72,21 @@ process_app_reporting() {
     # 2. JNDI와 Mapper 파일 조합 생성 (후속 처리)
     echo -e "${CYAN}2. JNDI와 Mapper 파일 조합 생성 중...${NC}"
     if [ -f "$APP_TOOLS_FOLDER/genSqlTransformTarget.py" ]; then
-        python3 "$APP_TOOLS_FOLDER/genSqlTransformTarget.py"
+        # 로그 디렉토리 생성
+        mkdir -p "$APP_LOGS_FOLDER/pylogs"
+        
+        # 로그 파일에 시작 시간 기록
+        echo "=== genSqlTransformTarget.py 실행 시작: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
+        
+        # Python 스크립트 실행 및 로그 저장
+        python3 "$APP_TOOLS_FOLDER/genSqlTransformTarget.py" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log" 2>&1
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ SQL 변환 대상 목록 추출이 완료되었습니다.${NC}"
+            echo "=== genSqlTransformTarget.py 실행 완료: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
         else
             echo -e "${RED}오류: genSqlTransformTarget.py 실행 중 오류가 발생했습니다.${NC}"
+            echo "=== genSqlTransformTarget.py 실행 실패: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
             return 1
         fi
     else

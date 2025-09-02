@@ -1,0 +1,85 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-27 00:40:22",
+    "directory" : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/user/",
+    "databaseType" : "ORACLE",
+    "totalTests" : 13,
+    "successCount" : 13,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserList",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserActivityStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserOrderHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserRegistrationTrend",
+    "sqlType" : "SELECT",
+    "rowCount" : 8
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserGradeStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserHierarchyStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 16
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserBehaviorPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserDemographicStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectDormantUserAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 47
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserReferralHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "UserMapper.xml",
+    "totalTests" : 13,
+    "successCount" : 13,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

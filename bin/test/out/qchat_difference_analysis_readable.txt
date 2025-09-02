@@ -1,0 +1,126 @@
+Oracle vs PostgreSQL SQL 실행 결과 차이를 분석하고 PostgreSQL SQL을 수정해주세요:
+
+## 📁 SQL 매퍼 파일 경로
+- **소스 (Oracle)**: /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap
+- **타겟 (PostgreSQL)**: /home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap
+
+## 🎯 분석 목표
+Oracle SQL(소스)을 참고하여 PostgreSQL SQL(타겟)을 올바르게 변환하여 동일한 결과를 얻도록 수정
+
+## 🔍 결과가 다른 SQL 목록 (10개)
+다음 SQL들은 Oracle과 PostgreSQL에서 다른 결과를 반환합니다:
+
+### 📄 AnalyticsMapper (1개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/analyticsmapper/AnalyticsMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/analyticsmapper/AnalyticsMapper.xml`
+
+**SQL ID: `selectCustomerBehaviorAnalysis`**
+- Oracle 결과: 159572 bytes
+- PostgreSQL 결과: 159043 bytes
+- 차이: 529 bytes (0.3%)
+
+### 📄 InventoryMapper (2개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventorymapper/InventoryMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/inventorymapper/InventoryMapper.xml`
+
+**SQL ID: `selectInventoryStatusAnalysis`**
+- Oracle 결과: 813252 bytes
+- PostgreSQL 결과: 817370 bytes
+- 차이: 4118 bytes (0.5%)
+
+**SQL ID: `selectInventoryOptimizationAnalysis`**
+- Oracle 결과: 458689 bytes
+- PostgreSQL 결과: 458689 bytes
+- 차이: 길이 동일하지만 내용 다름
+
+### 📄 OrderMapper (2개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/ordermapper/OrderMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/ordermapper/OrderMapper.xml`
+
+**SQL ID: `selectCustomerOrderPatternAnalysis`**
+- Oracle 결과: 207890 bytes
+- PostgreSQL 결과: 207620 bytes
+- 차이: 270 bytes (0.1%)
+
+**SQL ID: `selectOrderListWithAnalysis`**
+- Oracle 결과: 406113 bytes
+- PostgreSQL 결과: 406113 bytes
+- 차이: 길이 동일하지만 내용 다름
+
+### 📄 PaymentMapper (1개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/paymentmapper/PaymentMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/paymentmapper/PaymentMapper.xml`
+
+**SQL ID: `selectPaymentList`**
+- Oracle 결과: 145579 bytes
+- PostgreSQL 결과: 140683 bytes
+- 차이: 4896 bytes (3.4%)
+
+### 📄 ProductMapper (3개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/productmapper/ProductMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/productmapper/ProductMapper.xml`
+
+**SQL ID: `selectCategoryHierarchy`**
+- Oracle 결과: 7449 bytes
+- PostgreSQL 결과: 7380 bytes
+- 차이: 69 bytes (0.9%)
+
+**SQL ID: `selectProductList`**
+- Oracle 결과: 268272 bytes
+- PostgreSQL 결과: 261180 bytes
+- 차이: 7092 bytes (2.6%)
+
+**SQL ID: `selectProductPerformanceAnalysis`**
+- Oracle 결과: 369602 bytes
+- PostgreSQL 결과: 369606 bytes
+- 차이: 4 bytes (0.0%)
+
+### 📄 UserMapper (1개)
+**파일 경로:**
+- 소스: `/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/usermapper/UserMapper.xml`
+- 타겟: `/home/ec2-user/workspace/tgt-postgres/src/main/resources/sqlmap/mapper/usermapper/UserMapper.xml`
+
+**SQL ID: `selectUserReferralHierarchy`**
+- Oracle 결과: 194495 bytes
+- PostgreSQL 결과: 192495 bytes
+- 차이: 2000 bytes (1.0%)
+
+## 📋 상세 분석 요청사항
+각 SQL에 대해 다음을 수행해주세요:
+
+### 1. 소스 SQL 분석
+- 위 경로의 Oracle SQL 파일을 확인
+- Oracle 전용 함수, 구문, 데이터 타입 식별
+- SQL의 의도와 예상 결과 분석
+
+### 2. 타겟 SQL 분석
+- PostgreSQL SQL 파일의 현재 변환 상태 확인
+- 변환 오류나 누락된 부분 식별
+- 결과 차이의 구체적 원인 분석
+
+### 3. 구체적 수정 방안
+- Oracle → PostgreSQL 변환 규칙 적용
+  * `SYSDATE` → `CURRENT_DATE` 또는 `NOW()`
+  * `NVL()` → `COALESCE()`
+  * `DECODE()` → `CASE WHEN`
+  * `(+)` 조인 → `LEFT JOIN`
+  * `ROWNUM` → `LIMIT`
+  * Oracle 날짜 함수 → PostgreSQL 날짜 함수
+  * 데이터 타입 캐스팅 문제 해결
+- 수정된 PostgreSQL SQL 코드 제공
+
+### 4. 검증 방법
+- 수정 후 예상 결과 크기
+- 테스트 시 주의사항
+- 추가 확인이 필요한 부분
+
+### 5. 우선순위
+- 수정 난이도와 영향도를 고려한 작업 순서
+- 자동화 가능한 변환 vs 수동 검토 필요한 변환
+
+**💡 참고:** 각 SQL ID별로 구체적인 수정 코드를 제공해주세요. 단순한 설명보다는 실제 적용 가능한 SQL 코드가 필요합니다.

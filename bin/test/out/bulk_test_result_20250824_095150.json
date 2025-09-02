@@ -1,0 +1,460 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-08-24 09:51:50",
+    "directory" : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/",
+    "databaseType" : "ORACLE",
+    "totalTests" : 76,
+    "successCount" : 61,
+    "failureCount" : 15,
+    "successRate" : "80.3"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "PromotionMapper.xml",
+    "sqlId" : "selectPromotionEffectivenessAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "PromotionMapper.xml",
+    "sqlId" : "selectCouponUsagePatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "PromotionMapper.xml",
+    "sqlId" : "selectPromotionABTestAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 4
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserActivityStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserOrderHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserGradeStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserHierarchyStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 16
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserBehaviorPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserDemographicStats",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserReferralHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectSalesDashboard",
+    "sqlType" : "SELECT",
+    "rowCount" : 234
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectProductRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 10
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectCategoryRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 18
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectCustomerSegmentAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectRegionalRevenueAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectHourlyOrderPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectWeeklyOrderPattern",
+    "sqlType" : "SELECT",
+    "rowCount" : 7
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectMonthlyGrowthRate",
+    "sqlType" : "SELECT",
+    "rowCount" : 8
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectRFMAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 500
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 6
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderItems",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderShippingInfo",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ShippingMapper.xml",
+    "sqlId" : "selectShippingPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ShippingMapper.xml",
+    "sqlId" : "selectShippingDelayPatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ShippingMapper.xml",
+    "sqlId" : "selectShippingRouteOptimizationAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentAnalyticsDashboard",
+    "sqlType" : "SELECT",
+    "rowCount" : 8
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentFailurePatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentMethodStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentStatusStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 3
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentFailureAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectRefundStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentProcessingTimeAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectPriceHistoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectProductLifecycleAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 760
+  }, {
+    "xmlFile" : "ProductAdvancedMapper.xml",
+    "sqlId" : "selectInventoryForecastAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1300
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectCategoryHierarchy",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductList",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductCount",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductRecommendations",
+    "sqlType" : "SELECT",
+    "rowCount" : 10
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectBrandStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 31
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectCategoryStatistics",
+    "sqlType" : "SELECT",
+    "rowCount" : 23
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductInventoryStatus",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "ProductMapper.xml",
+    "sqlId" : "selectProductPriceHistory",
+    "sqlType" : "SELECT",
+    "rowCount" : 2
+  }, {
+    "xmlFile" : "SellerMapper.xml",
+    "sqlId" : "selectSellerPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "SellerMapper.xml",
+    "sqlId" : "selectSellerProductPortfolioAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "CustomerServiceMapper.xml",
+    "sqlId" : "selectCustomerServicePerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 15
+  }, {
+    "xmlFile" : "CustomerServiceMapper.xml",
+    "sqlId" : "selectCustomerInquiryPatternAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 5
+  }, {
+    "xmlFile" : "CustomerServiceMapper.xml",
+    "sqlId" : "selectCustomerSatisfactionAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 1
+  }, {
+    "xmlFile" : "CustomerServiceMapper.xml",
+    "sqlId" : "selectCustomerSupportEscalationChain",
+    "sqlType" : "SELECT",
+    "rowCount" : 85
+  }, {
+    "xmlFile" : "InventoryMapper.xml",
+    "sqlId" : "selectInventoryStatusAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  }, {
+    "xmlFile" : "InventoryMapper.xml",
+    "sqlId" : "selectWarehouseInventoryAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 100
+  }, {
+    "xmlFile" : "InventoryMapper.xml",
+    "sqlId" : "selectInventoryMovementTracking",
+    "sqlType" : "SELECT",
+    "rowCount" : 1075
+  }, {
+    "xmlFile" : "InventoryMapper.xml",
+    "sqlId" : "selectInventoryOptimizationAnalysis",
+    "sqlType" : "SELECT",
+    "rowCount" : 0
+  } ],
+  "failedTests" : [ {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserList",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-4798999075519353226.xml\n### The error may involve amzn.bo.mapper.UserMapper.selectUserList-Inline\n### The error occurred while setting parameters\n### SQL: SELECT * FROM (             SELECT                  u.USER_ID,                 u.EMAIL,                 u.FIRST_NAME,                 u.LAST_NAME,                 u.PHONE,                 u.STATUS,                 u.CREATED_AT,                 u.UPDATED_AT,                 NVL(order_stats.ORDER_COUNT, 0) as ORDER_COUNT,                 NVL(order_stats.TOTAL_SPENT, 0) as TOTAL_SPENT,                 NVL(order_stats.AVG_ORDER_VALUE, 0) as AVG_ORDER_VALUE,                 DECODE(u.STATUS, 'ACTIVE', 1, 'INACTIVE', 2, 'SUSPENDED', 3, 4) as STATUS_PRIORITY,                 DENSE_RANK() OVER (ORDER BY NVL(order_stats.TOTAL_SPENT, 0) DESC) as SPENDING_RANK,                                   CASE                      WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 10000 THEN 'VIP'                     WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 1000 THEN 'PREMIUM'                     WHEN NVL(order_stats.ORDER_COUNT, 0) > 0 THEN 'REGULAR'                     ELSE 'NEW'                 END as USER_GRADE,                                   TRUNC(SYSDATE) - TRUNC(u.CREATED_AT) as DAYS_SINCE_REGISTRATION,                 ROW_NUMBER() OVER (ORDER BY u.CREATED_AT DESC) as RN             FROM USERS u,                  (SELECT                      o.USER_ID,                     COUNT(*) as ORDER_COUNT,                     SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT,                     AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,                     MAX(o.ORDERED_AT) as LAST_ORDER_DATE                   FROM ORDERS o                   WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                   GROUP BY o.USER_ID) order_stats             WHERE u.USER_ID = order_stats.USER_ID(+)                               AND UPPER(u.EMAIL) LIKE '%' || UPPER(?) || '%'                                             AND u.STATUS = ?                                             AND CASE                      WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 10000 THEN 'VIP'                     WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 1000 THEN 'PREMIUM'                     WHEN NVL(order_stats.ORDER_COUNT, 0) > 0 THEN 'REGULAR'                     ELSE 'NEW'                 END = ?                                               AND u.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                 AND u.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                                 AND NVL(order_stats.TOTAL_SPENT, 0) >= ?                                                 AND NVL(order_stats.TOTAL_SPENT, 0) <= ?                         )                         WHERE ROWNUM <= ? + ?               AND RN > ?                   ORDER BY STATUS_PRIORITY, SPENDING_RANK\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserCount",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-4803221628969903448.xml\n### The error may involve amzn.bo.mapper.UserMapper.selectUserCount-Inline\n### The error occurred while setting parameters\n### SQL: SELECT COUNT(*)          FROM USERS u,              (SELECT                  o.USER_ID,                 COUNT(*) as ORDER_COUNT,                 SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT               FROM ORDERS o               WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')               GROUP BY o.USER_ID) order_stats         WHERE u.USER_ID = order_stats.USER_ID(+)                       AND UPPER(u.EMAIL) LIKE '%' || UPPER(?) || '%'                                 AND u.STATUS = ?                                 AND CASE                  WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 10000 THEN 'VIP'                 WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 1000 THEN 'PREMIUM'                 WHEN NVL(order_stats.ORDER_COUNT, 0) > 0 THEN 'REGULAR'                 ELSE 'NEW'             END = ?                                   AND u.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                     AND u.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                     AND NVL(order_stats.TOTAL_SPENT, 0) >= ?                                     AND NVL(order_stats.TOTAL_SPENT, 0) <= ?\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectUserRegistrationTrend",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-638191345699460735.xml\n### The error may involve amzn.bo.mapper.UserMapper.selectUserRegistrationTrend-Inline\n### The error occurred while setting parameters\n### SQL: SELECT                      TO_CHAR(CREATED_AT, 'YYYY-MM') as PERIOD,                     COUNT(*) as REGISTRATION_COUNT,                     COUNT(*) - LAG(COUNT(*), 1, 0) OVER (ORDER BY TO_CHAR(CREATED_AT, 'YYYY-MM')) as GROWTH,                     ROUND(                         CASE                              WHEN LAG(COUNT(*), 1, 0) OVER (ORDER BY TO_CHAR(CREATED_AT, 'YYYY-MM')) = 0 THEN 0                             ELSE ((COUNT(*) - LAG(COUNT(*), 1, 0) OVER (ORDER BY TO_CHAR(CREATED_AT, 'YYYY-MM'))) * 100.0 /                                    LAG(COUNT(*), 1, 1) OVER (ORDER BY TO_CHAR(CREATED_AT, 'YYYY-MM')))                         END, 2                     ) as GROWTH_RATE,                     SUM(COUNT(*)) OVER (ORDER BY TO_CHAR(CREATED_AT, 'YYYY-MM')) as CUMULATIVE_COUNT                 FROM USERS                 WHERE 1=1                                       AND CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                           AND CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD') + 1                                     GROUP BY TO_CHAR(CREATED_AT, 'YYYY-MM')                 ORDER BY PERIOD\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "UserMapper.xml",
+    "sqlId" : "selectDormantUserAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: ORA-01722: invalid number\n\n### The error may exist in file:///tmp/mapper-4932788534598067077.xml\n### The error may involve amzn.bo.mapper.UserMapper.selectDormantUserAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              u.USER_ID,             u.EMAIL,             u.FIRST_NAME || ' ' || u.LAST_NAME as FULL_NAME,             u.CREATED_AT as REGISTRATION_DATE,             dormant_stats.LAST_ORDER_DATE,             dormant_stats.DAYS_DORMANT,             dormant_stats.TOTAL_ORDERS,             dormant_stats.TOTAL_SPENT,             dormant_stats.AVG_ORDER_VALUE,             dormant_stats.FAVORITE_CATEGORY,             dormant_stats.LAST_VIEWED_PRODUCT,             dormant_stats.REACTIVATION_PROBABILITY,             dormant_stats.RECOMMENDED_INCENTIVE,             RANK() OVER (ORDER BY dormant_stats.REACTIVATION_PROBABILITY DESC, dormant_stats.TOTAL_SPENT DESC) as REACTIVATION_PRIORITY         FROM USERS u,              (SELECT                  o.USER_ID,                 MAX(o.ORDERED_AT) as LAST_ORDER_DATE,                 TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) as DAYS_DORMANT,                 COUNT(*) as TOTAL_ORDERS,                 SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT,                 AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,                 -- 가장 많이 구매한 카테고리                 (SELECT c.CATEGORY_NAME                   FROM (SELECT p.CATEGORY_ID, COUNT(*) as cnt                        FROM ORDER_ITEMS oi, PRODUCTS p                        WHERE oi.PRODUCT_ID = p.PRODUCT_ID                        AND oi.ORDER_ID IN (SELECT ORDER_ID FROM ORDERS WHERE USER_ID = o.USER_ID)                        GROUP BY p.CATEGORY_ID                        ORDER BY cnt DESC                        FETCH FIRST 1 ROWS ONLY) top_cat, CATEGORIES c                  WHERE top_cat.CATEGORY_ID = c.CATEGORY_ID) as FAVORITE_CATEGORY,                 -- 마지막으로 본 상품                 (SELECT p.PRODUCT_NAME                  FROM PRODUCT_VIEWS pv, PRODUCTS p                  WHERE pv.PRODUCT_ID = p.PRODUCT_ID                  AND pv.USER_ID = o.USER_ID                  AND pv.VIEWED_AT = (SELECT MAX(VIEWED_AT) FROM PRODUCT_VIEWS WHERE USER_ID = o.USER_ID)) as LAST_VIEWED_PRODUCT,                 -- 재활성화 확률 계산                                   CASE                      WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) BETWEEN 90 AND 180 AND COUNT(*) >= 3 THEN 75                     WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) BETWEEN 90 AND 180 AND COUNT(*) >= 1 THEN 60                     WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) BETWEEN 181 AND 365 AND SUM(o.TOTAL_AMOUNT) >= 500 THEN 45                     WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) BETWEEN 181 AND 365 THEN 30                     WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) > 365 AND SUM(o.TOTAL_AMOUNT) >= 1000 THEN 25                     ELSE 15                 END as REACTIVATION_PROBABILITY,                                   -- 추천 인센티브                                   CASE                      WHEN AVG(o.TOTAL_AMOUNT) >= 200 THEN 'PREMIUM_DISCOUNT'                     WHEN COUNT(*) >= 5 THEN 'LOYALTY_BONUS'                     WHEN TRUNC(SYSDATE) - TRUNC(MAX(o.ORDERED_AT)) > 365 THEN 'WELCOME_BACK_OFFER'                     ELSE 'STANDARD_COUPON'                 END as RECOMMENDED_INCENTIVE                                 FROM ORDERS o               WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                 AND TRUNC(SYSDATE) - TRUNC(o.ORDERED_AT) >= ?                 GROUP BY o.USER_ID                 HAVING MAX(o.ORDERED_AT) < SYSDATE - ?) dormant_stats,                CATEGORIES c         WHERE u.USER_ID = dormant_stats.USER_ID         AND dormant_stats.FAVORITE_CATEGORY = c.CATEGORY_ID(+)                         AND dormant_stats.REACTIVATION_PROBABILITY >= ?                     ORDER BY REACTIVATION_PRIORITY\n### Cause: java.sql.SQLSyntaxErrorException: ORA-01722: invalid number\n"
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectCustomerBehaviorAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-2051826340203818566.xml\n### The error may involve amzn.bo.mapper.AnalyticsMapper.selectCustomerBehaviorAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              behavior_data.USER_ID,             behavior_data.EMAIL,             behavior_data.REGISTRATION_DATE,             behavior_data.TOTAL_SESSIONS,             behavior_data.TOTAL_PAGE_VIEWS,             behavior_data.AVG_SESSION_DURATION_MINUTES,             behavior_data.AVG_PAGES_PER_SESSION,             behavior_data.BOUNCE_RATE,             behavior_data.CONVERSION_RATE,             behavior_data.TOTAL_ORDERS,             behavior_data.TOTAL_SPENT,             behavior_data.AVG_ORDER_VALUE,             -- 고객 세그멘테이션             CASE                  WHEN behavior_data.TOTAL_SPENT >= 1000 AND behavior_data.TOTAL_SESSIONS >= 10 THEN 'VIP_ENGAGED'                 WHEN behavior_data.TOTAL_SPENT >= 1000 THEN 'VIP_CASUAL'                 WHEN behavior_data.TOTAL_SESSIONS >= 10 AND behavior_data.CONVERSION_RATE >= 5 THEN 'ENGAGED_CONVERTER'                 WHEN behavior_data.TOTAL_SESSIONS >= 10 THEN 'ENGAGED_BROWSER'                 WHEN behavior_data.TOTAL_ORDERS > 0 THEN 'OCCASIONAL_BUYER'                 ELSE 'BROWSER_ONLY'             END as CUSTOMER_SEGMENT,             -- 행동 점수 (0-100)             ROUND(                 (LEAST(behavior_data.TOTAL_SESSIONS, 20) * 2.5) +                 (LEAST(behavior_data.AVG_PAGES_PER_SESSION, 10) * 5) +                 (behavior_data.CONVERSION_RATE * 2) +                 ((100 - behavior_data.BOUNCE_RATE) * 0.3), 2             ) as ENGAGEMENT_SCORE,             -- 구매 가능성 점수             ROUND(                 behavior_data.CONVERSION_RATE * 0.4 +                 (100 - behavior_data.BOUNCE_RATE) * 0.3 +                 LEAST(behavior_data.AVG_PAGES_PER_SESSION, 10) * 3, 2             ) as PURCHASE_PROPENSITY_SCORE,             -- 선호 카테고리 (가장 많이 본 카테고리)             behavior_data.PREFERRED_CATEGORY,             behavior_data.PREFERRED_CATEGORY_VIEWS,             -- 선호 시간대             behavior_data.PREFERRED_HOUR,             behavior_data.PREFERRED_DAY_OF_WEEK,             -- 디바이스 선호도             behavior_data.PREFERRED_DEVICE_TYPE,             behavior_data.MOBILE_USAGE_RATE,             -- 최근 활동             behavior_data.LAST_SESSION_DATE,             behavior_data.DAYS_SINCE_LAST_SESSION,             behavior_data.LAST_ORDER_DATE,             behavior_data.DAYS_SINCE_LAST_ORDER,             -- 이탈 위험도             CASE                  WHEN behavior_data.DAYS_SINCE_LAST_SESSION > 90 THEN 'HIGH_RISK'                 WHEN behavior_data.DAYS_SINCE_LAST_SESSION > 30 THEN 'MEDIUM_RISK'                 WHEN behavior_data.DAYS_SINCE_LAST_SESSION > 7 THEN 'LOW_RISK'                 ELSE 'ACTIVE'             END as CHURN_RISK,             -- 고객 가치 순위             DENSE_RANK() OVER (ORDER BY behavior_data.TOTAL_SPENT DESC) as CUSTOMER_VALUE_RANK,             -- 참여도 순위             DENSE_RANK() OVER (ORDER BY                  (LEAST(behavior_data.TOTAL_SESSIONS, 20) * 2.5) +                 (LEAST(behavior_data.AVG_PAGES_PER_SESSION, 10) * 5) +                 (behavior_data.CONVERSION_RATE * 2) +                 ((100 - behavior_data.BOUNCE_RATE) * 0.3) DESC             ) as ENGAGEMENT_RANK                   FROM (             SELECT                  u.USER_ID,                 u.EMAIL,                 u.CREATED_AT as REGISTRATION_DATE,                 session_stats.TOTAL_SESSIONS,                 session_stats.TOTAL_PAGE_VIEWS,                 session_stats.AVG_SESSION_DURATION_MINUTES,                 session_stats.AVG_PAGES_PER_SESSION,                 session_stats.BOUNCE_RATE,                 session_stats.CONVERSION_RATE,                 NVL(order_stats.TOTAL_ORDERS, 0) as TOTAL_ORDERS,                 NVL(order_stats.TOTAL_SPENT, 0) as TOTAL_SPENT,                 NVL(order_stats.AVG_ORDER_VALUE, 0) as AVG_ORDER_VALUE,                 session_stats.PREFERRED_CATEGORY,                 session_stats.PREFERRED_CATEGORY_VIEWS,                 session_stats.PREFERRED_HOUR,                 session_stats.PREFERRED_DAY_OF_WEEK,                 session_stats.PREFERRED_DEVICE_TYPE,                 session_stats.MOBILE_USAGE_RATE,                 session_stats.LAST_SESSION_DATE,                 EXTRACT(DAY FROM (SYSDATE - session_stats.LAST_SESSION_DATE)) as DAYS_SINCE_LAST_SESSION,                 order_stats.LAST_ORDER_DATE,                 NVL(EXTRACT(DAY FROM (SYSDATE - order_stats.LAST_ORDER_DATE)), 999) as DAYS_SINCE_LAST_ORDER             FROM USERS u,                  (SELECT                      us.USER_ID,                     COUNT(DISTINCT us.SESSION_ID) as TOTAL_SESSIONS,                     SUM(us.PAGE_VIEWS) as TOTAL_PAGE_VIEWS,                     AVG(CASE                          WHEN us.SESSION_END IS NOT NULL THEN                             (EXTRACT(DAY FROM (us.SESSION_END - us.SESSION_START)) * 24 * 60) +                              (EXTRACT(HOUR FROM (us.SESSION_END - us.SESSION_START)) * 60) +                              EXTRACT(MINUTE FROM (us.SESSION_END - us.SESSION_START))                         ELSE 0                     END) as AVG_SESSION_DURATION_MINUTES,                     AVG(us.PAGE_VIEWS) as AVG_PAGES_PER_SESSION,                     ROUND(                         SUM(CASE WHEN us.PAGE_VIEWS = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                     ) as BOUNCE_RATE,                     ROUND(                         COUNT(DISTINCT CASE WHEN order_sessions.ORDER_ID IS NOT NULL THEN us.SESSION_ID END) * 100.0 / COUNT(DISTINCT us.SESSION_ID), 2                     ) as CONVERSION_RATE,                     MAX(us.SESSION_START) as LAST_SESSION_DATE,                     -- 선호 카테고리 분석                     MAX(category_views.CATEGORY_NAME) KEEP (DENSE_RANK FIRST ORDER BY category_views.VIEW_COUNT DESC) as PREFERRED_CATEGORY,                     MAX(category_views.VIEW_COUNT) as PREFERRED_CATEGORY_VIEWS,                     -- 선호 시간대                     MAX(TO_CHAR(us.SESSION_START, 'HH24')) KEEP (DENSE_RANK FIRST ORDER BY hour_counts.HOUR_COUNT DESC) as PREFERRED_HOUR,                     MAX(TO_CHAR(us.SESSION_START, 'DAY')) KEEP (DENSE_RANK FIRST ORDER BY day_counts.DAY_COUNT DESC) as PREFERRED_DAY_OF_WEEK,                     -- 선호 디바이스                     MAX(us.DEVICE_TYPE) KEEP (DENSE_RANK FIRST ORDER BY device_counts.DEVICE_COUNT DESC) as PREFERRED_DEVICE_TYPE,                     ROUND(                         SUM(CASE WHEN us.DEVICE_TYPE = 'MOBILE' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                     ) as MOBILE_USAGE_RATE                   FROM USER_SESSIONS us,                        -- 주문이 있는 세션                        (SELECT DISTINCT us2.SESSION_ID, o.ORDER_ID                         FROM USER_SESSIONS us2, ORDERS o                         WHERE us2.USER_ID = o.USER_ID                         AND o.ORDERED_AT BETWEEN us2.SESSION_START AND NVL(us2.SESSION_END, us2.SESSION_START + 1)) order_sessions,                        -- 카테고리별 조회수                        (SELECT                            pv.USER_ID,                           c.CATEGORY_NAME,                           COUNT(*) as VIEW_COUNT                         FROM PRODUCT_VIEWS pv, PRODUCTS p, CATEGORIES c                         WHERE pv.PRODUCT_ID = p.PRODUCT_ID                         AND p.CATEGORY_ID = c.CATEGORY_ID                         GROUP BY pv.USER_ID, c.CATEGORY_NAME) category_views,                        -- 시간대별 카운트                        (SELECT USER_ID, TO_CHAR(SESSION_START, 'HH24') as SESSION_HOUR, COUNT(*) as HOUR_COUNT                         FROM USER_SESSIONS                         GROUP BY USER_ID, TO_CHAR(SESSION_START, 'HH24')) hour_counts,                        -- 요일별 카운트                        (SELECT USER_ID, TO_CHAR(SESSION_START, 'DAY') as SESSION_DAY, COUNT(*) as DAY_COUNT                         FROM USER_SESSIONS                         GROUP BY USER_ID, TO_CHAR(SESSION_START, 'DAY')) day_counts,                        -- 디바이스별 카운트                        (SELECT USER_ID, DEVICE_TYPE, COUNT(*) as DEVICE_COUNT                         FROM USER_SESSIONS                         GROUP BY USER_ID, DEVICE_TYPE) device_counts                   WHERE 1=1                                           AND us.SESSION_START >= TO_DATE(?, 'YYYY-MM-DD')                                                                 AND us.SESSION_START <= TO_DATE(?, 'YYYY-MM-DD')                                         AND us.SESSION_ID = order_sessions.SESSION_ID(+)                   AND us.USER_ID = category_views.USER_ID(+)                   AND us.USER_ID = hour_counts.USER_ID(+)                   AND TO_CHAR(us.SESSION_START, 'HH24') = hour_counts.SESSION_HOUR(+)                   AND us.USER_ID = day_counts.USER_ID(+)                   AND TO_CHAR(us.SESSION_START, 'DAY') = day_counts.SESSION_DAY(+)                   AND us.USER_ID = device_counts.USER_ID(+)                   AND us.DEVICE_TYPE = device_counts.DEVICE_TYPE(+)                   GROUP BY us.USER_ID) session_stats,                  (SELECT                      o.USER_ID,                     COUNT(*) as TOTAL_ORDERS,                     SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT,                     AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,                     MAX(o.ORDERED_AT) as LAST_ORDER_DATE                   FROM ORDERS o                   WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                   AND o.ORDERED_AT BETWEEN TO_DATE(?, 'YYYY-MM-DD') AND TO_DATE(?, 'YYYY-MM-DD')                   GROUP BY o.USER_ID) order_stats             WHERE u.USER_ID = session_stats.USER_ID             AND u.USER_ID = order_stats.USER_ID(+)                                                 AND CASE                      WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 1000 AND session_stats.TOTAL_SESSIONS >= 10 THEN 'VIP_ENGAGED'                     WHEN NVL(order_stats.TOTAL_SPENT, 0) >= 1000 THEN 'VIP_CASUAL'                     WHEN session_stats.TOTAL_SESSIONS >= 10 AND session_stats.CONVERSION_RATE >= 5 THEN 'ENGAGED_CONVERTER'                     WHEN session_stats.TOTAL_SESSIONS >= 10 THEN 'ENGAGED_BROWSER'                     WHEN NVL(order_stats.TOTAL_ORDERS, 0) > 0 THEN 'OCCASIONAL_BUYER'                     ELSE 'BROWSER_ONLY'                 END = ?                                                                                 AND (                     (LEAST(session_stats.TOTAL_SESSIONS, 20) * 2.5) +                     (LEAST(session_stats.AVG_PAGES_PER_SESSION, 10) * 5) +                     (session_stats.CONVERSION_RATE * 2) +                     ((100 - session_stats.BOUNCE_RATE) * 0.3)                 ) >= ?                                         ) behavior_data         ORDER BY ENGAGEMENT_SCORE DESC, CUSTOMER_VALUE_RANK\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectRevenueTrend",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-14865457432771727368.xml\n### The error may involve amzn.bo.mapper.AnalyticsMapper.selectRevenueTrend-Inline\n### The error occurred while setting parameters\n### SQL: SELECT                                    TO_CHAR(o.ORDERED_AT, 'YYYY-MM-DD') as TIME_PERIOD                  ,             COUNT(*) as ORDER_COUNT,             SUM(o.TOTAL_AMOUNT) as TOTAL_REVENUE,             AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,             COUNT(DISTINCT o.USER_ID) as UNIQUE_CUSTOMERS         FROM ORDERS o         WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                       AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                   AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD')                     GROUP BY                            TO_CHAR(o.ORDERED_AT, 'YYYY-MM-DD')                       ORDER BY TIME_PERIOD\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "AnalyticsMapper.xml",
+    "sqlId" : "selectCohortAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-8694495305498927982.xml\n### The error may involve amzn.bo.mapper.AnalyticsMapper.selectCohortAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              cohort_month,             period_number,             customers_count,             ROUND(customers_count * 100.0 / first_period_customers, 2) as RETENTION_RATE         FROM (             SELECT                  cohort_data.cohort_month,                 cohort_data.period_number,                 COUNT(DISTINCT cohort_data.USER_ID) as customers_count,                 FIRST_VALUE(COUNT(DISTINCT cohort_data.USER_ID)) OVER (                     PARTITION BY cohort_data.cohort_month                      ORDER BY cohort_data.period_number                      ROWS UNBOUNDED PRECEDING                 ) as first_period_customers             FROM (                 SELECT                      u.USER_ID,                     TO_CHAR(u.CREATED_AT, 'YYYY-MM') as cohort_month,                     MONTHS_BETWEEN(TRUNC(o.ORDERED_AT, 'MM'), TRUNC(u.CREATED_AT, 'MM')) as period_number                 FROM USERS u,                      ORDERS o                 WHERE u.USER_ID = o.USER_ID                 AND o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                                       AND u.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                           AND u.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                 ) cohort_data             GROUP BY cohort_data.cohort_month, cohort_data.period_number         )         ORDER BY cohort_month, period_number\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderListWithAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-4790337593419587870.xml\n### The error may involve amzn.bo.mapper.OrderMapper.selectOrderListWithAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT * FROM (             SELECT                  o.ORDER_ID,                 o.ORDER_NUMBER,                 o.USER_ID,                 u.EMAIL as USER_EMAIL,                 u.FIRST_NAME || ' ' || u.LAST_NAME as USER_NAME,                 o.ORDER_STATUS,                 o.TOTAL_AMOUNT,                 o.CURRENCY,                 o.PAYMENT_METHOD,                 o.ORDERED_AT,                 o.SHIPPED_AT,                 o.DELIVERED_AT,                 order_details.ITEM_COUNT,                 order_details.UNIQUE_PRODUCTS,                 order_details.AVG_ITEM_PRICE,                 order_details.DISCOUNT_PERCENTAGE,                 -- 주문 처리 시간 분석                 CASE                      WHEN o.SHIPPED_AT IS NOT NULL                      THEN ROUND(EXTRACT(DAY FROM (o.SHIPPED_AT - o.ORDERED_AT)) * 24 + EXTRACT(HOUR FROM (o.SHIPPED_AT - o.ORDERED_AT)), 2)                     ELSE NULL                 END as HOURS_TO_SHIP,                 CASE                      WHEN o.DELIVERED_AT IS NOT NULL                      THEN ROUND(EXTRACT(DAY FROM (o.DELIVERED_AT - o.ORDERED_AT)) * 24 + EXTRACT(HOUR FROM (o.DELIVERED_AT - o.ORDERED_AT)), 2)                     ELSE NULL                 END as HOURS_TO_DELIVER,                 -- 고객 주문 패턴 분석                 customer_stats.CUSTOMER_ORDER_COUNT,                 customer_stats.CUSTOMER_TOTAL_SPENT,                 customer_stats.CUSTOMER_AVG_ORDER_VALUE,                 DENSE_RANK() OVER (PARTITION BY u.USER_ID ORDER BY o.ORDERED_AT) as CUSTOMER_ORDER_SEQUENCE,                 -- 주문 가치 분석                 CASE                      WHEN o.TOTAL_AMOUNT >= 500 THEN 'HIGH_VALUE'                     WHEN o.TOTAL_AMOUNT >= 100 THEN 'MEDIUM_VALUE'                     ELSE 'LOW_VALUE'                 END as ORDER_VALUE_CATEGORY,                 -- 계절성 분석                 TO_CHAR(o.ORDERED_AT, 'Q') as ORDER_QUARTER,                 TO_CHAR(o.ORDERED_AT, 'MM') as ORDER_MONTH,                 TO_CHAR(o.ORDERED_AT, 'D') as ORDER_DAY_OF_WEEK,                 -- 지역 정보                 NVL(shipping_addr.COUNTRY, 'UNKNOWN') as SHIPPING_COUNTRY,                 NVL(shipping_addr.STATE, 'UNKNOWN') as SHIPPING_STATE,                 -- 주문 복잡도 점수                 (order_details.UNIQUE_PRODUCTS * 0.3 +                   order_details.ITEM_COUNT * 0.2 +                   CASE WHEN o.DISCOUNT_AMOUNT > 0 THEN 10 ELSE 0 END +                  CASE WHEN shipping_addr.COUNTRY != 'US' THEN 15 ELSE 0 END) as COMPLEXITY_SCORE,                 ROW_NUMBER() OVER (ORDER BY o.ORDERED_AT DESC) as RN             FROM ORDERS o,                  USERS u,                  USER_ADDRESSES shipping_addr,                  (SELECT                      oi.ORDER_ID,                     COUNT(*) as ITEM_COUNT,                     COUNT(DISTINCT oi.PRODUCT_ID) as UNIQUE_PRODUCTS,                     AVG(oi.UNIT_PRICE) as AVG_ITEM_PRICE,                     ROUND(MAX(o2.DISCOUNT_AMOUNT) / NULLIF(MAX(o2.SUBTOTAL), 0) * 100, 2) as DISCOUNT_PERCENTAGE                   FROM ORDER_ITEMS oi, ORDERS o2                   WHERE oi.ORDER_ID = o2.ORDER_ID                   GROUP BY oi.ORDER_ID) order_details,                  (SELECT                      o3.USER_ID,                     COUNT(*) as CUSTOMER_ORDER_COUNT,                     SUM(o3.TOTAL_AMOUNT) as CUSTOMER_TOTAL_SPENT,                     AVG(o3.TOTAL_AMOUNT) as CUSTOMER_AVG_ORDER_VALUE                   FROM ORDERS o3                   WHERE o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                   GROUP BY o3.USER_ID) customer_stats             WHERE o.USER_ID = u.USER_ID             AND o.SHIPPING_ADDRESS_ID = shipping_addr.ADDRESS_ID(+)             AND o.ORDER_ID = order_details.ORDER_ID(+)             AND o.USER_ID = customer_stats.USER_ID(+)                               AND UPPER(o.ORDER_NUMBER) LIKE '%' || UPPER(?) || '%'                                             AND UPPER(u.EMAIL) LIKE '%' || UPPER(?) || '%'                                             AND o.ORDER_STATUS = ?                                             AND o.PAYMENT_METHOD = ?                                             AND CASE                      WHEN o.TOTAL_AMOUNT >= 500 THEN 'HIGH_VALUE'                     WHEN o.TOTAL_AMOUNT >= 100 THEN 'MEDIUM_VALUE'                     ELSE 'LOW_VALUE'                 END = ?                                             AND NVL(shipping_addr.COUNTRY, 'UNKNOWN') = ?                                               AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                 AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                                 AND o.TOTAL_AMOUNT >= ?                                                 AND o.TOTAL_AMOUNT <= ?                         )                         WHERE ROWNUM <= ? + ?                 AND RN > ?                     ORDER BY ORDERED_AT DESC\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectCustomerOrderPatternAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-17449171377451793504.xml\n### The error may involve amzn.bo.mapper.OrderMapper.selectCustomerOrderPatternAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              u.USER_ID,             u.EMAIL,             u.FIRST_NAME || ' ' || u.LAST_NAME as FULL_NAME,             u.CREATED_AT as REGISTRATION_DATE,             pattern_stats.FIRST_ORDER_DATE,             pattern_stats.LAST_ORDER_DATE,             pattern_stats.TOTAL_ORDERS,             pattern_stats.TOTAL_SPENT,             pattern_stats.AVG_ORDER_VALUE,             pattern_stats.DAYS_BETWEEN_ORDERS,             pattern_stats.ORDER_FREQUENCY_SCORE,             pattern_stats.SPENDING_CONSISTENCY_SCORE,             pattern_stats.PREFERRED_PAYMENT_METHOD,             pattern_stats.PREFERRED_ORDER_DAY,             pattern_stats.PREFERRED_ORDER_HOUR,             pattern_stats.SEASONAL_PREFERENCE,             pattern_stats.CATEGORY_DIVERSITY_SCORE,             pattern_stats.RETURN_RATE,             -- RFM 분석             rfm_scores.RECENCY_SCORE,             rfm_scores.FREQUENCY_SCORE,             rfm_scores.MONETARY_SCORE,             rfm_scores.RFM_SEGMENT,             -- 고객 생명주기 가치             pattern_stats.PREDICTED_CLV,             -- 이탈 위험도             pattern_stats.CHURN_RISK_SCORE,             RANK() OVER (ORDER BY pattern_stats.TOTAL_SPENT DESC) as CUSTOMER_VALUE_RANK         FROM USERS u,              -- 기본 패턴 통계 (단순화된 날짜 계산)              (SELECT                  o.USER_ID,                 MIN(o.ORDERED_AT) as FIRST_ORDER_DATE,                 MAX(o.ORDERED_AT) as LAST_ORDER_DATE,                 COUNT(*) as TOTAL_ORDERS,                 SUM(o.TOTAL_AMOUNT) as TOTAL_SPENT,                 AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,                 -- 단순화된 주문 간격 계산 (전체 기간을 주문 수로 나누기)                                   CASE                      WHEN COUNT(*) > 1 THEN                          ROUND((EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                 EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1))                     ELSE NULL                 END as DAYS_BETWEEN_ORDERS,                                   -- 주문 빈도 점수 (단순화)                                   CASE                      WHEN COUNT(*) > 1 AND (EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                             EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1) <= 30 THEN 100                     WHEN COUNT(*) > 1 AND (EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                             EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1) <= 60 THEN 80                     WHEN COUNT(*) > 1 AND (EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                             EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1) <= 90 THEN 60                     WHEN COUNT(*) > 1 AND (EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                             EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1) <= 180 THEN 40                     ELSE 20                 END as ORDER_FREQUENCY_SCORE,                                   -- 지출 일관성 점수 (변동계수의 역수)                 ROUND(100 / (1 + STDDEV(o.TOTAL_AMOUNT) / NULLIF(AVG(o.TOTAL_AMOUNT), 0)), 2) as SPENDING_CONSISTENCY_SCORE,                 -- 선호 결제 수단 (가장 많이 사용한 것)                 (SELECT PAYMENT_METHOD                   FROM (SELECT PAYMENT_METHOD, COUNT(*) as cnt                        FROM ORDERS o3                         WHERE o3.USER_ID = o.USER_ID                         AND o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                        GROUP BY PAYMENT_METHOD                        ORDER BY cnt DESC)                  WHERE ROWNUM = 1) as PREFERRED_PAYMENT_METHOD,                 -- 선호 주문 요일                 (SELECT ORDER_DAY                   FROM (SELECT TO_CHAR(ORDERED_AT, 'DAY') as ORDER_DAY, COUNT(*) as cnt                        FROM ORDERS o3                         WHERE o3.USER_ID = o.USER_ID                         AND o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                        GROUP BY TO_CHAR(ORDERED_AT, 'DAY')                        ORDER BY cnt DESC)                  WHERE ROWNUM = 1) as PREFERRED_ORDER_DAY,                 -- 선호 주문 시간대                 (SELECT ORDER_HOUR                   FROM (SELECT TO_CHAR(ORDERED_AT, 'HH24') as ORDER_HOUR, COUNT(*) as cnt                        FROM ORDERS o3                         WHERE o3.USER_ID = o.USER_ID                         AND o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                        GROUP BY TO_CHAR(ORDERED_AT, 'HH24')                        ORDER BY cnt DESC)                  WHERE ROWNUM = 1) as PREFERRED_ORDER_HOUR,                 -- 계절 선호도                 (SELECT ORDER_QUARTER                   FROM (SELECT TO_CHAR(ORDERED_AT, 'Q') as ORDER_QUARTER, COUNT(*) as cnt                        FROM ORDERS o3                         WHERE o3.USER_ID = o.USER_ID                         AND o3.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                        GROUP BY TO_CHAR(ORDERED_AT, 'Q')                        ORDER BY cnt DESC)                  WHERE ROWNUM = 1) as SEASONAL_PREFERENCE,                 -- 카테고리 다양성 점수                 NVL((SELECT COUNT(DISTINCT p.CATEGORY_ID) * 10                      FROM ORDERS o2, ORDER_ITEMS oi, PRODUCTS p                      WHERE o2.ORDER_ID = oi.ORDER_ID                      AND oi.PRODUCT_ID = p.PRODUCT_ID                      AND o2.USER_ID = o.USER_ID                      AND o2.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')), 0) as CATEGORY_DIVERSITY_SCORE,                 -- 반품률 (단순화)                 0 as RETURN_RATE,                 -- 예상 고객 생명주기 가치 (단순화)                                   CASE                      WHEN COUNT(*) > 1 THEN                         ROUND(SUM(o.TOTAL_AMOUNT) *                                (365 / NULLIF((EXTRACT(DAY FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) +                                              EXTRACT(HOUR FROM (MAX(o.ORDERED_AT) - MIN(o.ORDERED_AT))) / 24) / (COUNT(*) - 1), 0)) *                                2, 2)                     ELSE SUM(o.TOTAL_AMOUNT) * 2                 END as PREDICTED_CLV,                                   -- 이탈 위험 점수                                   CASE                      WHEN (EXTRACT(DAY FROM (SYSDATE - MAX(o.ORDERED_AT))) +                            EXTRACT(HOUR FROM (SYSDATE - MAX(o.ORDERED_AT))) / 24) > 365 THEN 90                     WHEN (EXTRACT(DAY FROM (SYSDATE - MAX(o.ORDERED_AT))) +                            EXTRACT(HOUR FROM (SYSDATE - MAX(o.ORDERED_AT))) / 24) > 180 THEN 70                     WHEN (EXTRACT(DAY FROM (SYSDATE - MAX(o.ORDERED_AT))) +                            EXTRACT(HOUR FROM (SYSDATE - MAX(o.ORDERED_AT))) / 24) > 90 THEN 50                     WHEN STDDEV(o.TOTAL_AMOUNT) / NULLIF(AVG(o.TOTAL_AMOUNT), 0) > 1 THEN 60                     ELSE 20                 END as CHURN_RISK_SCORE                                 FROM ORDERS o               WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                                   AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                     AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                 GROUP BY o.USER_ID) pattern_stats,              -- RFM 점수 계산 (별도 서브쿼리)              (SELECT                  base_data.USER_ID,                 NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) as RECENCY_SCORE,                 NTILE(5) OVER (ORDER BY base_data.FREQUENCY_COUNT) as FREQUENCY_SCORE,                 NTILE(5) OVER (ORDER BY base_data.MONETARY_AMOUNT) as MONETARY_SCORE,                                   CASE                      WHEN NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) >= 4                           AND NTILE(5) OVER (ORDER BY base_data.FREQUENCY_COUNT) >= 4                           AND NTILE(5) OVER (ORDER BY base_data.MONETARY_AMOUNT) >= 4 THEN 'CHAMPIONS'                     WHEN NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) >= 3                           AND NTILE(5) OVER (ORDER BY base_data.FREQUENCY_COUNT) >= 3                           AND NTILE(5) OVER (ORDER BY base_data.MONETARY_AMOUNT) >= 3 THEN 'LOYAL_CUSTOMERS'                     WHEN NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) >= 4                           AND NTILE(5) OVER (ORDER BY base_data.MONETARY_AMOUNT) >= 4 THEN 'POTENTIAL_LOYALISTS'                     WHEN NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) >= 4 THEN 'NEW_CUSTOMERS'                     WHEN NTILE(5) OVER (ORDER BY base_data.FREQUENCY_COUNT) >= 3                           AND NTILE(5) OVER (ORDER BY base_data.MONETARY_AMOUNT) >= 3 THEN 'AT_RISK'                     WHEN NTILE(5) OVER (ORDER BY base_data.RECENCY_DAYS DESC) <= 2 THEN 'HIBERNATING'                     ELSE 'OTHERS'                 END as RFM_SEGMENT                                 FROM (SELECT                        o.USER_ID,                       (EXTRACT(DAY FROM (SYSDATE - MAX(o.ORDERED_AT))) +                         EXTRACT(HOUR FROM (SYSDATE - MAX(o.ORDERED_AT))) / 24) as RECENCY_DAYS,                       COUNT(*) as FREQUENCY_COUNT,                       SUM(o.TOTAL_AMOUNT) as MONETARY_AMOUNT                     FROM ORDERS o                     WHERE o.ORDER_STATUS NOT IN ('CANCELLED', 'REFUNDED')                                               AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                                       AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                             GROUP BY o.USER_ID) base_data) rfm_scores         WHERE u.USER_ID = pattern_stats.USER_ID         AND u.USER_ID = rfm_scores.USER_ID                       AND rfm_scores.RFM_SEGMENT = ?                                   AND pattern_stats.CHURN_RISK_SCORE >= ?                                     AND pattern_stats.TOTAL_SPENT >= ?                     ORDER BY CUSTOMER_VALUE_RANK\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderTrendAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-3733115749220829272.xml\n### The error may involve amzn.bo.mapper.OrderMapper.selectOrderTrendAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              TO_CHAR(o.ORDERED_AT, 'YYYY-MM-DD') as PERIOD,             TO_CHAR(o.ORDERED_AT, 'YYYY-MM-DD') as PERIOD_LABEL,             COUNT(*) as ORDER_COUNT,             SUM(o.TOTAL_AMOUNT) as TOTAL_REVENUE,             AVG(o.TOTAL_AMOUNT) as AVG_ORDER_VALUE,             COUNT(DISTINCT o.USER_ID) as UNIQUE_CUSTOMERS         FROM ORDERS o         WHERE 1=1                       AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                   AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD') + 1                     GROUP BY TO_CHAR(o.ORDERED_AT, 'YYYY-MM-DD')         ORDER BY PERIOD\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "OrderMapper.xml",
+    "sqlId" : "selectOrderCount",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-767674745085222642.xml\n### The error may involve amzn.bo.mapper.OrderMapper.selectOrderCount-Inline\n### The error occurred while setting parameters\n### SQL: SELECT COUNT(*)         FROM ORDERS o,              USERS u         WHERE o.USER_ID = u.USER_ID(+)         AND 1=1                               AND (                     UPPER(o.ORDER_NUMBER) LIKE UPPER('%' || ? || '%')                     OR UPPER(u.EMAIL) LIKE UPPER('%' || ? || '%')                     OR UPPER(u.FIRST_NAME || ' ' || u.LAST_NAME) LIKE UPPER('%' || ? || '%')                 )                                             AND o.ORDER_STATUS = ?                                             AND o.PAYMENT_METHOD = ?                                               AND o.TOTAL_AMOUNT >= ?                                                 AND o.TOTAL_AMOUNT <= ?                                                                 AND o.ORDERED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                                                 AND o.ORDERED_AT <= TO_DATE(?, 'YYYY-MM-DD') + 1\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentMethodPerformanceAnalysis",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-1676478727670599846.xml\n### The error may involve amzn.bo.mapper.PaymentMapper.selectPaymentMethodPerformanceAnalysis-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              PAYMENT_METHOD,             TOTAL_TRANSACTIONS,             SUCCESSFUL_TRANSACTIONS,             FAILED_TRANSACTIONS,             TOTAL_AMOUNT,             SUCCESSFUL_AMOUNT,             AVG_TRANSACTION_AMOUNT,             SUCCESS_RATE,             FAILURE_RATE,             AVG_PROCESSING_TIME_MINUTES,             -- 성과 등급             DECODE(                 GREATEST(                     CASE WHEN SUCCESS_RATE >= 95 THEN 4 ELSE 0 END,                     CASE WHEN AVG_PROCESSING_TIME_MINUTES <= 2 THEN 3 ELSE 0 END,                     CASE WHEN TOTAL_AMOUNT >= 100000 THEN 2 ELSE 0 END,                     CASE WHEN TOTAL_TRANSACTIONS >= 1000 THEN 1 ELSE 0 END                 ),                 4, 'EXCELLENT',                 3, 'VERY_GOOD',                  2, 'GOOD',                 1, 'AVERAGE',                 'NEEDS_IMPROVEMENT'             ) as PERFORMANCE_GRADE,             -- 시간대별 선호도 분석             MORNING_USAGE_RATE,             AFTERNOON_USAGE_RATE,             EVENING_USAGE_RATE,             NIGHT_USAGE_RATE,             -- 요일별 선호도             WEEKDAY_USAGE_RATE,             WEEKEND_USAGE_RATE,             -- 지역별 선호도 (상위 3개국)             TOP_COUNTRY_1,             TOP_COUNTRY_1_RATE,             TOP_COUNTRY_2,             TOP_COUNTRY_2_RATE,             TOP_COUNTRY_3,             TOP_COUNTRY_3_RATE,             -- 월별 성장률             MONTHLY_GROWTH_RATE,             -- 경쟁력 지수             ROUND(                 (SUCCESS_RATE * 0.4 +                   (100 - LEAST(AVG_PROCESSING_TIME_MINUTES, 10)) * 10 * 0.3 +                  LEAST(TOTAL_AMOUNT / 10000, 100) * 0.3), 2             ) as COMPETITIVENESS_INDEX,             RANK() OVER (ORDER BY SUCCESS_RATE DESC, AVG_PROCESSING_TIME_MINUTES ASC) as OVERALL_RANK         FROM (             SELECT                  p.PAYMENT_METHOD,                 COUNT(*) as TOTAL_TRANSACTIONS,                 SUM(CASE WHEN p.PAYMENT_STATUS = 'COMPLETED' THEN 1 ELSE 0 END) as SUCCESSFUL_TRANSACTIONS,                 SUM(CASE WHEN p.PAYMENT_STATUS = 'FAILED' THEN 1 ELSE 0 END) as FAILED_TRANSACTIONS,                 SUM(p.AMOUNT) as TOTAL_AMOUNT,                 SUM(CASE WHEN p.PAYMENT_STATUS = 'COMPLETED' THEN p.AMOUNT ELSE 0 END) as SUCCESSFUL_AMOUNT,                 AVG(p.AMOUNT) as AVG_TRANSACTION_AMOUNT,                 ROUND(                     SUM(CASE WHEN p.PAYMENT_STATUS = 'COMPLETED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as SUCCESS_RATE,                 ROUND(                     SUM(CASE WHEN p.PAYMENT_STATUS = 'FAILED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as FAILURE_RATE,                 ROUND(                     1.5, 2                 ) as AVG_PROCESSING_TIME_MINUTES,                 -- 시간대별 사용률                 ROUND(                     SUM(CASE WHEN TO_NUMBER(TO_CHAR(p.CREATED_AT, 'HH24')) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as MORNING_USAGE_RATE,                 ROUND(                     SUM(CASE WHEN TO_NUMBER(TO_CHAR(p.CREATED_AT, 'HH24')) BETWEEN 12 AND 17 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as AFTERNOON_USAGE_RATE,                 ROUND(                     SUM(CASE WHEN TO_NUMBER(TO_CHAR(p.CREATED_AT, 'HH24')) BETWEEN 18 AND 23 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as EVENING_USAGE_RATE,                 ROUND(                     SUM(CASE WHEN TO_NUMBER(TO_CHAR(p.CREATED_AT, 'HH24')) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as NIGHT_USAGE_RATE,                 -- 요일별 사용률                 ROUND(                     SUM(CASE WHEN TO_CHAR(p.CREATED_AT, 'D') IN ('2','3','4','5','6') THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as WEEKDAY_USAGE_RATE,                 ROUND(                     SUM(CASE WHEN TO_CHAR(p.CREATED_AT, 'D') IN ('1','7') THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2                 ) as WEEKEND_USAGE_RATE,                 -- 상위 국가 분석 (서브쿼리로 처리)                 (SELECT country FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                     ORDER BY cnt DESC                 ) WHERE ROWNUM = 1) as TOP_COUNTRY_1,                 (SELECT ROUND(cnt * 100.0 / total_cnt, 2) FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt, SUM(COUNT(*)) OVER() as total_cnt,                            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rn                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                 ) WHERE rn = 1) as TOP_COUNTRY_1_RATE,                 (SELECT country FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt,                            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rn                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                 ) WHERE rn = 2) as TOP_COUNTRY_2,                 (SELECT ROUND(cnt * 100.0 / total_cnt, 2) FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt, SUM(COUNT(*)) OVER() as total_cnt,                            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rn                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                 ) WHERE rn = 2) as TOP_COUNTRY_2_RATE,                 (SELECT country FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt,                            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rn                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                 ) WHERE rn = 3) as TOP_COUNTRY_3,                 (SELECT ROUND(cnt * 100.0 / total_cnt, 2) FROM (                     SELECT ua2.COUNTRY, COUNT(*) as cnt, SUM(COUNT(*)) OVER() as total_cnt,                            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rn                     FROM PAYMENTS p2, ORDERS o2, USER_ADDRESSES ua2                     WHERE p2.ORDER_ID = o2.ORDER_ID                     AND o2.BILLING_ADDRESS_ID = ua2.ADDRESS_ID                     AND p2.PAYMENT_METHOD = p.PAYMENT_METHOD                     GROUP BY ua2.COUNTRY                 ) WHERE rn = 3) as TOP_COUNTRY_3_RATE,                 -- 월별 성장률 (현재 월 vs 이전 월)                 NVL(                     (current_month.CURRENT_AMOUNT - previous_month.PREVIOUS_AMOUNT) /                      NULLIF(previous_month.PREVIOUS_AMOUNT, 0) * 100, 0                 ) as MONTHLY_GROWTH_RATE             FROM PAYMENTS p,                  -- 현재 월 데이터                  (SELECT                      p3.PAYMENT_METHOD,                     SUM(p3.AMOUNT) as CURRENT_AMOUNT                   FROM PAYMENTS p3                   WHERE TO_CHAR(p3.CREATED_AT, 'YYYY-MM') = TO_CHAR(SYSDATE, 'YYYY-MM')                   AND p3.PAYMENT_STATUS = 'COMPLETED'                   GROUP BY p3.PAYMENT_METHOD) current_month,                  -- 이전 월 데이터                  (SELECT                      p4.PAYMENT_METHOD,                     SUM(p4.AMOUNT) as PREVIOUS_AMOUNT                   FROM PAYMENTS p4                   WHERE TO_CHAR(p4.CREATED_AT, 'YYYY-MM') = TO_CHAR(ADD_MONTHS(SYSDATE, -1), 'YYYY-MM')                   AND p4.PAYMENT_STATUS = 'COMPLETED'                   GROUP BY p4.PAYMENT_METHOD) previous_month             WHERE 1=1                                           AND p.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                 AND p.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                       AND p.PAYMENT_METHOD = current_month.PAYMENT_METHOD(+)             AND p.PAYMENT_METHOD = previous_month.PAYMENT_METHOD(+)             GROUP BY p.PAYMENT_METHOD, current_month.CURRENT_AMOUNT, previous_month.PREVIOUS_AMOUNT         )         ORDER BY OVERALL_RANK\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentList",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-1062822313091511104.xml\n### The error may involve amzn.bo.mapper.PaymentMapper.selectPaymentList-Inline\n### The error occurred while setting parameters\n### SQL: SELECT * FROM (             SELECT                  p.PAYMENT_ID,                 p.ORDER_ID,                 p.PAYMENT_METHOD,                 p.PAYMENT_STATUS,                 p.AMOUNT,                 p.CURRENCY,                 p.TRANSACTION_ID,                 p.CREATED_AT,                 o.USER_ID,                 u.EMAIL as USER_EMAIL,                 ROW_NUMBER() OVER (ORDER BY p.CREATED_AT DESC) as RN             FROM PAYMENTS p,                  ORDERS o,                  USERS u             WHERE p.ORDER_ID = o.ORDER_ID             AND o.USER_ID = u.USER_ID                               AND p.PAYMENT_METHOD = ?                                               AND p.PAYMENT_STATUS = ?                                                 AND p.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                                 AND p.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                                 AND p.AMOUNT >= ?                                                 AND p.AMOUNT <= ?                         )                         WHERE ROWNUM <= ? + ?               AND RN > ?                   ORDER BY RN\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectPaymentCount",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-13857430593075906359.xml\n### The error may involve amzn.bo.mapper.PaymentMapper.selectPaymentCount-Inline\n### The error occurred while setting parameters\n### SQL: SELECT COUNT(*)         FROM PAYMENTS p,              ORDERS o         WHERE p.ORDER_ID = o.ORDER_ID                       AND p.PAYMENT_METHOD = ?                                 AND p.PAYMENT_STATUS = ?                                   AND p.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                     AND p.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                                     AND p.AMOUNT >= ?                                     AND p.AMOUNT <= ?\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  }, {
+    "xmlFile" : "PaymentMapper.xml",
+    "sqlId" : "selectDailyPaymentTrend",
+    "sqlType" : "SELECT",
+    "errorMessage" : "\n### Error querying database.  Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n\n### The error may exist in file:///tmp/mapper-18246187263628216244.xml\n### The error may involve amzn.bo.mapper.PaymentMapper.selectDailyPaymentTrend-Inline\n### The error occurred while setting parameters\n### SQL: SELECT              TO_CHAR(p.CREATED_AT, 'YYYY-MM-DD') as PAYMENT_DATE,             COUNT(*) as TRANSACTION_COUNT,             SUM(p.AMOUNT) as TOTAL_AMOUNT,             AVG(p.AMOUNT) as AVG_AMOUNT,             SUM(CASE WHEN p.PAYMENT_STATUS = 'COMPLETED' THEN 1 ELSE 0 END) as SUCCESS_COUNT,             SUM(CASE WHEN p.PAYMENT_STATUS = 'FAILED' THEN 1 ELSE 0 END) as FAILURE_COUNT,             ROUND(SUM(CASE WHEN p.PAYMENT_STATUS = 'COMPLETED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as SUCCESS_RATE         FROM PAYMENTS p         WHERE 1=1                         AND p.CREATED_AT >= TO_DATE(?, 'YYYY-MM-DD')                                     AND p.CREATED_AT <= TO_DATE(?, 'YYYY-MM-DD')                     GROUP BY TO_CHAR(p.CREATED_AT, 'YYYY-MM-DD')         ORDER BY PAYMENT_DATE\n### Cause: java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0\n"
+  } ],
+  "fileStatistics" : [ {
+    "fileName" : "ShippingMapper.xml",
+    "totalTests" : 3,
+    "successCount" : 3,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PromotionMapper.xml",
+    "totalTests" : 3,
+    "successCount" : 3,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "UserMapper.xml",
+    "totalTests" : 13,
+    "successCount" : 9,
+    "failureCount" : 4,
+    "successRate" : "69.2"
+  }, {
+    "fileName" : "SellerMapper.xml",
+    "totalTests" : 2,
+    "successCount" : 2,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "AnalyticsMapper.xml",
+    "totalTests" : 12,
+    "successCount" : 9,
+    "failureCount" : 3,
+    "successRate" : "75.0"
+  }, {
+    "fileName" : "InventoryMapper.xml",
+    "totalTests" : 4,
+    "successCount" : 4,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductMapper.xml",
+    "totalTests" : 10,
+    "successCount" : 10,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "ProductAdvancedMapper.xml",
+    "totalTests" : 3,
+    "successCount" : 3,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "OrderMapper.xml",
+    "totalTests" : 10,
+    "successCount" : 6,
+    "failureCount" : 4,
+    "successRate" : "60.0"
+  }, {
+    "fileName" : "CustomerServiceMapper.xml",
+    "totalTests" : 4,
+    "successCount" : 4,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  }, {
+    "fileName" : "PaymentMapper.xml",
+    "totalTests" : 12,
+    "successCount" : 8,
+    "failureCount" : 4,
+    "successRate" : "66.7"
+  } ]
+}

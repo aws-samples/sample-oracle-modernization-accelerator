@@ -1,0 +1,123 @@
+# 매칭되지 않은 바인드 변수 위치 정보
+# 생성일시: 2025-08-24 11:20:34
+# 형식: 변수명 | 매퍼파일 | 라인번호 | SQL 컨텍스트
+
+=== customerSegment ===
+customerSegment | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 230 | END = #{customerSegment}
+
+=== endDate ===
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 61 | <![CDATA[ AND u.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 107 | <![CDATA[ AND u.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 244 | <![CDATA[ AND CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 268 | <![CDATA[ AND CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 292 | <![CDATA[ AND CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 198 | <![CDATA[ AND us.SESSION_START <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 217 | AND o.ORDERED_AT BETWEEN TO_DATE(#{startDate}, 'YYYY-MM-DD') AND TO_DATE(#{endDate}, 'YYYY-MM-DD')
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 274 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 521 | <![CDATA[ AND u.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 110 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 297 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 335 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 380 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 434 | AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 232 | <![CDATA[ AND p.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 273 | <![CDATA[ AND p.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 305 | <![CDATA[ AND p.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 381 | <![CDATA[ AND p.CREATED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+endDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 185 | <![CDATA[ AND o.ORDERED_AT <= TO_DATE(#{endDate}, 'YYYY-MM-DD') ]]>
+
+=== firstName ===
+firstName | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 305 | FIRST_NAME = #{firstName},
+
+=== lastName ===
+lastName | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 308 | LAST_NAME = #{lastName},
+
+=== maxSpent ===
+maxSpent | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 67 | <![CDATA[ AND NVL(order_stats.TOTAL_SPENT, 0) <= #{maxSpent} ]]>
+maxSpent | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 113 | <![CDATA[ AND NVL(order_stats.TOTAL_SPENT, 0) <= #{maxSpent} ]]>
+
+=== minChurnRisk ===
+minChurnRisk | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 344 | <![CDATA[ AND pattern_stats.CHURN_RISK_SCORE >= #{minChurnRisk} ]]>
+
+=== minDormantDays ===
+minDormantDays | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 580 | <![CDATA[ AND TRUNC(SYSDATE) - TRUNC(o.ORDERED_AT) >= #{minDormantDays} ]]>
+minDormantDays | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 582 | <![CDATA[ HAVING MAX(o.ORDERED_AT) < SYSDATE - #{minDormantDays}) dormant_stats, ]]>
+
+=== minReactivationProbability ===
+minReactivationProbability | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 587 | <![CDATA[ AND dormant_stats.REACTIVATION_PROBABILITY >= #{minReactivationProbability} ]]>
+
+=== minSpent ===
+minSpent | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 64 | <![CDATA[ AND NVL(order_stats.TOTAL_SPENT, 0) >= #{minSpent} ]]>
+minSpent | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 110 | <![CDATA[ AND NVL(order_stats.TOTAL_SPENT, 0) >= #{minSpent} ]]>
+
+=== minTotalSpent ===
+minTotalSpent | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 347 | <![CDATA[ AND pattern_stats.TOTAL_SPENT >= #{minTotalSpent} ]]>
+
+=== offset ===
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 71 | <![CDATA[ WHERE ROWNUM <= #{offset} + #{limit} ]]>
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 72 | AND RN > #{offset}
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 120 | <![CDATA[ WHERE ROWNUM <= #{offset} + #{limit} ]]>
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 121 | <![CDATA[ AND RN > #{offset} ]]>
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 283 | <![CDATA[ WHERE ROWNUM <= #{offset} + #{limit} ]]>
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 284 | AND RN > #{offset}
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 75 | <![CDATA[ WHERE ROWNUM <= #{offset} + #{limit} ]]>
+offset | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 76 | <![CDATA[ AND RN > #{offset} ]]>
+
+=== orderNumber ===
+orderNumber | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 85 | AND UPPER(o.ORDER_NUMBER) LIKE '%' || UPPER(#{orderNumber}) || '%'
+
+=== orderValueCategory ===
+orderValueCategory | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 101 | END = #{orderValueCategory}
+
+=== params ===
+
+=== paymentMethod ===
+paymentMethod | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 94 | AND o.PAYMENT_METHOD = #{paymentMethod}
+paymentMethod | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 264 | AND p.PAYMENT_METHOD = #{paymentMethod}
+paymentMethod | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 296 | AND p.PAYMENT_METHOD = #{paymentMethod}
+
+=== paymentMethodFilter ===
+paymentMethodFilter | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 419 | AND o.PAYMENT_METHOD = #{paymentMethodFilter}
+
+=== performanceCategory ===
+performanceCategory | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 229 | END = #{performanceCategory}
+
+=== productName ===
+productName | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 56 | AND UPPER(p.PRODUCT_NAME) LIKE '%' || UPPER(#{productName}) || '%'
+productName | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 87 | AND UPPER(p.PRODUCT_NAME) LIKE '%' || UPPER(#{productName}) || '%'
+productName | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 444 | #{productName},
+productName | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 463 | PRODUCT_NAME = #{productName},
+
+=== rfmSegment ===
+rfmSegment | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 341 | AND rfm_scores.RFM_SEGMENT = #{rfmSegment}
+
+=== searchKeyword ===
+searchKeyword | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 410 | UPPER(o.ORDER_NUMBER) LIKE UPPER('%' || #{searchKeyword} || '%')
+searchKeyword | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 411 | OR UPPER(u.EMAIL) LIKE UPPER('%' || #{searchKeyword} || '%')
+searchKeyword | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 412 | OR UPPER(u.FIRST_NAME || ' ' || u.LAST_NAME) LIKE UPPER('%' || #{searchKeyword} || '%')
+
+=== startDate ===
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 58 | <![CDATA[ AND u.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 104 | <![CDATA[ AND u.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 241 | AND CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 265 | AND CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 289 | AND CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 195 | AND us.SESSION_START >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 217 | AND o.ORDERED_AT BETWEEN TO_DATE(#{startDate}, 'YYYY-MM-DD') AND TO_DATE(#{endDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 271 | AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/analytics/AnalyticsMapper.xml | 라인 518 | AND u.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 107 | <![CDATA[ AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 294 | <![CDATA[ AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 332 | <![CDATA[ AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 377 | AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/order/OrderMapper.xml | 라인 429 | AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 229 | <![CDATA[ AND p.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 270 | <![CDATA[ AND p.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 302 | <![CDATA[ AND p.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/payment/PaymentMapper.xml | 라인 378 | <![CDATA[ AND p.CREATED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+startDate | workspace/src-orcl/src/main/resources/sqlmap/mapper/product/ProductMapper.xml | 라인 182 | <![CDATA[ AND o.ORDERED_AT >= TO_DATE(#{startDate}, 'YYYY-MM-DD') ]]>
+
+=== userGrade ===
+userGrade | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 55 | END = #{userGrade}
+userGrade | workspace/src-orcl/src/main/resources/sqlmap/mapper/user/UserMapper.xml | 라인 101 | END = #{userGrade}
+

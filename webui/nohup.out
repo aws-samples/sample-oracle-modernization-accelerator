@@ -1,0 +1,1864 @@
+가상환경을 활성화합니다...
+필요한 패키지를 설치합니다...
+Requirement already satisfied: streamlit>=1.28.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 1)) (1.49.0)
+Requirement already satisfied: pathlib2>=2.3.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 2)) (2.3.7.post1)
+Requirement already satisfied: pandas>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 3)) (2.3.2)
+Requirement already satisfied: plotly>=5.15.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 4)) (6.3.0)
+Requirement already satisfied: tornado!=6.5.0,<7,>=6.0.3 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.5.2)
+Requirement already satisfied: protobuf<7,>=3.20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.32.0)
+Requirement already satisfied: tenacity<10,>=8.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (9.1.2)
+Requirement already satisfied: typing-extensions<5,>=4.4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (4.15.0)
+Requirement already satisfied: watchdog<7,>=2.1.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.0.0)
+Requirement already satisfied: cachetools<7,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.2.0)
+Requirement already satisfied: click<9,>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (8.1.8)
+Requirement already satisfied: pillow<12,>=7.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (11.3.0)
+Requirement already satisfied: pydeck<1,>=0.8.0b4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.9.1)
+Requirement already satisfied: packaging<26,>=20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (25.0)
+Requirement already satisfied: altair!=5.4.0,!=5.4.1,<6,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (5.5.0)
+Requirement already satisfied: blinker<2,>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (1.9.0)
+Requirement already satisfied: numpy<3,>=1.23 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.0.2)
+Requirement already satisfied: pyarrow>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (21.0.0)
+Requirement already satisfied: requests<3,>=2.27 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.32.5)
+Requirement already satisfied: toml<2,>=0.10.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.10.2)
+Requirement already satisfied: gitpython!=3.1.19,<4,>=3.0.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.45)
+Requirement already satisfied: six in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pathlib2>=2.3.7->-r requirements.txt (line 2)) (1.17.0)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2.9.0.post0)
+Requirement already satisfied: tzdata>=2022.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: pytz>=2020.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: narwhals>=1.15.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from plotly>=5.15.0->-r requirements.txt (line 4)) (2.2.0)
+Requirement already satisfied: jsonschema>=3.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.25.1)
+Requirement already satisfied: jinja2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.6)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.0.12)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.4.3)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.8.3)
+Requirement already satisfied: idna<4,>=2.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.10)
+Requirement already satisfied: smmap<6,>=3.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitdb<5,>=4.0.1->gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (5.0.2)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jinja2->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.0.2)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.4.1)
+Requirement already satisfied: attrs>=22.2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (25.3.0)
+Requirement already satisfied: rpds-py>=0.7.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.27.0)
+Requirement already satisfied: referencing>=0.28.4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.36.2)
+WARNING: You are using pip version 21.3.1; however, version 25.2 is available.
+You should consider upgrading via the '/home/ec2-user/workspace/chalee/webui/venv/bin/python3 -m pip install --upgrade pip' command.
+OMA Streamlit 애플리케이션을 시작합니다...
+브라우저에서 http://localhost:8501 로 접속하세요.
+
+종료하려면 Ctrl+C를 누르세요.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+2025-08-28 00:21:51.722 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:21:56.097 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:21:56.161 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:21:58.595 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:21:58.695 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:01.848 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:01.938 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:03.808 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:04.472 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:37.148 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:37.229 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:40.375 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:40.455 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:51.233 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:51.325 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:52.988 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:22:55.113 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:01.017 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:03.587 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:04.562 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:06.940 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:07.003 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:12.128 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:14.436 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:54.904 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:57.153 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:42:57.946 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:43:00.132 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:43:00.187 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:43:02.644 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:43:05.023 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:44:04.625 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:44:07.059 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:44:09.578 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:44.464 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:46.756 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:48.897 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:48.955 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:51.491 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:45:54.003 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:28.640 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:30.607 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:32.254 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:32.310 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:34.216 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:46:36.725 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:32.650 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:35.905 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:37.462 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:37.517 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:39.652 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:47:42.137 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:49:21.013 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:49:21.143 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:51:53.718 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:05.756 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:11.032 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:13.302 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:17.336 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:17.391 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:35.457 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:35.535 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:37.225 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:52:39.401 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:03.914 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:03.994 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:04.932 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:07.261 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:31.160 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:33.529 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:36.307 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:36.370 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:41.437 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:53:43.812 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:58:44.782 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:58:44.822 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:59:47.999 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 00:59:48.043 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:02:49.862 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:02:49.902 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+./run_oma_app.sh: line 35: 662288 Segmentation fault      (core dumped) streamlit run oma_streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+가상환경을 활성화합니다...
+필요한 패키지를 설치합니다...
+Requirement already satisfied: streamlit>=1.28.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 1)) (1.49.0)
+Requirement already satisfied: pathlib2>=2.3.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 2)) (2.3.7.post1)
+Requirement already satisfied: pandas>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 3)) (2.3.2)
+Requirement already satisfied: plotly>=5.15.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 4)) (6.3.0)
+Requirement already satisfied: watchdog<7,>=2.1.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.0.0)
+Requirement already satisfied: altair!=5.4.0,!=5.4.1,<6,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (5.5.0)
+Requirement already satisfied: tornado!=6.5.0,<7,>=6.0.3 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.5.2)
+Requirement already satisfied: packaging<26,>=20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (25.0)
+Requirement already satisfied: pyarrow>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (21.0.0)
+Requirement already satisfied: numpy<3,>=1.23 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.0.2)
+Requirement already satisfied: requests<3,>=2.27 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.32.5)
+Requirement already satisfied: tenacity<10,>=8.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (9.1.2)
+Requirement already satisfied: pydeck<1,>=0.8.0b4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.9.1)
+Requirement already satisfied: gitpython!=3.1.19,<4,>=3.0.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.45)
+Requirement already satisfied: pillow<12,>=7.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (11.3.0)
+Requirement already satisfied: protobuf<7,>=3.20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.32.0)
+Requirement already satisfied: click<9,>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (8.1.8)
+Requirement already satisfied: toml<2,>=0.10.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.10.2)
+Requirement already satisfied: blinker<2,>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (1.9.0)
+Requirement already satisfied: typing-extensions<5,>=4.4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (4.15.0)
+Requirement already satisfied: cachetools<7,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.2.0)
+Requirement already satisfied: six in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pathlib2>=2.3.7->-r requirements.txt (line 2)) (1.17.0)
+Requirement already satisfied: pytz>=2020.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2.9.0.post0)
+Requirement already satisfied: tzdata>=2022.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: narwhals>=1.15.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from plotly>=5.15.0->-r requirements.txt (line 4)) (2.2.0)
+Requirement already satisfied: jsonschema>=3.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.25.1)
+Requirement already satisfied: jinja2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.6)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.0.12)
+Requirement already satisfied: idna<4,>=2.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2.5.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.4.3)
+Requirement already satisfied: certifi>=2017.4.17 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.8.3)
+Requirement already satisfied: smmap<6,>=3.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitdb<5,>=4.0.1->gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (5.0.2)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jinja2->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.0.2)
+Requirement already satisfied: attrs>=22.2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (25.3.0)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.4.1)
+Requirement already satisfied: rpds-py>=0.7.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.27.0)
+Requirement already satisfied: referencing>=0.28.4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.36.2)
+WARNING: You are using pip version 21.3.1; however, version 25.2 is available.
+You should consider upgrading via the '/home/ec2-user/workspace/chalee/webui/venv/bin/python3 -m pip install --upgrade pip' command.
+OMA Streamlit 애플리케이션을 시작합니다...
+브라우저에서 http://localhost:8501 로 접속하세요.
+
+종료하려면 Ctrl+C를 누르세요.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+  Stopping...
+가상환경을 활성화합니다...
+필요한 패키지를 설치합니다...
+Requirement already satisfied: streamlit>=1.28.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 1)) (1.49.0)
+Requirement already satisfied: pathlib2>=2.3.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 2)) (2.3.7.post1)
+Requirement already satisfied: pandas>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 3)) (2.3.2)
+Requirement already satisfied: plotly>=5.15.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from -r requirements.txt (line 4)) (6.3.0)
+Requirement already satisfied: pyarrow>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (21.0.0)
+Requirement already satisfied: altair!=5.4.0,!=5.4.1,<6,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (5.5.0)
+Requirement already satisfied: packaging<26,>=20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (25.0)
+Requirement already satisfied: pillow<12,>=7.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (11.3.0)
+Requirement already satisfied: pydeck<1,>=0.8.0b4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.9.1)
+Requirement already satisfied: gitpython!=3.1.19,<4,>=3.0.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.45)
+Requirement already satisfied: blinker<2,>=1.5.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (1.9.0)
+Requirement already satisfied: cachetools<7,>=4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.2.0)
+Requirement already satisfied: toml<2,>=0.10.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (0.10.2)
+Requirement already satisfied: requests<3,>=2.27 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.32.5)
+Requirement already satisfied: watchdog<7,>=2.1.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.0.0)
+Requirement already satisfied: protobuf<7,>=3.20 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.32.0)
+Requirement already satisfied: typing-extensions<5,>=4.4.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (4.15.0)
+Requirement already satisfied: numpy<3,>=1.23 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (2.0.2)
+Requirement already satisfied: click<9,>=7.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (8.1.8)
+Requirement already satisfied: tornado!=6.5.0,<7,>=6.0.3 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (6.5.2)
+Requirement already satisfied: tenacity<10,>=8.1.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from streamlit>=1.28.0->-r requirements.txt (line 1)) (9.1.2)
+Requirement already satisfied: six in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pathlib2>=2.3.7->-r requirements.txt (line 2)) (1.17.0)
+Requirement already satisfied: tzdata>=2022.7 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from pandas>=1.5.0->-r requirements.txt (line 3)) (2025.2)
+Requirement already satisfied: narwhals>=1.15.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from plotly>=5.15.0->-r requirements.txt (line 4)) (2.2.0)
+Requirement already satisfied: jsonschema>=3.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.25.1)
+Requirement already satisfied: jinja2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.1.6)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (4.0.12)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.4.3)
+Requirement already satisfied: idna<4,>=2.5 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from requests<3,>=2.27->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.8.3)
+Requirement already satisfied: smmap<6,>=3.0.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from gitdb<5,>=4.0.1->gitpython!=3.1.19,<4,>=3.0.7->streamlit>=1.28.0->-r requirements.txt (line 1)) (5.0.2)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jinja2->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (3.0.2)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (2025.4.1)
+Requirement already satisfied: rpds-py>=0.7.1 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.27.0)
+Requirement already satisfied: referencing>=0.28.4 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (0.36.2)
+Requirement already satisfied: attrs>=22.2.0 in /home/ec2-user/workspace/chalee/webui/venv/lib/python3.9/site-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<6,>=4.0->streamlit>=1.28.0->-r requirements.txt (line 1)) (25.3.0)
+WARNING: You are using pip version 21.3.1; however, version 25.2 is available.
+You should consider upgrading via the '/home/ec2-user/workspace/chalee/webui/venv/bin/python3 -m pip install --upgrade pip' command.
+OMA Streamlit 애플리케이션을 시작합니다...
+브라우저에서 http://localhost:8501 로 접속하세요.
+
+종료하려면 Ctrl+C를 누르세요.
+
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+2025-08-28 01:07:41.229 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:07:43.702 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:08:33.880 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:08:33.939 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:08:44.718 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:08:47.002 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-28 01:08:47.046 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:25.379 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:29.008 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:39.705 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:39.769 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:49.366 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:49.445 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:49:59.807 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:50:01.964 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 01:50:01.999 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:42:01.249 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:42:47.618 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:42:51.989 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:42:58.400 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:42:58.458 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:43:10.797 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-08-29 05:43:10.877 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:16.090 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:19.580 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:24.617 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:24.671 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:28.952 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:31.424 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:47:31.458 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:49:41.327 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:49:41.365 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:49:48.967 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:49:49.044 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:49:49.082 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:50:34.149 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:50:34.223 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:50:38.186 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:50:38.262 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:02.346 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:02.422 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:22.567 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:22.640 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:29.987 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:32.930 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:51:32.983 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:08.647 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:08.699 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:11.765 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:11.833 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:15.344 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:15.412 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:23.088 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:23.183 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:39.563 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:42.788 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:55:42.850 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:01.214 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:02.925 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:13.629 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:18.896 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:27.559 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:27.642 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:40.438 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:43.679 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:43.752 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:58.354 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:58:58.422 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:59:00.604 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:59:02.730 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:59:02.768 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:59:59.257 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 00:59:59.326 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 01:00:07.207 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 01:00:07.282 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2025-09-02 01:01:12.161 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:12.314 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:12.464 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:12.616 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:12.760 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:12.906 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.056 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.199 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.346 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.495 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.641 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.789 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:13.933 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.078 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.221 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.363 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.507 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.658 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.802 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:14.956 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.105 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.251 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.399 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.563 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.708 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:15.863 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:16.009 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:16.158 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
+2025-09-02 01:01:16.304 `label` got an empty value. This is discouraged for accessibility reasons and may be disallowed in the future by raising an exception. Please provide a non-empty label and hide it with label_visibility if needed.
+Stack (most recent call last):
+  File "/usr/lib64/python3.9/threading.py", line 937, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib64/python3.9/threading.py", line 980, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.9/threading.py", line 917, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 378, in _run_script_thread
+    self._run_script(request.rerun_data)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 685, in _run_script
+    ) = exec_func_with_error_handling(code_to_exec, ctx)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 128, in exec_func_with_error_handling
+    result = func()
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 669, in code_to_exec
+    exec(code, module.__dict__)  # noqa: S102
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1085, in <module>
+    main()
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1024, in main
+    render_action_page(selected_action)
+  File "/home/ec2-user/workspace/oma/webui/oma_streamlit_app.py", line 1053, in render_action_page
+    render_transform_report_page()
+  File "/home/ec2-user/workspace/oma/webui/modules/transform_report.py", line 75, in render_transform_report_page
+    st.text_area("", log_content, height=300, key="transform_report_log_display")
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/runtime/metrics_util.py", line 443, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 595, in text_area
+    return self._text_area(
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/widgets/text_widgets.py", line 638, in _text_area
+    maybe_raise_label_warnings(label, label_visibility)
+  File "/home/ec2-user/workspace/chalee/webui/venv/lib64/python3.9/site-packages/streamlit/elements/lib/policies.py", line 184, in maybe_raise_label_warnings
+    _LOGGER.warning(
