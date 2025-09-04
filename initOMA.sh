@@ -546,7 +546,7 @@ show_environment_menu() {
 show_analysis_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}1. 애플리케이션 분석 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}2. 애플리케이션 분석 메뉴${NC}"
         print_separator
         echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
         echo ""
@@ -556,7 +556,6 @@ show_analysis_menu() {
         echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
-        print_separator
         echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
         read choice
         
@@ -597,7 +596,7 @@ show_analysis_menu() {
 show_analysis_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}1. 애플리케이션 분석 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}2. 애플리케이션 분석 메뉴${NC}"
         print_separator
         echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
         echo ""
@@ -607,6 +606,7 @@ show_analysis_menu() {
         echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
+        print_separator
         echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
         read choice
         
@@ -673,7 +673,7 @@ execute_parameter_config() {
     if [ -f "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" ]; then
         echo -e "${CYAN}bulk_prepare.sh를 실행합니다...${NC}"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../test/bulk_prepare.sh $SOURCE_SQL_MAPPER_FOLDER${NC}"
-        "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" "$SOURCE_SQL_MAPPER_FOLDER"
+        (cd "$APP_TOOLS_FOLDER/../test" && ./bulk_prepare.sh "$SOURCE_SQL_MAPPER_FOLDER")
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}Parameter 구성이 완료되었습니다.${NC}"
         else
@@ -690,7 +690,7 @@ execute_parameter_config() {
 show_application_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}2. 애플리케이션 변환 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}3. 애플리케이션 변환 메뉴${NC}"
         print_separator
         echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
         echo -e "${YELLOW}Sample 변환을 수행한 이후에, 테스트 및 결과 수정을 먼저 수행해야 합니다.${NC}"
@@ -701,7 +701,7 @@ show_application_menu() {
         echo ""
         echo -e "${CYAN}3. Compare XMLs${NC}${YELLOW} : 원본과 변환된 XML 파일 비교${NC}"
         echo -e "${CYAN}4. Parameter 구성${NC}"
-        echo -e "${CYAN}5. 변환 테스트 및 결과 수정${NC}"
+        echo -e "${CYAN}5. 변환 테스트 및 결과 수정${NC}${YELLOW} : 문법 검증${NC}"
         echo ""
         echo -e "${CYAN}6. XML Merge 작업 - SQLID to XML${NC}"
         echo ""
@@ -756,11 +756,11 @@ show_application_menu() {
     done
 }
 
-# SQL 테스트 수행 메뉴
+# SQL 데이터 테스트 수행 메뉴
 show_test_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}3. SQL 테스트 수행 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}4. SQL 데이터 테스트 수행 메뉴${NC}"
         print_separator
         echo -e "${CYAN}1. XML List 생성${NC}${YELLOW} : Unit Test용 XML 목록 생성${NC}"
         echo -e "${CYAN}2. 애플리케이션 SQL Unit Test${NC}${YELLOW} : 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
@@ -826,13 +826,14 @@ while true; do
     echo -e "${BLUE}${BOLD}OMA 메인 메뉴${NC}"
     print_separator
     echo -e "${YELLOW}0. 환경 설정 및 확인${NC}"
-    echo -e "${CYAN}1. 애플리케이션 분석${NC}"
-    echo -e "${CYAN}2. 애플리케이션 변환${NC}"
-    echo -e "${CYAN}3. SQL 테스트 수행${NC}"
-    echo -e "${CYAN}4. 변환 작업 보고서${NC}"
+    echo -e "${CYAN}1. DBMS 추가변환${NC}"
+    echo -e "${CYAN}2. 애플리케이션 분석${NC}"
+    echo -e "${CYAN}3. 애플리케이션 변환${NC}"
+    echo -e "${CYAN}4. SQL 데이터 테스트 수행${NC}"
+    echo -e "${CYAN}5. 변환 작업 보고서${NC}"
     echo -e "${YELLOW}q. 종료${NC}"
     print_separator
-    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,q): ${NC}"
+    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,5,q): ${NC}"
     read choice
 
     case $choice in
@@ -842,17 +843,21 @@ while true; do
             ;;
         1)
             clear
-            show_analysis_menu
+            execute_db_schema
             ;;
         2)
             clear
-            show_application_menu
+            show_analysis_menu
             ;;
         3)
             clear
-            show_test_menu
+            show_application_menu
             ;;
         4)
+            clear
+            show_test_menu
+            ;;
+        5)
             clear
             show_completion_menu
             ;;
