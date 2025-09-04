@@ -1004,12 +1004,11 @@ def display_parameter_section(xml_file_path, form_key="default"):
         return
     
     # 파라미터 파일 경로
-    app_tools_folder = os.getenv('APP_TOOLS_FOLDER')
-    if not app_tools_folder:
-        st.error("❌ APP_TOOLS_FOLDER 환경변수가 설정되지 않았습니다.")
+    test_folder = os.getenv('TEST_FOLDER')
+    if not test_folder:
+        st.error("❌ TEST_FOLDER 환경변수가 설정되지 않았습니다.")
         return
     
-    test_folder = os.path.join(app_tools_folder, '..', 'test')
     param_file_path = os.path.join(test_folder, 'parameters.properties')
     
     # 기존 파라미터 로드

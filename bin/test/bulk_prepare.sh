@@ -112,9 +112,9 @@ fi
 echo ""
 
 # 기존 파라미터 파일 백업
-if [ -f "parameters.properties" ]; then
-    BACKUP_FILE="parameters.properties.backup.$(date +%Y%m%d_%H%M%S)"
-    cp parameters.properties "$BACKUP_FILE"
+if [ -f "$TEST_FOLDER/parameters.properties" ]; then
+    BACKUP_FILE="$TEST_FOLDER/parameters.properties.backup.$(date +%Y%m%d_%H%M%S)"
+    cp "$TEST_FOLDER/parameters.properties" "$BACKUP_FILE"
     echo -e "${YELLOW}기존 파라미터 파일을 백업했습니다: $BACKUP_FILE${NC}"
 fi
 
@@ -130,9 +130,9 @@ if [ $? -eq 0 ]; then
     echo ""
     echo -e "${GREEN}=== 파라미터 추출 완료 ===${NC}"
     
-    if [ -f "parameters.properties" ]; then
-        PARAM_COUNT=$(grep -c "^[^#].*=" parameters.properties 2>/dev/null | tr -d '\n' || echo "0")
-        SAMPLE_COUNT=$(grep -c "# 소스:" parameters.properties 2>/dev/null | tr -d '\n' || echo "0")
+    if [ -f "$TEST_FOLDER/parameters.properties" ]; then
+        PARAM_COUNT=$(grep -c "^[^#].*=" "$TEST_FOLDER/parameters.properties" 2>/dev/null | tr -d '\n' || echo "0")
+        SAMPLE_COUNT=$(grep -c "# 소스:" "$TEST_FOLDER/parameters.properties" 2>/dev/null | tr -d '\n' || echo "0")
         
         # Ensure variables are numeric
         if ! [[ "$PARAM_COUNT" =~ ^[0-9]+$ ]]; then
@@ -144,7 +144,7 @@ if [ $? -eq 0 ]; then
         
         MANUAL_COUNT=$((PARAM_COUNT - SAMPLE_COUNT))
         
-        echo -e "생성된 파일: ${YELLOW}parameters.properties${NC}"
+        echo -e "생성된 파일: ${YELLOW}$TEST_FOLDER/parameters.properties${NC}"
         echo -e "총 파라미터: ${YELLOW}$PARAM_COUNT개${NC}"
         
         if [ -n "$DB_MODE" ] && [ $SAMPLE_COUNT -gt 0 ]; then
@@ -161,17 +161,17 @@ if [ $? -eq 0 ]; then
         
         echo ""
         echo -e "${BLUE}다음 단계:${NC}"
-        echo -e "1. ${YELLOW}parameters.properties${NC} 파일을 확인하고 필요시 수정하세요"
+        echo -e "1. ${YELLOW}$TEST_FOLDER/parameters.properties${NC} 파일을 확인하고 필요시 수정하세요"
         echo -e "2. ${YELLOW}./bulk_execute.sh${NC} 또는 ${YELLOW}./bulk_json.sh${NC}로 실행하세요"
         echo ""
         echo -e "${GREEN}파라미터 파일 미리보기 (처음 15줄):${NC}"
-        head -15 parameters.properties
+        head -15 "$TEST_FOLDER/parameters.properties"
         
         if [ $PARAM_COUNT -gt 15 ]; then
             echo -e "${BLUE}... (총 $PARAM_COUNT개 파라미터)${NC}"
         fi
     else
-        echo -e "${RED}오류: parameters.properties 파일이 생성되지 않았습니다.${NC}"
+        echo -e "${RED}오류: $TEST_FOLDER/parameters.properties 파일이 생성되지 않았습니다.${NC}"
         exit 1
     fi
 else

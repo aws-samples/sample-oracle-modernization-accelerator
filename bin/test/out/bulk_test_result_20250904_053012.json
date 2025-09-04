@@ -1,0 +1,29 @@
+{
+  "testInfo" : {
+    "timestamp" : "2025-09-04 05:30:12",
+    "directory" : "/home/ec2-user/workspace/oma/amzn/logs/application/mapper/mapper/user/UserMapper/extract/UserMapper_src-03-select-selectUserDetail.xml",
+    "databaseType" : "ORACLE",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  },
+  "successfulTests" : [ {
+    "xmlFile" : "UserMapper_src-03-select-selectUserDetail.xml",
+    "sqlId" : "selectUserDetail",
+    "sqlType" : "SELECT",
+    "rowCount" : 0,
+    "resultData" : {
+      "count" : 0,
+      "data" : [ ]
+    }
+  } ],
+  "failedTests" : [ ],
+  "fileStatistics" : [ {
+    "fileName" : "UserMapper_src-03-select-selectUserDetail.xml",
+    "totalTests" : 1,
+    "successCount" : 1,
+    "failureCount" : 0,
+    "successRate" : "100.0"
+  } ]
+}

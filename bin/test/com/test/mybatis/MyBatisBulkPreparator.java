@@ -14,9 +14,14 @@ import java.util.regex.Pattern;
 public class MyBatisBulkPreparator {
     
     private static final Pattern PARAM_PATTERN = Pattern.compile("(#\\{[^}]+\\}|\\$\\{[^}]+\\})");
-    private static final String OUTPUT_FILE = "parameters.properties";
+    private static final String OUTPUT_FILENAME = "parameters.properties";
     private static final String DEFAULT_PARAMS_FILE = "default.parameters";
     // METADATA_FILE 경로를 동적으로 설정하도록 변경
+    
+    private static String getOutputFilePath() {
+        String testFolder = System.getenv("TEST_FOLDER");
+        return testFolder != null ? testFolder + "/" + OUTPUT_FILENAME : OUTPUT_FILENAME;
+    }
     
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -126,7 +131,7 @@ public class MyBatisBulkPreparator {
             generateParameterFile(allParameters);
             
             System.out.println("\n=== 완료 ===");
-            System.out.println("파라미터 파일: " + OUTPUT_FILE);
+            System.out.println("파라미터 파일: " + getOutputFilePath());
             System.out.println("파일을 편집한 후 MyBatisBulkExecutor로 실행하세요.");
             
         } catch (Exception e) {
@@ -173,12 +178,24 @@ public class MyBatisBulkPreparator {
     private List<ColumnInfo> loadMetadata(String mapperPath) throws IOException {
         List<ColumnInfo> columns = new ArrayList<>();
         
-        // 매퍼 경로에서 oma_metadata.txt 파일 찾기
-        String metadataFile = mapperPath + "/oma_metadata.txt";
+        // APP_TRANSFORM_FOLDER에서 oma_metadata.txt 파일 찾기
+        String transformFolder = System.getenv("APP_TRANSFORM_FOLDER");
+        String metadataFile;
+        
+        if (transformFolder != null && !transformFolder.isEmpty()) {
+            metadataFile = transformFolder + "/oma_metadata.txt";
+        } else {
+            // 환경변수가 없으면 매퍼 경로에서 찾기 (기존 방식)
+            metadataFile = mapperPath + "/oma_metadata.txt";
+        }
+        
         Path metadataPath = Paths.get(metadataFile);
         
         if (!Files.exists(metadataPath)) {
             System.out.println("⚠️  메타데이터 파일을 찾을 수 없습니다: " + metadataFile);
+            if (transformFolder != null) {
+                System.out.println("   APP_TRANSFORM_FOLDER: " + transformFolder);
+            }
             System.out.println("   DB 샘플 값 수집을 건너뜁니다.");
             return columns;
         }
@@ -549,7 +566,7 @@ public class MyBatisBulkPreparator {
      * 샘플 값이 포함된 파라미터 파일 생성
      */
     private void generateParameterFileWithSamples(Set<String> parameters, Map<String, String> defaultValues, Map<String, SampleValue> sampleValues) throws IOException {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(OUTPUT_FILE))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(getOutputFilePath()))) {
             writer.println("# MyBatis 파라미터 설정 파일 (기본값 + DB 샘플 값 포함)");
             writer.println("# 생성일시: " + new java.util.Date());
             writer.println("# 우선순위: DB 샘플 값 > 기본값 > 빈 값");
@@ -610,7 +627,7 @@ public class MyBatisBulkPreparator {
         System.out.println("수동 설정 필요: " + emptyCount + "개");
         System.out.printf("자동 설정률: %.1f%% (DB 샘플 + 기본값)%n", 
             ((dbSampleCount + defaultValueCount) * 100.0 / totalParams));
-        System.out.println("\nparameters.properties 파일이 생성되었습니다.");
+        System.out.println("\n" + getOutputFilePath() + " 파일이 생성되었습니다.");
         
         // 수동 설정이 필요한 파라미터 목록
         Set<String> manualParams = new TreeSet<>();
@@ -753,7 +770,7 @@ public class MyBatisBulkPreparator {
      * 파라미터 파일 생성 (알파벳순 정렬)
      */
     private void generateParameterFile(Set<String> parameters) throws IOException {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(OUTPUT_FILE))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(getOutputFilePath()))) {
             writer.println("# MyBatis 파라미터 설정 파일 (대량 추출)");
             writer.println("# 생성일시: " + new java.util.Date());
             writer.println("# 사용법: 각 파라미터에 대해 테스트용 값을 설정하세요.");
