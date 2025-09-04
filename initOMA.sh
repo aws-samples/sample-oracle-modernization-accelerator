@@ -663,6 +663,29 @@ execute_compare_xmls() {
     print_separator
 }
 
+# Parameter 구성 실행
+execute_parameter_config() {
+    print_separator
+    echo -e "${BLUE}${BOLD}Parameter 구성을 시작하기 전 3초 대기합니다...${NC}"
+    sleep 3
+    echo -e "${BLUE}${BOLD}Parameter 구성 스크립트 실행${NC}"
+    
+    if [ -f "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" ]; then
+        echo -e "${CYAN}bulk_prepare.sh를 실행합니다...${NC}"
+        echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../test/bulk_prepare.sh $SOURCE_SQL_MAPPER_FOLDER${NC}"
+        "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" "$SOURCE_SQL_MAPPER_FOLDER"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Parameter 구성이 완료되었습니다.${NC}"
+        else
+            echo -e "${RED}Parameter 구성 중 오류가 발생했습니다.${NC}"
+        fi
+    else
+        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../test/bulk_prepare.sh 파일을 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    print_separator
+}
+
 # 애플리케이션 변환 메뉴
 show_application_menu() {
     while true; do
@@ -677,14 +700,15 @@ show_application_menu() {
         echo -e "${CYAN}2. 애플리케이션 SQL 전체 변환 작업${NC}"
         echo ""
         echo -e "${CYAN}3. Compare XMLs${NC}${YELLOW} : 원본과 변환된 XML 파일 비교${NC}"
-        echo -e "${CYAN}4. 변환 테스트 및 결과 수정${NC}"
+        echo -e "${CYAN}4. Parameter 구성${NC}"
+        echo -e "${CYAN}5. 변환 테스트 및 결과 수정${NC}"
         echo ""
-        echo -e "${CYAN}5. XML Merge 작업 - SQLID to XML${NC}"
+        echo -e "${CYAN}6. XML Merge 작업 - SQLID to XML${NC}"
         echo ""
         echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
         echo -e "${YELLOW}q. 종료${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,b,q): ${NC}"
+        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,6,b,q): ${NC}"
         read choice
         
         case $choice in
@@ -702,9 +726,13 @@ show_application_menu() {
                 ;;
             4)
                 clear
-                execute_sample_test_fix
+                execute_parameter_config
                 ;;
             5)
+                clear
+                execute_sample_test_fix
+                ;;
+            6)
                 clear
                 execute_sql_transform_merge
                 ;;
