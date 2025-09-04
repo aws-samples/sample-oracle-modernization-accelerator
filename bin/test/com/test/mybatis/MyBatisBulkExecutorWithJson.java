@@ -488,12 +488,14 @@ public class MyBatisBulkExecutorWithJson {
     
     private Properties loadParameters() {
         Properties props = new Properties();
-        File paramFile = new File(PARAMETERS_FILE);
+        String testFolder = System.getenv("TEST_FOLDER");
+        String paramFilePath = testFolder != null ? testFolder + "/" + PARAMETERS_FILE : PARAMETERS_FILE;
+        File paramFile = new File(paramFilePath);
         
         if (paramFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(PARAMETERS_FILE)) {
+            try (FileInputStream fis = new FileInputStream(paramFilePath)) {
                 props.load(fis);
-                System.out.println("파라미터 파일 로드 완료: " + PARAMETERS_FILE);
+                System.out.println("파라미터 파일 로드 완료: " + paramFilePath);
             } catch (IOException e) {
                 System.err.println("파라미터 파일 로드 실패: " + e.getMessage());
                 System.out.println("지능형 바인드 변수 생성기를 실행합니다...");
@@ -501,7 +503,7 @@ public class MyBatisBulkExecutorWithJson {
                 return loadParameters(); // 재귀 호출로 생성된 파일 로드
             }
         } else {
-            System.out.println("파라미터 파일을 찾을 수 없습니다: " + PARAMETERS_FILE);
+            System.out.println("파라미터 파일을 찾을 수 없습니다: " + paramFilePath);
             System.out.println("지능형 바인드 변수 생성기를 실행합니다...");
             generateParametersWithBindVariableGenerator();
             return loadParameters(); // 재귀 호출로 생성된 파일 로드

@@ -27,12 +27,14 @@ from modules import (
     render_discovery_report_review_page,
     render_postgresql_meta_page,
     render_running_logs_page,
+    render_mapper_validation_page,
     render_sample_transform_page,
     render_full_transform_page,
     render_merge_transform_page,
     render_transform_report_page,
     render_view_transform_report_page,
     render_java_transform_page,
+    render_parameter_config_page,
     render_source_sqls_page
 )
 from modules.qlog_viewer import render_qlog_page
@@ -964,11 +966,13 @@ def main():
                 "🗄️ PostgreSQL 메타데이터": "postgresql_meta"
             },
             "🔄 애플리케이션 변환": {
+                "✅ 매퍼 파일 검증": "mapper_validation",
                 "🧪 샘플 변환 실행": "sample_transform",
                 "🚀 전체 변환 실행": "full_transform",
                 "🔗 XML Merge 실행": "merge_transform"
             },
             "🧪 SQL 테스트": {
+                "⚙️ Parameter 구성": "parameter_config",
                 "⚖️ Compare SQL Test": "source_sqls"
             },
             "📋 변환 보고서": {
@@ -1041,12 +1045,16 @@ def render_action_page(action_key):
         render_discovery_report_review_page()
     elif action_key == "postgresql_meta":
         render_postgresql_meta_page()
+    elif action_key == "mapper_validation":
+        render_mapper_validation_page()
     elif action_key == "sample_transform":
         render_sample_transform_page()
     elif action_key == "full_transform":
         render_full_transform_page()
     elif action_key == "merge_transform":
         render_merge_transform_page()
+    elif action_key == "parameter_config":
+        render_parameter_config_page()
     elif action_key == "source_sqls":
         render_source_sqls_page()
     elif action_key == "transform_report":
