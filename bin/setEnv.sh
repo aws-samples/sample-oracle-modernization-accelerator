@@ -452,16 +452,11 @@ if [ -f "../config/oma.properties" ]; then
     echo "# Alias 설정" >> "$ENV_FILE"
     echo "alias qlog='cd \$APP_LOGS_FOLDER/qlogs && \$APP_TOOLS_FOLDER/tailLatestLog.sh'" >> "$ENV_FILE"
     
-    # 데이터베이스 연결 함수 추가
+    # 데이터베이스 연결 alias 추가
     echo "" >> "$ENV_FILE"
-    echo "# Database Connection Functions" >> "$ENV_FILE"
-    echo "sqlplus-oma() {" >> "$ENV_FILE"
-    echo "    sqlplus \$ORACLE_ADM_USER/\$ORACLE_ADM_PASSWORD@\$ORACLE_HOST:1521/\$ORACLE_SID" >> "$ENV_FILE"
-    echo "}" >> "$ENV_FILE"
-    echo "" >> "$ENV_FILE"
-    echo "psql-oma() {" >> "$ENV_FILE"
-    echo "    PGPASSWORD=\$PG_ADM_PASSWORD psql -h \$PGHOST -p \$PGPORT -U \$PG_ADM_USER -d \$PGDATABASE" >> "$ENV_FILE"
-    echo "}" >> "$ENV_FILE"
+    echo "# Database Connection Aliases" >> "$ENV_FILE"
+    echo "alias sqlplus-oma='sqlplus \$ORACLE_ADM_USER/\$ORACLE_ADM_PASSWORD@\$ORACLE_HOST:1521/\$ORACLE_SID'" >> "$ENV_FILE"
+    echo "alias psql-oma='PGPASSWORD=\$PG_ADM_PASSWORD psql -h \$PGHOST -p \$PGPORT -U \$PG_ADM_USER -d \$PGDATABASE'" >> "$ENV_FILE"
 fi
 
 # 환경 변수 파일에 실행 권한 부여
