@@ -456,7 +456,6 @@ if [ -f "../config/oma.properties" ]; then
     echo "" >> "$ENV_FILE"
     echo "# Database Connection Aliases" >> "$ENV_FILE"
     echo "alias sqlplus-oma='sqlplus \$ORACLE_ADM_USER/\$ORACLE_ADM_PASSWORD@\$ORACLE_HOST:1521/\$ORACLE_SID'" >> "$ENV_FILE"
-    echo "alias psql-oma='PGPASSWORD=\$PG_ADM_PASSWORD psql -h \$PGHOST -p \$PGPORT -U \$PG_ADM_USER -d \$PGDATABASE'" >> "$ENV_FILE"
 fi
 
 # 환경 변수 파일에 실행 권한 부여
