@@ -32,7 +32,19 @@ read_properties() {
     
     # 1단계: COMMON 섹션 먼저 읽기
     local in_common_section=false
-    while IFS='=' read -r key value || [ -n "$key" ]; do
+    while read -r line || [ -n "$line" ]; do
+        # 빈 줄이나 주석 건너뛰기
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        
+        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            key="$line"
+            value=""
+        fi
+        
         # 선행/후행 공백 제거
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -63,7 +75,7 @@ read_properties() {
             env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
             
             # 환경 변수 확장 (APPLICATION_NAME 치환)
-            expanded_value=$(eval echo "$value")
+            expanded_value="${value//\$\{APPLICATION_NAME\}/$APPLICATION_NAME}"
             
             # 환경 변수 설정 (세션 환경 변수로 export)
             export "$env_var"="$expanded_value"
@@ -76,7 +88,19 @@ read_properties() {
     
     # 2단계: 프로젝트 섹션 읽기 (오버라이드)
     local in_project_section=false
-    while IFS='=' read -r key value || [ -n "$key" ]; do
+    while read -r line || [ -n "$line" ]; do
+        # 빈 줄이나 주석 건너뛰기
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        
+        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            key="$line"
+            value=""
+        fi
+        
         # 선행/후행 공백 제거
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -107,7 +131,10 @@ read_properties() {
             env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
             
             # 환경 변수 확장
-            expanded_value=$(eval echo "$value")
+            expanded_value="${value//\$\{APPLICATION_NAME\}/$APPLICATION_NAME}"
+            expanded_value="${expanded_value//\$\{JAVA_SOURCE_FOLDER\}/$JAVA_SOURCE_FOLDER}"
+            expanded_value="${expanded_value//\$\{APPLICATION_FOLDER\}/$APPLICATION_FOLDER}"
+            expanded_value="${expanded_value//\$\{OMA_BASE_DIR\}/$OMA_BASE_DIR}"
             
             # TRANSFORM_RELATED_CLASS인 경우 쉼표 구분 형식을 유지
             if [ "$env_var" = "TRANSFORM_RELATED_CLASS" ]; then
@@ -396,7 +423,19 @@ if [ -f "../config/oma.properties" ]; then
     
     # COMMON 섹션 처리
     in_common_section=false
-    while IFS='=' read -r key value || [ -n "$key" ]; do
+    while read -r line || [ -n "$line" ]; do
+        # 빈 줄이나 주석 건너뛰기
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        
+        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            key="$line"
+            value=""
+        fi
+        
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         
         if [[ $key == "[COMMON]" ]]; then
@@ -415,7 +454,19 @@ if [ -f "../config/oma.properties" ]; then
     
     # 프로젝트 섹션 처리
     in_project_section=false
-    while IFS='=' read -r key value || [ -n "$key" ]; do
+    while read -r line || [ -n "$line" ]; do
+        # 빈 줄이나 주석 건너뛰기
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        
+        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            key="$line"
+            value=""
+        fi
+        
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         
         if [[ $key == "[$selected_project]" ]]; then
