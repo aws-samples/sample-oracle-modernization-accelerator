@@ -502,7 +502,13 @@ if [ -f "../config/oma.properties" ]; then
     echo "" >> "$ENV_FILE"
     echo "# Alias 설정" >> "$ENV_FILE"
     echo "alias qlog='cd \$APP_LOGS_FOLDER/qlogs && \$APP_TOOLS_FOLDER/tailLatestLog.sh'" >> "$ENV_FILE"
-    
+
+    # NLS 환경 변수 추가
+    echo "" >> "$ENV_FILE"
+    echo "# NLS Environment Variables" >> "$ENV_FILE"
+    echo "export NLS_DATE_FORMAT='${NLS_DATE_FORMAT}'" >> "$ENV_FILE"
+    echo "export NLS_LANG=${NLS_LANG}" >> "$ENV_FILE"
+
     # 데이터베이스 연결 alias 추가
     echo "" >> "$ENV_FILE"
     echo "# Database Connection Aliases" >> "$ENV_FILE"
