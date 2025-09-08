@@ -207,6 +207,10 @@ create_postgresql_service_user() {
             echo -e "${BLUE}${BOLD}데이터베이스 연결 권한 부여 중...${NC}"
             PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "$GRANT_CONNECT_SQL"
             
+            # 데이터베이스 CREATE 권한 부여 (스키마 생성 가능)
+            echo -e "${BLUE}${BOLD}데이터베이스 CREATE 권한 부여 중...${NC}"
+            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$GRANT_CREATE_DB_SQL"
+            
             # 스키마 사용 권한 부여
             echo -e "${BLUE}${BOLD}스키마 사용 권한 부여 중...${NC}"
             PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d "$db_name" -c "$GRANT_USAGE_SQL"
