@@ -402,8 +402,12 @@ class OMAController:
                     if env_vars:
                         restored_count = 0
                         for key, value in env_vars.items():
-                            # 현재 환경변수가 없는 경우에만 복원 (기존 환경변수 우선)
-                            if key not in os.environ:
+                            # EC2 환경변수가 있으면 그것을 우선 사용, 없으면 저장된 값 사용
+                            if key in os.environ:
+                                # EC2 환경변수 값으로 config 업데이트 (다음 저장 시 반영됨)
+                                env_vars[key] = os.environ[key]
+                            else:
+                                # 저장된 값을 환경변수로 설정
                                 os.environ[key] = value
                                 restored_count += 1
                     
