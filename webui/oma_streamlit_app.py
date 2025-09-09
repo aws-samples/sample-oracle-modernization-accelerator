@@ -807,6 +807,10 @@ def main():
         if var_count > 0:
             project_name = os.environ.get('APPLICATION_NAME', 'Unknown')
             st.success(f"💾 저장된 환경 설정을 복원했습니다 ({var_count}개 변수) - 프로젝트: {project_name}")
+        
+        # 현재 환경변수로 config 파일 자동 업데이트
+        st.session_state.oma_controller.save_config(dict(os.environ))
+        
         st.session_state.config_loaded = True
     
     # 환경 상태 확인
