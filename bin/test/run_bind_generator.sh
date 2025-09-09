@@ -35,6 +35,9 @@ if [[ ! -d "$MAPPER_DIR" ]]; then
     exit 1
 fi
 
+# TEST_FOLDER 설정 (환경변수가 없으면 매퍼 디렉토리 사용)
+TEST_FOLDER="${TEST_FOLDER:-$MAPPER_DIR}"
+
 echo -e "${BLUE}📁 매퍼 디렉토리: $MAPPER_DIR${NC}"
 
 # 환경변수 확인
@@ -62,8 +65,8 @@ if [[ ! -f "com/test/mybatis/SimpleBindVariableGenerator.class" ]]; then
 fi
 
 # 기존 결과 파일 백업
-if [[ -f "parameters.properties" ]]; then
-    mv parameters.properties "parameters.properties.backup.$(date +%Y%m%d_%H%M%S)"
+if [[ -f "$TEST_FOLDER/parameters.properties" ]]; then
+    mv "$TEST_FOLDER/parameters.properties" "$TEST_FOLDER/parameters.properties.backup.$(date +%Y%m%d_%H%M%S)"
     echo -e "${GREEN}✓ 기존 parameters.properties 백업됨${NC}"
 fi
 
@@ -78,7 +81,7 @@ echo ""
 START_TIME=$(date +%s)
 
 # SimpleBindVariableGenerator 실행
-java -cp ".:lib/*" com.test.mybatis.SimpleBindVariableGenerator "$MAPPER_DIR"
+java -cp ".:lib/*" com.test.mybatis.SimpleBindVariableGenerator "$MAPPER_DIR" "$TEST_FOLDER"
 
 EXIT_CODE=$?
 
@@ -94,9 +97,9 @@ if [[ $EXIT_CODE -eq 0 ]]; then
     echo ""
     
     # 결과 파일 확인
-    if [[ -f "parameters.properties" ]]; then
-        TOTAL_VARS=$(grep -c "^[^#].*=" parameters.properties 2>/dev/null || echo "0")
-        MATCHED_VARS=$(grep -B1 "^[^#].*=" parameters.properties | grep -c "# OMA\." 2>/dev/null || echo "0")
+    if [[ -f "$TEST_FOLDER/parameters.properties" ]]; then
+        TOTAL_VARS=$(grep -c "^[^#].*=" "$TEST_FOLDER/parameters.properties" 2>/dev/null || echo "0")
+        MATCHED_VARS=$(grep -B1 "^[^#].*=" "$TEST_FOLDER/parameters.properties" | grep -c "# OMA\." 2>/dev/null || echo "0")
         UNMATCHED_VARS=$((TOTAL_VARS - MATCHED_VARS))
         
         echo -e "${GREEN}✓ parameters.properties 생성됨${NC}"
@@ -107,7 +110,7 @@ if [[ $EXIT_CODE -eq 0 ]]; then
         if [[ $UNMATCHED_VARS -gt 0 ]]; then
             echo ""
             echo -e "${YELLOW}📝 매칭되지 않은 변수들 (파일 하단 확인):${NC}"
-            grep -A1 "# 매칭 없음" parameters.properties | grep "^[^#]" | head -5
+            grep -A1 "# 매칭 없음" "$TEST_FOLDER/parameters.properties" | grep "^[^#]" | head -5
             if [[ $UNMATCHED_VARS -gt 5 ]]; then
                 echo -e "${YELLOW}... 외 $((UNMATCHED_VARS - 5))개${NC}"
             fi
@@ -115,9 +118,9 @@ if [[ $EXIT_CODE -eq 0 ]]; then
         
         echo ""
         echo -e "${CYAN}📋 parameters.properties 미리보기:${NC}"
-        echo -e "${YELLOW}$(head -15 parameters.properties)${NC}"
-        if [[ $(wc -l < parameters.properties) -gt 15 ]]; then
-            echo -e "${YELLOW}... (총 $(wc -l < parameters.properties)줄)${NC}"
+        echo -e "${YELLOW}$(head -15 "$TEST_FOLDER/parameters.properties")${NC}"
+        if [[ $(wc -l < "$TEST_FOLDER/parameters.properties") -gt 15 ]]; then
+            echo -e "${YELLOW}... (총 $(wc -l < "$TEST_FOLDER/parameters.properties")줄)${NC}"
         fi
     else
         echo -e "${RED}❌ parameters.properties 파일이 생성되지 않았습니다.${NC}"

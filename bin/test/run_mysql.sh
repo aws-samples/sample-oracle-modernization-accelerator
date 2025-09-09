@@ -65,6 +65,12 @@ echo "✅ 컴파일 완료"
 # 실행
 echo ""
 echo "=== MySQL 테스트 실행 ==="
+
+# TEST_FOLDER 환경변수 설정 (첫 번째 인수가 매퍼 디렉토리)
+if [ -z "$TEST_FOLDER" ] && [ -n "$1" ]; then
+    export TEST_FOLDER="$1"
+fi
+
 java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson "$@" --db mysql
 
 echo ""

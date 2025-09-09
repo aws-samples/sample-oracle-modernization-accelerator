@@ -28,10 +28,11 @@ public class SimpleBindVariableGenerator {
     
     public static void main(String[] args) {
         String mapperDir = args.length > 0 ? args[0] : "/home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper";
-        new SimpleBindVariableGenerator().run(mapperDir);
+        String testFolder = args.length > 1 ? args[1] : mapperDir;
+        new SimpleBindVariableGenerator().run(mapperDir, testFolder);
     }
     
-    private void run(String mapperDir) {
+    private void run(String mapperDir, String testFolder) {
         System.out.println("=== 간단한 바인드 변수 생성기 ===\n");
         
         try {
@@ -45,7 +46,7 @@ public class SimpleBindVariableGenerator {
             matchWithDictionary();
             
             // 4. 파일 생성
-            generateFiles();
+            generateFiles(testFolder);
             
             System.out.println("✓ 완료!");
             
@@ -190,6 +191,14 @@ public class SimpleBindVariableGenerator {
         // 정확한 매칭
         if (varName.equals(columnName)) return true;
         
+        // 언더스코어를 카멜케이스로 변환한 매칭
+        String camelCaseColumn = underscoreToCamelCase(columnName);
+        if (varName.equals(camelCaseColumn.toLowerCase())) return true;
+        
+        // 카멜케이스를 언더스코어로 변환한 매칭
+        String underscoreVar = camelCaseToUnderscore(varName);
+        if (underscoreVar.equals(columnName.toUpperCase())) return true;
+        
         // 부분 매칭
         if (varName.contains(columnName) || columnName.contains(varName)) return true;
         
@@ -198,6 +207,43 @@ public class SimpleBindVariableGenerator {
         if (varName.contains("id") && columnName.contains("id")) return true;
         
         return false;
+    }
+    
+    private String underscoreToCamelCase(String underscore) {
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = false;
+        
+        for (char c : underscore.toLowerCase().toCharArray()) {
+            if (c == '_') {
+                capitalizeNext = true;
+            } else {
+                if (capitalizeNext) {
+                    result.append(Character.toUpperCase(c));
+                    capitalizeNext = false;
+                } else {
+                    result.append(c);
+                }
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private String camelCaseToUnderscore(String camelCase) {
+        StringBuilder result = new StringBuilder();
+        
+        for (char c : camelCase.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                if (result.length() > 0) {
+                    result.append('_');
+                }
+                result.append(Character.toLowerCase(c));
+            } else {
+                result.append(c);
+            }
+        }
+        
+        return result.toString().toUpperCase();
     }
     
     private String generateValueByDataType(String dataType, String varName) {
@@ -239,7 +285,7 @@ public class SimpleBindVariableGenerator {
         return "'DEFAULT_" + varName.toUpperCase() + "'";
     }
     
-    private void generateFiles() throws Exception {
+    private void generateFiles(String testFolder) throws Exception {
         System.out.println("4단계: 파일 생성...");
         
         // 매칭된 변수와 매칭되지 않은 변수 분리
@@ -258,7 +304,8 @@ public class SimpleBindVariableGenerator {
         Collections.sort(unmatchedVars);
         
         // parameters.properties 파일 생성
-        try (PrintWriter writer = new PrintWriter(new FileWriter("parameters.properties"))) {
+        String parametersFile = testFolder + "/parameters.properties";
+        try (PrintWriter writer = new PrintWriter(new FileWriter(parametersFile))) {
             writer.println("# 바인드 변수 매개변수 파일");
             writer.println("# 생성일시: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             writer.println("# 총 변수: " + bindVariables.size() + "개 (매칭: " + matchedVars.size() + "개, 매칭 없음: " + unmatchedVars.size() + "개)");
@@ -288,9 +335,7 @@ public class SimpleBindVariableGenerator {
                 
                 for (String varName : unmatchedVars) {
                     BindVariable bindVar = bindVariables.get(varName);
-                    writer.println("# 매칭 없음");
                     writer.println(varName + "=" + bindVar.getValue());
-                    writer.println();
                 }
             }
         }
@@ -348,11 +393,8 @@ public class SimpleBindVariableGenerator {
     }
     
     private String getRelativePath(String absolutePath) {
-        int workspaceIndex = absolutePath.indexOf("workspace/");
-        if (workspaceIndex >= 0) {
-            return absolutePath.substring(workspaceIndex);
-        }
-        return new File(absolutePath).getName();
+        // 절대 경로 반환
+        return absolutePath;
     }
     
     // 내부 클래스들
