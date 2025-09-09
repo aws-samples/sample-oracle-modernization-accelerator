@@ -401,7 +401,9 @@ class OMAController:
                     env_vars = config.get('env_vars', {})
                     if env_vars:
                         for key, value in env_vars.items():
-                            os.environ[key] = value
+                            # 현재 환경변수가 없거나 다른 경우에만 복원
+                            if key not in os.environ or os.environ[key] != value:
+                                os.environ[key] = value
                     
                     return config, len(env_vars)  # 변수 개수도 반환
         except Exception as e:
@@ -808,8 +810,50 @@ def main():
             project_name = os.environ.get('APPLICATION_NAME', 'Unknown')
             st.success(f"💾 저장된 환경 설정을 복원했습니다 ({var_count}개 변수) - 프로젝트: {project_name}")
         
-        # 현재 환경변수로 config 파일 자동 업데이트
-        st.session_state.oma_controller.save_config(dict(os.environ))
+        # 현재 환경변수와 저장된 설정 비교 (update_environment_vars와 동일한 리스트 사용)
+        important_vars = [
+            # 핵심 환경 변수
+            'APPLICATION_NAME', 'OMA_BASE_DIR', 'JAVA_SOURCE_FOLDER',
+            'SOURCE_SQL_MAPPER_FOLDER', 'TARGET_SQL_MAPPER_FOLDER',
+            'TRANSFORM_JNDI', 'TRANSFORM_RELATED_CLASS',
+            'SOURCE_DBMS_TYPE', 'TARGET_DBMS_TYPE',
+            
+            # 폴더 관련
+            'DBMS_FOLDER', 'DBMS_LOGS_FOLDER', 'APPLICATION_FOLDER',
+            'APP_TOOLS_FOLDER', 'APP_TRANSFORM_FOLDER', 'APP_LOGS_FOLDER',
+            'TEST_FOLDER', 'TEST_LOGS_FOLDER',
+            
+            # Oracle 연결 정보
+            'ORACLE_ADM_USER', 'ORACLE_ADM_PASSWORD', 'ORACLE_HOST',
+            'ORACLE_PORT', 'ORACLE_SID', 'ORACLE_SVC_USER',
+            'ORACLE_SVC_PASSWORD', 'ORACLE_SVC_CONNECT_STRING',
+            'ORACLE_SVC_USER_LIST', 'SERVICE_NAME', 'NLS_LANG',
+            
+            # PostgreSQL 연결 정보
+            'PG_SVC_PASSWORD', 'PGPORT', 'PGPASSWORD', 'PG_ADM_PASSWORD',
+            'PG_ADM_USER', 'PG_SVC_USER', 'PGUSER', 'PGDATABASE', 'PGHOST',
+            
+            # 시스템 환경 변수
+            'JAVA_HOME', 'PATH', 'HOME', 'USER'
+        ]
+        
+        current_env_vars = {}
+        for var in important_vars:
+            if var in os.environ:
+                current_env_vars[var] = os.environ[var]
+        
+        saved_env_vars = config.get('env_vars', {}) if config else {}
+        
+        # 모든 중요한 변수들 비교
+        needs_update = False
+        for var in important_vars:
+            if current_env_vars.get(var) != saved_env_vars.get(var):
+                needs_update = True
+                break
+        
+        if needs_update:
+            st.session_state.oma_controller.update_environment_vars()
+            st.info("🔄 환경변수 변경이 감지되어 설정 파일을 업데이트했습니다.")
         
         st.session_state.config_loaded = True
     
