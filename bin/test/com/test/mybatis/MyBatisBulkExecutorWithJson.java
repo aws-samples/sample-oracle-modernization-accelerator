@@ -589,11 +589,13 @@ public class MyBatisBulkExecutorWithJson {
             defaultProps.setProperty("version", "1");
             
             // 파일 저장
-            try (FileOutputStream fos = new FileOutputStream(PARAMETERS_FILE)) {
+            String testFolder = System.getenv("TEST_FOLDER");
+            String paramFilePath = testFolder != null ? testFolder + "/" + PARAMETERS_FILE : PARAMETERS_FILE;
+            try (FileOutputStream fos = new FileOutputStream(paramFilePath)) {
                 defaultProps.store(fos, "기본 파라미터 파일 (자동 생성) - null 값 방지를 위한 기본값들");
             }
             
-            System.out.println("✅ 기본 파라미터 파일 생성 완료: " + PARAMETERS_FILE);
+            System.out.println("✅ 기본 파라미터 파일 생성 완료: " + paramFilePath);
             System.out.println("   총 " + defaultProps.size() + "개의 기본 파라미터 설정됨");
             
         } catch (Exception e) {
