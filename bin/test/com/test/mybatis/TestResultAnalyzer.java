@@ -23,9 +23,13 @@ import java.util.stream.Collectors;
  */
 public class TestResultAnalyzer {
     
-    private static final String POSTGRES_URL = "jdbc:postgresql://omabox-stack-aurora-cluster.cluster-c12esi0ewdyz.ap-northeast-2.rds.amazonaws.com:5432/oma";
-    private static final String POSTGRES_USER = "oma";
-    private static final String POSTGRES_PASSWORD = "welcome1";
+    // PostgreSQL 접속 정보를 환경변수에서 읽기
+    private static final String POSTGRES_HOST = System.getenv("PGHOST") != null ? System.getenv("PGHOST") : "localhost";
+    private static final String POSTGRES_PORT = System.getenv("PGPORT") != null ? System.getenv("PGPORT") : "5432";
+    private static final String POSTGRES_DATABASE = System.getenv("PGDATABASE") != null ? System.getenv("PGDATABASE") : "oma";
+    private static final String POSTGRES_USER = System.getenv("PGUSER") != null ? System.getenv("PGUSER") : "oma";
+    private static final String POSTGRES_PASSWORD = System.getenv("PGPASSWORD") != null ? System.getenv("PGPASSWORD") : "";
+    private static final String POSTGRES_URL = "jdbc:postgresql://" + POSTGRES_HOST + ":" + POSTGRES_PORT + "/" + POSTGRES_DATABASE;
     
     private ObjectMapper objectMapper;
     
