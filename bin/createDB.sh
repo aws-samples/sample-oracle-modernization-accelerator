@@ -272,29 +272,10 @@ create_postgresql_database() {
     
     if [ "$DB_EXISTS" -gt 0 ]; then
         echo -e "${YELLOW}⚠️  데이터베이스 '$db_name'이 이미 존재합니다.${NC}"
-        echo -ne "${BLUE}${BOLD}기존 데이터베이스를 삭제하고 다시 생성하시겠습니까? (y/N): ${NC}"
-        read recreate_db
-        
-        if [[ "$recreate_db" =~ ^[Yy]$ ]]; then
-            echo -e "${YELLOW}기존 데이터베이스를 삭제합니다...${NC}"
-            
-            # 활성 연결 종료
-            echo -e "${YELLOW}활성 연결을 종료합니다...${NC}"
-            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$db_name';" >/dev/null 2>&1
-            
-            # 데이터베이스 삭제
-            PGPASSWORD=$PG_ADM_PASSWORD psql -h $PGHOST -p $PGPORT -U $PG_ADM_USER -d postgres -c "DROP DATABASE IF EXISTS \"$db_name\";" 2>/dev/null
-            
-            if [ $? -eq 0 ]; then
-                echo -e "${GREEN}✓ 기존 데이터베이스 삭제 완료${NC}"
-            else
-                echo -e "${RED}✗ 기존 데이터베이스 삭제 실패${NC}"
-                return 1
-            fi
-        else
-            echo -e "${YELLOW}데이터베이스 생성을 취소합니다.${NC}"
-            return 0
-        fi
+        echo -e "${YELLOW}기존 데이터베이스를 유지하고 서비스 사용자 생성을 진행합니다.${NC}"
+        # 데이터베이스가 이미 존재하는 경우 서비스 사용자 생성으로 바로 이동
+        create_postgresql_service_user "$db_name"
+        return $?
     fi
     
     # 데이터베이스 생성 SQL 구성
