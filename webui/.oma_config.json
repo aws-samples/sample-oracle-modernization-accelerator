@@ -43,5 +43,5 @@
     "USER": "ec2-user"
   },
   "last_updated": 1756307122.0521731,
-  "config_file_location": "/home/ec2-user/workspace/chalee/webui/.oma_config.json"
+  "config_file_location": "/home/ec2-user/workspace/oma/webui/.oma_config.json"
 }
