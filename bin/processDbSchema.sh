@@ -374,7 +374,7 @@ handle_conversion_choice() {
             convert_individual_objects
             ;;
         *)
-            print_color $RED "Invalid choice"
+            print_color $RED "잘못된 선택입니다"
             handle_conversion_choice
             ;;
     esac
@@ -455,7 +455,8 @@ convert_individual_objects() {
         for i in "${!objects[@]}"; do
             local object_name="${objects[$i]}"
             local simple_name=$(echo "$object_name" | awk -F'.' '{print $NF}')
-            local converted_file="$CONVERTED_DIR/${simple_name}.sql"
+            local converted_name=$(echo "$object_name" | sed 's/Schemas\.//g' | tr '[:upper:]' '[:lower:]')
+            local converted_file="$CONVERTED_DIR/${converted_name}.sql"
             
             if [ -f "$converted_file" ]; then
                 echo "$((i+1)). $object_name [변환됨]"
@@ -465,7 +466,10 @@ convert_individual_objects() {
         done
         echo -n "Select number (or b/q): "
         read selection
-        handle_navigation "$selection"
+        
+        if ! handle_navigation "$selection"; then
+            return 1  # Return to previous menu
+        fi
         
         if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -le "${#objects[@]}" ] && [ "$selection" -gt 0 ]; then
             convert_single_object "${objects[$((selection-1))]}"
@@ -581,7 +585,8 @@ convert_single_object() {
     
     # Extract just the object name from full path
     local simple_object_name=$(echo "$object_name" | sed 's/Schemas\.//g' | tr '[:upper:]' '[:lower:]')
-    local ddl_file="$SOURCE_DDL_DIR/${simple_object_name}.sql"
+    local original_name=$(echo "$object_name" | awk -F'.' '{print $NF}')  # Extract just the procedure name for Oracle
+    local ddl_file="$SOURCE_DDL_DIR/${original_name}.sql"
     local final_output="$CONVERTED_DIR/${simple_object_name}.sql"
     
     # Always re-extract: remove existing files
@@ -596,8 +601,8 @@ convert_single_object() {
     fi
     
     # Call Python script directly
-    if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$simple_object_name" "$ddl_file"; then
-        print_color $RED "Failed to extract DDL from Oracle for $simple_object_name"
+    if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$original_name" "$ddl_file"; then
+        print_color $RED "Failed to extract DDL from Oracle for $original_name"
         return 1
     fi
     
@@ -713,13 +718,37 @@ with open(prompt_file, 'w') as f:
                     
                     case "$next_choice" in
                         "1")
-                            # Go to deployment menu for other converted objects
-                            handle_deployment_choice
+                            # Go to individual deployment menu for converted objects
+                            show_converted_objects_for_deployment
                             return $?
                             ;;
                         "2")
                             # Continue with object conversion
                             return 0
+                            ;;
+                        *)
+                            print_color $RED "잘못된 선택입니다"
+                            # Ask again
+                            echo
+                            echo "1. 다른 변환된 오브젝트를 DB에 적용하시겠습니까?"
+                            echo "2. 다른 오브젝트를 변환하시겠습니까?"
+                            echo -n "선택 (1/2, or b/q): "
+                            read next_choice
+                            handle_navigation "$next_choice"
+                            
+                            case "$next_choice" in
+                                "1")
+                                    show_converted_objects_for_deployment
+                                    return $?
+                                    ;;
+                                "2")
+                                    return 0
+                                    ;;
+                                *)
+                                    print_color $RED "잘못된 선택입니다"
+                                    return 0
+                                    ;;
+                            esac
                             ;;
                     esac
                 else
@@ -789,6 +818,67 @@ validate_ddl_output() {
     return 0
 }
 
+# Function to show converted objects for individual deployment
+show_converted_objects_for_deployment() {
+    local converted_files=($(find "$CONVERTED_DIR" -name "*.sql" -type f 2>/dev/null))
+    
+    if [ ${#converted_files[@]} -eq 0 ]; then
+        print_color $YELLOW "변환된 파일이 없습니다."
+        return 1
+    fi
+    
+    echo
+    print_color $BLUE "변환된 오브젝트 목록:"
+    for i in "${!converted_files[@]}"; do
+        local file_path="${converted_files[$i]}"
+        local file_name=$(basename "$file_path" .sql)
+        echo "$((i+1)). $file_name"
+    done
+    
+    echo -n "배포할 오브젝트 번호를 선택하세요 (or b/q): "
+    read selection
+    
+    if ! handle_navigation "$selection"; then
+        return 1
+    fi
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -le "${#converted_files[@]}" ] && [ "$selection" -gt 0 ]; then
+        local selected_file="${converted_files[$((selection-1))]}"
+        print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
+        if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$selected_file"; then
+            print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+            echo
+            echo "1. 다른 오브젝트를 DB에 적용하시겠습니까?"
+            echo "2. 오브젝트 변환을 진행하시겠습니까?"
+            echo -n "선택 (1/2, or b/q): "
+            read next_choice
+            
+            if ! handle_navigation "$next_choice"; then
+                return 1
+            fi
+            
+            case "$next_choice" in
+                "1")
+                    show_converted_objects_for_deployment  # Show deployment menu again
+                    ;;
+                "2")
+                    return 0  # Return to conversion menu
+                    ;;
+                *)
+                    print_color $RED "잘못된 선택입니다"
+                    show_converted_objects_for_deployment
+                    ;;
+            esac
+        else
+            print_color $RED "✗ DDL 적용에 실패했습니다."
+            show_converted_objects_for_deployment  # Show menu again
+        fi
+    else
+        print_color $RED "잘못된 선택입니다"
+        show_converted_objects_for_deployment  # Show menu again
+    fi
+}
+
 # Function to handle deployment choice
 handle_deployment_choice() {
     echo
@@ -831,7 +921,7 @@ handle_deployment_choice() {
             print_color $BLUE "리뷰 후 수동으로 적용하세요."
             ;;
         *)
-            print_color $RED "Invalid choice"
+            print_color $RED "잘못된 선택입니다"
             handle_deployment_choice
             ;;
     esac

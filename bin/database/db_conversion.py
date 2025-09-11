@@ -227,7 +227,7 @@ def deploy_to_postgresql(sql_file):
                     print(f"  {line}")
         
         if stderr.strip():
-            # Parse stderr for meaningful messages
+            # Parse stderr for meaningful messages only
             stderr_lines = stderr.strip().split('\n')
             error_lines = [line for line in stderr_lines if 'ERROR:' in line or 'FATAL:' in line]
             warning_lines = [line for line in stderr_lines if 'WARNING:' in line or 'NOTICE:' in line]
@@ -240,17 +240,7 @@ def deploy_to_postgresql(sql_file):
                 print("⚠️  SQL 실행 중 경고:")
                 for line in warning_lines:
                     print(f"  {line}")
-            else:
-                # Show only meaningful parts of stderr, not technical psql output
-                meaningful_lines = [line for line in stderr_lines 
-                                  if line.strip() and 
-                                     not line.strip().startswith('psql:') and 
-                                     'psql:' not in line and
-                                     '/tmp/' not in line]
-                if meaningful_lines:
-                    print("ℹ️  추가 정보:")
-                    for line in meaningful_lines[:3]:  # Show max 3 lines
-                        print(f"  {line}")
+            # Completely suppress all other stderr messages including psql technical output
         
         # Check for errors in stderr
         has_errors = False
