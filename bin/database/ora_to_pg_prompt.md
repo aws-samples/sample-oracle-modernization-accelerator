@@ -33,6 +33,49 @@ Convert the following Oracle DDL to PostgreSQL format using comprehensive migrat
 - **AWS SDK**를 통한 외부 API 호출
 - **RDS Proxy**를 통한 연결 관리
 
+## ⚠️ CRITICAL: Object Type Preservation Rule
+
+**MANDATORY REQUIREMENT**: Oracle object types MUST be preserved in PostgreSQL conversion:
+
+- **Oracle PROCEDURE** → **PostgreSQL PROCEDURE ONLY** 
+- **Oracle FUNCTION** → **PostgreSQL FUNCTION ONLY**
+- **Oracle PACKAGE** → **PostgreSQL SCHEMA with functions/procedures**
+
+### ✅ REQUIRED: Schema and Naming Conventions
+- **Schema Prefix**: Always prefix object names with schema (e.g., `CREATE OR REPLACE PROCEDURE oma.sp_show_order_hierarchy`)
+- **PostgreSQL Naming**: Use lowercase for all object names (procedures, functions, tables, columns)
+- **Example**: `CREATE OR REPLACE PROCEDURE oma.sp_show_order_hierarchy` (not `SP_SHOW_ORDER_HIERARCHY`)
+
+### ✅ ALLOWED: Suggestions and explanations
+- You MAY explain differences between PROCEDURE and FUNCTION
+- You MAY suggest when FUNCTION might be more appropriate
+- You MAY provide recommendations for future considerations
+
+### ❌ FORBIDDEN: Multiple conversion outputs
+- Do NOT provide both PROCEDURE and FUNCTION conversion code
+- Do NOT output alternative conversion versions
+- The actual DDL conversion MUST match the original object type
+
+### PostgreSQL Procedure Syntax (for Oracle PROCEDURE conversion):
+```sql
+CREATE OR REPLACE PROCEDURE schema_name.procedure_name(parameters)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    -- declarations
+BEGIN
+    -- procedure body
+    -- Use COMMIT/ROLLBACK if needed
+END;
+$$;
+```
+
+### Key Differences:
+- **PROCEDURE**: No RETURNS clause, can use COMMIT/ROLLBACK
+- **FUNCTION**: Must have RETURNS clause, cannot use COMMIT/ROLLBACK
+
+**ABSOLUTE RULE: Convert Oracle PROCEDURE to PostgreSQL PROCEDURE only with proper schema prefix and lowercase naming. Suggestions are welcome, but actual conversion must preserve object type.**
+
 ## PostgreSQL Migration Expert Conversion Rules
 
 ### 🔧 **Critical PostgreSQL Syntax Requirements**
@@ -111,9 +154,15 @@ Convert the following Oracle DDL to PostgreSQL format using comprehensive migrat
 - `date1 - date2` → `(date1::date - date2::date)`
 - `NVL(SYSDATE - date_col, default)` → `COALESCE((CURRENT_DATE - date_col::date), default)`
 
-#### Sequence Functions
-- `SEQ_NAME.NEXTVAL` → `nextval('seq_name')` (always lowercase)
-- `SEQ_NAME.CURRVAL` → `currval('seq_name')` (always lowercase)
+#### Oracle Data Type Conversions
+- `NUMBER` → `INTEGER` (for whole numbers)
+- `NUMBER(p,s)` → `NUMERIC(p,s)` (for decimals)
+- `VARCHAR2(n)` → `VARCHAR(n)`
+- `DATE` → `TIMESTAMP` or `DATE`
+- `CLOB` → `TEXT`
+- `BLOB` → `BYTEA`
+
+**CRITICAL**: Always use consistent data types to avoid procedure overloading issues.
 
 #### Pagination
 - `ROWNUM <= n` → `LIMIT n`
@@ -138,15 +187,50 @@ Convert the following Oracle DDL to PostgreSQL format using comprehensive migrat
 - `JOIN (SELECT...)` → `JOIN (SELECT...) AS join_sub1` (only if no existing alias)
 - Preserve existing aliases - DO NOT CHANGE
 
-### PHASE 4: ORACLE HIERARCHICAL QUERIES → POSTGRESQL RECURSIVE CTE
+### PHASE 4: ORACLE HIERARCHICAL QUERIES → POSTGRESQL CONVERSION
 
-#### Oracle CONNECT BY → PostgreSQL WITH RECURSIVE
+#### Oracle CONNECT BY → PostgreSQL Best Practices
+
+**CRITICAL: Analyze the business logic first, then choose the appropriate PostgreSQL pattern:**
+
+#### Pattern 1: Simple Parent-Child Hierarchy (RECOMMENDED)
+For most Oracle CONNECT BY queries, use simple UNION ALL instead of WITH RECURSIVE:
+
 **Oracle Pattern:**
 ```sql
-SELECT columns FROM table
+SELECT LPAD(' ', 2*(LEVEL-1)) || data_column
+FROM table
 START WITH condition
-CONNECT BY PRIOR parent_column = child_column
+CONNECT BY PRIOR parent_id = child_id
 ```
+
+**PostgreSQL Pattern (PREFERRED):**
+```sql
+WITH hierarchy AS (
+    -- Level 1: Parent records
+    SELECT 
+        columns,
+        1 AS level,
+        LPAD('', 0) || data_column AS output
+    FROM table 
+    WHERE parent_condition
+    
+    UNION ALL
+    
+    -- Level 2: Child records  
+    SELECT 
+        columns,
+        2 AS level,
+        LPAD(' ', 2) || data_column AS output
+    FROM table t1
+    JOIN parent_table t2 ON t1.parent_id = t2.id
+    WHERE child_condition
+)
+SELECT output FROM hierarchy ORDER BY level, sort_columns
+```
+
+#### Pattern 2: WITH RECURSIVE (Use only for true recursion)
+Only use WITH RECURSIVE when you have unknown depth or true recursive relationships:
 
 **PostgreSQL Pattern:**
 ```sql
@@ -154,18 +238,25 @@ WITH RECURSIVE hierarchy AS (
   -- Base case: NO self-reference allowed
   SELECT columns FROM table WHERE condition
   UNION ALL
-  -- Recursive case: self-reference required
+  -- Recursive case: MUST reference the CTE name
   SELECT t.columns FROM table t 
   JOIN hierarchy h ON t.parent_column = h.child_column
 )
 SELECT columns FROM hierarchy
 ```
 
-#### Recursive CTE Structure Rules (CRITICAL)
-- **Base Case**: MUST NOT reference the CTE name itself
-- **Recursive Case**: MUST reference the CTE name
-- **Type Consistency**: Cast recursive term results to match base term types
-- **String Growth**: `CONCAT(...)::character varying` in recursive terms
+#### Conversion Strategy:
+1. **Analyze Oracle CONNECT BY logic**
+2. **If fixed levels (like Order → Items)**: Use Pattern 1 (UNION ALL)
+3. **If unknown depth**: Use Pattern 2 (WITH RECURSIVE)
+4. **Always prefer Pattern 1 when possible** - it's simpler, faster, and more maintainable
+
+#### Key Improvements:
+- **Avoid complex recursive joins** when simple UNION ALL works
+- **Use fixed LPAD values** for known hierarchy levels
+- **Separate CTEs** for better readability
+- **Clear level indicators** (1, 2, 3, etc.)
+- **Proper ordering** by level and business logic
 
 ### PHASE 5: POSTGRESQL-SPECIFIC OPTIMIZATIONS
 
@@ -180,7 +271,8 @@ SELECT columns FROM hierarchy
 - Cast parameters to match column types for type safety
 
 ## Output Requirements:
-1. **RDS/Aurora 제약사항 확인**: 먼저 위의 제약사항 목록을 확인하고, **실제 RDS/Aurora 관리형 데이터베이스에서만 제약이 있는 기능**이 발견되면 다음 형식으로 알림:
+1. **DO NOT use fs_write or any file writing tools** - Only provide the converted SQL as text output
+2. **RDS/Aurora 제약사항 확인**: 먼저 위의 제약사항 목록을 확인하고, **실제 RDS/Aurora 관리형 데이터베이스에서만 제약이 있는 기능**이 발견되면 다음 형식으로 알림:
    ```
    ⚠️ RDS/Aurora 제약사항 발견:
    - [발견된 기능]: [대안 솔루션 제안]
@@ -208,15 +300,8 @@ SELECT columns FROM hierarchy
 7. **Valid PostgreSQL DDL**: Output should be executable PostgreSQL DDL
 
 ## Final Output:
-If RDS/Aurora limitations are found, provide the warning first, then provide the converted PostgreSQL DDL.
+**IMPORTANT: Provide ONLY the converted PostgreSQL DDL as plain text. Do NOT use any file writing tools.**
 
-**Important**: Save the converted PostgreSQL DDL to `tgt-pg-db/target-ddl/{OBJECT_NAME}.sql`
+If RDS/Aurora limitations are found, provide the warning first, then provide the converted PostgreSQL DDL as plain text.
 
-**Critical**: Before providing the final output, validate that:
-- All parentheses are properly matched
-- All BEGIN blocks have corresponding END statements
-- All loops are properly closed with END LOOP
-- The function syntax is complete and valid
-- The SQL can be executed without syntax errors
-
-The output should be valid PostgreSQL DDL that can be executed directly on RDS/Aurora PostgreSQL.
+**Critical**: The output should be clean, executable PostgreSQL DDL without any formatting, line numbers, or metadata.
