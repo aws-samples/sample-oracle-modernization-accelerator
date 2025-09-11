@@ -63,7 +63,6 @@ show_initial_banner() {
     echo -e "${BLUE}${BOLD}환경 변수 설정:${NC}"
     echo -e "${GREEN}  SOURCE_DDL_DIR: $SOURCE_DDL_DIR${NC}"
     echo -e "${GREEN}  CONVERTED_DIR: $CONVERTED_DIR${NC}"
-    echo -e "${GREEN}  TEMP_DIR: $TEMP_DIR${NC}"
     echo -e "${GREEN}  ORACLE_HOST: $ORACLE_HOST${NC}"
     echo -e "${GREEN}  PGHOST: $PGHOST${NC}"
     print_separator
@@ -136,12 +135,12 @@ show_menu() {
 handle_navigation() {
     case "$1" in
         "b"|"B") 
-            print_color $YELLOW "Returning to previous menu..."
+            print_color $YELLOW "이전 메뉴로 돌아갑니다..."
             return 1  # Return to previous menu
             ;;
         "q"|"Q") 
             cleanup_temp_files
-            print_color $YELLOW "Exiting..."
+            print_color $YELLOW "종료합니다..."
             exit 0
             ;;
         *)
@@ -165,7 +164,7 @@ cleanup_temp_files() {
 create_target_directory() {
     if [ ! -d "$TARGET_DIR" ]; then
         mkdir -p "$TARGET_DIR"
-        print_color $GREEN "Created directory: $TARGET_DIR"
+        print_color $GREEN "디렉토리 생성됨: $TARGET_DIR"
     fi
     
     if [ ! -d "$CONVERTED_DIR" ]; then
@@ -210,6 +209,8 @@ select_zip_file() {
             fi
         else
             print_color $RED "잘못된 옵션입니다. 다시 선택해주세요."
+            select_zip_file  # Retry file selection
+            return $?
             select_zip_file
         fi
     else
@@ -241,12 +242,12 @@ download_from_s3() {
     local filename=$(basename "$s3_path")
     local local_path="$TARGET_DIR/$filename"
     
-    print_color $YELLOW "Downloading from S3..."
+    print_color $YELLOW "S3에서 다운로드 중..."
     if aws s3 cp "$s3_path" "$local_path"; then
-        print_color $GREEN "Downloaded successfully: $filename"
+        print_color $GREEN "다운로드 성공: $filename"
         echo "$local_path" > /tmp/selected_zip.txt
     else
-        print_color $RED "Failed to download from S3"
+        print_color $RED "S3 다운로드 실패"
         download_from_s3
     fi
 }
@@ -258,8 +259,8 @@ confirm_zip_selection() {
     # Extract timestamp from filename pattern: ORACLE_AURORA_POSTGRESQL_2025-09-07T05-00-40.891Z.zip
     local timestamp=$(echo "$filename" | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}\.[0-9]\{3\}Z' || echo "Unknown")
     
-    print_color $BLUE "Selected file: ${BOLD}$filename${NC}"
-    print_color $BLUE "Timestamp: ${BOLD}$timestamp${NC}"
+    print_color $BLUE "선택된 파일: ${BOLD}$filename${NC}"
+    print_color $BLUE "타임스탬프: ${BOLD}$timestamp${NC}"
     echo
     print_color $YELLOW "해당 파일을 기준으로 변환을 진행하고자 합니다. 맞습니까?"
     print_color $CYAN "(N을 선택하면 파일 선택 단계로 돌아갑니다)"
@@ -283,7 +284,7 @@ analyze_zip_file() {
     local extract_dir="$TEMP_DIR/extracted"
     
     echo
-    print_color $YELLOW "Extracting ZIP file..."
+    print_color $YELLOW "ZIP 파일 압축 해제 중..."
     mkdir -p "$extract_dir"
     unzip -q "$zip_file" -d "$extract_dir"
     
@@ -295,14 +296,14 @@ analyze_zip_file() {
     # Copy extracted files to timestamp directory
     mkdir -p "$timestamp_dir"
     cp -r "$extract_dir"/* "$timestamp_dir/" 2>/dev/null || true
-    print_color $GREEN "Files extracted to: $timestamp_dir"
+    print_color $GREEN "파일 압축 해제 완료: $timestamp_dir"
     echo
     
     # Find the CSV file (without Summary in name)
     local csv_file=$(find "$extract_dir" -name "*.csv" | grep -v Summary | head -1)
     
     if [ -z "$csv_file" ]; then
-        print_color $RED "Could not find the required CSV file"
+        print_color $RED "필요한 CSV 파일을 찾을 수 없습니다"
         return 1
     fi
     
@@ -332,7 +333,7 @@ analyze_zip_file() {
                     return $?
                     ;;
                 *)
-                    print_color $RED "Invalid selection"
+                    print_color $RED "잘못된 선택입니다"
                     return 1
                     ;;
             esac
@@ -412,6 +413,7 @@ convert_all_objects() {
     
     local total_objects=$(wc -l < /tmp/complex_objects.txt)
     local current=0
+    local failed_count=0
     
     log_info "총 $total_objects 개의 오브젝트를 변환합니다"
     
@@ -425,17 +427,21 @@ convert_all_objects() {
         convert_single_object_batch "$object"
         
         if [ $? -eq 0 ]; then
-            log_info "$object 변환 성공"
             print_color $GREEN "✓ $object 변환 완료"
         else
-            log_error "$object 변환 실패"
             print_color $RED "✗ $object 변환 실패"
+            failed_count=$((failed_count + 1))
         fi
         
     done < /tmp/complex_objects.txt
     
-    log_info "모든 오브젝트 변환이 완료되었습니다"
-    print_color $GREEN "All objects converted successfully!"
+    if [ $failed_count -eq 0 ]; then
+        log_info "모든 오브젝트 변환이 완료되었습니다"
+        print_color $GREEN "모든 오브젝트 변환이 완료되었습니다!"
+    else
+        log_error "$failed_count 개의 오브젝트 변환이 실패했습니다"
+        print_color $RED "$failed_count 개의 오브젝트 변환이 실패했습니다!"
+    fi
     handle_deployment_choice
 }
 
@@ -445,7 +451,7 @@ convert_individual_objects() {
     
     while true; do
         echo
-        print_color $BLUE "Select object to convert:"
+        print_color $BLUE "변환할 오브젝트를 선택하세요:"
         for i in "${!objects[@]}"; do
             local object_name="${objects[$i]}"
             local simple_name=$(echo "$object_name" | awk -F'.' '{print $NF}')
@@ -464,7 +470,7 @@ convert_individual_objects() {
         if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -le "${#objects[@]}" ] && [ "$selection" -gt 0 ]; then
             convert_single_object "${objects[$((selection-1))]}"
         else
-            print_color $RED "Invalid selection"
+            print_color $RED "잘못된 선택입니다"
         fi
     done
     
@@ -474,7 +480,8 @@ convert_individual_objects() {
 # Function to convert single object in batch mode (no user interaction)
 convert_single_object_batch() {
     local object_name="$1"
-    local simple_object_name=$(echo "$object_name" | awk -F'.' '{print $NF}')
+    local simple_object_name=$(echo "$object_name" | sed 's/Schemas\.//g' | tr '[:upper:]' '[:lower:]')
+    local original_name=$(echo "$object_name" | awk -F'.' '{print $NF}')  # Extract just the procedure name for Oracle
     
     # Check if already converted
     local final_output="$CONVERTED_DIR/${simple_object_name}.sql"
@@ -483,16 +490,14 @@ convert_single_object_batch() {
         return 0
     fi
     
-    local source_file="$SOURCE_DDL_DIR/${simple_object_name}.sql"
+    local source_file="$SOURCE_DDL_DIR/${original_name}.sql"
     local prompt_file="$TEMP_DIR/${simple_object_name}_prompt.txt"
     local output_file="$TEMP_DIR/${simple_object_name}_output.txt"
     
     if [ ! -f "$source_file" ]; then
-        print_color $BLUE "Extracting DDL for: $simple_object_name"
-        
         # Call Python script to extract DDL from Oracle
-        if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$simple_object_name" "$source_file"; then
-            print_color $RED "Failed to extract DDL from Oracle for $simple_object_name"
+        if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$original_name" "$source_file"; then
+            print_color $RED "Failed to extract DDL from Oracle for $original_name"
             return 1
         fi
         
@@ -575,7 +580,7 @@ convert_single_object() {
     print_color $YELLOW "Amazon Q를 이용하여 오브젝트를 변환하고 있습니다: $object_name"
     
     # Extract just the object name from full path
-    local simple_object_name=$(echo "$object_name" | awk -F'.' '{print $NF}')
+    local simple_object_name=$(echo "$object_name" | sed 's/Schemas\.//g' | tr '[:upper:]' '[:lower:]')
     local ddl_file="$SOURCE_DDL_DIR/${simple_object_name}.sql"
     local final_output="$CONVERTED_DIR/${simple_object_name}.sql"
     
@@ -590,8 +595,6 @@ convert_single_object() {
         rm -f "$final_output"
     fi
     
-    print_color $BLUE "Extracting DDL for: $simple_object_name"
-    
     # Call Python script directly
     if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$simple_object_name" "$ddl_file"; then
         print_color $RED "Failed to extract DDL from Oracle for $simple_object_name"
@@ -603,8 +606,6 @@ convert_single_object() {
         print_color $RED "DDL file is empty or missing: $ddl_file"
         return 1
     fi
-    
-    print_color $GREEN "DDL extracted successfully → tgt-pg-db/source-ddl/"
     
     # Read DDL content
     local oracle_ddl=""
@@ -682,8 +683,13 @@ with open(prompt_file, 'w') as f:
             cp "$output_file" "$final_output"
         fi
         
-        print_color $GREEN "✓ $simple_object_name에 대해 변환이 완료되었습니다."
-        print_color $BLUE "변환된 파일: $final_output"
+        if [ -s "$final_output" ] && grep -q "CREATE OR REPLACE PROCEDURE\|CREATE PROCEDURE" "$final_output"; then
+            print_color $GREEN "✓ $simple_object_name에 대해 변환이 완료되었습니다."
+            print_color $BLUE "변환된 파일: $final_output"
+        else
+            print_color $RED "✗ $simple_object_name 변환에 실패했습니다."
+            return 1
+        fi
         
         # Ask user what to do next
         echo
@@ -698,6 +704,24 @@ with open(prompt_file, 'w') as f:
                 print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
                 if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$final_output"; then
                     print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+                    echo
+                    echo "1. 다른 변환된 오브젝트를 DB에 적용하시겠습니까?"
+                    echo "2. 다른 오브젝트를 변환하시겠습니까?"
+                    echo -n "선택 (1/2, or b/q): "
+                    read next_choice
+                    handle_navigation "$next_choice"
+                    
+                    case "$next_choice" in
+                        "1")
+                            # Go to deployment menu for other converted objects
+                            handle_deployment_choice
+                            return $?
+                            ;;
+                        "2")
+                            # Continue with object conversion
+                            return 0
+                            ;;
+                    esac
                 else
                     print_color $RED "✗ DDL 적용에 실패했습니다. 재변환이 필요합니다."
                     echo
