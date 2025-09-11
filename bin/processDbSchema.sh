@@ -5,16 +5,6 @@
 
 set -e
 
-# 색상 정의
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-BOLD='\033[1m'
-
 # Enable alias expansion for using sqlplus-oma
 shopt -s expand_aliases
 source ~/.bashrc
@@ -48,44 +38,41 @@ mkdir -p "$LOG_DIR"
 # Logging functions
 log_info() {
     local message="$1"
-    echo "INFO - $message" | tee -a "$LOG_FILE"
+    echo -e "${GREEN}INFO - $message${NC}" | tee -a "$LOG_FILE"
 }
 
 log_error() {
     local message="$1"
-    echo "ERROR - $message" | tee -a "$LOG_FILE"
+    echo -e "${RED}ERROR - $message${NC}" | tee -a "$LOG_FILE"
 }
 
 log_debug() {
     local message="$1"
-    echo "DEBUG - $message" >> "$LOG_FILE"
+    echo -e "${CYAN}DEBUG - $message${NC}" >> "$LOG_FILE"
 }
 
 # Function to display initial banner
 show_initial_banner() {
     clear
-    echo "================================================================================"
-    echo "Step 1: DB Schema 변환"
-    echo "================================================================================"
-    echo "이 단계에서는 데이터베이스 스키마 변환 작업을 수행합니다."
-    echo "Oracle 스키마를 PostgreSQL로 변환하는 작업을 수행합니다."
-    echo "================================================================================"
-    echo "환경 변수 설정:"
-    echo "  SOURCE_DDL_DIR: $SOURCE_DDL_DIR"
-    echo "  CONVERTED_DIR: $CONVERTED_DIR"
-    echo "  TEMP_DIR: $TEMP_DIR"
-    echo "  ORACLE_HOST: $ORACLE_HOST"
-    echo "  PGHOST: $PGHOST"
-    echo "================================================================================"
-    echo "DB Schema 변환을 시작하기 전 Amazon Q에 사전 로그인되어 있어야 합니다."
-    echo "DB Schema 변환 스크립트 실행"
+    print_separator
+    echo -e "${BLUE}${BOLD}Step 1: DB Schema 추가 변환${NC}"
+    print_separator
+    echo -e "${CYAN}이 단계에서는 데이터베이스 객체에 대한 추가 변환 작업을 수행합니다.${NC}"
+    echo -e "${CYAN}Oracle 스키마를 PostgreSQL로 변환하는 작업을 수행합니다.${NC}"
+    print_separator
+    echo -e "${BLUE}${BOLD}환경 변수 설정:${NC}"
+    echo -e "${GREEN}  SOURCE_DDL_DIR: $SOURCE_DDL_DIR${NC}"
+    echo -e "${GREEN}  CONVERTED_DIR: $CONVERTED_DIR${NC}"
+    echo -e "${GREEN}  TEMP_DIR: $TEMP_DIR${NC}"
+    echo -e "${GREEN}  ORACLE_HOST: $ORACLE_HOST${NC}"
+    echo -e "${GREEN}  PGHOST: $PGHOST${NC}"
+    print_separator
+    echo -e "${YELLOW}DB Schema 변환을 시작하기 전 Amazon Q에 사전 로그인되어 있어야 합니다.${NC}"
+    echo -e "${CYAN}DB Schema 변환 스크립트 실행${NC}"
     echo ""
-    echo "=== 기본 메뉴 ==="
-    echo "b) Back to previous menu"
-    echo "q) Quit"
-    echo ""
-    echo "Source DBMS: orcl"
-    echo "Target DBMS: postgres"
+    echo -e "${BLUE}${BOLD}=== 기본 메뉴 ===${NC}"
+    echo -e "${CYAN}b) Back to previous menu${NC}"
+    echo -e "${CYAN}q) Quit${NC}"
     echo ""
 }
 
@@ -116,12 +103,21 @@ CONVERTED_DIR="$TARGET_DIR/target-ddl"
 SOURCE_DDL_DIR="$TARGET_DIR/source-ddl"
 TEMP_DIR="/tmp/processDbSchema_$$"
 
-# Colors for output
+# 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
+
+# 구분선 출력 함수
+print_separator() {
+    printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
+}
 
 # Function to print colored output
 print_color() {
@@ -131,9 +127,8 @@ print_color() {
 # Function to show menu options
 show_menu() {
     echo
-    print_color $BLUE "=== 기본 메뉴 ==="
-    echo "b) Back to previous menu"
-    echo "q) Quit"
+    echo -e "${CYAN}b) Back to previous menu${NC}"
+    echo -e "${CYAN}q) Quit${NC}"
     echo
 }
 
@@ -148,6 +143,13 @@ handle_navigation() {
             cleanup_temp_files
             print_color $YELLOW "Exiting..."
             exit 0
+            ;;
+        *)
+            # For any other input (valid selections), add spacing for visibility
+            echo
+            echo
+            echo
+            return 0
             ;;
     esac
 }
@@ -186,11 +188,11 @@ select_zip_file() {
     
     if [ ${#zip_files[@]} -gt 0 ]; then
         echo
-        print_color $BLUE "변환 대상 폴더 $TARGET_DIR/에 아래 파일들이 있습니다. 기존 파일을 선택하거나 새로운 대상 리스트를 S3에서 다운로드 할 수 있습니다."
+        print_color $BLUE "변환 대상 폴더 ${BOLD}$TARGET_DIR/${NC}${BLUE}에 아래 파일들이 있습니다. 기존 파일을 선택하거나 새로운 대상 리스트를 S3에서 다운로드 할 수 있습니다.${NC}"
         for i in "${!zip_files[@]}"; do
-            echo "$((i+1)). $(basename "${zip_files[$i]}")"
+            echo -e "${CYAN}$((i+1)). $(basename "${zip_files[$i]}")${NC}"
         done
-        echo "$((${#zip_files[@]}+1)). Download from S3"
+        echo -e "${CYAN}$((${#zip_files[@]}+1)). Download from S3${NC}"
         echo
         echo -n "Select option (num or b/q): "
         read selection
@@ -200,14 +202,20 @@ select_zip_file() {
             echo "${zip_files[$((selection-1))]}" > /tmp/selected_zip.txt
             return 0
         elif [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -eq "$((${#zip_files[@]}+1))" ]; then
-            download_from_s3
-            return 0
+            if download_from_s3; then
+                return 0
+            else
+                select_zip_file  # Return to file selection if download_from_s3 returned 1
+                return $?
+            fi
         else
             print_color $RED "잘못된 옵션입니다. 다시 선택해주세요."
             select_zip_file
         fi
     else
-        download_from_s3
+        if ! download_from_s3; then
+            select_zip_file  # Return to file selection if user chose 'b'
+        fi
     fi
 }
 
@@ -215,13 +223,18 @@ select_zip_file() {
 download_from_s3() {
     print_color $YELLOW "S3에서 다운로드가 필요합니다."
     echo
-    echo -n "Enter S3 path (e.g., s3://oma-dms-sc-[accountid]/dms-sc-migration-project/ORACLE_AURORA_POSTGRESQL_[time].zip): "
+    echo -n "다운로드 받을 zip 파일의 S3 URI를 입력바랍니다. (e.g., s3://oma-dms-sc-[accountid]/dms-sc-migration-project/ORACLE_AURORA_POSTGRESQL_[time].zip): "
     read s3_path
     handle_navigation "$s3_path"
     
     if [ -z "$s3_path" ]; then
-        print_color $RED "S3 path cannot be empty"
-        download_from_s3
+        echo "파일의 URI가 입력되지 않았습니다. 이전 메뉴로 돌아가시겠습니다? (b, q)"
+        read choice
+        case "$choice" in
+            q) exit 0 ;;
+            b) return 1 ;;
+            *) download_from_s3 ;;
+        esac
         return
     fi
     
@@ -245,8 +258,8 @@ confirm_zip_selection() {
     # Extract timestamp from filename pattern: ORACLE_AURORA_POSTGRESQL_2025-09-07T05-00-40.891Z.zip
     local timestamp=$(echo "$filename" | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}\.[0-9]\{3\}Z' || echo "Unknown")
     
-    print_color $BLUE "Selected file: $filename"
-    print_color $BLUE "Timestamp: $timestamp"
+    print_color $BLUE "Selected file: ${BOLD}$filename${NC}"
+    print_color $BLUE "Timestamp: ${BOLD}$timestamp${NC}"
     echo
     print_color $YELLOW "해당 파일을 기준으로 변환을 진행하고자 합니다. 맞습니까?"
     print_color $CYAN "(N을 선택하면 파일 선택 단계로 돌아갑니다)"
@@ -340,8 +353,8 @@ analyze_zip_file() {
 # Function to handle object conversion choice
 handle_conversion_choice() {
     echo
-    echo "1. 해당 오브젝트 전체에 대해 Amazon Q를 이용하여 변환하겠습니까?"
-    echo "2. 오브젝트 개별로 Amazon Q를 이용하여 변환하겠습니까?"
+    echo -e "${CYAN}1. 해당 오브젝트 전체에 대해 Amazon Q를 이용하여 변환하겠습니까?${NC}"
+    echo -e "${CYAN}2. 오브젝트 개별로 Amazon Q를 이용하여 변환하겠습니까?${NC}"
     echo -n "선택 (1/2, or b/q): "
     read choice
     
@@ -385,6 +398,10 @@ convert_all_objects() {
         echo "2. 모든 파일을 다시 변환 (덮어쓰기)"
         echo -n "선택 (1/2): "
         read overwrite_choice
+        
+        echo
+        echo
+        echo
         
         if [ "$overwrite_choice" = "2" ]; then
             log_info "기존 변환 파일들을 삭제합니다"
@@ -471,8 +488,19 @@ convert_single_object_batch() {
     local output_file="$TEMP_DIR/${simple_object_name}_output.txt"
     
     if [ ! -f "$source_file" ]; then
-        print_color $RED "Source DDL not found: $source_file"
-        return 1
+        print_color $BLUE "Extracting DDL for: $simple_object_name"
+        
+        # Call Python script to extract DDL from Oracle
+        if ! python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" extract "$simple_object_name" "$source_file"; then
+            print_color $RED "Failed to extract DDL from Oracle for $simple_object_name"
+            return 1
+        fi
+        
+        # Check if file exists and has content
+        if [ ! -s "$source_file" ]; then
+            print_color $RED "DDL file is empty or missing: $source_file"
+            return 1
+        fi
     fi
     
     # Create prompt
@@ -500,22 +528,34 @@ convert_single_object_batch() {
         # Extract SQL content with comprehensive cleaning
         print_color $BLUE "변환 결과 처리 중..."
         
-        # Step 1: Remove ANSI color codes
-        sed 's/\x1b\[[0-9;]*[mK]//g' "$output_file" > "$TEMP_DIR/step1.txt"
+        # Use sed and awk to extract clean SQL
+        # Step 1: Remove ANSI color codes and control characters
+        sed 's/\x1b\[[0-9;]*[mK]//g' "$output_file" | \
+        sed 's/\[[0-9;]*m//g' | \
+        sed 's/\[[0-9]*[ABCD]//g' > "$TEMP_DIR/clean1.txt"
         
-        # Step 2: Remove metadata lines
-        grep -v "^🛠️\|^●\|^↳\|^>\|^\s*⋮\|Purpose:\|Creating:\|Completed in\|Major Conversions\|Key Technical\|Looking at\|I'll convert" "$TEMP_DIR/step1.txt" > "$TEMP_DIR/step2.txt"
+        # Step 2: Extract lines between CREATE and $$; (inclusive)
+        awk '
+        /CREATE OR REPLACE PROCEDURE|CREATE PROCEDURE/ { found=1; print; next }
+        found && /\$\$;/ { print; found=0; exit }
+        found { print }
+        ' "$TEMP_DIR/clean1.txt" > "$TEMP_DIR/clean2.txt"
         
-        # Step 3: Remove line numbers and formatting artifacts
-        sed -E 's/^[[:space:]]*[0-9]+,[[:space:]]*[0-9]+:[[:space:]]*//' "$TEMP_DIR/step2.txt" | \
+        # Step 3: Clean up line numbers and artifacts
+        sed -E 's/^[[:space:]]*[0-9]+,[[:space:]]*[0-9]+:[[:space:]]*//' "$TEMP_DIR/clean2.txt" | \
+        sed -E 's/^[[:space:]]*[\+\-][[:space:]]*[0-9]*:[[:space:]]*//' | \
+        sed -E 's/^[[:space:]]*[0-9]+:[[:space:]]*//' | \
         sed -E 's/^[[:space:]]*[\+\-][[:space:]]*$//' | \
-        sed -E 's/^[[:space:]]*[\+\-][[:space:]]*([^a-zA-Z]|$)//' | \
-        sed '/^[[:space:]]*$/d' > "$TEMP_DIR/step3.txt"
+        sed -E 's/^[[:space:]]*:[[:space:]]*//' | \
+        sed '/^[[:space:]]*$/d' > "$final_output"
         
-        # Step 4: Extract SQL block from CREATE to $$;
-        awk '/CREATE OR REPLACE FUNCTION|CREATE FUNCTION|CREATE OR REPLACE PROCEDURE|CREATE PROCEDURE/,/\$\$;$/ { 
-            if (length($0) > 0 && $0 !~ /^[[:space:]]*[\+\-][[:space:]]*$/) print $0 
-        }' "$TEMP_DIR/step3.txt" > "$final_output"
+        # Verify the output
+        if [ -s "$final_output" ] && grep -q "CREATE OR REPLACE PROCEDURE\|CREATE PROCEDURE" "$final_output"; then
+            print_color $GREEN "SQL extracted successfully"
+        else
+            print_color $RED "Failed to extract valid SQL, saving raw output"
+            cp "$output_file" "$final_output"
+        fi
         
         if [ ! -s "$final_output" ]; then
             cp "$output_file" "$final_output"
@@ -728,18 +768,42 @@ validate_ddl_output() {
 # Function to handle deployment choice
 handle_deployment_choice() {
     echo
-    echo "1. 바로 PostgreSQL에 적용하기"
-    echo "2. 리뷰 후 나중에 적용하기"
-    echo -n "선택 (1/2, or b/q): "
+    echo -e "${CYAN}1. 바로 PostgreSQL에 적용하기${NC}"
+    echo -e "${CYAN}2. 다시 변환하기${NC}"
+    echo -e "${CYAN}3. 나중에 적용하기${NC}"
+    echo -n "선택 (1/2/3, or b/q): "
     read choice
-    handle_navigation "$choice"
+    
+    if ! handle_navigation "$choice"; then
+        return 1  # Return to previous menu
+    fi
     
     case "$choice" in
         "1")
             deploy_all_objects
             ;;
         "2")
-            print_color $GREEN "변환된 DDL 파일들이 $CONVERTED_DIR 에 저장되었습니다."
+            # Return to conversion choice menu without re-extracting ZIP
+            if [ -f "/tmp/complex_objects.txt" ]; then
+                echo
+                print_color $BLUE "복잡도가 Medium 또는 Complex인 오브젝트들:"
+                print_color $BLUE "$(printf '%50s' | tr ' ' '-')"
+                local count=1
+                while IFS= read -r object; do
+                    echo "${count}. ${object}"
+                    count=$((count + 1))
+                done < /tmp/complex_objects.txt
+                echo
+                handle_conversion_choice
+            else
+                print_color $YELLOW "복잡한 오브젝트 목록이 없습니다. ZIP 파일을 다시 분석합니다."
+                if analyze_zip_file; then
+                    handle_conversion_choice
+                fi
+            fi
+            ;;
+        "3")
+            print_color $GREEN "변환된 DDL 파일들이 ${BOLD}$CONVERTED_DIR${NC}${GREEN} 에 저장되었습니다.${NC}"
             print_color $BLUE "리뷰 후 수동으로 적용하세요."
             ;;
         *)
@@ -769,7 +833,7 @@ deploy_all_objects() {
     
     local current=0
     echo
-    print_color $BLUE "총 $total_files 개의 객체를 배포합니다..."
+    print_color $BLUE "총 ${BOLD}$total_files${NC}${BLUE} 개의 객체를 배포합니다...${NC}"
     
     # Deploy each file
     for sql_file in "$CONVERTED_DIR"/*.sql; do
@@ -777,7 +841,7 @@ deploy_all_objects() {
             current=$((current + 1))
             local object_name=$(basename "$sql_file" .sql)
             
-            print_color $CYAN "[$current/$total_files] 배포 중: $object_name"
+            print_color $CYAN "[$current/$total_files] 배포 중: ${BOLD}$object_name${NC}"
             
             if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$sql_file"; then
                 success_list+=("$object_name")
@@ -791,25 +855,27 @@ deploy_all_objects() {
     
     # Generate deployment report
     echo
-    print_color $BLUE "=== 배포 결과 요약 ==="
-    print_color $GREEN "성공: ${#success_list[@]}개"
-    print_color $RED "실패: ${#failed_list[@]}개"
+    print_separator
+    print_color $BLUE "${BOLD}배포 결과 요약${NC}"
+    print_separator
+    print_color $GREEN "${BOLD}성공: ${#success_list[@]}개${NC}"
+    print_color $RED "${BOLD}실패: ${#failed_list[@]}개${NC}"
     
     # Show successful deployments
     if [ ${#success_list[@]} -gt 0 ]; then
         echo
-        print_color $GREEN "✓ 성공적으로 배포된 객체들:"
+        print_color $GREEN "${BOLD}✓ 성공적으로 배포된 객체들:${NC}"
         for obj in "${success_list[@]}"; do
-            echo "  - $obj"
+            echo -e "${GREEN}  - $obj${NC}"
         done
     fi
     
     # Handle failed deployments
     if [ ${#failed_list[@]} -gt 0 ]; then
         echo
-        print_color $RED "✗ 배포에 실패한 객체들:"
+        print_color $RED "${BOLD}✗ 배포에 실패한 객체들:${NC}"
         for obj in "${failed_list[@]}"; do
-            echo "  - $obj"
+            echo -e "${RED}  - $obj${NC}"
         done
         
         # Save failed objects list
@@ -817,25 +883,31 @@ deploy_all_objects() {
         printf "%s\n" "${failed_list[@]}" > "$failed_objects_file"
         
         echo
-        print_color $YELLOW "실패한 객체 목록이 저장되었습니다: $failed_objects_file"
+        print_color $YELLOW "실패한 객체 목록이 저장되었습니다: ${BOLD}$failed_objects_file${NC}"
         print_color $YELLOW "해당 객체들을 재변환하여 다시 시도하세요."
         
         echo
-        echo "1. 실패한 객체들을 재변환하기"
-        echo "2. 나중에 수동으로 처리하기"
+        echo -e "${CYAN}1. 실패한 객체들을 재변환하기${NC}"
+        echo -e "${CYAN}2. 나중에 수동으로 처리하기${NC}"
         echo -n "선택 (1/2): "
         read retry_choice
         
         case "$retry_choice" in
             "1")
+                echo
+                echo
+                echo
                 retry_failed_objects "${failed_list[@]}"
                 ;;
             "2")
+                echo
+                echo
+                echo
                 print_color $BLUE "실패한 객체들을 나중에 수동으로 처리하세요."
                 ;;
         esac
     else
-        print_color $GREEN "모든 객체가 성공적으로 배포되었습니다!"
+        print_color $GREEN "${BOLD}모든 객체가 성공적으로 배포되었습니다!${NC}"
     fi
 }
 
@@ -912,20 +984,13 @@ deploy_to_postgresql() {
 
 # Main execution
 main() {
-    log_info "DB Schema 변환 프로세스를 시작합니다"
-    show_menu
-    
     # Check environment variables and set defaults if not provided
     if [ -z "$SOURCE_DBMS_TYPE" ]; then
         export SOURCE_DBMS_TYPE="orcl"
-        log_info "SOURCE_DBMS_TYPE not set, using default: orcl"
-        print_color $YELLOW "SOURCE_DBMS_TYPE not set, using default: orcl"
     fi
     
     if [ -z "$TARGET_DBMS_TYPE" ]; then
         export TARGET_DBMS_TYPE="postgres"
-        log_info "TARGET_DBMS_TYPE not set, using default: postgres"
-        print_color $YELLOW "TARGET_DBMS_TYPE not set, using default: postgres"
     fi
     
     # Check Oracle environment variables for DDL extraction
@@ -937,15 +1002,10 @@ main() {
         exit 1
     fi
     
-    log_info "Source DBMS: $SOURCE_DBMS_TYPE, Target DBMS: $TARGET_DBMS_TYPE"
-    print_color $GREEN "Source DBMS: $SOURCE_DBMS_TYPE"
-    print_color $GREEN "Target DBMS: $TARGET_DBMS_TYPE"
-    
     # Setup trap for cleanup
     trap cleanup_temp_files EXIT
     
     # Step 1: Create target directory
-    log_info "대상 디렉토리를 생성합니다"
     create_target_directory
     
     # Step 2-3: Handle ZIP file selection/download
@@ -967,7 +1027,7 @@ main() {
             else
                 # User chose to go back, return to file selection
                 log_info "사용자가 이전 메뉴로 돌아가기를 선택했습니다"
-                main
+                return 1  # Return to restart the process
                 return
             fi
         done

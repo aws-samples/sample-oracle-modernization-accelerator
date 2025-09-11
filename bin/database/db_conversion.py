@@ -48,13 +48,20 @@ def extract_ddl(object_name, output_file):
     try:
         # Set Oracle environment
         env = os.environ.copy()
-        env['ORACLE_HOME'] = '/home/ec2-user/instantclient_19_26'
+        env['ORACLE_HOME'] = os.environ.get('ORACLE_HOME', '/home/ec2-user/instantclient_19_26')
         env['LD_LIBRARY_PATH'] = f"{env['ORACLE_HOME']}:{env.get('LD_LIBRARY_PATH', '')}"
         env['PATH'] = f"{env['ORACLE_HOME']}:{env['PATH']}"
-        env['NLS_LANG'] = 'KOREAN_KOREA.AL32UTF8'
-        env['NLS_DATE_FORMAT'] = 'YYYY-MM-DD'
+        env['NLS_LANG'] = os.environ.get('NLS_LANG', 'KOREAN_KOREA.AL32UTF8')
+        env['NLS_DATE_FORMAT'] = os.environ.get('NLS_DATE_FORMAT', 'YYYY-MM-DD')
         
-        connection_string = "oma/welcome1@10.255.255.155/XEPDB1"
+        # Get Oracle connection info from environment variables
+        oracle_host = os.environ.get('ORACLE_HOST', '10.255.255.155')
+        oracle_port = os.environ.get('ORACLE_PORT', '1521')
+        oracle_sid = os.environ.get('ORACLE_SID', 'XEPDB1')
+        oracle_user = os.environ.get('ORACLE_SVC_USER', 'oma')
+        oracle_password = os.environ.get('ORACLE_SVC_PASSWORD', 'welcome1')
+        
+        connection_string = f"{oracle_user}/{oracle_password}@{oracle_host}:{oracle_port}/{oracle_sid}"
         
         print(f"Extracting DDL for procedure: {object_name}")
         
@@ -107,11 +114,12 @@ EXIT;
 def deploy_to_postgresql(sql_file):
     """Deploy DDL to PostgreSQL database"""
     try:
-        # Get PostgreSQL connection info from environment
+        # Get PostgreSQL connection info from environment - use admin credentials for deployment
         pghost = os.environ.get('PGHOST')
         pgdatabase = os.environ.get('PGDATABASE') 
-        pguser = os.environ.get('PGUSER')
-        pgpassword = os.environ.get('PGPASSWORD')
+        # Use admin credentials for deployment
+        pguser = os.environ.get('PG_ADMIN_USER', os.environ.get('PGUSER', 'postgres'))
+        pgpassword = os.environ.get('PG_ADMIN_PASSWORD', os.environ.get('PGPASSWORD'))
         
         if not all([pghost, pgdatabase, pguser]):
             print("✗ PostgreSQL environment variables not set (PGHOST, PGDATABASE, PGUSER)")
@@ -156,9 +164,40 @@ def deploy_to_postgresql(sql_file):
         
         cleaned_sql = '\n'.join(cleaned_lines)
         
-        # Write cleaned SQL to temporary file
+        # Write cleaned SQL to temporary file with schema setup
         import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.sql', delete=False) as temp_file:
+            # Set search path using environment variable
+            pg_schema = os.environ.get('PG_SCHEMA', os.environ.get('PGDATABASE', 'public'))
+            temp_file.write(f"SET search_path TO {pg_schema}, public;\n\n")
+            
+            # Extract procedure/function name from SQL for cleanup
+            import re
+            proc_match = re.search(r'CREATE\s+(?:OR\s+REPLACE\s+)?(?:PROCEDURE|FUNCTION)\s+(?:(\w+)\.)?(\w+)\s*\(', cleaned_sql, re.IGNORECASE)
+            if proc_match:
+                schema_name = proc_match.group(1) or pg_schema
+                object_name = proc_match.group(2)
+                
+                # Drop all existing procedures/functions with the same name
+                temp_file.write(f"-- Cleanup existing procedures/functions with same name\n")
+                temp_file.write(f"DO $$\n")
+                temp_file.write(f"DECLARE\n")
+                temp_file.write(f"    r RECORD;\n")
+                temp_file.write(f"BEGIN\n")
+                temp_file.write(f"    FOR r IN\n")
+                temp_file.write(f"        SELECT routine_name, specific_name, routine_type,\n")
+                temp_file.write(f"               string_agg(data_type, ', ' ORDER BY ordinal_position) as param_types\n")
+                temp_file.write(f"        FROM information_schema.routines rt\n")
+                temp_file.write(f"        LEFT JOIN information_schema.parameters p ON rt.specific_name = p.specific_name\n")
+                temp_file.write(f"        WHERE routine_schema = '{schema_name}' AND routine_name = '{object_name}'\n")
+                temp_file.write(f"        GROUP BY routine_name, specific_name, routine_type\n")
+                temp_file.write(f"    LOOP\n")
+                temp_file.write(f"        EXECUTE 'DROP ' || r.routine_type || ' IF EXISTS {schema_name}.' || r.routine_name || '(' || COALESCE(r.param_types, '') || ') CASCADE';\n")
+                temp_file.write(f"        RAISE NOTICE 'Dropped existing %: %.%', r.routine_type, '{schema_name}', r.routine_name;\n")
+                temp_file.write(f"    END LOOP;\n")
+                temp_file.write(f"END\n")
+                temp_file.write(f"$$;\n\n")
+            
             temp_file.write(cleaned_sql)
             temp_sql_file = temp_file.name
         
