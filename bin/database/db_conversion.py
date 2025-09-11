@@ -217,10 +217,40 @@ def deploy_to_postgresql(sql_file):
         os.unlink(temp_sql_file)
         
         print(f"psql return code: {process.returncode}")
+        # Filter and display meaningful stdout messages
         if stdout.strip():
-            print(f"stdout: {stdout}")
+            stdout_lines = stdout.strip().split('\n')
+            meaningful_stdout = [line for line in stdout_lines if line.strip() and line.strip() not in ['SET', 'DO']]
+            if meaningful_stdout:
+                print("📋 실행 결과:")
+                for line in meaningful_stdout:
+                    print(f"  {line}")
+        
         if stderr.strip():
-            print(f"stderr: {stderr}")
+            # Parse stderr for meaningful messages
+            stderr_lines = stderr.strip().split('\n')
+            error_lines = [line for line in stderr_lines if 'ERROR:' in line or 'FATAL:' in line]
+            warning_lines = [line for line in stderr_lines if 'WARNING:' in line or 'NOTICE:' in line]
+            
+            if error_lines:
+                print("❌ SQL 실행 중 오류 발생:")
+                for line in error_lines:
+                    print(f"  {line}")
+            elif warning_lines:
+                print("⚠️  SQL 실행 중 경고:")
+                for line in warning_lines:
+                    print(f"  {line}")
+            else:
+                # Show only meaningful parts of stderr, not technical psql output
+                meaningful_lines = [line for line in stderr_lines 
+                                  if line.strip() and 
+                                     not line.strip().startswith('psql:') and 
+                                     'psql:' not in line and
+                                     '/tmp/' not in line]
+                if meaningful_lines:
+                    print("ℹ️  추가 정보:")
+                    for line in meaningful_lines[:3]:  # Show max 3 lines
+                        print(f"  {line}")
         
         # Check for errors in stderr
         has_errors = False
@@ -228,7 +258,6 @@ def deploy_to_postgresql(sql_file):
             error_lines = [line for line in stderr.split('\n') if 'ERROR:' in line or 'FATAL:' in line]
             if error_lines:
                 has_errors = True
-                print(f"Found {len(error_lines)} SQL errors")
         
         if process.returncode == 0 and not has_errors:
             print("✓ DDL applied successfully to PostgreSQL")
