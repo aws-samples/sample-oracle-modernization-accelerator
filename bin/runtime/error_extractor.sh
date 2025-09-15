@@ -65,8 +65,8 @@ echo -e "${GREEN}2. 데이터베이스 에러를 추출 중...${NC}"
 extract_mapper_name() {
     local mapper_full="$1"
 
-    # topas.com.dao.mapper.TbComCd314Mapper.insert-Inline -> TbComCd314Mapper
-    if [[ "$mapper_full" =~ topas\.[^.]+\.dao\.mapper\.([^.]+)Mapper ]]; then
+    # amzn.com.dao.mapper.
+    if [[ "$mapper_full" =~ amzn\.[^.]+\.dao\.mapper\.([^.]+)Mapper ]]; then
         echo "${BASH_REMATCH[1]}Mapper"
     elif [[ "$mapper_full" =~ ([^.]+Mapper) ]]; then
         echo "${BASH_REMATCH[1]}"
