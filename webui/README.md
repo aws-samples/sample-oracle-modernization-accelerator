@@ -1,151 +1,114 @@
 # OMA Streamlit Web Application
 
-Oracle Migration Assistant (OMA)의 shell 스크립트를 Streamlit 웹 애플리케이션으로 변환한 버전입니다.
+Oracle Migration Assistant (OMA) web interface for Oracle to PostgreSQL migration.
 
-## 주요 기능
+## Key Features
 
-### 🌐 다국어 지원
-- 한국어/영어 언어 선택 기능
-- 사이드바에서 실시간 언어 전환
-- 모든 메뉴와 메시지가 선택된 언어로 표시
+### 🏠 Environment Setup
+- Environment variable configuration and verification
+- Project initialization
 
-### 🏠 환경 설정
-- 환경 변수 설정 및 확인
-- 프로젝트 초기 설정
+### 📊 Application Analysis
+- Java source code and MyBatis Mapper file analysis
+- Analysis report generation and SQL transformation target extraction
+- PostgreSQL metadata generation
 
-### 📊 애플리케이션 분석
-- Java 소스 코드 및 MyBatis Mapper 파일 분석
-- 분석 보고서 작성 및 SQL 변환 대상 추출
-- PostgreSQL 메타데이터 생성
+### 🔄 Application Transformation
+- SQL sample transformation
+- Full SQL transformation
+- Transformation testing and result modification
+- XML Merge operations
 
-### 🔄 애플리케이션 변환
-- SQL 샘플 변환
-- SQL 전체 변환
-- 변환 테스트 및 결과 수정
-- XML Merge 작업
+### 🧪 SQL Testing
+- XML List generation
+- SQL Unit Test execution
 
-### 🧪 SQL 테스트
-- XML List 생성
-- SQL Unit Test 실행
+### 📋 Transformation Reports
+- Transformation work report generation
+- Java Source transformation
 
-### 📋 변환 보고서
-- 변환 작업 보고서 생성
-- Java Source 변환
+## How to Run
 
-## 실행 방법
-
-### 1. 간단한 실행 (권장)
+### 1. Simple Execution (Recommended)
 ```bash
 ./run_oma_app.sh
 ```
 
-### 2. 수동 실행
+### 2. Manual Execution
 ```bash
-# 필요한 패키지 설치
+# Install required packages
 pip install -r requirements.txt
 
-# 환경 변수 설정 (필요한 경우)
+# Set environment variables (if needed)
 export OMA_BASE_DIR="$HOME/workspace/oma"
 
-# Streamlit 애플리케이션 실행
+# Run Streamlit application
 streamlit run oma_streamlit_app.py --server.port 8501 --server.address 0.0.0.0
 ```
 
-## 접속 방법
+## Access Method
 
-애플리케이션이 시작되면 브라우저에서 다음 주소로 접속하세요:
-- 로컬: http://localhost:8501
-- 원격: http://[서버IP]:8501
+Once the application starts, access it via browser:
+- Local: http://localhost:8501
+- Remote: http://[server-ip]:8501
 
-## 주요 특징
+## Key Features
 
-### 🌐 다국어 인터페이스
-- 사이드바 상단에서 한국어/영어 선택 가능
-- 실시간 언어 전환 (페이지 새로고침 없음)
-- 모든 메뉴, 버튼, 메시지가 선택된 언어로 표시
-- 세션 기반 언어 설정 유지
+### Real-time Log Output
+- Execution logs for each task are displayed in real-time in the web browser
+- Visual progress tracking for task execution
 
-### 실시간 로그 출력
-- 각 작업의 실행 로그가 실시간으로 웹 브라우저에 표시됩니다
-- 작업 진행 상황을 시각적으로 확인할 수 있습니다
+### Task Interruption
+- Use the "Stop Current Task" button in the sidebar to interrupt running tasks
 
-### 작업 중단 기능
-- 사이드바의 "현재 작업 중단" 버튼으로 실행 중인 작업을 중단할 수 있습니다
+### Tab-based Interface
+- Each task step is organized in tabs for easy navigation
 
-### 탭 기반 인터페이스
-- 각 작업 단계별로 탭으로 구분되어 있어 쉽게 탐색할 수 있습니다
+### Environment Status Display
+- Check current environment configuration status in the sidebar
 
-### 환경 상태 표시
-- 사이드바에서 현재 환경 설정 상태를 확인할 수 있습니다
+## Prerequisites
 
-## 사전 요구사항
+1. **Python 3.7 or higher**
+2. **OMA Environment Setup**
+   - Set `OMA_BASE_DIR` environment variable
+   - Required OMA scripts must be in correct locations
+3. **Network Access**
+   - For database connection tasks
 
-1. **Python 3.7 이상**
-2. **OMA 환경 설정**
-   - `OMA_BASE_DIR` 환경 변수 설정
-   - 필요한 OMA 스크립트들이 올바른 위치에 있어야 함
-3. **네트워크 접근**
-   - 데이터베이스 연결이 필요한 작업의 경우
+## Environment Variables
 
-## 환경 변수
+- `OMA_BASE_DIR`: OMA installation directory (default: ~/workspace/oma)
+- `APPLICATION_NAME`: Current project name (automatically set after environment setup)
 
-- `OMA_BASE_DIR`: OMA 설치 디렉토리 (기본값: ~/workspace/oma)
-- `APPLICATION_NAME`: 현재 프로젝트명 (환경 설정 후 자동 설정)
+## Troubleshooting
 
-## 다국어 사용법
-
-### 언어 변경
-1. 사이드바 상단의 "🌐 Language / 언어" 섹션에서 원하는 언어 선택
-2. 🇰🇷 한국어 또는 🇺🇸 English 버튼 클릭
-3. 페이지가 자동으로 새로고침되며 선택된 언어로 표시
-
-### 지원되는 언어
-- **한국어 (Korean)**: 기본 언어
-- **영어 (English)**: 국제 사용자를 위한 영어 지원
-
-### 다국어 적용 범위
-- 사이드바 메뉴 및 버튼
-- 작업 상태 메시지
-- 오류 및 성공 메시지
-- 작업 설명 및 도움말
-- 로그 관련 텍스트
-
-## 문제 해결
-
-### 포트 충돌
-다른 포트를 사용하려면:
+### Port Conflicts
+To use a different port:
 ```bash
 streamlit run oma_streamlit_app.py --server.port 8502
 ```
 
-### 권한 문제
-스크립트 실행 권한 확인:
+### Permission Issues
+Check script execution permissions:
 ```bash
 chmod +x run_oma_app.sh
 ```
 
-### 환경 변수 문제
-OMA 환경이 제대로 설정되지 않은 경우, 웹 애플리케이션의 "환경 설정" 탭에서 환경을 다시 설정하세요.
+### Environment Variable Issues
+If OMA environment is not properly configured, reconfigure the environment in the "Environment Setup" tab of the web application.
 
-### 언어 설정 문제
-언어가 제대로 변경되지 않는 경우:
-1. 브라우저 새로고침 (F5)
-2. 브라우저 캐시 삭제
-3. 다른 브라우저에서 접속 시도
+## Differences from Original Shell Scripts
 
-## 기존 Shell 스크립트와의 차이점
+1. **Web Interface**: Runs in web browser instead of terminal
+2. **Real-time Logs**: Logs displayed in real-time on web
+3. **Visual Feedback**: Progress indicators and status icons
+4. **Task Interruption**: Ability to stop running tasks from web interface
+5. **Tab-based Navigation**: Easy access to each step
 
-1. **웹 인터페이스**: 터미널 대신 웹 브라우저에서 실행
-2. **다국어 지원**: 한국어/영어 실시간 전환 가능
-3. **실시간 로그**: 로그가 실시간으로 웹에 표시
-4. **시각적 피드백**: 진행률 표시 및 상태 아이콘
-5. **작업 중단**: 웹에서 실행 중인 작업을 중단 가능
-6. **탭 기반 네비게이션**: 각 단계별로 쉽게 접근
+## Support
 
-## 지원
-
-문제가 발생하면 다음을 확인하세요:
-1. OMA 환경 설정이 올바른지 확인
-2. 필요한 스크립트 파일들이 존재하는지 확인
-3. 네트워크 연결 상태 확인 (DB 관련 작업의 경우)
-4. 언어 설정이 올바른지 확인
+If you encounter issues, check the following:
+1. Verify OMA environment setup is correct
+2. Ensure required script files exist
+3. Check network connection status (for DB-related tasks)

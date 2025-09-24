@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OMA (Oracle Migration Assistant) Streamlit Web Application
-기존 initOMA.sh shell 스크립트를 웹 인터페이스로 변환
+Web interface for Oracle to PostgreSQL migration
 """
 
 import streamlit as st
@@ -18,85 +18,7 @@ import re
 import datetime
 import tempfile
 
-# 언어 설정 딕셔너리
-LANGUAGES = {
-    "ko": {
-        "name": "한국어",
-        "flag": "🇰🇷",
-        "env_info": "🔧 환경 정보",
-        "project_select": "📋 프로젝트 선택:",
-        "project_apply": "🔄 프로젝트 적용",
-        "current_project": "✅ 현재 프로젝트:",
-        "no_project": "❌ 프로젝트가 선택되지 않았습니다",
-        "running_status": "🔄 실행 상태",
-        "task_running": "실행 중",
-        "waiting": "🟢 **대기 중**",
-        "no_running_task": "현재 실행 중인 작업이 없습니다",
-        "stop_task": "🛑 현재 작업 중단",
-        "view_logs": "📋 로그 보기",
-        "view_qlog": "📊 qlog 보기",
-        "task_menu": "📋 작업 메뉴",
-        "project_env_info": "📊 프로젝트 환경 정보",
-        "app_analysis": "📊 애플리케이션 분석",
-        "app_transform": "🔄 애플리케이션 변환",
-        "sql_test": "🧪 SQL 테스트",
-        "transform_report": "📋 변환 보고서",
-        "analysis_menu": "🔍 애플리케이션 분석",
-        "reporting_menu": "📄 분석 보고서 작성",
-        "review_menu": "📋 분석 보고서 리뷰",
-        "meta_menu": "🗄️ PostgreSQL 메타데이터",
-        "validation_menu": "✅ 매퍼 파일 검증",
-        "sample_transform_menu": "🧪 샘플 변환 실행",
-        "full_transform_menu": "🚀 전체 변환 실행",
-        "merge_transform_menu": "🔗 XML Merge 실행",
-        "parameter_config_menu": "⚙️ Parameter 구성",
-        "source_sqls_menu": "⚖️ Compare SQL Test",
-        "transform_report_menu": "📊 변환 보고서 생성",
-        "view_transform_report_menu": "📄 변환 보고서 보기"
-    },
-    "en": {
-        "name": "English",
-        "flag": "🇺🇸",
-        "env_info": "🔧 Environment Info",
-        "project_select": "📋 Select Project:",
-        "project_apply": "🔄 Apply Project",
-        "current_project": "✅ Current Project:",
-        "no_project": "❌ No project selected",
-        "running_status": "🔄 Running Status",
-        "task_running": "Running",
-        "waiting": "🟢 **Waiting**",
-        "no_running_task": "No running tasks",
-        "stop_task": "🛑 Stop Current Task",
-        "view_logs": "📋 View Logs",
-        "view_qlog": "📊 View qlog",
-        "task_menu": "📋 Task Menu",
-        "project_env_info": "📊 Project Environment Info",
-        "app_analysis": "📊 Application Analysis",
-        "app_transform": "🔄 Application Transform",
-        "sql_test": "🧪 SQL Test",
-        "transform_report": "📋 Transform Report",
-        "analysis_menu": "🔍 Application Analysis",
-        "reporting_menu": "📄 Analysis Report",
-        "review_menu": "📋 Review Analysis Report",
-        "meta_menu": "🗄️ PostgreSQL Metadata",
-        "validation_menu": "✅ Mapper Validation",
-        "sample_transform_menu": "🧪 Sample Transform",
-        "full_transform_menu": "🚀 Full Transform",
-        "merge_transform_menu": "🔗 XML Merge",
-        "parameter_config_menu": "⚙️ Parameter Config",
-        "source_sqls_menu": "⚖️ Compare SQL Test",
-        "transform_report_menu": "📊 Generate Transform Report",
-        "view_transform_report_menu": "📄 View Transform Report"
-    }
-}
-
-def get_text(key, lang=None):
-    """언어별 텍스트 반환"""
-    if lang is None:
-        lang = st.session_state.get('language', 'ko')
-    return LANGUAGES.get(lang, LANGUAGES['ko']).get(key, key)
-
-# 분리된 페이지 모듈들 import
+# Import separated page modules
 from modules import (
     render_welcome_page,
     render_project_env_page,
@@ -117,7 +39,7 @@ from modules import (
 )
 from modules.qlog_viewer import render_qlog_page
 
-# 페이지 설정
+# Page configuration
 st.set_page_config(
     page_title="OMA - Oracle Migration Assistant",
     page_icon="🔄",
@@ -125,7 +47,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS 스타일링
+# CSS styling
 st.markdown("""
 <style>
     .main-header {
@@ -206,7 +128,7 @@ st.markdown("""
         color: white;
     }
     
-    /* 아코디언 스타일 메뉴 - 라이트 테마 */
+    /* Accordion style menu - Light theme */
     .sidebar .streamlit-expanderHeader {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -251,13 +173,13 @@ st.markdown("""
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     
-    /* 메인 컨텐츠 영역 */
+    /* Main content area */
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
     
-    /* 카드 스타일 */
+    /* Card style */
     .metric-card {
         background: white;
         padding: 1rem;
@@ -268,20 +190,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 class TaskManager:
-    """작업 상태를 파일 기반으로 관리하는 클래스"""
+    """File-based task status management class"""
     
     def __init__(self):
-        self.tasks_dir = os.path.join(os.getcwd(), "oma_tasks")  # 현재 디렉토리에 task 파일만
-        self.logs_dir = self.tasks_dir  # logs_dir 속성 추가
+        self.tasks_dir = os.path.join(os.getcwd(), "oma_tasks")  # Task files only in current directory
+        self.logs_dir = self.tasks_dir  # Add logs_dir attribute
         
-        # 디렉토리 생성
+        # Create directory
         os.makedirs(self.tasks_dir, exist_ok=True)
         
-        # 시작 시 종료된 작업들 정리
+        # Clean up terminated tasks at startup
         self.cleanup_finished_tasks()
     
     def create_task(self, task_id, title, command, pid, log_file=None):
-        """새 작업 생성"""
+        """Create new task"""
         task_info = {
             "task_id": task_id,
             "title": title,
@@ -289,7 +211,7 @@ class TaskManager:
             "pid": pid,
             "start_time": datetime.datetime.now().isoformat(),
             "status": "running",
-            "log_file": log_file or "no_log_file"  # 실제 로그 파일 경로 또는 기본값
+            "log_file": log_file or "no_log_file"  # Actual log file path or default
         }
         
         task_file = os.path.join(self.tasks_dir, f"{task_id}.json")
@@ -299,7 +221,7 @@ class TaskManager:
         return task_info
     
     def get_running_tasks(self):
-        """실행 중인 작업 목록 반환"""
+        """Return list of running tasks"""
         running_tasks = []
         
         if not os.path.exists(self.tasks_dir):
@@ -311,31 +233,31 @@ class TaskManager:
                     with open(os.path.join(self.tasks_dir, task_file), 'r', encoding='utf-8') as f:
                         task_info = json.load(f)
                     
-                    # 프로세스가 실제로 실행 중인지 확인
+                    # Check if process is actually running
                     if self.is_process_running(task_info['pid']):
                         running_tasks.append(task_info)
                     else:
-                        # 종료된 프로세스는 정리
+                        # Clean up terminated processes
                         self.finish_task(task_info['task_id'])
                         
                 except Exception as e:
-                    print(f"작업 파일 읽기 오류: {e}")
+                    print(f"Task file read error: {e}")
         
         return running_tasks
     
     def get_task_info(self, task_id):
-        """특정 작업 정보 반환"""
+        """Return specific task information"""
         task_file = os.path.join(self.tasks_dir, f"{task_id}.json")
         if os.path.exists(task_file):
             try:
                 with open(task_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"작업 정보 읽기 오류: {e}")
+                print(f"Task info read error: {e}")
         return None
     
     def get_task_logs(self, task_id, tail_lines=100):
-        """작업 로그 읽기 (최근 N줄)"""
+        """Read task logs (recent N lines)"""
         task_info = self.get_task_info(task_id)
         if task_info and os.path.exists(task_info['log_file']):
             try:
@@ -343,40 +265,40 @@ class TaskManager:
                     lines = f.readlines()
                     return [line.rstrip() for line in lines[-tail_lines:]]
             except Exception as e:
-                print(f"로그 읽기 오류: {e}")
+                print(f"Log read error: {e}")
         return []
     
     def finish_task(self, task_id):
-        """작업 완료 처리"""
+        """Complete task processing"""
         task_file = os.path.join(self.tasks_dir, f"{task_id}.json")
         if os.path.exists(task_file):
             try:
-                # 작업 정보 파일 삭제
+                # Delete task info file
                 os.remove(task_file)
             except Exception as e:
-                print(f"작업 정리 오류: {e}")
+                print(f"Task cleanup error: {e}")
     
     def kill_task(self, task_id):
-        """작업 강제 종료"""
+        """Force terminate task"""
         task_info = self.get_task_info(task_id)
         if task_info:
             try:
                 pid = task_info['pid']
                 if self.is_process_running(pid):
                     os.killpg(os.getpgid(pid), signal.SIGTERM)
-                    # 로그 파일에 중단 메시지 추가
+                    # Add interruption message to log file
                     if os.path.exists(task_info['log_file']):
                         with open(task_info['log_file'], 'a', encoding='utf-8') as f:
-                            f.write(f"\n=== 작업이 사용자에 의해 중단되었습니다 ===\n")
+                            f.write(f"\n=== Task interrupted by user ===\n")
                 
                 self.finish_task(task_id)
                 return True
             except Exception as e:
-                print(f"작업 중단 오류: {e}")
+                print(f"Task interruption error: {e}")
         return False
     
     def is_process_running(self, pid):
-        """프로세스가 실행 중인지 확인"""
+        """Check if process is running"""
         try:
             os.kill(pid, 0)
             return True
@@ -384,28 +306,28 @@ class TaskManager:
             return False
     
     def get_all_tasks(self):
-        """모든 작업 목록 반환 (완료된 작업 포함)"""
+        """Return all task list (including completed tasks)"""
         all_tasks = []
         
-        # 실행 중인 작업들
+        # Running tasks
         running_tasks = self.get_running_tasks()
         all_tasks.extend(running_tasks)
         
-        # 로그 디렉토리에서 완료된 작업들 찾기
+        # Find completed tasks in log directory
         if os.path.exists(self.logs_dir):
             for log_file in os.listdir(self.logs_dir):
                 if log_file.endswith('.log'):
-                    task_id = log_file[:-4]  # .log 제거
+                    task_id = log_file[:-4]  # Remove .log
                     
-                    # 이미 실행 중인 작업이 아닌 경우만
+                    # Only if not already running
                     if not any(task['task_id'] == task_id for task in running_tasks):
                         log_path = os.path.join(self.logs_dir, log_file)
                         try:
-                            # 로그 파일의 수정 시간을 기준으로 작업 정보 생성
+                            # Generate task info based on log file modification time
                             mtime = os.path.getmtime(log_path)
                             completed_task = {
                                 "task_id": task_id,
-                                "title": "완료된 작업",
+                                "title": "Completed Task",
                                 "command": "unknown",
                                 "pid": 0,
                                 "start_time": datetime.datetime.fromtimestamp(mtime).isoformat(),
@@ -414,14 +336,14 @@ class TaskManager:
                             }
                             all_tasks.append(completed_task)
                         except Exception as e:
-                            print(f"완료된 작업 정보 생성 오류: {e}")
+                            print(f"Completed task info generation error: {e}")
         
-        # 시작 시간 기준으로 정렬
+        # Sort by start time
         all_tasks.sort(key=lambda x: x['start_time'])
         return all_tasks
     
     def cleanup_finished_tasks(self):
-        """종료된 작업들 정리"""
+        """Clean up terminated tasks"""
         if not os.path.exists(self.tasks_dir):
             return
         
@@ -435,9 +357,9 @@ class TaskManager:
                         self.finish_task(task_info['task_id'])
                         
                 except Exception as e:
-                    print(f"정리 중 오류: {e}")
+                    print(f"Cleanup error: {e}")
 
-# 전역 작업 관리자
+# Global task manager
 if 'task_manager' not in st.session_state:
     st.session_state.task_manager = TaskManager()
 
@@ -445,57 +367,57 @@ class OMAController:
     def __init__(self):
         self.oma_base_dir = self.get_oma_base_dir()
         self.current_process = None
-        self.current_task_id = None  # 현재 작업 ID
+        self.current_task_id = None  # Current task ID
         self.log_queue = queue.Queue()
         self.config_file = os.path.join(os.getcwd(), ".oma_config.json")
-        # 생성자에서는 로드하지 않음 (main에서 처리)
+        # Do not load in constructor (handled in main)
         
     def get_oma_base_dir(self):
-        """OMA_BASE_DIR 환경 변수 확인 및 설정"""
+        """Check and set OMA_BASE_DIR environment variable"""
         oma_dir = os.environ.get('OMA_BASE_DIR')
         if not oma_dir:
-            # 기본값으로 ~/workspace/oma 사용
+            # Use ~/workspace/oma as default
             oma_dir = os.path.expanduser("~/workspace/oma")
         return oma_dir
     
     def is_running(self):
-        """현재 실행 중인 작업이 있는지 확인"""
+        """Check if any task is currently running"""
         running_tasks = st.session_state.task_manager.get_running_tasks()
         return len(running_tasks) > 0
     
     def get_current_task(self):
-        """현재 실행 중인 작업 정보 반환"""
+        """Return current running task info"""
         running_tasks = st.session_state.task_manager.get_running_tasks()
         return running_tasks[0] if running_tasks else None
     
     def load_saved_config(self):
-        """저장된 환경 설정 로드 및 시스템 환경변수에 적용"""
+        """Load saved environment config and apply to system env vars"""
         try:
             if os.path.exists(self.config_file):
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     config = json.load(f)
                     
-                    # 저장된 환경변수들을 시스템 환경변수로 복원
+                    # Restore saved environment variables to system
                     env_vars = config.get('env_vars', {})
                     if env_vars:
                         restored_count = 0
                         for key, value in env_vars.items():
-                            # EC2 환경변수가 있으면 그것을 우선 사용, 없으면 저장된 값 사용
+                            # Use EC2 env var if available, otherwise use saved value
                             if key in os.environ:
-                                # EC2 환경변수 값으로 config 업데이트 (다음 저장 시 반영됨)
+                                # Update config with EC2 env var value
                                 env_vars[key] = os.environ[key]
                             else:
-                                # 저장된 값을 환경변수로 설정
+                                # Set saved value as environment variable
                                 os.environ[key] = value
                                 restored_count += 1
                     
-                    return config, restored_count  # 실제 복원된 변수 개수 반환
+                    return config, restored_count  # Return actual number of restored variables
         except Exception as e:
             return {}, 0
         return {}, 0
     
     def save_config(self, env_vars=None):
-        """환경 설정 저장"""
+        """Save environment config"""
         try:
             config = {
                 'oma_base_dir': self.oma_base_dir,
@@ -508,55 +430,55 @@ class OMAController:
                 json.dump(config, f, indent=2)
             return True
         except Exception as e:
-            st.error(f"설정 파일 저장 중 오류: {e}")
+            st.error(f"Error saving config file: {e}")
             return False
     
     def update_environment_vars(self):
-        """현재 환경 변수를 파일에 저장"""
-        # checkEnv.sh에서 확인하는 모든 환경변수들
+        """Save current environment variables to file"""
+        # All environment variables checked by checkEnv.sh
         important_vars = [
-            # 핵심 환경 변수
+            # Core environment variables
             'APPLICATION_NAME', 'OMA_BASE_DIR', 'JAVA_SOURCE_FOLDER',
             'SOURCE_SQL_MAPPER_FOLDER', 'TARGET_SQL_MAPPER_FOLDER',
             'TRANSFORM_JNDI', 'TRANSFORM_RELATED_CLASS',
             'SOURCE_DBMS_TYPE', 'TARGET_DBMS_TYPE',
             
-            # 폴더 관련
+            # Folder related
             'DBMS_FOLDER', 'DBMS_LOGS_FOLDER', 'APPLICATION_FOLDER',
             'APP_TOOLS_FOLDER', 'APP_TRANSFORM_FOLDER', 'APP_LOGS_FOLDER',
             'TEST_FOLDER', 'TEST_LOGS_FOLDER',
             
-            # Oracle 연결 정보
+            # Oracle connection info
             'ORACLE_ADM_USER', 'ORACLE_ADM_PASSWORD', 'ORACLE_HOST',
             'ORACLE_PORT', 'ORACLE_SID', 'ORACLE_SVC_USER',
             'ORACLE_SVC_PASSWORD', 'ORACLE_SVC_CONNECT_STRING',
             'ORACLE_SVC_USER_LIST', 'SERVICE_NAME', 'NLS_LANG',
             
-            # PostgreSQL 연결 정보
+            # PostgreSQL connection info
             'PG_SVC_PASSWORD', 'PGPORT', 'PGPASSWORD', 'PG_ADM_PASSWORD',
             'PG_ADM_USER', 'PG_SVC_USER', 'PGUSER', 'PGDATABASE', 'PGHOST',
             
-            # 시스템 환경 변수
+            # System environment variables
             'JAVA_HOME', 'PATH', 'HOME', 'USER'
         ]
         
         env_vars = {}
         
-        # 현재 실제 환경변수 값을 가져오기 (os.environ에서 직접)
+        # Get current actual environment variable values
         for var in important_vars:
             if var in os.environ:
                 env_vars[var] = os.environ[var]
         
-        # 디버그: Oracle 관련 변수들 확인
+        # Debug: Check Oracle related variables
         oracle_vars = ['ORACLE_HOST', 'ORACLE_SID', 'ORACLE_PORT']
-        print(f"DEBUG: 현재 Oracle 환경변수들:")
+        print(f"DEBUG: Current Oracle environment variables:")
         for var in oracle_vars:
             print(f"  {var} = {os.environ.get(var, 'NOT_SET')}")
         
         return self.save_config(env_vars)
     
     def get_available_projects(self):
-        """oma.properties에서 사용 가능한 프로젝트 목록 추출"""
+        """Extract available project list from oma.properties"""
         properties_file = os.path.join(self.oma_base_dir, "config", "oma.properties")
         projects = []
         
@@ -565,17 +487,17 @@ class OMAController:
                 with open(properties_file, 'r', encoding='utf-8') as f:
                     for line in f:
                         line = line.strip()
-                        # [프로젝트명] 형태의 섹션 찾기 (COMMON 제외)
+                        # Find [project_name] format sections (excluding COMMON)
                         if line.startswith('[') and line.endswith(']') and line != '[COMMON]':
-                            project_name = line[1:-1]  # 대괄호 제거
+                            project_name = line[1:-1]  # Remove brackets
                             projects.append(project_name)
         except Exception as e:
-            st.error(f"oma.properties 파일 읽기 오류: {e}")
+            st.error(f"oma.properties file read error: {e}")
         
         return projects
     
     def get_project_config(self, project_name):
-        """특정 프로젝트의 설정 정보 추출 (COMMON + 프로젝트 설정 병합)"""
+        """Extract specific project config info (COMMON + project config merge)"""
         properties_file = os.path.join(self.oma_base_dir, "config", "oma.properties")
         config = {}
         
@@ -587,45 +509,45 @@ class OMAController:
                 current_section = None
                 raw_config = {}
                 
-                # 1단계: 원본 값들 수집
+                # Step 1: Collect original values
                 for line in lines:
                     line = line.strip()
                     
-                    # 섹션 헤더 확인
+                    # Check section header
                     if line.startswith('[') and line.endswith(']'):
-                        current_section = line[1:-1]  # 대괄호 제거
+                        current_section = line[1:-1]  # Remove brackets
                         continue
                     
-                    # 설정 값 파싱 (COMMON 또는 선택된 프로젝트 섹션에서만)
+                    # Parse config values (only from COMMON or selected project section)
                     if (current_section == 'COMMON' or current_section == project_name) and '=' in line and not line.startswith('#'):
                         key, value = line.split('=', 1)
                         key = key.strip()
                         value = value.strip()
                         raw_config[key] = value
                 
-                # APPLICATION_NAME은 반드시 포함
+                # APPLICATION_NAME must be included
                 raw_config['APPLICATION_NAME'] = project_name
                 
-                # 2단계: 환경 변수 치환 (여러 번 반복하여 의존성 해결)
+                # Step 2: Environment variable substitution
                 config = raw_config.copy()
                 
-                # 최대 5번 반복하여 모든 변수 치환
+                # Repeat up to 5 times to substitute all variables
                 for iteration in range(5):
                     changed = False
                     for key, value in config.items():
                         if '${' in value:
                             original_value = value
                             
-                            # 기본 변수들 치환
+                            # Substitute basic variables
                             value = value.replace('${APPLICATION_NAME}', project_name)
                             value = value.replace('${OMA_BASE_DIR}', self.oma_base_dir)
                             
-                            # config 내의 다른 값들로 치환
+                            # Substitute with other values in config
                             for config_key, config_value in config.items():
                                 if config_key != key and '${' not in config_value:
                                     value = value.replace('${' + config_key + '}', config_value)
                             
-                            # 시스템 환경 변수로 치환
+                            # Substitute with system environment variables
                             for env_key, env_value in os.environ.items():
                                 value = value.replace('${' + env_key + '}', env_value)
                             
@@ -633,47 +555,47 @@ class OMAController:
                                 config[key] = value
                                 changed = True
                     
-                    # 더 이상 변화가 없으면 종료
+                    # Exit if no more changes
                     if not changed:
                         break
                 
         except Exception as e:
-            st.error(f"프로젝트 설정 읽기 오류: {e}")
+            st.error(f"Project config read error: {e}")
         
         return config
     
     def set_project_environment(self, project_name):
-        """선택된 프로젝트의 환경 변수 설정 (COMMON + 프로젝트 모든 변수 저장)"""
+        """Set environment variables for selected project (COMMON + all project variables)"""
         if not project_name:
             return False
         
-        # 프로젝트 설정 가져오기 (COMMON + 프로젝트 병합)
+        # Get project config (COMMON + project merge)
         project_config = self.get_project_config(project_name)
         
         if not project_config:
-            st.error(f"프로젝트 '{project_name}' 설정을 찾을 수 없습니다.")
+            st.error(f"Cannot find project config.")
             return False
         
-        # 모든 설정을 환경 변수로 설정
+        # Set all configs as environment variables
         for key, value in project_config.items():
             env_key = key.upper()
             os.environ[env_key] = value
             
-        # 디버그: 설정된 변수 개수 표시
-        st.info(f"📊 총 {len(project_config)}개 환경 변수가 설정되었습니다.")
+        # Debug: Display number of configured variables
+        st.info(f"📊 Total environment variables configured.")
         
-        # 설정 파일에 저장 (모든 중요한 환경변수 포함)
+        # Save to config file (including all important env vars)
         save_result = self.update_environment_vars()
         
         if save_result:
-            st.success(f"💾 프로젝트 '{project_name}' 설정이 JSON 파일에 저장되었습니다.")
+            st.success(f"💾 Project config saved to JSON file.")
         else:
-            st.error("❌ JSON 파일 저장에 실패했습니다.")
+            st.error("❌ Failed to save JSON file.")
             
         return save_result
     
     def check_environment(self):
-        """환경 변수 확인"""
+        """Check environment variables"""
         app_name = os.environ.get('APPLICATION_NAME')
         return {
             'oma_base_dir': self.oma_base_dir,
@@ -682,22 +604,22 @@ class OMAController:
             'config_file': self.config_file
         }
     
-    def run_command_with_logs(self, command, title="작업", cwd=None):
-        """명령어를 실행하고 실시간 로그를 반환 (파일 기반 하이브리드 방식)"""
-        # 이미 실행 중인 작업이 있는지 확인
+    def run_command_with_logs(self, command, title="Task", cwd=None):
+        """Execute command and return real-time logs (file-based hybrid method)"""
+        # Check if task is already running
         if self.is_running():
-            yield "❌ 다른 작업이 실행 중입니다. 잠시 후 다시 시도하세요."
+            yield "❌ Another task is running. Please try again later."
             return
         
         if cwd is None:
             cwd = os.path.join(self.oma_base_dir, 'bin')
         
-        # 고유한 작업 ID 생성
+        # Generate unique task ID
         task_id = f"task_{int(time.time() * 1000)}"
         log_file = os.path.join(st.session_state.task_manager.logs_dir, f"{task_id}.log")
         
         try:
-            # 프로세스 시작 (리다이렉션 없이 직접 파이프 사용)
+            # Start process (direct pipe without redirection)
             process = subprocess.Popen(
                 command,
                 shell=True,
@@ -706,75 +628,75 @@ class OMAController:
                 universal_newlines=True,
                 bufsize=1,
                 cwd=cwd,
-                preexec_fn=os.setsid  # 프로세스 그룹 생성
+                preexec_fn=os.setsid  # Create process group
             )
             
             self.current_process = process
             self.current_task_id = task_id
             
-            # TaskManager에 작업 등록
+            # Register task with TaskManager
             task_info = st.session_state.task_manager.create_task(
                 task_id, title, command, process.pid
             )
             
-            # 실시간 로그 수집 및 파일 저장
+            # Real-time log collection and file saving
             yield from self.collect_logs_and_save(process, log_file, task_id)
             
-            # 프로세스 완료 대기
+            # Wait for process completion
             process.wait()
             
-            # 완료 로그 추가
-            completion_msg = f"=== {title} 완료 (종료 코드: {process.returncode}) ==="
+            # Add completion log
+            completion_msg = f"=== Task completed (exit code: {process.returncode}) ==="
             st.session_state.task_manager.append_log(task_id, completion_msg)
             yield completion_msg
             
         except Exception as e:
-            error_msg = f"❌ 오류 발생: {str(e)}"
+            error_msg = f"❌ Error occurred: {str(e)}"
             if task_id:
                 st.session_state.task_manager.append_log(task_id, error_msg)
             yield error_msg
         finally:
-            # 작업 완료 처리
+            # Handle task completion
             if task_id:
                 st.session_state.task_manager.finish_task(task_id)
             self.current_process = None
             self.current_task_id = None
     
     def collect_logs_and_save(self, process, log_file, task_id):
-        """프로세스 출력을 실시간으로 수집하고 파일에 저장"""
+        """Collect process output in real-time and save to file"""
         try:
-            # 로그 파일 열기
+            # Open log file
             with open(log_file, 'w', encoding='utf-8') as f:
-                f.write(f"=== 작업 시작: {task_id} ===\n")
+                f.write(f"=== Task started: {task_id} ===\n")
                 f.flush()
                 
-                # 실시간 로그 수집
+                # Real-time log collection
                 while True:
                     line = process.stdout.readline()
                     if not line:
-                        # 프로세스가 종료되었는지 확인
+                        # Check if process terminated
                         if process.poll() is not None:
                             break
                         continue
                     
-                    # 줄바꿈 문자 제거
+                    # Remove newline characters
                     clean_line = line.rstrip('\n\r')
-                    if clean_line:  # 빈 줄이 아닌 경우만
-                        # 파일에 저장
+                    if clean_line:  # Only if not empty line
+                        # Save to file
                         f.write(clean_line + '\n')
-                        f.flush()  # 즉시 파일에 쓰기
+                        f.flush()  # Write to file immediately
                         
-                        # 화면에 표시
+                        # Display on screen
                         yield clean_line
                 
-                # 완료 메시지 추가
-                f.write(f"=== 작업 완료: {task_id} ===\n")
+                # Add completion message
+                f.write(f"=== Task completed: {task_id} ===\n")
                 f.flush()
                 
         except Exception as e:
-            error_msg = f"로그 수집 오류: {e}"
+            error_msg = f"Log collection error: {e}"
             yield error_msg
-            # 오류도 파일에 저장
+            # Save error to file too
             try:
                 with open(log_file, 'a', encoding='utf-8') as f:
                     f.write(error_msg + '\n')
@@ -782,20 +704,20 @@ class OMAController:
                 pass
     
     def cleanup_dead_processes(self):
-        """죽은 프로세스들을 정리하고 실제 실행 상태를 반환"""
+        """Clean up dead processes and return actual execution status"""
         cleaned = False
         
-        # 1. current_process 확인 및 정리
+        # 1. Check and cleanup current_process
         if self.current_process:
             if self.current_process.poll() is not None:
-                # 프로세스가 종료됨
+                # Process terminated
                 if self.current_task_id:
                     st.session_state.task_manager.finish_task(self.current_task_id)
                 self.current_process = None
                 self.current_task_id = None
                 cleaned = True
         
-        # 2. TaskManager의 죽은 작업들 정리
+        # 2. Cleanup dead tasks in TaskManager
         running_tasks = st.session_state.task_manager.get_running_tasks()
         for task in running_tasks:
             if not st.session_state.task_manager.is_process_running(task['pid']):
@@ -805,37 +727,37 @@ class OMAController:
         return cleaned
     
     def is_any_task_running(self):
-        """현재 실행 중인 작업이 있는지 확인 (죽은 프로세스 자동 정리)"""
-        # 먼저 죽은 프로세스들 정리
+        """Check if any task is running (auto cleanup dead processes)"""
+        # First cleanup dead processes
         self.cleanup_dead_processes()
         
-        # 실제 실행 중인 작업 확인
+        # Check actually running tasks
         has_current_process = self.current_process and self.current_process.poll() is None
         has_running_tasks = len(st.session_state.task_manager.get_running_tasks()) > 0
         
         return has_current_process or has_running_tasks
     
     def stop_current_process(self):
-        """현재 실행 중인 프로세스 중단 (current_process 우선)"""
-        # 1. current_process 우선 확인 (애플리케이션 분석)
+        """Stop currently running process (current_process priority)"""
+        # 1. Check current_process first (application analysis)
         if self.current_process and self.current_process.poll() is None:
             try:
-                # 더 안전한 프로세스 종료 방식
+                # Safer process termination method
                 try:
-                    # 먼저 SIGTERM으로 정상 종료 시도
+                    # First try normal termination with SIGTERM
                     os.killpg(os.getpgid(self.current_process.pid), signal.SIGTERM)
                     
-                    # 2초 대기 후 프로세스가 종료되었는지 확인
+                    # Wait 2 seconds then check if process terminated
                     time.sleep(2)
                     if self.current_process.poll() is None:
-                        # 아직 실행 중이면 SIGKILL로 강제 종료
+                        # If still running, force terminate with SIGKILL
                         os.killpg(os.getpgid(self.current_process.pid), signal.SIGKILL)
                         
                 except ProcessLookupError:
-                    # 프로세스가 이미 종료된 경우
+                    # If process already terminated
                     pass
                 except OSError as e:
-                    # 프로세스 그룹이 없는 경우 개별 프로세스 종료 시도
+                    # If no process group, try individual process termination
                     try:
                         self.current_process.terminate()
                         time.sleep(1)
@@ -844,9 +766,9 @@ class OMAController:
                     except:
                         pass
                 
-                # 로그 파일에 중단 메시지 추가
+                # Add interruption message to log file
                 if self.current_task_id:
-                    # 현재 작업에 따라 적절한 로그 파일 선택
+                    # Select appropriate log file based on current task
                     log_files = [
                         os.path.expandvars("$APP_LOGS_FOLDER/qlogs/appAnalysis.log"),
                         os.path.expandvars("$APP_LOGS_FOLDER/qlogs/appReporting.log")
@@ -856,20 +778,20 @@ class OMAController:
                         if os.path.exists(log_file):
                             try:
                                 with open(log_file, 'a', encoding='utf-8') as f:
-                                    f.write(f"\n=== 작업이 사용자에 의해 중단되었습니다 (PID: {self.current_process.pid}) ===\n")
+                                    f.write(f"\n=== Task interrupted by user (PID: {self.current_process.pid}) ===\n")
                             except:
                                 pass
                     
-                    # TaskManager에서도 정리
+                    # Cleanup in TaskManager too
                     st.session_state.task_manager.finish_task(self.current_task_id)
                 
                 self.current_process = None
                 self.current_task_id = None
                 return True
             except Exception as e:
-                print(f"애플리케이션 분석 프로세스 중단 오류: {e}")
+                print(f"Application analysis process interruption error: {e}")
         
-        # 2. TaskManager 기반 작업 중단
+        # 2. TaskManager based task interruption
         running_tasks = st.session_state.task_manager.get_running_tasks()
         if running_tasks:
             current_task = running_tasks[0]
@@ -880,287 +802,222 @@ class OMAController:
                     self.current_task_id = None
                 return success
             except Exception as e:
-                print(f"TaskManager 작업 중단 오류: {e}")
+                print(f"TaskManager task interruption error: {e}")
         
         return False
 
 
-# 전역 작업 관리자
+# Global task manager
 if 'task_manager' not in st.session_state:
     st.session_state.task_manager = TaskManager()
 
-# 전역 OMA 컨트롤러 인스턴스
+# Global OMA controller instance
 if 'oma_controller' not in st.session_state:
     st.session_state.oma_controller = OMAController()
 
 def main():
-    # 앱 시작 시 저장된 설정 자동 로드 (한 번만 실행)
+    # Auto load saved config at app start (once only)
     if 'config_loaded' not in st.session_state:
         config, var_count = st.session_state.oma_controller.load_saved_config()
         if var_count > 0:
             project_name = os.environ.get('APPLICATION_NAME', 'Unknown')
-            st.success(f"💾 저장된 환경 설정을 복원했습니다 ({var_count}개 변수) - 프로젝트: {project_name}")
+            st.success(f"💾 Restored saved environment config ({var_count} variables) - Project: {project_name}")
         
-        # 현재 환경변수로 설정 파일을 즉시 업데이트 (환경변수 우선)
+        # Immediately update config file with current env vars (env vars priority)
         update_result = st.session_state.oma_controller.update_environment_vars()
         if update_result:
-            st.info("🔄 현재 환경변수로 설정 파일을 업데이트했습니다.")
+            st.info("🔄 Updated config file with current environment variables.")
         
         st.session_state.config_loaded = True
     
-    # 환경 상태 확인
+    # Check environment status
     env_status = st.session_state.oma_controller.check_environment()
     
-    # 사이드바 - 메뉴 및 환경 정보
+    # Sidebar - Menu and environment info
     with st.sidebar:
-        # 언어 선택 (맨 위에 배치)
-        st.markdown("### 🌐 Language / 언어")
-        col1, col2 = st.columns(2)
+        st.header("🔧 Environment Info")
         
-        with col1:
-            if st.button("🇰🇷 한국어", 
-                        type="primary" if st.session_state.get('language', 'ko') == 'ko' else "secondary",
-                        use_container_width=True):
-                st.session_state.language = 'ko'
-                st.rerun()
-        
-        with col2:
-            if st.button("🇺🇸 English", 
-                        type="primary" if st.session_state.get('language', 'ko') == 'en' else "secondary",
-                        use_container_width=True):
-                st.session_state.language = 'en'
-                st.rerun()
-        
-        st.markdown("---")
-        
-        st.header(get_text("env_info"))
-        
-        # 프로젝트 선택 드롭다운
+        # Project selection dropdown
         available_projects = st.session_state.oma_controller.get_available_projects()
         current_project = env_status['application_name']
         
         if available_projects:
-            # 현재 프로젝트가 목록에 있는지 확인
+            # Check if current project is in list
             default_index = 0
             if current_project and current_project in available_projects:
                 default_index = available_projects.index(current_project)
             
             selected_project = st.selectbox(
-                get_text("project_select"),
+                "📋 Select Project:",
                 options=available_projects,
                 index=default_index,
-                help="oma.properties에서 사용 가능한 프로젝트 목록" if st.session_state.get('language', 'ko') == 'ko' else "Available projects from oma.properties"
+                help="Available projects from oma.properties"
             )
             
-            # 프로젝트가 변경되었을 때
+            # When project is changed
             if selected_project != current_project:
-                if st.button(get_text("project_apply"), type="primary", use_container_width=True):
+                if st.button("🔄 Apply Project", type="primary", use_container_width=True):
                     if st.session_state.oma_controller.set_project_environment(selected_project):
-                        success_msg = f"프로젝트 '{selected_project}'로 변경되었습니다!" if st.session_state.get('language', 'ko') == 'ko' else f"Changed to project '{selected_project}'!"
-                        st.success(success_msg)
+                        st.success(f"Changed to project '{selected_project}'!")
                         st.rerun()
                     else:
-                        error_msg = "프로젝트 설정 변경에 실패했습니다." if st.session_state.get('language', 'ko') == 'ko' else "Failed to change project settings."
-                        st.error(error_msg)
+                        st.error("Failed to change project settings.")
         else:
-            warning_msg = "⚠️ oma.properties에서 프로젝트를 찾을 수 없습니다." if st.session_state.get('language', 'ko') == 'ko' else "⚠️ No projects found in oma.properties."
-            st.warning(warning_msg)
+            st.warning("⚠️ No projects found in oma.properties.")
         
-        # 현재 환경 상태 표시
+        # Display current environment status
         if env_status['is_configured']:
-            st.success(f"{get_text('current_project')} **{env_status['application_name']}**")
+            st.success(f"✅ Current Project: **{env_status['application_name']}**")
         else:
-            st.error(get_text("no_project"))
+            st.error("❌ No project selected")
         
         st.info(f"📁 OMA Base Dir: {env_status['oma_base_dir']}")
-        config_file_text = "⚙️ 설정 파일:" if st.session_state.get('language', 'ko') == 'ko' else "⚙️ Config File:"
-        st.info(f"{config_file_text} {os.path.basename(env_status['config_file'])}")
+        st.info(f"⚙️ Config File: {os.path.basename(env_status['config_file'])}")
         
-        # 실행 상태 표시 (간단하게)
-        st.markdown(f"### {get_text('running_status')}")
+        # Display execution status (simple)
+        st.markdown("### 🔄 Running Status")
         
-        # 죽은 프로세스 정리 및 현재 상태 확인
+        # Cleanup dead processes and check current status
         st.session_state.oma_controller.cleanup_dead_processes()
         
         current_process = st.session_state.oma_controller.current_process
         running_tasks = st.session_state.task_manager.get_running_tasks()
         
-        # 1. current_process 우선 확인 (동적으로 작업 정보 표시)
+        # 1. Check current_process first (dynamic task info display)
         if current_process and current_process.poll() is None:
-            # Task 파일에서 실제 작업 정보 읽기
+            # Read actual task info from Task file
             task_info = get_current_task_info()
             if task_info:
-                task_title = task_info.get('title', '작업' if st.session_state.get('language', 'ko') == 'ko' else 'Task')
-                st.error(f"🔴 **{task_title} {get_text('task_running')}**")
+                task_title = task_info.get('title', 'Task')
+                st.error(f"🔴 **{task_title} Running**")
             else:
-                running_text = "작업 실행 중" if st.session_state.get('language', 'ko') == 'ko' else "Task Running"
-                st.error(f"🔴 **{running_text}**")
+                st.error("🔴 **Task Running**")
             
-            # 진행 시간 계산
+            # Calculate elapsed time
             if hasattr(st.session_state, 'app_analysis_start_time'):
                 elapsed = time.time() - st.session_state.app_analysis_start_time
-                time_text = f"⏱️ 진행 시간: {int(elapsed//60)}분 {int(elapsed%60)}초" if st.session_state.get('language', 'ko') == 'ko' else f"⏱️ Elapsed: {int(elapsed//60)}m {int(elapsed%60)}s"
-                st.caption(time_text)
+                st.caption(f"⏱️ Elapsed: {int(elapsed//60)}m {int(elapsed%60)}s")
             
-            # 상세 정보 (Task 파일에서 읽기)
-            detail_text = "📊 작업 상세 정보" if st.session_state.get('language', 'ko') == 'ko' else "📊 Task Details"
-            with st.expander(detail_text, expanded=False):
+            # Detailed info (read from Task file)
+            with st.expander("📊 Task Details", expanded=False):
                 st.text(f"PID: {current_process.pid}")
                 if task_info:
-                    task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
-                    log_text = "로그:" if st.session_state.get('language', 'ko') == 'ko' else "Log:"
-                    st.text(f"{task_id_text} {task_info.get('task_id', 'Unknown')}")
-                    st.text(f"{log_text} {task_info.get('log_file', 'Unknown')}")
+                    st.text(f"Task ID: {task_info.get('task_id', 'Unknown')}")
+                    st.text(f"Log: {task_info.get('log_file', 'Unknown')}")
                     
-                    # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
+                    # Add qlog view button for sample/full transform
                     task_title = task_info.get('title', '')
-                    if '샘플 변환' in task_title or '전체 변환' in task_title or 'Sample Transform' in task_title or 'Full Transform' in task_title:
-                        if st.button(get_text("view_qlog"), key="view_qlog_btn", use_container_width=True):
+                    if 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                        if st.button("📊 View qlog", key="view_qlog_btn", use_container_width=True):
                             st.session_state.selected_action = "view_qlog"
                             st.rerun()
                 else:
                     if st.session_state.oma_controller.current_task_id:
-                        task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
-                        st.text(f"{task_id_text} {st.session_state.oma_controller.current_task_id}")
-                    log_text = "로그: 정보 없음" if st.session_state.get('language', 'ko') == 'ko' else "Log: No info"
-                    st.text(log_text)
+                        st.text(f"Task ID: {st.session_state.oma_controller.current_task_id}")
+                    st.text("Log: No info")
             
-            # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button(get_text("view_logs"), key="view_logs_btn", use_container_width=True):
+            # Provide log view button even when running
+            if st.button("📋 View Logs", key="view_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
                 
-        # 2. TaskManager 기반 작업 확인
+        # 2. TaskManager based task check
         elif running_tasks:
             task = running_tasks[0]
-            st.warning(f"🟡 **{task['title']} {get_text('task_running')}**")
+            st.warning(f"🟡 **{task['title']} Running**")
             
-            # 상세 정보
-            detail_text = "📊 작업 상세 정보" if st.session_state.get('language', 'ko') == 'ko' else "📊 Task Details"
-            with st.expander(detail_text, expanded=False):
+            # Detailed info
+            with st.expander("📊 Task Details", expanded=False):
                 st.text(f"PID: {task['pid']}")
-                task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
-                start_text = "시작:" if st.session_state.get('language', 'ko') == 'ko' else "Started:"
-                st.text(f"{task_id_text} {task['task_id']}")
-                st.text(f"{start_text} {task['start_time'][:19]}")
+                st.text(f"Task ID: {task['task_id']}")
+                st.text(f"Started: {task['start_time'][:19]}")
                 
-                # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
+                # Add qlog view button for sample/full transform
                 task_title = task.get('title', '')
-                if '샘플 변환' in task_title or '전체 변환' in task_title or 'Sample Transform' in task_title or 'Full Transform' in task_title:
-                    if st.button(get_text("view_qlog"), key="view_qlog_tm_btn", use_container_width=True):
+                if 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                    if st.button("📊 View qlog", key="view_qlog_tm_btn", use_container_width=True):
                         st.session_state.selected_action = "view_qlog"
                         st.rerun()
             
-            # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button(get_text("view_logs"), key="view_logs_tm_btn", use_container_width=True):
+            # Provide log view button even when running
+            if st.button("📋 View Logs", key="view_logs_tm_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         else:
-            # 대기 중
-            st.success(get_text("waiting"))
-            st.caption(get_text("no_running_task"))
+            # Waiting
+            st.success("🟢 **Waiting**")
+            st.caption("No running tasks")
             
-            # 대기 중에도 로그 보기 가능 (최근 로그)
-            if st.button(get_text("view_logs"), key="view_recent_logs_btn", use_container_width=True):
+            # Log viewing available even when waiting (recent logs)
+            if st.button("📋 View Logs", key="view_recent_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         
         st.markdown("---")
         
-        # 프로세스 중단 버튼 (실행 중일 때만 표시)
+        # Process stop button (only when running)
         if (current_process and current_process.poll() is None) or running_tasks:
-            if st.button(get_text("stop_task"), type="secondary", use_container_width=True):
+            if st.button("🛑 Stop Current Task", type="secondary", use_container_width=True):
                 if st.session_state.oma_controller.stop_current_process():
-                    success_msg = "작업이 중단되었습니다." if st.session_state.get('language', 'ko') == 'ko' else "Task stopped."
-                    st.success(success_msg)
+                    st.success("Task stopped.")
                     st.rerun()
                 else:
-                    info_msg = "실행 중인 작업이 없습니다." if st.session_state.get('language', 'ko') == 'ko' else "No running tasks."
-                    st.info(info_msg)
+                    st.info("No running tasks.")
         
         st.markdown("---")
         
-        # 세션 상태 초기화 (한 번만 실행)
+        # Session state initialization (once only)
         if 'session_initialized' not in st.session_state:
             if 'selected_action' not in st.session_state:
                 st.session_state.selected_action = None
             if 'current_screen' not in st.session_state:
                 st.session_state.current_screen = 'welcome'
-            if 'language' not in st.session_state:
-                st.session_state.language = 'ko'  # 기본값은 한국어
             st.session_state.session_initialized = True
         
-        # 예쁜 아코디언 스타일 메뉴
-        st.header(get_text("task_menu"))
+        # Pretty accordion style menu
+        st.header("📋 Task Menu")
         
-        # 메뉴 트리 구조 정의 (다국어 지원)
-        current_lang = st.session_state.get('language', 'ko')
-        
-        if current_lang == 'ko':
-            menu_tree = {
-                get_text("project_env_info"): {},  # 서브 메뉴 없음 - 바로 실행
-                get_text("app_analysis"): {
-                    get_text("analysis_menu"): "app_analysis",
-                    get_text("reporting_menu"): "app_reporting",
-                    get_text("review_menu"): "discovery_report_review",
-                    get_text("meta_menu"): "postgresql_meta"
-                },
-                get_text("app_transform"): {
-                    get_text("validation_menu"): "mapper_validation",
-                    get_text("sample_transform_menu"): "sample_transform",
-                    get_text("full_transform_menu"): "full_transform",
-                    get_text("merge_transform_menu"): "merge_transform"
-                },
-                get_text("sql_test"): {
-                    get_text("parameter_config_menu"): "parameter_config",
-                    get_text("source_sqls_menu"): "source_sqls"
-                },
-                get_text("transform_report"): {
-                    get_text("transform_report_menu"): "transform_report",
-                    get_text("view_transform_report_menu"): "view_transform_report"
-                }
+        # Define menu tree structure
+        menu_tree = {
+            "📊 Project Environment Info": {},  # No sub menu - direct execution
+            "📊 Application Analysis": {
+                "🔍 Application Analysis": "app_analysis",
+                "📄 Analysis Report": "app_reporting",
+                "📋 Review Analysis Report": "discovery_report_review",
+                "🗄️ PostgreSQL Metadata": "postgresql_meta"
+            },
+            "🔄 Application Transform": {
+                "✅ Mapper Validation": "mapper_validation",
+                "🧪 Sample Transform": "sample_transform",
+                "🚀 Full Transform": "full_transform",
+                "🔗 XML Merge": "merge_transform"
+            },
+            "🧪 SQL Test": {
+                "⚙️ Parameter Config": "parameter_config",
+                "⚖️ Compare SQL Test": "source_sqls"
+            },
+            "📋 Transform Report": {
+                "📊 Generate Transform Report": "transform_report",
+                "📄 View Transform Report": "view_transform_report"
             }
-        else:  # English
-            menu_tree = {
-                get_text("project_env_info"): {},  # 서브 메뉴 없음 - 바로 실행
-                get_text("app_analysis"): {
-                    get_text("analysis_menu"): "app_analysis",
-                    get_text("reporting_menu"): "app_reporting",
-                    get_text("review_menu"): "discovery_report_review",
-                    get_text("meta_menu"): "postgresql_meta"
-                },
-                get_text("app_transform"): {
-                    get_text("validation_menu"): "mapper_validation",
-                    get_text("sample_transform_menu"): "sample_transform",
-                    get_text("full_transform_menu"): "full_transform",
-                    get_text("merge_transform_menu"): "merge_transform"
-                },
-                get_text("sql_test"): {
-                    get_text("parameter_config_menu"): "parameter_config",
-                    get_text("source_sqls_menu"): "source_sqls"
-                },
-                get_text("transform_report"): {
-                    get_text("transform_report_menu"): "transform_report",
-                    get_text("view_transform_report_menu"): "view_transform_report"
-                }
-            }
+        }
         
-        # 아코디언 스타일 메뉴 렌더링 (죽은 프로세스 자동 정리)
+        # Render accordion style menu (auto cleanup dead processes)
         is_running = st.session_state.oma_controller.is_any_task_running()
         
         for main_menu, sub_menus in menu_tree.items():
-            # 프로젝트 환경 정보는 바로 실행
-            if get_text("project_env_info") in main_menu:
+            # Project environment info direct execution
+            if "Project Environment Info" in main_menu:
                 if st.button(main_menu, key=f"direct_{main_menu}", use_container_width=True, type="primary", disabled=is_running):
                     st.session_state.selected_action = "project_env_info"
                     st.session_state.current_screen = "project_env_info"
                     st.rerun()
             else:
-                # 다른 메뉴들은 기존 아코디언 방식
+                # Other menus use existing accordion method
                 with st.expander(main_menu, expanded=False):
                     for sub_menu, action_key in sub_menus.items():
-                        help_text = f"{sub_menu} 작업을 실행합니다" if current_lang == 'ko' else f"Execute {sub_menu} task"
-                        disabled_help = "다른 작업이 실행 중입니다" if current_lang == 'ko' else "Another task is running"
+                        help_text = f"Execute {sub_menu} task"
+                        disabled_help = "Another task is running"
                         
                         if st.button(
                             sub_menu,
@@ -1174,34 +1031,34 @@ def main():
                             st.session_state.current_screen = action_key
                             st.rerun()
     
-    # 메인 컨텐츠 영역 - 페이지 기반 렌더링
-    # 선택된 액션이 있는 경우에만 해당 페이지 렌더링
+    # Main content area - page based rendering
+    # Render page only when action is selected
     selected_action = st.session_state.get('selected_action')
     
-    # 로그 뷰어는 완전히 독립적으로 처리
+    # Log viewer handled completely independently
     if selected_action == "view_running_logs":
-        # 로그 뷰어만 렌더링하고 즉시 종료
+        # Render only log viewer and exit immediately
         render_running_logs_page()
-        return  # 함수 완전 종료
+        return  # Complete function exit
     
-    # qlog 뷰어도 독립적으로 처리
+    # qlog viewer also handled independently
     if selected_action == "view_qlog":
-        # qlog 뷰어만 렌더링하고 즉시 종료
+        # Render only qlog viewer and exit immediately
         render_qlog_page()
-        return  # 함수 완전 종료
+        return  # Complete function exit
     
-    # 다른 액션들 처리
+    # Handle other actions
     if selected_action:
         render_action_page(selected_action)
-        return  # 함수 완전 종료
+        return  # Complete function exit
     
-    # 기본 환영 페이지
+    # Default welcome page
     render_welcome_page()
 
 
 def render_action_page(action_key):
-    """액션별 페이지 렌더링"""
-    # 각 액션별로 완전히 독립된 페이지 구성
+    """Render pages by action"""
+    # Completely independent page composition for each action
     if action_key == "project_env_info":
         render_project_env_page()
     elif action_key == "app_analysis":
@@ -1231,11 +1088,11 @@ def render_action_page(action_key):
     elif action_key == "java_transform":
         render_java_transform_page()
     else:
-        st.error(f"알 수 없는 액션: {action_key}")
+        st.error(f"Unknown action: {action_key}")
 
 
 def get_current_task_info():
-    """현재 실행 중인 작업의 Task 파일 정보 읽기"""
+    """Read Task file info of currently running task"""
     try:
         if not os.path.exists("./oma_tasks"):
             return None
@@ -1244,7 +1101,7 @@ def get_current_task_info():
         if not task_files:
             return None
         
-        # 가장 최근 task 파일 읽기
+        # Read most recent task file
         latest_task_file = f"./oma_tasks/{sorted(task_files)[-1]}"
         
         with open(latest_task_file, 'r') as f:

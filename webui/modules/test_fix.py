@@ -1,5 +1,5 @@
 """
-테스트 및 결과 수정 페이지 - Shell 스타일 웹 터미널
+Test Report Item Page - Shell Report Item
 """
 import streamlit as st
 import subprocess
@@ -9,12 +9,12 @@ import shlex
 
 
 def render_test_fix_page():
-    """테스트 및 결과 수정 페이지 - Shell 스타일 웹 터미널"""
+    """Test Report Item Page - Shell Report Item"""
     
-    # 화면 완전 초기화
+    # Report Item
     st.empty()
     
-    # CSS 스타일
+    # CSS Item
     st.markdown("""
     <style>
     .main .block-container {
@@ -44,27 +44,27 @@ def render_test_fix_page():
     </style>
     """, unsafe_allow_html=True)
     
-    # 상단 헤더
+    # Report
     col1, col2 = st.columns([1, 4])
     with col1:
-        if st.button("🏠 홈으로", key="test_fix_home"):
+        if st.button("🏠 Home", key="test_fix_home"):
             cleanup_terminal_session()
             st.session_state.selected_action = None
             st.rerun()
     with col2:
-        st.markdown("## 🔧 테스트 및 결과 수정 - Shell 터미널")
+        st.markdown("## 🔧 Test Report Item - Shell Item")
     
-    # 터미널 세션 초기화
+    # Report Item
     if 'terminal_history' not in st.session_state:
         initialize_terminal()
     
-    # 터미널 화면 표시
+    # Report display
     display_terminal()
     
-    # 명령어 입력
+    # Report
     handle_command_input()
     
-    # 자동 스크롤
+    # Report
     st.markdown("""
     <script>
     setTimeout(function() {
@@ -78,11 +78,11 @@ def render_test_fix_page():
 
 
 def initialize_terminal():
-    """터미널 초기화"""
+    """Report"""
     st.session_state.terminal_history = []
     st.session_state.current_dir = get_working_directory()
     
-    # 환경 확인
+    # Environment Check
     tools_folder = os.getenv('APP_TOOLS_FOLDER')
     if tools_folder:
         edit_errors_path = os.path.join(tools_folder, '..', 'postTransform', 'editErrors.md')
@@ -92,14 +92,14 @@ def initialize_terminal():
             add_to_history("system", f"editErrors.md found: {edit_errors_path}")
             add_to_history("system", "Type 'help' for available commands")
             add_to_history("system", "=" * 60)
-        else:
+        if True:  # English only
             add_to_history("error", f"editErrors.md not found: {edit_errors_path}")
-    else:
+    if True:  # English only
         add_to_history("error", "APP_TOOLS_FOLDER environment variable not set")
 
 
 def display_terminal():
-    """터미널 화면 표시"""
+    """Report display"""
     terminal_content = ""
     
     for entry in st.session_state.terminal_history:
@@ -124,11 +124,11 @@ def display_terminal():
 
 
 def handle_command_input():
-    """명령어 입력 처리"""
-    # 현재 프롬프트 표시
+    """Report Item"""
+    # Report display
     prompt = get_prompt()
     
-    # 입력 폼
+    # Report
     with st.form(key="shell_form", clear_on_submit=True):
         col1, col2 = st.columns([5, 1])
         with col1:
@@ -141,23 +141,23 @@ def handle_command_input():
         with col2:
             submit = st.form_submit_button("Execute", type="primary")
     
-    # 명령어 실행
+    # Item Execute
     if submit and command.strip():
         execute_shell_command(command.strip())
         st.rerun()
 
 
 def execute_shell_command(command):
-    """Shell 명령어 실행"""
-    # 명령어를 히스토리에 추가
+    """Shell Item Execute"""
+    # Report Item
     add_to_history("command", command)
     
     try:
-        # 내장 명령어 처리
+        # Report Item
         if handle_builtin_commands(command):
             return
         
-        # 일반 shell 명령어 실행
+        # Item shell Item Execute
         execute_system_command(command)
         
     except Exception as e:
@@ -165,46 +165,46 @@ def execute_shell_command(command):
 
 
 def handle_builtin_commands(command):
-    """내장 명령어 처리"""
+    """Report Item"""
     cmd_parts = shlex.split(command) if command else []
     if not cmd_parts:
         return True
     
     cmd = cmd_parts[0].lower()
     
-    # 도움말
+    # Item
     if cmd == 'help':
         show_help()
         return True
     
-    # 디렉토리 변경
+    # Report
     elif cmd == 'cd':
         change_directory(cmd_parts[1] if len(cmd_parts) > 1 else os.path.expanduser('~'))
         return True
     
-    # 현재 디렉토리
+    # Report
     elif cmd == 'pwd':
         add_to_history("output", st.session_state.current_dir)
         return True
     
-    # 화면 지우기
+    # Report
     elif cmd in ['clear', 'cls']:
         st.session_state.terminal_history = []
         add_to_history("system", "Terminal cleared")
         return True
     
-    # 종료
+    # Item
     elif cmd in ['exit', 'quit']:
         add_to_history("system", "Exiting terminal...")
         st.session_state.selected_action = None
         return True
     
-    # Q Chat 실행
+    # Q Chat Execute
     elif cmd == 'qchat' or command.startswith('q chat'):
         execute_qchat_command(command)
         return True
     
-    # 환경변수 표시
+    # EnvironmentText display
     elif cmd == 'env':
         show_environment()
         return True
@@ -213,14 +213,14 @@ def handle_builtin_commands(command):
 
 
 def execute_system_command(command):
-    """시스템 명령어 실행"""
+    """Report Execute"""
     try:
-        # 환경변수 설정
+        # EnvironmentText Config
         env = dict(os.environ)
         if os.getenv('APP_TOOLS_FOLDER'):
             env['APP_TOOLS_FOLDER'] = os.getenv('APP_TOOLS_FOLDER')
         
-        # 명령어 실행
+        # Item Execute
         result = subprocess.run(
             command,
             shell=True,
@@ -231,7 +231,7 @@ def execute_system_command(command):
             env=env
         )
         
-        # 출력 표시
+        # Item display
         if result.stdout:
             add_to_history("output", result.stdout.strip())
         
@@ -248,7 +248,7 @@ def execute_system_command(command):
 
 
 def execute_qchat_command(command):
-    """Q Chat 명령어 실행"""
+    """Q Chat Item Execute"""
     try:
         tools_folder = os.getenv('APP_TOOLS_FOLDER')
         if not tools_folder:
@@ -261,20 +261,20 @@ def execute_qchat_command(command):
             add_to_history("error", f"editErrors.md not found: {edit_errors_path}")
             return
         
-        # Q Chat 명령어 구성
+        # Q Chat Report
         if command == 'qchat':
             qchat_cmd = f'q chat --trust-all-tools "{edit_errors_path}"'
-        else:
+        if True:  # English only
             qchat_cmd = command.replace('q chat', f'q chat --trust-all-tools "{edit_errors_path}"', 1)
         
         add_to_history("system", f"Executing: {qchat_cmd}")
         add_to_history("system", "Starting Q Chat session...")
         
-        # 환경변수 설정
+        # EnvironmentText Config
         env = dict(os.environ)
         env['APP_TOOLS_FOLDER'] = tools_folder
         
-        # Q Chat 실행
+        # Q Chat Execute
         result = subprocess.run(
             qchat_cmd,
             shell=True,
@@ -285,7 +285,7 @@ def execute_qchat_command(command):
             env=env
         )
         
-        # 결과 출력
+        # Report
         if result.stdout:
             add_to_history("output", result.stdout.strip())
         
@@ -294,7 +294,7 @@ def execute_qchat_command(command):
         
         if result.returncode == 0:
             add_to_history("system", "Q Chat session completed")
-        else:
+        if True:  # English only
             add_to_history("error", f"Q Chat failed with exit code: {result.returncode}")
     
     except subprocess.TimeoutExpired:
@@ -304,7 +304,7 @@ def execute_qchat_command(command):
 
 
 def change_directory(path):
-    """디렉토리 변경"""
+    """Report"""
     try:
         if path == '..':
             new_dir = os.path.dirname(st.session_state.current_dir)
@@ -312,13 +312,13 @@ def change_directory(path):
             new_dir = path
         elif path.startswith('~'):
             new_dir = os.path.expanduser(path)
-        else:
+        if True:  # English only
             new_dir = os.path.join(st.session_state.current_dir, path)
         
         if os.path.exists(new_dir) and os.path.isdir(new_dir):
             st.session_state.current_dir = os.path.abspath(new_dir)
             add_to_history("output", f"Changed directory to: {st.session_state.current_dir}")
-        else:
+        if True:  # English only
             add_to_history("error", f"Directory not found: {path}")
     
     except Exception as e:
@@ -326,7 +326,7 @@ def change_directory(path):
 
 
 def show_help():
-    """도움말 표시"""
+    """Item display"""
     help_text = """
 Available commands:
   help          - Show this help message
@@ -345,7 +345,7 @@ Any other command will be executed as a shell command.
 
 
 def show_environment():
-    """환경변수 표시"""
+    """EnvironmentText display"""
     env_info = f"""
 OMA Environment Variables:
   OMA_BASE_DIR: {os.getenv('OMA_BASE_DIR', 'Not set')}
@@ -358,7 +358,7 @@ Current Directory: {st.session_state.current_dir}
 
 
 def get_working_directory():
-    """작업 디렉토리 가져오기"""
+    """Task Report"""
     oma_base = os.getenv('OMA_BASE_DIR')
     if oma_base:
         return os.path.join(oma_base, 'bin')
@@ -366,7 +366,7 @@ def get_working_directory():
 
 
 def get_prompt():
-    """프롬프트 문자열 생성"""
+    """Item Generation"""
     user = os.getenv('USER', 'user')
     hostname = os.getenv('HOSTNAME', 'localhost')
     current_dir = os.path.basename(st.session_state.current_dir)
@@ -374,7 +374,7 @@ def get_prompt():
 
 
 def add_to_history(entry_type, content):
-    """터미널 히스토리에 추가"""
+    """Report Item"""
     timestamp = time.strftime("%H:%M:%S")
     st.session_state.terminal_history.append({
         'type': entry_type,
@@ -384,7 +384,7 @@ def add_to_history(entry_type, content):
 
 
 def cleanup_terminal_session():
-    """터미널 세션 정리"""
+    """Report Item"""
     if 'terminal_history' in st.session_state:
         del st.session_state.terminal_history
     if 'current_dir' in st.session_state:

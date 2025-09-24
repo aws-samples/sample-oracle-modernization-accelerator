@@ -38,10 +38,11 @@
     "PGUSER": "oma",
     "PGDATABASE": "oma",
     "PGHOST": "omabox-stack-aurora-cluster.cluster-c12esi0ewdyz.ap-northeast-2.rds.amazonaws.com",
-    "PATH": "/home/ec2-user/workspace/chalee/webui/venv/bin:/home/ec2-user/workspace/oma/bin/application:/home/ec2-user/workspace/oma/bin:/home/ec2-user/.local/bin:/home/ec2-user/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/instantclient_19_26",
-    "HOME": "/home/ec2-user",
-    "USER": "ec2-user"
+    "JAVA_HOME": "/Users/changik/.sdkman/candidates/java/current",
+    "PATH": "/Users/changik/workspace/oma/webui/venv/bin:/Users/changik/.sdkman/candidates/java/current/bin:/Library/Java/JavaVirtualMachines/amazon-corretto-21.jdk/Contents/Home/bin:/opt/homebrew/opt/python@3.13/bin:/opt/homebrew/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/changik/.local/bin",
+    "HOME": "/Users/changik",
+    "USER": "changik"
   },
-  "last_updated": 1756307122.0521731,
-  "config_file_location": "/home/ec2-user/workspace/oma/webui/.oma_config.json"
+  "last_updated": 1758733065.772992,
+  "config_file_location": "/Users/changik/workspace/oma/webui/.oma_config.json"
 }
