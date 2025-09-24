@@ -5,6 +5,7 @@ import streamlit as st
 import os
 import plotly.graph_objects as go
 import plotly.express as px
+from .utils import get_page_text
 
 
 def render_welcome_page():
@@ -23,16 +24,28 @@ def show_welcome_screen():
     selected_action = st.session_state.get('selected_action')
     if selected_action in ["view_running_logs", "view_qlog"]:
         st.stop()
+    
+    current_lang = st.session_state.get('language', 'ko')
+    
+    # 다국어 제목
+    if current_lang == 'ko':
+        title = "🔄 OMA - Oracle Migration Assistant"
+        subtitle = "Oracle to PostgreSQL Migration Tool - Web Interface"
+        workflow_title = "## 🗺️ OMA 워크플로우"
+    else:
+        title = "🔄 OMA - Oracle Migration Assistant"
+        subtitle = "Oracle to PostgreSQL Migration Tool - Web Interface"
+        workflow_title = "## 🗺️ OMA Workflow"
         
-    st.markdown("""
+    st.markdown(f"""
     <div class="main-header">
-        <h1>🔄 OMA - Oracle Migration Assistant</h1>
-        <p>Oracle to PostgreSQL Migration Tool - Web Interface</p>
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
     </div>
     """, unsafe_allow_html=True)
     
     # 워크플로우 다이어그램 표시
-    st.markdown("## 🗺️ OMA 워크플로우")
+    st.markdown(workflow_title)
     show_workflow_diagram()
     
     st.markdown("---")
@@ -44,9 +57,15 @@ def show_welcome_screen():
     
     with col1:
         if env_status['is_configured']:
-            st.success(f"✅ **프로젝트 설정 완료**\n\n프로젝트: {env_status['application_name']}")
+            if current_lang == 'ko':
+                st.success(f"✅ **프로젝트 설정 완료**\n\n프로젝트: {env_status['application_name']}")
+            else:
+                st.success(f"✅ **Project Configured**\n\nProject: {env_status['application_name']}")
         else:
-            st.error("❌ **환경 설정 필요**\n\n환경 설정을 먼저 실행하세요")
+            if current_lang == 'ko':
+                st.error("❌ **환경 설정 필요**\n\n환경 설정을 먼저 실행하세요")
+            else:
+                st.error("❌ **Environment Setup Required**\n\nPlease configure environment first")
     
     with col2:
         st.info(f"📁 **OMA 디렉토리**\n\n{env_status['oma_base_dir']}")

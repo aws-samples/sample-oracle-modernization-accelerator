@@ -18,6 +18,84 @@ import re
 import datetime
 import tempfile
 
+# 언어 설정 딕셔너리
+LANGUAGES = {
+    "ko": {
+        "name": "한국어",
+        "flag": "🇰🇷",
+        "env_info": "🔧 환경 정보",
+        "project_select": "📋 프로젝트 선택:",
+        "project_apply": "🔄 프로젝트 적용",
+        "current_project": "✅ 현재 프로젝트:",
+        "no_project": "❌ 프로젝트가 선택되지 않았습니다",
+        "running_status": "🔄 실행 상태",
+        "task_running": "실행 중",
+        "waiting": "🟢 **대기 중**",
+        "no_running_task": "현재 실행 중인 작업이 없습니다",
+        "stop_task": "🛑 현재 작업 중단",
+        "view_logs": "📋 로그 보기",
+        "view_qlog": "📊 qlog 보기",
+        "task_menu": "📋 작업 메뉴",
+        "project_env_info": "📊 프로젝트 환경 정보",
+        "app_analysis": "📊 애플리케이션 분석",
+        "app_transform": "🔄 애플리케이션 변환",
+        "sql_test": "🧪 SQL 테스트",
+        "transform_report": "📋 변환 보고서",
+        "analysis_menu": "🔍 애플리케이션 분석",
+        "reporting_menu": "📄 분석 보고서 작성",
+        "review_menu": "📋 분석 보고서 리뷰",
+        "meta_menu": "🗄️ PostgreSQL 메타데이터",
+        "validation_menu": "✅ 매퍼 파일 검증",
+        "sample_transform_menu": "🧪 샘플 변환 실행",
+        "full_transform_menu": "🚀 전체 변환 실행",
+        "merge_transform_menu": "🔗 XML Merge 실행",
+        "parameter_config_menu": "⚙️ Parameter 구성",
+        "source_sqls_menu": "⚖️ Compare SQL Test",
+        "transform_report_menu": "📊 변환 보고서 생성",
+        "view_transform_report_menu": "📄 변환 보고서 보기"
+    },
+    "en": {
+        "name": "English",
+        "flag": "🇺🇸",
+        "env_info": "🔧 Environment Info",
+        "project_select": "📋 Select Project:",
+        "project_apply": "🔄 Apply Project",
+        "current_project": "✅ Current Project:",
+        "no_project": "❌ No project selected",
+        "running_status": "🔄 Running Status",
+        "task_running": "Running",
+        "waiting": "🟢 **Waiting**",
+        "no_running_task": "No running tasks",
+        "stop_task": "🛑 Stop Current Task",
+        "view_logs": "📋 View Logs",
+        "view_qlog": "📊 View qlog",
+        "task_menu": "📋 Task Menu",
+        "project_env_info": "📊 Project Environment Info",
+        "app_analysis": "📊 Application Analysis",
+        "app_transform": "🔄 Application Transform",
+        "sql_test": "🧪 SQL Test",
+        "transform_report": "📋 Transform Report",
+        "analysis_menu": "🔍 Application Analysis",
+        "reporting_menu": "📄 Analysis Report",
+        "review_menu": "📋 Review Analysis Report",
+        "meta_menu": "🗄️ PostgreSQL Metadata",
+        "validation_menu": "✅ Mapper Validation",
+        "sample_transform_menu": "🧪 Sample Transform",
+        "full_transform_menu": "🚀 Full Transform",
+        "merge_transform_menu": "🔗 XML Merge",
+        "parameter_config_menu": "⚙️ Parameter Config",
+        "source_sqls_menu": "⚖️ Compare SQL Test",
+        "transform_report_menu": "📊 Generate Transform Report",
+        "view_transform_report_menu": "📄 View Transform Report"
+    }
+}
+
+def get_text(key, lang=None):
+    """언어별 텍스트 반환"""
+    if lang is None:
+        lang = st.session_state.get('language', 'ko')
+    return LANGUAGES.get(lang, LANGUAGES['ko']).get(key, key)
+
 # 분리된 페이지 모듈들 import
 from modules import (
     render_welcome_page,
@@ -814,7 +892,27 @@ def main():
     
     # 사이드바 - 메뉴 및 환경 정보
     with st.sidebar:
-        st.header("🔧 환경 정보")
+        # 언어 선택 (맨 위에 배치)
+        st.markdown("### 🌐 Language / 언어")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🇰🇷 한국어", 
+                        type="primary" if st.session_state.get('language', 'ko') == 'ko' else "secondary",
+                        use_container_width=True):
+                st.session_state.language = 'ko'
+                st.rerun()
+        
+        with col2:
+            if st.button("🇺🇸 English", 
+                        type="primary" if st.session_state.get('language', 'ko') == 'en' else "secondary",
+                        use_container_width=True):
+                st.session_state.language = 'en'
+                st.rerun()
+        
+        st.markdown("---")
+        
+        st.header(get_text("env_info"))
         
         # 프로젝트 선택 드롭다운
         available_projects = st.session_state.oma_controller.get_available_projects()
@@ -827,34 +925,38 @@ def main():
                 default_index = available_projects.index(current_project)
             
             selected_project = st.selectbox(
-                "📋 프로젝트 선택:",
+                get_text("project_select"),
                 options=available_projects,
                 index=default_index,
-                help="oma.properties에서 사용 가능한 프로젝트 목록"
+                help="oma.properties에서 사용 가능한 프로젝트 목록" if st.session_state.get('language', 'ko') == 'ko' else "Available projects from oma.properties"
             )
             
             # 프로젝트가 변경되었을 때
             if selected_project != current_project:
-                if st.button("🔄 프로젝트 적용", type="primary", use_container_width=True):
+                if st.button(get_text("project_apply"), type="primary", use_container_width=True):
                     if st.session_state.oma_controller.set_project_environment(selected_project):
-                        st.success(f"프로젝트 '{selected_project}'로 변경되었습니다!")
+                        success_msg = f"프로젝트 '{selected_project}'로 변경되었습니다!" if st.session_state.get('language', 'ko') == 'ko' else f"Changed to project '{selected_project}'!"
+                        st.success(success_msg)
                         st.rerun()
                     else:
-                        st.error("프로젝트 설정 변경에 실패했습니다.")
+                        error_msg = "프로젝트 설정 변경에 실패했습니다." if st.session_state.get('language', 'ko') == 'ko' else "Failed to change project settings."
+                        st.error(error_msg)
         else:
-            st.warning("⚠️ oma.properties에서 프로젝트를 찾을 수 없습니다.")
+            warning_msg = "⚠️ oma.properties에서 프로젝트를 찾을 수 없습니다." if st.session_state.get('language', 'ko') == 'ko' else "⚠️ No projects found in oma.properties."
+            st.warning(warning_msg)
         
         # 현재 환경 상태 표시
         if env_status['is_configured']:
-            st.success(f"✅ 현재 프로젝트: **{env_status['application_name']}**")
+            st.success(f"{get_text('current_project')} **{env_status['application_name']}**")
         else:
-            st.error("❌ 프로젝트가 선택되지 않았습니다")
+            st.error(get_text("no_project"))
         
         st.info(f"📁 OMA Base Dir: {env_status['oma_base_dir']}")
-        st.info(f"⚙️ 설정 파일: {os.path.basename(env_status['config_file'])}")
+        config_file_text = "⚙️ 설정 파일:" if st.session_state.get('language', 'ko') == 'ko' else "⚙️ Config File:"
+        st.info(f"{config_file_text} {os.path.basename(env_status['config_file'])}")
         
         # 실행 상태 표시 (간단하게)
-        st.markdown("### 🔄 실행 상태")
+        st.markdown(f"### {get_text('running_status')}")
         
         # 죽은 프로세스 정리 및 현재 상태 확인
         st.session_state.oma_controller.cleanup_dead_processes()
@@ -867,68 +969,78 @@ def main():
             # Task 파일에서 실제 작업 정보 읽기
             task_info = get_current_task_info()
             if task_info:
-                task_title = task_info.get('title', '작업')
-                st.error(f"🔴 **{task_title} 실행 중**")
+                task_title = task_info.get('title', '작업' if st.session_state.get('language', 'ko') == 'ko' else 'Task')
+                st.error(f"🔴 **{task_title} {get_text('task_running')}**")
             else:
-                st.error("🔴 **작업 실행 중**")
+                running_text = "작업 실행 중" if st.session_state.get('language', 'ko') == 'ko' else "Task Running"
+                st.error(f"🔴 **{running_text}**")
             
             # 진행 시간 계산
             if hasattr(st.session_state, 'app_analysis_start_time'):
                 elapsed = time.time() - st.session_state.app_analysis_start_time
-                st.caption(f"⏱️ 진행 시간: {int(elapsed//60)}분 {int(elapsed%60)}초")
+                time_text = f"⏱️ 진행 시간: {int(elapsed//60)}분 {int(elapsed%60)}초" if st.session_state.get('language', 'ko') == 'ko' else f"⏱️ Elapsed: {int(elapsed//60)}m {int(elapsed%60)}s"
+                st.caption(time_text)
             
             # 상세 정보 (Task 파일에서 읽기)
-            with st.expander("📊 작업 상세 정보", expanded=False):
+            detail_text = "📊 작업 상세 정보" if st.session_state.get('language', 'ko') == 'ko' else "📊 Task Details"
+            with st.expander(detail_text, expanded=False):
                 st.text(f"PID: {current_process.pid}")
                 if task_info:
-                    st.text(f"작업 ID: {task_info.get('task_id', 'Unknown')}")
-                    st.text(f"로그: {task_info.get('log_file', 'Unknown')}")
+                    task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
+                    log_text = "로그:" if st.session_state.get('language', 'ko') == 'ko' else "Log:"
+                    st.text(f"{task_id_text} {task_info.get('task_id', 'Unknown')}")
+                    st.text(f"{log_text} {task_info.get('log_file', 'Unknown')}")
                     
                     # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
                     task_title = task_info.get('title', '')
-                    if '샘플 변환' in task_title or '전체 변환' in task_title:
-                        if st.button("📊 qlog 보기", key="view_qlog_btn", use_container_width=True):
+                    if '샘플 변환' in task_title or '전체 변환' in task_title or 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                        if st.button(get_text("view_qlog"), key="view_qlog_btn", use_container_width=True):
                             st.session_state.selected_action = "view_qlog"
                             st.rerun()
                 else:
                     if st.session_state.oma_controller.current_task_id:
-                        st.text(f"작업 ID: {st.session_state.oma_controller.current_task_id}")
-                    st.text("로그: 정보 없음")
+                        task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
+                        st.text(f"{task_id_text} {st.session_state.oma_controller.current_task_id}")
+                    log_text = "로그: 정보 없음" if st.session_state.get('language', 'ko') == 'ko' else "Log: No info"
+                    st.text(log_text)
             
             # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button("📋 로그 보기", key="view_logs_btn", use_container_width=True):
+            if st.button(get_text("view_logs"), key="view_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
                 
         # 2. TaskManager 기반 작업 확인
         elif running_tasks:
             task = running_tasks[0]
-            st.warning(f"🟡 **{task['title']} 실행 중**")
+            st.warning(f"🟡 **{task['title']} {get_text('task_running')}**")
             
             # 상세 정보
-            with st.expander("📊 작업 상세 정보", expanded=False):
+            detail_text = "📊 작업 상세 정보" if st.session_state.get('language', 'ko') == 'ko' else "📊 Task Details"
+            with st.expander(detail_text, expanded=False):
                 st.text(f"PID: {task['pid']}")
-                st.text(f"작업 ID: {task['task_id']}")
-                st.text(f"시작: {task['start_time'][:19]}")
+                task_id_text = "작업 ID:" if st.session_state.get('language', 'ko') == 'ko' else "Task ID:"
+                start_text = "시작:" if st.session_state.get('language', 'ko') == 'ko' else "Started:"
+                st.text(f"{task_id_text} {task['task_id']}")
+                st.text(f"{start_text} {task['start_time'][:19]}")
                 
                 # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
                 task_title = task.get('title', '')
-                if '샘플 변환' in task_title or '전체 변환' in task_title:
-                    if st.button("📊 qlog 보기", key="view_qlog_tm_btn", use_container_width=True):
+                if '샘플 변환' in task_title or '전체 변환' in task_title or 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                    if st.button(get_text("view_qlog"), key="view_qlog_tm_btn", use_container_width=True):
                         st.session_state.selected_action = "view_qlog"
                         st.rerun()
             
             # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button("📋 로그 보기", key="view_logs_tm_btn", use_container_width=True):
+            if st.button(get_text("view_logs"), key="view_logs_tm_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         else:
             # 대기 중
-            st.success("🟢 **대기 중**")
-            st.caption("현재 실행 중인 작업이 없습니다")
+            st.success(get_text("waiting"))
+            st.caption(get_text("no_running_task"))
             
             # 대기 중에도 로그 보기 가능 (최근 로그)
-            if st.button("📋 로그 보기", key="view_recent_logs_btn", use_container_width=True):
+            if st.button(get_text("view_logs"), key="view_recent_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         
@@ -936,12 +1048,14 @@ def main():
         
         # 프로세스 중단 버튼 (실행 중일 때만 표시)
         if (current_process and current_process.poll() is None) or running_tasks:
-            if st.button("🛑 현재 작업 중단", type="secondary", use_container_width=True):
+            if st.button(get_text("stop_task"), type="secondary", use_container_width=True):
                 if st.session_state.oma_controller.stop_current_process():
-                    st.success("작업이 중단되었습니다.")
+                    success_msg = "작업이 중단되었습니다." if st.session_state.get('language', 'ko') == 'ko' else "Task stopped."
+                    st.success(success_msg)
                     st.rerun()
                 else:
-                    st.info("실행 중인 작업이 없습니다.")
+                    info_msg = "실행 중인 작업이 없습니다." if st.session_state.get('language', 'ko') == 'ko' else "No running tasks."
+                    st.info(info_msg)
         
         st.markdown("---")
         
@@ -951,42 +1065,71 @@ def main():
                 st.session_state.selected_action = None
             if 'current_screen' not in st.session_state:
                 st.session_state.current_screen = 'welcome'
+            if 'language' not in st.session_state:
+                st.session_state.language = 'ko'  # 기본값은 한국어
             st.session_state.session_initialized = True
         
         # 예쁜 아코디언 스타일 메뉴
-        st.header("📋 작업 메뉴")
+        st.header(get_text("task_menu"))
         
-        # 메뉴 트리 구조 정의
-        menu_tree = {
-            "📊 프로젝트 환경 정보": {},  # 서브 메뉴 없음 - 바로 실행
-            "📊 애플리케이션 분석": {
-                "🔍 애플리케이션 분석": "app_analysis",
-                "📄 분석 보고서 작성": "app_reporting",
-                "📋 분석 보고서 리뷰": "discovery_report_review",
-                "🗄️ PostgreSQL 메타데이터": "postgresql_meta"
-            },
-            "🔄 애플리케이션 변환": {
-                "✅ 매퍼 파일 검증": "mapper_validation",
-                "🧪 샘플 변환 실행": "sample_transform",
-                "🚀 전체 변환 실행": "full_transform",
-                "🔗 XML Merge 실행": "merge_transform"
-            },
-            "🧪 SQL 테스트": {
-                "⚙️ Parameter 구성": "parameter_config",
-                "⚖️ Compare SQL Test": "source_sqls"
-            },
-            "📋 변환 보고서": {
-                "📊 변환 보고서 생성": "transform_report",
-                "📄 변환 보고서 보기": "view_transform_report"
+        # 메뉴 트리 구조 정의 (다국어 지원)
+        current_lang = st.session_state.get('language', 'ko')
+        
+        if current_lang == 'ko':
+            menu_tree = {
+                get_text("project_env_info"): {},  # 서브 메뉴 없음 - 바로 실행
+                get_text("app_analysis"): {
+                    get_text("analysis_menu"): "app_analysis",
+                    get_text("reporting_menu"): "app_reporting",
+                    get_text("review_menu"): "discovery_report_review",
+                    get_text("meta_menu"): "postgresql_meta"
+                },
+                get_text("app_transform"): {
+                    get_text("validation_menu"): "mapper_validation",
+                    get_text("sample_transform_menu"): "sample_transform",
+                    get_text("full_transform_menu"): "full_transform",
+                    get_text("merge_transform_menu"): "merge_transform"
+                },
+                get_text("sql_test"): {
+                    get_text("parameter_config_menu"): "parameter_config",
+                    get_text("source_sqls_menu"): "source_sqls"
+                },
+                get_text("transform_report"): {
+                    get_text("transform_report_menu"): "transform_report",
+                    get_text("view_transform_report_menu"): "view_transform_report"
+                }
             }
-        }
+        else:  # English
+            menu_tree = {
+                get_text("project_env_info"): {},  # 서브 메뉴 없음 - 바로 실행
+                get_text("app_analysis"): {
+                    get_text("analysis_menu"): "app_analysis",
+                    get_text("reporting_menu"): "app_reporting",
+                    get_text("review_menu"): "discovery_report_review",
+                    get_text("meta_menu"): "postgresql_meta"
+                },
+                get_text("app_transform"): {
+                    get_text("validation_menu"): "mapper_validation",
+                    get_text("sample_transform_menu"): "sample_transform",
+                    get_text("full_transform_menu"): "full_transform",
+                    get_text("merge_transform_menu"): "merge_transform"
+                },
+                get_text("sql_test"): {
+                    get_text("parameter_config_menu"): "parameter_config",
+                    get_text("source_sqls_menu"): "source_sqls"
+                },
+                get_text("transform_report"): {
+                    get_text("transform_report_menu"): "transform_report",
+                    get_text("view_transform_report_menu"): "view_transform_report"
+                }
+            }
         
         # 아코디언 스타일 메뉴 렌더링 (죽은 프로세스 자동 정리)
         is_running = st.session_state.oma_controller.is_any_task_running()
         
         for main_menu, sub_menus in menu_tree.items():
             # 프로젝트 환경 정보는 바로 실행
-            if main_menu == "📊 프로젝트 환경 정보":
+            if get_text("project_env_info") in main_menu:
                 if st.button(main_menu, key=f"direct_{main_menu}", use_container_width=True, type="primary", disabled=is_running):
                     st.session_state.selected_action = "project_env_info"
                     st.session_state.current_screen = "project_env_info"
@@ -995,13 +1138,16 @@ def main():
                 # 다른 메뉴들은 기존 아코디언 방식
                 with st.expander(main_menu, expanded=False):
                     for sub_menu, action_key in sub_menus.items():
+                        help_text = f"{sub_menu} 작업을 실행합니다" if current_lang == 'ko' else f"Execute {sub_menu} task"
+                        disabled_help = "다른 작업이 실행 중입니다" if current_lang == 'ko' else "Another task is running"
+                        
                         if st.button(
                             sub_menu,
                             key=f"menu_{action_key}",
                             use_container_width=True,
                             type="secondary",
                             disabled=is_running,
-                            help=f"{sub_menu} 작업을 실행합니다" if not is_running else "다른 작업이 실행 중입니다"
+                            help=help_text if not is_running else disabled_help
                         ):
                             st.session_state.selected_action = action_key
                             st.session_state.current_screen = action_key
