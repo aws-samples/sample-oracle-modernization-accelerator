@@ -9,6 +9,9 @@ AI 기반 코드 분석, 자동화된 스키마 변환, 애플리케이션 코�
 
 **전체 매뉴얼과 가이드는 GitHub Pages에서 확인하세요:**
 
+🔗 **[Oracle Modernization Accelerator Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/f4645060-0913-453c-8929-53ea8d74970d/en-US)**
+
+
 🔗 **[Oracle Modernization Accelerator 매뉴얼](https://aws-samples.github.io/sample-oracle-modernization-accelerator/)**
 
 ## 📁 디렉토리 구조
