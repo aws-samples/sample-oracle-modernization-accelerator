@@ -5,54 +5,54 @@ import subprocess
 import time
 
 def render_parameter_config_page():
-    """Parameter 구성 페이지"""
-    st.markdown('<div class="main-header"><h1>⚙️ Parameter 구성</h1></div>', unsafe_allow_html=True)
+    """Parameter Configuration Page"""
+    st.markdown('<div class="main-header"><h1>⚙️ Parameter Configuration</h1></div>', unsafe_allow_html=True)
     
-    # TEST_FOLDER 환경 변수 확인
+    # Check TEST_FOLDER environment variable
     test_folder = os.environ.get('TEST_FOLDER')
     if not test_folder:
-        st.error("❌ TEST_FOLDER 환경 변수가 설정되지 않았습니다.")
+        st.error("❌ TEST_FOLDER environment variable is not set.")
         return
     
     if not os.path.exists(test_folder):
-        st.error(f"❌ 디렉토리가 존재하지 않습니다: {test_folder}")
+        st.error(f"❌ Directory does not exist: {test_folder}")
         return
     
-    # bulk_prepare.sh 파일 경로
+    # bulk_prepare.sh file path
     oma_base_dir = os.environ.get('OMA_BASE_DIR')
     if not oma_base_dir:
-        st.error("❌ OMA_BASE_DIR 환경 변수가 설정되지 않았습니다.")
+        st.error("❌ OMA_BASE_DIR environment variable is not set.")
         return
     
     bulk_prepare_script = os.path.join(oma_base_dir, "bin", "test", "bulk_prepare.sh")
     parameters_file = os.path.join(test_folder, "parameters.properties")
     
-    st.info(f"📁 작업 디렉토리: {test_folder}")
+    st.info(f"📁 Working Directory: {test_folder}")
     
-    # 파라미터 구성 실행 버튼
-    if st.button("🚀 파라미터 구성 실행", type="primary", use_container_width=True):
+    # Parameter configuration execution button
+    if st.button("🚀 Execute Parameter Configuration", type="primary", use_container_width=True):
         if not os.path.exists(bulk_prepare_script):
-            st.error(f"❌ bulk_prepare.sh 파일이 존재하지 않습니다: {bulk_prepare_script}")
+            st.error(f"❌ bulk_prepare.sh file does not exist: {bulk_prepare_script}")
             return
         
-        # SOURCE_SQL_MAPPER_FOLDER 환경 변수 확인
+        # Check SOURCE_SQL_MAPPER_FOLDER environment variable
         source_sql_mapper_folder = os.environ.get('SOURCE_SQL_MAPPER_FOLDER')
         if not source_sql_mapper_folder:
-            st.error("❌ SOURCE_SQL_MAPPER_FOLDER 환경 변수가 설정되지 않았습니다.")
+            st.error("❌ SOURCE_SQL_MAPPER_FOLDER environment variable is not set.")
             return
         
-        # APP_TOOLS_FOLDER 환경 변수 확인
+        # Check APP_TOOLS_FOLDER environment variable
         app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
         if not app_tools_folder:
-            st.error("❌ APP_TOOLS_FOLDER 환경 변수가 설정되지 않았습니다.")
+            st.error("❌ APP_TOOLS_FOLDER environment variable is not set.")
             return
         
-        # 실행 로그 컨테이너
+        # Execution log container
         log_container = st.empty()
         
         try:
-            with st.spinner("파라미터 구성 중..."):
-                # APP_TOOLS_FOLDER/../test에서 bulk_prepare.sh 실행
+            with st.spinner("Report Item..."):
+                # APP_TOOLS_FOLDER/../testText bulk_prepare.sh Execute
                 test_dir = os.path.join(app_tools_folder, "..", "test")
                 command = f"{bulk_prepare_script} {source_sql_mapper_folder}"
                 process = subprocess.Popen(
@@ -65,7 +65,7 @@ def render_parameter_config_page():
                     bufsize=1
                 )
                 
-                # 실시간 로그 출력
+                # Report Item
                 logs = []
                 while True:
                     line = process.stdout.readline()
@@ -73,44 +73,44 @@ def render_parameter_config_page():
                         break
                     if line:
                         logs.append(line.rstrip())
-                        # 최근 20줄만 표시
+                        # Item 20Text display
                         recent_logs = logs[-20:] if len(logs) > 20 else logs
                         log_container.code('\n'.join(recent_logs))
                 
-                # 프로세스 완료 대기
+                # Item Complete Item
                 return_code = process.wait()
                 
-                # TEST_FOLDER에 parameters.properties 파일이 생성되었는지 확인
+                # TEST_FOLDERText parameters.properties FileText CreateText Check
                 if os.path.exists(parameters_file):
-                    st.success("✅ 파라미터 구성이 완료되었습니다!")
-                    # parameters.properties 파일이 생성되었으므로 페이지 새로고침
-                    time.sleep(1)  # 파일 생성 완료 대기
+                    st.success("✅ Report CompleteText!")
+                    # parameters.properties FileText CreateText Page Item
+                    time.sleep(1)  # File Create Complete Item
                     st.rerun()
                 else:
                     if return_code == 0:
-                        st.warning("⚠️ 스크립트는 성공했지만 parameters.properties 파일을 찾을 수 없습니다.")
+                        st.warning("⚠️ Report parameters.properties FileText Report Item.")
                     else:
-                        st.error(f"❌ 파라미터 구성 실행 실패 (종료 코드: {return_code})")
+                        st.error(f"❌ Report Execute Item (Report: {return_code})")
                     
         except Exception as e:
-            st.error(f"❌ 실행 중 오류 발생: {e}")
+            st.error(f"❌ Execute Item Error Item: {e}")
     
     st.markdown("---")
     
-    # parameters.properties 파일 표시 및 편집
+    # parameters.properties File display Report
     render_parameters_editor(parameters_file)
 
 def render_parameters_editor(parameters_file):
-    """parameters.properties 파일 편집기"""
+    """parameters.properties File Item"""
     st.subheader("📄 parameters.properties")
     
     if not os.path.exists(parameters_file):
-        st.warning(f"⚠️ parameters.properties 파일이 존재하지 않습니다.")
-        st.info("파라미터 구성을 먼저 실행하세요.")
+        st.warning(f"⚠️ parameters.properties FileText Report.")
+        st.info("Report Item ExecuteText.")
         return
     
     try:
-        # properties 파일을 DataFrame으로 변환
+        # properties FileText DataFrameText Transform
         properties_data = []
         
         with open(parameters_file, 'r', encoding='utf-8') as f:
@@ -125,7 +125,7 @@ def render_parameters_editor(parameters_file):
                             'Line': line_num
                         })
                     else:
-                        # = 없는 라인도 표시
+                        # = Report display
                         properties_data.append({
                             'Key': line,
                             'Value': '',
@@ -133,34 +133,34 @@ def render_parameters_editor(parameters_file):
                         })
         
         if not properties_data:
-            st.info("📝 설정 항목이 없습니다.")
+            st.info("📝 Config Report.")
             return
         
         df = pd.DataFrame(properties_data)
         
-        # 파일 정보
+        # File Info
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("📊 설정 항목 수", len(df))
+            st.metric("📊 Config Report", len(df))
         with col2:
             file_size = os.path.getsize(parameters_file)
-            st.metric("📁 파일 크기", f"{file_size:,} bytes")
+            st.metric("📁 File Item", f"{file_size:,} bytes")
         with col3:
             mtime = os.path.getmtime(parameters_file)
-            st.metric("🕒 수정 시간", time.strftime("%H:%M:%S", time.localtime(mtime)))
+            st.metric("🕒 Report", time.strftime("%H:%M:%S", time.localtime(mtime)))
         
-        # 검색 기능
-        search_term = st.text_input("🔍 검색", placeholder="키 또는 값으로 검색")
+        # Report
+        search_term = st.text_input("🔍 Item", placeholder="Report Report")
         
-        # 검색 필터링
+        # Report
         filtered_df = df.copy()
         if search_term:
             mask = (df['Key'].str.contains(search_term, case=False, na=False) | 
                    df['Value'].str.contains(search_term, case=False, na=False))
             filtered_df = df[mask]
-            st.info(f"🔍 검색 결과: {len(filtered_df)}개 항목")
+            st.info(f"🔍 Report: {len(filtered_df)}Report")
         
-        # 편집 가능한 테이블 (Line 컬럼 제외)
+        # Report Item (Line Report)
         edit_df = filtered_df[['Key', 'Value']].copy()
         
         edited_df = st.data_editor(
@@ -170,18 +170,18 @@ def render_parameters_editor(parameters_file):
             key="parameters_editor"
         )
         
-        # 저장 버튼
+        # Report
         col1, col2, col3 = st.columns([1, 1, 2])
         
         with col1:
-            if st.button("💾 저장", type="primary"):
+            if st.button("💾 Item", type="primary"):
                 try:
-                    # 백업 생성
+                    # Generation
                     backup_path = f"{parameters_file}.backup"
                     import shutil
                     shutil.copy2(parameters_file, backup_path)
                     
-                    # 새 properties 파일 작성
+                    # Item properties File Item
                     with open(parameters_file, 'w', encoding='utf-8') as f:
                         f.write("# Parameters Configuration\n")
                         f.write(f"# Updated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -193,37 +193,37 @@ def render_parameters_editor(parameters_file):
                                 else:
                                     f.write(f"{row['Key']}=\n")
                     
-                    st.success("✅ parameters.properties 저장 완료!")
+                    st.success("✅ parameters.properties Item Complete!")
                     time.sleep(1)
                     st.rerun()
                     
                 except Exception as e:
-                    st.error(f"❌ 저장 실패: {e}")
+                    st.error(f"❌ Report: {e}")
         
         with col2:
-            if st.button("🔄 새로고침"):
+            if st.button("🔄 Item"):
                 st.rerun()
         
         with col3:
             st.caption(f"📁 {parameters_file}")
         
-        # 원본 파일 내용 미리보기
-        with st.expander("📄 원본 파일 내용", expanded=False):
+        # Item File Report
+        with st.expander("📄 Item File Item", expanded=False):
             with open(parameters_file, 'r', encoding='utf-8') as f:
                 content = f.read()
             st.code(content, language='properties')
             
     except Exception as e:
-        st.error(f"❌ 파일 읽기 오류: {e}")
+        st.error(f"❌ File Item Error: {e}")
         
-        # 백업에서 복구
+        # Report
         backup_path = f"{parameters_file}.backup"
         if os.path.exists(backup_path):
-            if st.button("🔧 백업에서 복구"):
+            if st.button("🔧 Report"):
                 try:
                     import shutil
                     shutil.copy2(backup_path, parameters_file)
-                    st.success("✅ 백업에서 복구되었습니다.")
+                    st.success("✅ Report.")
                     st.rerun()
                 except Exception as restore_e:
-                    st.error(f"❌ 복구 실패: {restore_e}")
+                    st.error(f"❌ Report: {restore_e}")
