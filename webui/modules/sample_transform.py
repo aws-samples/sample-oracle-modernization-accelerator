@@ -6,45 +6,56 @@ import subprocess
 import os
 import time
 import datetime
+from .utils import get_page_text
 
 
 def render_sample_transform_page():
     """샘플 변환 페이지"""
+    current_lang = st.session_state.get('language', 'ko')
+    
     # 상단에 홈 버튼 추가
     col1, col2 = st.columns([1, 4])
     with col1:
-        if st.button("🏠 홈으로", key="sample_transform_home"):
+        home_text = "🏠 홈으로" if current_lang == 'ko' else "🏠 Home"
+        if st.button(home_text, key="sample_transform_home"):
             st.session_state.selected_action = None
             st.rerun()
     with col2:
-        st.markdown("## 🧪 SQL 샘플 변환")
+        st.markdown(f"## {get_page_text('sample_transform_title')}")
+    
+    # 설명
+    st.markdown(f"**{get_page_text('sample_transform_desc')}**")
     
     # 명령어 정보
     command = 'python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"'
     log_file_path = "$APP_LOGS_FOLDER/pylogs/SampleTransformTarget.log"
     expanded_log_path = os.path.expandvars(log_file_path)
     
-    st.info(f"**실행 명령어:** `{command}`")
-    st.caption(f"📄 로그 파일: {expanded_log_path}")
+    command_text = "실행 명령어:" if current_lang == 'ko' else "Command:"
+    st.info(f"**{command_text}** `{command}`")
+    st.caption(f"{get_page_text('log_file')} {expanded_log_path}")
     
     # 실행 중인 작업 확인
     if st.session_state.oma_controller.is_any_task_running():
         current_process = st.session_state.oma_controller.current_process
         if current_process and current_process.poll() is None:
-            st.warning("🔄 샘플 변환이 이미 실행 중입니다.")
+            running_text = "🔄 샘플 변환이 이미 실행 중입니다." if current_lang == 'ko' else "🔄 Sample transform is already running."
+            st.warning(running_text)
             
             # 작업 중단 버튼
             col1, col2 = st.columns([3, 1])
             with col2:
-                if st.button("🛑 작업 중단", key="stop_sample_transform", type="secondary"):
+                if st.button(get_page_text("stop_task"), key="stop_sample_transform", type="secondary"):
                     if st.session_state.oma_controller.stop_current_process():
-                        st.success("✅ 작업이 중단되었습니다.")
+                        success_text = "✅ 작업이 중단되었습니다." if current_lang == 'ko' else "✅ Task has been stopped."
+                        st.success(success_text)
                         st.rerun()
                     else:
-                        st.info("실행 중인 작업이 없습니다.")
+                        st.info(get_page_text("no_running_task"))
             
             # 간단한 상태 표시
-            st.markdown("### 📊 작업 상태")
+            status_text = "### 📊 작업 상태" if current_lang == 'ko' else "### 📊 Task Status"
+            st.markdown(status_text)
             
             # 로그 파일 생성 확인
             if os.path.exists(expanded_log_path):
