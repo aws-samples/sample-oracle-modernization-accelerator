@@ -156,7 +156,8 @@ handle_navigation() {
 # Function to cleanup temporary files
 cleanup_temp_files() {
     rm -rf "$TEMP_DIR" 2>/dev/null || true
-    rm -f /tmp/complex_objects.txt 2>/dev/null || true
+    # Keep complex_objects.txt for potential reconversion
+    # rm -f /tmp/complex_objects.txt 2>/dev/null || true
     rm -f /tmp/selected_zip.txt 2>/dev/null || true
 }
 
@@ -427,9 +428,9 @@ convert_all_objects() {
         convert_single_object_batch "$object"
         
         if [ $? -eq 0 ]; then
-            print_color $GREEN "✓ $object 변환 완료"
+            print_color $GREEN "[SUCCESS] $object 변환 완료"
         else
-            print_color $RED "✗ $object 변환 실패"
+            print_color $RED "[ERROR] $object 변환 실패"
             failed_count=$((failed_count + 1))
         fi
         
@@ -573,7 +574,7 @@ convert_single_object_batch() {
         print_color $BLUE "변환된 파일: $final_output"
         return 0
     else
-        print_color $RED "✗ Amazon Q 변환에 실패했습니다."
+        print_color $RED "[ERROR] Amazon Q 변환에 실패했습니다."
         return 1
     fi
 }
@@ -689,10 +690,10 @@ with open(prompt_file, 'w') as f:
         fi
         
         if [ -s "$final_output" ] && grep -q "CREATE OR REPLACE PROCEDURE\|CREATE PROCEDURE" "$final_output"; then
-            print_color $GREEN "✓ $simple_object_name에 대해 변환이 완료되었습니다."
+            print_color $GREEN "[SUCCESS] $simple_object_name에 대해 변환이 완료되었습니다."
             print_color $BLUE "변환된 파일: $final_output"
         else
-            print_color $RED "✗ $simple_object_name 변환에 실패했습니다."
+            print_color $RED "[ERROR] $simple_object_name 변환에 실패했습니다."
             return 1
         fi
         
@@ -708,7 +709,7 @@ with open(prompt_file, 'w') as f:
             "1")
                 print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
                 if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$final_output"; then
-                    print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+                    print_color $GREEN "[SUCCESS] DDL이 성공적으로 적용되었습니다."
                     echo
                     echo "1. 다른 변환된 오브젝트를 DB에 적용하시겠습니까?"
                     echo "2. 다른 오브젝트를 변환하시겠습니까?"
@@ -752,7 +753,7 @@ with open(prompt_file, 'w') as f:
                             ;;
                     esac
                 else
-                    print_color $RED "✗ DDL 적용에 실패했습니다. 재변환이 필요합니다."
+                    print_color $RED "[ERROR] DDL 적용에 실패했습니다. 재변환이 필요합니다."
                     echo
                     echo "1. 다시 변환하기"
                     echo "2. 다른 오브젝트 변환하기"
@@ -846,7 +847,7 @@ show_converted_objects_for_deployment() {
         local selected_file="${converted_files[$((selection-1))]}"
         print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
         if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$selected_file"; then
-            print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+            print_color $GREEN "[SUCCESS] DDL이 성공적으로 적용되었습니다."
             echo
             echo "1. 다른 오브젝트를 DB에 적용하시겠습니까?"
             echo "2. 오브젝트 변환을 진행하시겠습니까?"
@@ -870,7 +871,7 @@ show_converted_objects_for_deployment() {
                     ;;
             esac
         else
-            print_color $RED "✗ DDL 적용에 실패했습니다."
+            print_color $RED "[ERROR] DDL 적용에 실패했습니다."
             show_converted_objects_for_deployment  # Show menu again
         fi
     else
@@ -959,10 +960,10 @@ deploy_all_objects() {
             
             if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$sql_file"; then
                 success_list+=("$object_name")
-                print_color $GREEN "  ✓ 성공"
+                print_color $GREEN "  [SUCCESS] 성공"
             else
                 failed_list+=("$object_name")
-                print_color $RED "  ✗ 실패"
+                print_color $RED "  [ERROR] 실패"
             fi
         fi
     done
@@ -978,7 +979,7 @@ deploy_all_objects() {
     # Show successful deployments
     if [ ${#success_list[@]} -gt 0 ]; then
         echo
-        print_color $GREEN "${BOLD}✓ 성공적으로 배포된 객체들:${NC}"
+        print_color $GREEN "${BOLD}[SUCCESS] 성공적으로 배포된 객체들:${NC}"
         for obj in "${success_list[@]}"; do
             echo -e "${GREEN}  - $obj${NC}"
         done
@@ -987,7 +988,7 @@ deploy_all_objects() {
     # Handle failed deployments
     if [ ${#failed_list[@]} -gt 0 ]; then
         echo
-        print_color $RED "${BOLD}✗ 배포에 실패한 객체들:${NC}"
+        print_color $RED "${BOLD}[ERROR] 배포에 실패한 객체들:${NC}"
         for obj in "${failed_list[@]}"; do
             echo -e "${RED}  - $obj${NC}"
         done
@@ -1046,9 +1047,9 @@ retry_failed_objects() {
             if [ -f "$sql_file" ]; then
                 print_color $CYAN "재배포 시도: $obj"
                 if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$sql_file"; then
-                    print_color $GREEN "✓ $obj 재배포 성공"
+                    print_color $GREEN "[SUCCESS] $obj 재배포 성공"
                 else
-                    print_color $RED "✗ $obj 재배포 실패"
+                    print_color $RED "[ERROR] $obj 재배포 실패"
                 fi
             fi
         else
