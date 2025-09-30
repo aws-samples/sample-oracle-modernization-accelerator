@@ -156,7 +156,8 @@ handle_navigation() {
 # Function to cleanup temporary files
 cleanup_temp_files() {
     rm -rf "$TEMP_DIR" 2>/dev/null || true
-    rm -f /tmp/complex_objects.txt 2>/dev/null || true
+    # Keep complex_objects.txt for potential reconversion
+    # rm -f /tmp/complex_objects.txt 2>/dev/null || true
     rm -f /tmp/selected_zip.txt 2>/dev/null || true
 }
 
