@@ -1,9 +1,9 @@
 """
 OMA Streamlit Modules Package
-Item PageText Report
+각 페이지별로 분리된 모듈들
 """
 
-# Item Page Item import
+# 모든 페이지 모듈 import
 from .welcome import render_welcome_page
 from .project_env_info import render_project_env_page
 from .app_analysis import render_app_analysis_page
