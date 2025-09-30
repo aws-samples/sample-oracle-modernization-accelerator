@@ -338,7 +338,7 @@ def main():
         sys.exit(0 if success else 1)
         
     else:
-        print(f"Unknown command: {command}")
+        print(f"Unknown command : {command}")
         sys.exit(1)
 
 if __name__ == "__main__":
