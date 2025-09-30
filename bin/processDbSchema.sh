@@ -640,9 +640,9 @@ import sys
 template_file = '$template_file'
 prompt_file = '$prompt_file'
 object_name = '$simple_object_name'
-ddl_content = open('$ddl_file', 'r').read()
+ddl_content = open('$ddl_file', 'r', encoding='utf-8').read()
 
-with open(template_file, 'r') as f:
+with open(template_file, 'r', encoding='utf-8') as f:
     template = f.read()
 
 # Replace placeholders
@@ -651,7 +651,7 @@ result = result.replace('{SOURCE_DBMS_TYPE}', 'orcl')
 result = result.replace('{TARGET_DBMS_TYPE}', 'postgres')
 result = result.replace('{ORACLE_DDL}', ddl_content)
 
-with open(prompt_file, 'w') as f:
+with open(prompt_file, 'w', encoding='utf-8') as f:
     f.write(result)
 "
     
@@ -901,7 +901,7 @@ handle_deployment_choice() {
             # Return to conversion choice menu without re-extracting ZIP
             if [ -f "/tmp/complex_objects.txt" ]; then
                 echo
-                print_color $BLUE "복잡도가 Medium 또는 Complex인 오브젝트들:"
+                print_color $BLUE "Objects with Medium or Complex complexity:"
                 print_color $BLUE "$(printf '%50s' | tr ' ' '-')"
                 local count=1
                 while IFS= read -r object; do
