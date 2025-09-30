@@ -96,19 +96,19 @@ EXIT;
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(stdout)
                 
-                print(f"✓ DDL extracted successfully to: {output_file}")
+                print(f"[SUCCESS] DDL extracted successfully to: {output_file}")
                 return True
             else:
-                print(f"✗ No procedure found with name: {object_name}")
+                print(f"[ERROR] No procedure found with name: {object_name}")
                 return False
         else:
-            print(f"✗ SQLPlus error (return code: {process.returncode})")
+            print(f"[ERROR] SQLPlus error (return code: {process.returncode})")
             if stderr:
                 print(f"Error output: {stderr}")
             return False
             
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         return False
 
 def deploy_to_postgresql(sql_file):
@@ -122,7 +122,7 @@ def deploy_to_postgresql(sql_file):
         pgpassword = os.environ.get('PG_ADMIN_PASSWORD', os.environ.get('PGPASSWORD'))
         
         if not all([pghost, pgdatabase, pguser]):
-            print("✗ PostgreSQL environment variables not set (PGHOST, PGDATABASE, PGUSER)")
+            print("[ERROR] PostgreSQL environment variables not set (PGHOST, PGDATABASE, PGUSER)")
             return False
         
         print(f"Deploying to PostgreSQL: {pguser}@{pghost}/{pgdatabase}")
@@ -250,10 +250,10 @@ def deploy_to_postgresql(sql_file):
                 has_errors = True
         
         if process.returncode == 0 and not has_errors:
-            print("✓ DDL applied successfully to PostgreSQL")
+            print("[SUCCESS] DDL applied successfully to PostgreSQL")
             return True
         else:
-            print("✗ Failed to apply DDL to PostgreSQL")
+            print("[ERROR] Failed to apply DDL to PostgreSQL")
             if has_errors:
                 print("Reason: SQL execution errors detected")
             else:
@@ -261,7 +261,7 @@ def deploy_to_postgresql(sql_file):
             return False
             
     except Exception as e:
-        print(f"✗ Error deploying to PostgreSQL: {e}")
+        print(f"[ERROR] Error deploying to PostgreSQL: {e}")
         return False
 
 if __name__ == "__main__":
