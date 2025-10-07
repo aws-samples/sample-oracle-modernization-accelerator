@@ -55,21 +55,21 @@ log_debug() {
 show_initial_banner() {
     clear
     print_separator
-    echo -e "${BLUE}${BOLD}Step 1: DB Schema 추가 변환${NC}"
+    echo -e "${BLUE}${BOLD}Step 1: Additional DB Schema Conversion${NC}"
     print_separator
-    echo -e "${CYAN}이 단계에서는 데이터베이스 객체에 대한 추가 변환 작업을 수행합니다.${NC}"
-    echo -e "${CYAN}Oracle 스키마를 PostgreSQL로 변환하는 작업을 수행합니다.${NC}"
+    echo -e "${CYAN}This step performs additional conversion work on database objects.${NC}"
+    echo -e "${CYAN}Performs Oracle schema to PostgreSQL conversion work.${NC}"
     print_separator
-    echo -e "${BLUE}${BOLD}환경 변수 설정:${NC}"
+    echo -e "${BLUE}${BOLD}Environment Variable Settings:${NC}"
     echo -e "${GREEN}  SOURCE_DDL_DIR: $SOURCE_DDL_DIR${NC}"
     echo -e "${GREEN}  CONVERTED_DIR: $CONVERTED_DIR${NC}"
     echo -e "${GREEN}  ORACLE_HOST: $ORACLE_HOST${NC}"
     echo -e "${GREEN}  PGHOST: $PGHOST${NC}"
     print_separator
-    echo -e "${YELLOW}DB Schema 변환을 시작하기 전 Amazon Q에 사전 로그인되어 있어야 합니다.${NC}"
-    echo -e "${CYAN}DB Schema 변환 스크립트 실행${NC}"
+    echo -e "${YELLOW}You must be pre-logged into Amazon Q before starting DB Schema conversion.${NC}"
+    echo -e "${CYAN}Running DB Schema conversion script${NC}"
     echo ""
-    echo -e "${BLUE}${BOLD}=== 기본 메뉴 ===${NC}"
+    echo -e "${BLUE}${BOLD}=== Basic Menu ===${NC}"
     echo -e "${CYAN}b) Back to previous menu${NC}"
     echo -e "${CYAN}q) Quit${NC}"
     echo ""
@@ -83,11 +83,11 @@ handle_initial_mode() {
 
 # Function to deploy existing converted schemas
 deploy_existing_schemas() {
-    print_color $BLUE "변환된 스키마 파일을 확인합니다..."
+    print_color $BLUE "Checking converted schema files..."
     
     if [ ! -d "$CONVERTED_DIR" ] || [ -z "$(ls -A "$CONVERTED_DIR" 2>/dev/null)" ]; then
-        print_color $RED "변환된 스키마 파일이 없습니다."
-        print_color $YELLOW "먼저 '전체 변환' 모드를 실행하세요."
+        print_color $RED "No converted schema files found."
+        print_color $YELLOW "Please run 'Full Conversion' mode first."
         echo
         handle_initial_mode
         return
@@ -102,7 +102,7 @@ CONVERTED_DIR="$TARGET_DIR/target-ddl"
 SOURCE_DDL_DIR="$TARGET_DIR/source-ddl"
 TEMP_DIR="/tmp/processDbSchema_$$"
 
-# 색상 정의
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -113,7 +113,7 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 UNDERLINE='\033[4m'
 
-# 구분선 출력 함수
+# Separator output function
 print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
@@ -135,12 +135,12 @@ show_menu() {
 handle_navigation() {
     case "$1" in
         "b"|"B") 
-            print_color $YELLOW "이전 메뉴로 돌아갑니다..."
+            print_color $YELLOW "Returning to previous menu..."
             return 1  # Return to previous menu
             ;;
         "q"|"Q") 
             cleanup_temp_files
-            print_color $YELLOW "종료합니다..."
+            print_color $YELLOW "Exiting..."
             exit 0
             ;;
         *)
@@ -164,13 +164,13 @@ cleanup_temp_files() {
 create_target_directory() {
     if [ ! -d "$TARGET_DIR" ]; then
         mkdir -p "$TARGET_DIR"
-        print_color $GREEN "디렉토리 생성됨: $TARGET_DIR"
+        print_color $GREEN "Directory created: $TARGET_DIR"
     fi
     
     if [ ! -d "$CONVERTED_DIR" ]; then
         mkdir -p "$CONVERTED_DIR"
         echo
-        print_color $GREEN "변환 오브젝트 저장 위치: $CONVERTED_DIR"
+        print_color $GREEN "Converted object storage location: $CONVERTED_DIR"
     fi
     
     if [ ! -d "$SOURCE_DDL_DIR" ]; then
@@ -187,7 +187,7 @@ select_zip_file() {
     
     if [ ${#zip_files[@]} -gt 0 ]; then
         echo
-        print_color $BLUE "변환 대상 폴더 ${BOLD}$TARGET_DIR/${NC}${BLUE}에 아래 파일들이 있습니다. 기존 파일을 선택하거나 새로운 대상 리스트를 S3에서 다운로드 할 수 있습니다.${NC}"
+        print_color $BLUE "The following files exist in the conversion target folder ${BOLD}$TARGET_DIR/${NC}${BLUE}. You can select an existing file or download a new target list from S3.${NC}"
         for i in "${!zip_files[@]}"; do
             echo -e "${CYAN}$((i+1)). $(basename "${zip_files[$i]}")${NC}"
         done
@@ -208,7 +208,7 @@ select_zip_file() {
                 return $?
             fi
         else
-            print_color $RED "잘못된 옵션입니다. 다시 선택해주세요."
+            print_color $RED "Invalid option. Please select again."
             select_zip_file  # Retry file selection
             return $?
             select_zip_file
@@ -222,14 +222,14 @@ select_zip_file() {
 
 # Function to download from S3
 download_from_s3() {
-    print_color $YELLOW "S3에서 다운로드가 필요합니다."
+    print_color $YELLOW "S3 download is required."
     echo
-    echo -n "다운로드 받을 zip 파일의 S3 URI를 입력바랍니다. (e.g., s3://oma-dms-sc-[accountid]/dms-sc-migration-project/ORACLE_AURORA_POSTGRESQL_[time].zip): "
+    echo -n "Please enter the S3 URI of the zip file to download. (e.g., s3://oma-dms-sc-[accountid]/dms-sc-migration-project/ORACLE_AURORA_POSTGRESQL_[time].zip): "
     read s3_path
     handle_navigation "$s3_path"
     
     if [ -z "$s3_path" ]; then
-        echo "파일의 URI가 입력되지 않았습니다. 이전 메뉴로 돌아가시겠습니다? (b, q)"
+        echo "File URI was not entered. Would you like to return to the previous menu? (b, q)"
         read choice
         case "$choice" in
             q) exit 0 ;;
@@ -242,12 +242,12 @@ download_from_s3() {
     local filename=$(basename "$s3_path")
     local local_path="$TARGET_DIR/$filename"
     
-    print_color $YELLOW "S3에서 다운로드 중..."
+    print_color $YELLOW "Downloading from S3..."
     if aws s3 cp "$s3_path" "$local_path"; then
-        print_color $GREEN "다운로드 성공: $filename"
+        print_color $GREEN "Download successful: $filename"
         echo "$local_path" > /tmp/selected_zip.txt
     else
-        print_color $RED "S3 다운로드 실패"
+        print_color $RED "S3 download failed"
         download_from_s3
     fi
 }
@@ -259,11 +259,11 @@ confirm_zip_selection() {
     # Extract timestamp from filename pattern: ORACLE_AURORA_POSTGRESQL_2025-09-07T05-00-40.891Z.zip
     local timestamp=$(echo "$filename" | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}-[0-9]\{2\}-[0-9]\{2\}\.[0-9]\{3\}Z' || echo "Unknown")
     
-    print_color $BLUE "선택된 파일: ${BOLD}$filename${NC}"
-    print_color $BLUE "타임스탬프: ${BOLD}$timestamp${NC}"
+    print_color $BLUE "Selected file: ${BOLD}$filename${NC}"
+    print_color $BLUE "Timestamp: ${BOLD}$timestamp${NC}"
     echo
-    print_color $YELLOW "해당 파일을 기준으로 변환을 진행하고자 합니다. 맞습니까?"
-    print_color $CYAN "(N을 선택하면 파일 선택 단계로 돌아갑니다)"
+    print_color $YELLOW "Do you want to proceed with conversion based on this file?"
+    print_color $CYAN "(Selecting N will return to the file selection step)"
     echo -n "Is this correct? (Y/n): "
     read confirmation
     handle_navigation "$confirmation"
@@ -284,7 +284,7 @@ analyze_zip_file() {
     local extract_dir="$TEMP_DIR/extracted"
     
     echo
-    print_color $YELLOW "ZIP 파일 압축 해제 중..."
+    print_color $YELLOW "Extracting ZIP file..."
     mkdir -p "$extract_dir"
     unzip -q "$zip_file" -d "$extract_dir"
     
@@ -296,14 +296,14 @@ analyze_zip_file() {
     # Copy extracted files to timestamp directory
     mkdir -p "$timestamp_dir"
     cp -r "$extract_dir"/* "$timestamp_dir/" 2>/dev/null || true
-    print_color $GREEN "파일 압축 해제 완료: $timestamp_dir"
+    print_color $GREEN "File extraction completed: $timestamp_dir"
     echo
     
     # Find the CSV file (without Summary in name)
     local csv_file=$(find "$extract_dir" -name "*.csv" | grep -v Summary | head -1)
     
     if [ -z "$csv_file" ]; then
-        print_color $RED "필요한 CSV 파일을 찾을 수 없습니다"
+        print_color $RED "Required CSV file not found"
         return 1
     fi
     
@@ -315,8 +315,8 @@ analyze_zip_file() {
     if [ -f "$script_path" ]; then
         if ! python3 "$script_path" analyze "$csv_file"; then
             echo
-            echo "1. 이전 메뉴로 돌아가기"
-            echo "2. S3에서 새로운 파일 다운로드"
+            echo "1. Return to previous menu"
+            echo "2. Download new file from S3"
             echo -n "Select option (num or b/q): "
             read choice
             
@@ -333,7 +333,7 @@ analyze_zip_file() {
                     return $?
                     ;;
                 *)
-                    print_color $RED "잘못된 선택입니다"
+                    print_color $RED "Invalid selection"
                     return 1
                     ;;
             esac
@@ -354,9 +354,9 @@ analyze_zip_file() {
 # Function to handle object conversion choice
 handle_conversion_choice() {
     echo
-    echo -e "${CYAN}1. 해당 오브젝트 전체에 대해 Amazon Q를 이용하여 변환하겠습니까?${NC}"
-    echo -e "${CYAN}2. 오브젝트 개별로 Amazon Q를 이용하여 변환하겠습니까?${NC}"
-    echo -n "선택 (1/2, or b/q): "
+    echo -e "${CYAN}1. Would you like to convert all these objects using Amazon Q?${NC}"
+    echo -e "${CYAN}2. Would you like to convert objects individually using Amazon Q?${NC}"
+    echo -n "Select (1/2, or b/q): "
     read choice
     
     if ! handle_navigation "$choice"; then
@@ -374,7 +374,7 @@ handle_conversion_choice() {
             convert_individual_objects
             ;;
         *)
-            print_color $RED "잘못된 선택입니다"
+            print_color $RED "Invalid selection"
             handle_conversion_choice
             ;;
     esac
@@ -382,7 +382,7 @@ handle_conversion_choice() {
 
 # Function to convert all objects
 convert_all_objects() {
-    log_info "전체 오브젝트 변환을 시작합니다"
+    log_info "Starting conversion of all objects"
     print_color $YELLOW "Converting all objects..."
     
     # Check if there are already converted files
@@ -392,12 +392,12 @@ convert_all_objects() {
     done
     
     if [ $existing_files -gt 0 ]; then
-        log_info "기존 변환 파일 $existing_files 개를 발견했습니다"
+        log_info "Found $existing_files existing conversion files"
         echo
-        print_color $YELLOW "이미 변환된 파일이 $existing_files 개 있습니다."
-        echo "1. 기존 파일 유지하고 새로운 것만 변환"
-        echo "2. 모든 파일을 다시 변환 (덮어쓰기)"
-        echo -n "선택 (1/2): "
+        print_color $YELLOW "There are already $existing_files converted files."
+        echo "1. Keep existing files and convert only new ones"
+        echo "2. Convert all files again (overwrite)"
+        echo -n "Select (1/2): "
         read overwrite_choice
         
         echo
@@ -405,8 +405,8 @@ convert_all_objects() {
         echo
         
         if [ "$overwrite_choice" = "2" ]; then
-            log_info "기존 변환 파일들을 삭제합니다"
-            print_color $BLUE "기존 변환 파일들을 삭제합니다..."
+            log_info "Deleting existing conversion files"
+            print_color $BLUE "Deleting existing conversion files..."
             rm -f "$CONVERTED_DIR"/*.sql
         fi
     fi
@@ -415,32 +415,32 @@ convert_all_objects() {
     local current=0
     local failed_count=0
     
-    log_info "총 $total_objects 개의 오브젝트를 변환합니다"
+    log_info "Converting a total of $total_objects objects"
     
     while IFS= read -r object; do
         current=$((current + 1))
         echo
-        log_info "오브젝트 변환 중 ($current/$total_objects): $object"
+        log_info "Converting object ($current/$total_objects): $object"
         print_color $BLUE "Processing object $current/$total_objects: $object"
         
         # Convert object without user interaction
         convert_single_object_batch "$object"
         
         if [ $? -eq 0 ]; then
-            print_color $GREEN "✓ $object 변환 완료"
+            print_color $GREEN "✓ $object conversion completed"
         else
-            print_color $RED "✗ $object 변환 실패"
+            print_color $RED "✗ $object conversion failed"
             failed_count=$((failed_count + 1))
         fi
         
     done < /tmp/complex_objects.txt
     
     if [ $failed_count -eq 0 ]; then
-        log_info "모든 오브젝트 변환이 완료되었습니다"
-        print_color $GREEN "모든 오브젝트 변환이 완료되었습니다!"
+        log_info "All object conversions completed"
+        print_color $GREEN "All object conversions completed!"
     else
-        log_error "$failed_count 개의 오브젝트 변환이 실패했습니다"
-        print_color $RED "$failed_count 개의 오브젝트 변환이 실패했습니다!"
+        log_error "$failed_count object conversions failed"
+        print_color $RED "$failed_count object conversions failed!"
     fi
     handle_deployment_choice
 }
@@ -451,7 +451,7 @@ convert_individual_objects() {
     
     while true; do
         echo
-        print_color $BLUE "변환할 오브젝트를 선택하세요:"
+        print_color $BLUE "Select the object to convert:"
         for i in "${!objects[@]}"; do
             local object_name="${objects[$i]}"
             local simple_name=$(echo "$object_name" | awk -F'.' '{print $NF}')
@@ -459,7 +459,7 @@ convert_individual_objects() {
             local converted_file="$CONVERTED_DIR/${converted_name}.sql"
             
             if [ -f "$converted_file" ]; then
-                echo "$((i+1)). $object_name [변환됨]"
+                echo "$((i+1)). $object_name [Converted]"
             else
                 echo "$((i+1)). $object_name"
             fi
@@ -474,7 +474,7 @@ convert_individual_objects() {
         if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -le "${#objects[@]}" ] && [ "$selection" -gt 0 ]; then
             convert_single_object "${objects[$((selection-1))]}"
         else
-            print_color $RED "잘못된 선택입니다"
+            print_color $RED "Invalid selection"
         fi
     done
     
@@ -490,7 +490,7 @@ convert_single_object_batch() {
     # Check if already converted
     local final_output="$CONVERTED_DIR/${simple_object_name}.sql"
     if [ -f "$final_output" ]; then
-        print_color $YELLOW "Already converted: $simple_object_name (스킵)"
+        print_color $YELLOW "Already converted: $simple_object_name (skip)"
         return 0
     fi
     
@@ -527,15 +527,15 @@ convert_single_object_batch() {
     echo "\`\`\`" >> "$prompt_file"
     
     # Execute Q Chat with visible progress
-    print_color $BLUE "Amazon Q를 이용하여 변환 중: $simple_object_name"
-    echo "변환 진행 상황:"
+    print_color $BLUE "Converting using Amazon Q: $simple_object_name"
+    echo "Conversion progress:"
     
     if q chat --trust-all-tools --no-interactive < "$prompt_file" | tee "$output_file"; then
         echo
         print_color $BLUE "변환 결과 처리 중..."
         
         # Extract SQL content with comprehensive cleaning
-        print_color $BLUE "변환 결과 처리 중..."
+        print_color $BLUE "Processing conversion result..."
         
         # Use sed and awk to extract clean SQL
         # Step 1: Remove ANSI color codes and control characters
@@ -570,7 +570,7 @@ convert_single_object_batch() {
             cp "$output_file" "$final_output"
         fi
         
-        print_color $BLUE "변환된 파일: $final_output"
+        print_color $BLUE "Converted file: $final_output"
         return 0
     else
         print_color $RED "✗ Amazon Q 변환에 실패했습니다."
@@ -581,7 +581,7 @@ convert_single_object_batch() {
 # Function to convert a single object using Amazon Q
 convert_single_object() {
     local object_name="$1"
-    print_color $YELLOW "Amazon Q를 이용하여 오브젝트를 변환하고 있습니다: $object_name"
+    print_color $YELLOW "Converting object using Amazon Q: $object_name"
     
     # Extract just the object name from full path
     local simple_object_name=$(echo "$object_name" | sed 's/Schemas\.//g' | tr '[:upper:]' '[:lower:]')
@@ -591,12 +591,12 @@ convert_single_object() {
     
     # Always re-extract: remove existing files
     if [ -f "$ddl_file" ]; then
-        print_color $BLUE "기존 DDL 파일을 삭제하고 Oracle에서 다시 추출합니다..."
+        print_color $BLUE "Deleting existing DDL file and re-extracting from Oracle..."
         rm -f "$ddl_file"
     fi
     
     if [ -f "$final_output" ]; then
-        print_color $BLUE "기존 변환 파일을 삭제합니다..."
+        print_color $BLUE "Deleting existing conversion file..."
         rm -f "$final_output"
     fi
     
@@ -689,30 +689,30 @@ with open(prompt_file, 'w') as f:
         fi
         
         if [ -s "$final_output" ] && grep -q "CREATE OR REPLACE PROCEDURE\|CREATE PROCEDURE" "$final_output"; then
-            print_color $GREEN "✓ $simple_object_name에 대해 변환이 완료되었습니다."
-            print_color $BLUE "변환된 파일: $final_output"
+            print_color $GREEN "✓ Conversion completed for $simple_object_name."
+            print_color $BLUE "Converted file: $final_output"
         else
-            print_color $RED "✗ $simple_object_name 변환에 실패했습니다."
+            print_color $RED "✗ Conversion failed for $simple_object_name."
             return 1
         fi
         
         # Ask user what to do next
         echo
-        echo "1. 타겟 DB에 적용하시겠습니까?"
-        echo "2. 다른 오브젝트를 변환하시겠습니까?"
-        echo -n "선택 (1/2, or b/q): "
+        echo "1. Would you like to apply to target DB?"
+        echo "2. Would you like to convert other objects?"
+        echo -n "Select (1/2, or b/q): "
         read choice
         handle_navigation "$choice"
         
         case "$choice" in
             "1")
-                print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
+                print_color $BLUE "Applying DDL to PostgreSQL..."
                 if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$final_output"; then
-                    print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+                    print_color $GREEN "✓ DDL applied successfully."
                     echo
-                    echo "1. 다른 변환된 오브젝트를 DB에 적용하시겠습니까?"
-                    echo "2. 다른 오브젝트를 변환하시겠습니까?"
-                    echo -n "선택 (1/2, or b/q): "
+                    echo "1. Would you like to apply other converted objects to DB?"
+                    echo "2. Would you like to convert other objects?"
+                    echo -n "Select (1/2, or b/q): "
                     read next_choice
                     handle_navigation "$next_choice"
                     
@@ -727,12 +727,12 @@ with open(prompt_file, 'w') as f:
                             return 0
                             ;;
                         *)
-                            print_color $RED "잘못된 선택입니다"
+                            print_color $RED "Invalid selection"
                             # Ask again
                             echo
-                            echo "1. 다른 변환된 오브젝트를 DB에 적용하시겠습니까?"
-                            echo "2. 다른 오브젝트를 변환하시겠습니까?"
-                            echo -n "선택 (1/2, or b/q): "
+                            echo "1. Would you like to apply other converted objects to DB?"
+                            echo "2. Would you like to convert other objects?"
+                            echo -n "Select (1/2, or b/q): "
                             read next_choice
                             handle_navigation "$next_choice"
                             
@@ -745,18 +745,18 @@ with open(prompt_file, 'w') as f:
                                     return 0
                                     ;;
                                 *)
-                                    print_color $RED "잘못된 선택입니다"
+                                    print_color $RED "Invalid selection"
                                     return 0
                                     ;;
                             esac
                             ;;
                     esac
                 else
-                    print_color $RED "✗ DDL 적용에 실패했습니다. 재변환이 필요합니다."
+                    print_color $RED "✗ DDL application failed. Re-conversion is required."
                     echo
-                    echo "1. 다시 변환하기"
-                    echo "2. 다른 오브젝트 변환하기"
-                    echo -n "선택 (1/2, or b/q): "
+                    echo "1. Convert again"
+                    echo "2. Convert other objects"
+                    echo -n "Select (1/2, or b/q): "
                     read retry_choice
                     handle_navigation "$retry_choice"
                     
@@ -774,7 +774,7 @@ with open(prompt_file, 'w') as f:
                 fi
                 ;;
             "2")
-                print_color $BLUE "다른 오브젝트 변환을 계속합니다..."
+                print_color $BLUE "Continuing with other object conversions..."
                 return 0
                 ;;
         esac
@@ -823,19 +823,19 @@ show_converted_objects_for_deployment() {
     local converted_files=($(find "$CONVERTED_DIR" -name "*.sql" -type f 2>/dev/null))
     
     if [ ${#converted_files[@]} -eq 0 ]; then
-        print_color $YELLOW "변환된 파일이 없습니다."
+        print_color $YELLOW "No converted files found."
         return 1
     fi
     
     echo
-    print_color $BLUE "변환된 오브젝트 목록:"
+    print_color $BLUE "List of converted objects:"
     for i in "${!converted_files[@]}"; do
         local file_path="${converted_files[$i]}"
         local file_name=$(basename "$file_path" .sql)
         echo "$((i+1)). $file_name"
     done
     
-    echo -n "배포할 오브젝트 번호를 선택하세요 (or b/q): "
+    echo -n "Select the object number to deploy (or b/q): "
     read selection
     
     if ! handle_navigation "$selection"; then
@@ -844,13 +844,13 @@ show_converted_objects_for_deployment() {
     
     if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -le "${#converted_files[@]}" ] && [ "$selection" -gt 0 ]; then
         local selected_file="${converted_files[$((selection-1))]}"
-        print_color $BLUE "PostgreSQL에 DDL을 적용합니다..."
+        print_color $BLUE "Applying DDL to PostgreSQL..."
         if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$selected_file"; then
-            print_color $GREEN "✓ DDL이 성공적으로 적용되었습니다."
+            print_color $GREEN "✓ DDL applied successfully."
             echo
-            echo "1. 다른 오브젝트를 DB에 적용하시겠습니까?"
-            echo "2. 오브젝트 변환을 진행하시겠습니까?"
-            echo -n "선택 (1/2, or b/q): "
+            echo "1. Would you like to apply other objects to DB?"
+            echo "2. Would you like to proceed with object conversion?"
+            echo -n "Select (1/2, or b/q): "
             read next_choice
             
             if ! handle_navigation "$next_choice"; then
@@ -865,16 +865,16 @@ show_converted_objects_for_deployment() {
                     return 0  # Return to conversion menu
                     ;;
                 *)
-                    print_color $RED "잘못된 선택입니다"
+                    print_color $RED "Invalid selection"
                     show_converted_objects_for_deployment
                     ;;
             esac
         else
-            print_color $RED "✗ DDL 적용에 실패했습니다."
+            print_color $RED "✗ DDL application failed."
             show_converted_objects_for_deployment  # Show menu again
         fi
     else
-        print_color $RED "잘못된 선택입니다"
+        print_color $RED "Invalid selection"
         show_converted_objects_for_deployment  # Show menu again
     fi
 }
@@ -882,10 +882,10 @@ show_converted_objects_for_deployment() {
 # Function to handle deployment choice
 handle_deployment_choice() {
     echo
-    echo -e "${CYAN}1. 바로 PostgreSQL에 적용하기${NC}"
-    echo -e "${CYAN}2. 다시 변환하기${NC}"
-    echo -e "${CYAN}3. 나중에 적용하기${NC}"
-    echo -n "선택 (1/2/3, or b/q): "
+    echo -e "${CYAN}1. Apply directly to PostgreSQL${NC}"
+    echo -e "${CYAN}2. Convert again${NC}"
+    echo -e "${CYAN}3. Apply later${NC}"
+    echo -n "Select (1/2/3, or b/q): "
     read choice
     
     if ! handle_navigation "$choice"; then
@@ -900,7 +900,7 @@ handle_deployment_choice() {
             # Return to conversion choice menu without re-extracting ZIP
             if [ -f "/tmp/complex_objects.txt" ]; then
                 echo
-                print_color $BLUE "복잡도가 Medium 또는 Complex인 오브젝트들:"
+                print_color $BLUE "Objects with Medium or Complex complexity:"
                 print_color $BLUE "$(printf '%50s' | tr ' ' '-')"
                 local count=1
                 while IFS= read -r object; do
@@ -910,18 +910,18 @@ handle_deployment_choice() {
                 echo
                 handle_conversion_choice
             else
-                print_color $YELLOW "복잡한 오브젝트 목록이 없습니다. ZIP 파일을 다시 분석합니다."
+                print_color $YELLOW "No complex object list found. Re-analyzing ZIP file."
                 if analyze_zip_file; then
                     handle_conversion_choice
                 fi
             fi
             ;;
         "3")
-            print_color $GREEN "변환된 DDL 파일들이 ${BOLD}$CONVERTED_DIR${NC}${GREEN} 에 저장되었습니다.${NC}"
-            print_color $BLUE "리뷰 후 수동으로 적용하세요."
+            print_color $GREEN "Converted DDL files have been saved to ${BOLD}$CONVERTED_DIR${NC}${GREEN}.${NC}"
+            print_color $BLUE "Please review and apply manually."
             ;;
         *)
-            print_color $RED "잘못된 선택입니다"
+            print_color $RED "Invalid selection"
             handle_deployment_choice
             ;;
     esac
@@ -929,7 +929,7 @@ handle_deployment_choice() {
 
 # Function to deploy all converted objects to PostgreSQL
 deploy_all_objects() {
-    print_color $BLUE "PostgreSQL에 모든 변환된 객체를 적용합니다..."
+    print_color $BLUE "Applying all converted objects to PostgreSQL..."
     
     local success_list=()
     local failed_list=()
@@ -941,13 +941,13 @@ deploy_all_objects() {
     done
     
     if [ $total_files -eq 0 ]; then
-        print_color $YELLOW "적용할 변환된 파일이 없습니다."
+        print_color $YELLOW "No converted files to apply."
         return 0
     fi
     
     local current=0
     echo
-    print_color $BLUE "총 ${BOLD}$total_files${NC}${BLUE} 개의 객체를 배포합니다...${NC}"
+    print_color $BLUE "Deploying a total of ${BOLD}$total_files${NC}${BLUE} objects...${NC}"
     
     # Deploy each file
     for sql_file in "$CONVERTED_DIR"/*.sql; do
@@ -955,14 +955,14 @@ deploy_all_objects() {
             current=$((current + 1))
             local object_name=$(basename "$sql_file" .sql)
             
-            print_color $CYAN "[$current/$total_files] 배포 중: ${BOLD}$object_name${NC}"
+            print_color $CYAN "[$current/$total_files] Deploying: ${BOLD}$object_name${NC}"
             
             if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$sql_file"; then
                 success_list+=("$object_name")
-                print_color $GREEN "  ✓ 성공"
+                print_color $GREEN "  ✓ Success"
             else
                 failed_list+=("$object_name")
-                print_color $RED "  ✗ 실패"
+                print_color $RED "  ✗ Failed"
             fi
         fi
     done
@@ -970,15 +970,15 @@ deploy_all_objects() {
     # Generate deployment report
     echo
     print_separator
-    print_color $BLUE "${BOLD}배포 결과 요약${NC}"
+    print_color $BLUE "${BOLD}Deployment Result Summary${NC}"
     print_separator
-    print_color $GREEN "${BOLD}성공: ${#success_list[@]}개${NC}"
-    print_color $RED "${BOLD}실패: ${#failed_list[@]}개${NC}"
+    print_color $GREEN "${BOLD}Success: ${#success_list[@]} objects${NC}"
+    print_color $RED "${BOLD}Failed: ${#failed_list[@]} objects${NC}"
     
     # Show successful deployments
     if [ ${#success_list[@]} -gt 0 ]; then
         echo
-        print_color $GREEN "${BOLD}✓ 성공적으로 배포된 객체들:${NC}"
+        print_color $GREEN "${BOLD}✓ Successfully deployed objects:${NC}"
         for obj in "${success_list[@]}"; do
             echo -e "${GREEN}  - $obj${NC}"
         done
@@ -987,7 +987,7 @@ deploy_all_objects() {
     # Handle failed deployments
     if [ ${#failed_list[@]} -gt 0 ]; then
         echo
-        print_color $RED "${BOLD}✗ 배포에 실패한 객체들:${NC}"
+        print_color $RED "${BOLD}✗ Objects that failed deployment:${NC}"
         for obj in "${failed_list[@]}"; do
             echo -e "${RED}  - $obj${NC}"
         done
@@ -997,13 +997,13 @@ deploy_all_objects() {
         printf "%s\n" "${failed_list[@]}" > "$failed_objects_file"
         
         echo
-        print_color $YELLOW "실패한 객체 목록이 저장되었습니다: ${BOLD}$failed_objects_file${NC}"
-        print_color $YELLOW "해당 객체들을 재변환하여 다시 시도하세요."
+        print_color $YELLOW "Failed objects list has been saved: ${BOLD}$failed_objects_file${NC}"
+        print_color $YELLOW "Please re-convert those objects and try again."
         
         echo
-        echo -e "${CYAN}1. 실패한 객체들을 재변환하기${NC}"
-        echo -e "${CYAN}2. 나중에 수동으로 처리하기${NC}"
-        echo -n "선택 (1/2): "
+        echo -e "${CYAN}1. Re-convert failed objects${NC}"
+        echo -e "${CYAN}2. Handle manually later${NC}"
+        echo -n "Select (1/2): "
         read retry_choice
         
         case "$retry_choice" in
@@ -1017,11 +1017,11 @@ deploy_all_objects() {
                 echo
                 echo
                 echo
-                print_color $BLUE "실패한 객체들을 나중에 수동으로 처리하세요."
+                print_color $BLUE "Please handle failed objects manually later."
                 ;;
         esac
     else
-        print_color $GREEN "${BOLD}모든 객체가 성공적으로 배포되었습니다!${NC}"
+        print_color $GREEN "${BOLD}All objects have been successfully deployed!${NC}"
     fi
 }
 
@@ -1029,11 +1029,11 @@ deploy_all_objects() {
 retry_failed_objects() {
     local failed_objects=("$@")
     
-    print_color $BLUE "실패한 객체들을 재변환합니다..."
+    print_color $BLUE "Re-converting failed objects..."
     
     for obj in "${failed_objects[@]}"; do
         echo
-        print_color $YELLOW "재변환 중: $obj"
+        print_color $YELLOW "Re-converting: $obj"
         
         # Find full object name from original list
         local full_object_name=$(grep "$obj" /tmp/complex_objects.txt | head -1)
@@ -1044,15 +1044,15 @@ retry_failed_objects() {
             # Try to deploy again
             local sql_file="$CONVERTED_DIR/${obj}.sql"
             if [ -f "$sql_file" ]; then
-                print_color $CYAN "재배포 시도: $obj"
+                print_color $CYAN "Attempting re-deployment: $obj"
                 if python3 "/home/ec2-user/workspace/oma/bin/database/db_conversion.py" deploy "$sql_file"; then
-                    print_color $GREEN "✓ $obj 재배포 성공"
+                    print_color $GREEN "✓ $obj re-deployment successful"
                 else
-                    print_color $RED "✗ $obj 재배포 실패"
+                    print_color $RED "✗ $obj re-deployment failed"
                 fi
             fi
         else
-            print_color $RED "원본 객체명을 찾을 수 없습니다: $obj"
+            print_color $RED "Cannot find original object name: $obj"
         fi
     done
 }
@@ -1123,7 +1123,7 @@ main() {
     create_target_directory
     
     # Step 2-3: Handle ZIP file selection/download
-    log_info "ZIP 파일 선택을 시작합니다"
+    log_info "Starting ZIP file selection"
     select_zip_file
     
     # Step 4: Confirm selection
@@ -1132,25 +1132,25 @@ main() {
     done
     
     # Step 5: Analyze ZIP file
-    log_info "ZIP 파일 분석을 시작합니다"
+    log_info "Starting ZIP file analysis"
     if analyze_zip_file; then
         while true; do
             if handle_conversion_choice; then
-                log_info "변환 프로세스가 성공적으로 완료되었습니다"
+                log_info "Conversion process completed successfully"
                 break  # Conversion completed successfully
             else
                 # User chose to go back, return to file selection
-                log_info "사용자가 이전 메뉴로 돌아가기를 선택했습니다"
+                log_info "User chose to return to previous menu"
                 return 1  # Return to restart the process
                 return
             fi
         done
     else
-        log_info "변환이 필요한 복잡한 오브젝트가 없어 작업을 완료합니다"
-        print_color $YELLOW "변환이 필요한 복잡한 오브젝트가 없어 작업을 완료합니다."
+        log_info "No complex objects requiring conversion found, completing work"
+        print_color $YELLOW "No complex objects requiring conversion found, completing work."
     fi
     
-    log_info "로그를 확인하세요: $LOG_FILE"
+    log_info "Please check the log: $LOG_FILE"
 }
 
 # Run main function only if script is executed directly

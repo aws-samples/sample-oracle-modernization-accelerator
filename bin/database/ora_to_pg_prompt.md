@@ -6,32 +6,43 @@ Convert the following Oracle DDL to PostgreSQL format using comprehensive migrat
 **Source DBMS:** {SOURCE_DBMS_TYPE}
 **Target DBMS:** {TARGET_DBMS_TYPE}
 
+## 📚 AWS Migration Best Practices Reference
+
+**CRITICAL**: Follow AWS DMS Oracle to Aurora PostgreSQL Migration Playbook best practices:
+- **Main Guide**: https://docs.aws.amazon.com/ko_kr/dms/latest/oracle-to-aurora-postgresql-migration-playbook/chap-oracle-aurora-pg.html
+- **Key Areas**: Data types, functions, procedures, triggers, constraints, indexes, partitioning
+- **Performance**: Query optimization, indexing strategies, connection pooling
+- **Security**: Authentication, authorization, encryption considerations
+- **Compatibility**: Version-specific features and limitations
+
+Apply these AWS-recommended conversion patterns and avoid known migration pitfalls documented in the playbook.
+
 ## Original Oracle DDL:
 ```sql
 {ORACLE_DDL}
 ```
 
-## ⚠️ RDS/Aurora Managed Database 제약사항 사전 검토
+## ⚠️ RDS/Aurora Managed Database Constraints Pre-Review
 
-변환을 시작하기 전에 다음 Oracle 기능들이 포함되어 있는지 확인하고, 해당하는 경우 사용자에게 알림:
+Before starting the conversion, check if the following Oracle features are included and notify the user if applicable:
 
-### 🚫 RDS/Aurora에서 직접 구현 불가능한 기능들:
-- **파일 시스템 접근**: `UTL_FILE`, `BFILE`, 외부 테이블, `DIRECTORY` 객체
-- **네트워크 통신**: `UTL_HTTP`, `UTL_TCP`, `UTL_SMTP`, `UTL_URL`, `UTL_INADDR`
-- **외부 프로세스 실행**: `DBMS_SCHEDULER` 외부 작업, OS 명령 실행, `HOST` 명령
-- **Java 저장 프로시저**: `CREATE JAVA` 문, Java 클래스 로딩
-- **C/C++ 외부 라이브러리**: `CREATE LIBRARY` 문, 외부 라이브러리 호출
-- **데이터베이스 링크**: `CREATE DATABASE LINK` (Aurora는 제한적 지원)
-- **시스템 패키지**: `DBMS_PIPE`, `DBMS_ALERT`, `DBMS_LOCK` 등 시스템 레벨 패키지
+### 🚫 Features not directly implementable in RDS/Aurora:
+- **File system access**: `UTL_FILE`, `BFILE`, external tables, `DIRECTORY` objects
+- **Network communication**: `UTL_HTTP`, `UTL_TCP`, `UTL_SMTP`, `UTL_URL`, `UTL_INADDR`
+- **External process execution**: `DBMS_SCHEDULER` external jobs, OS command execution, `HOST` commands
+- **Java stored procedures**: `CREATE JAVA` statements, Java class loading
+- **C/C++ external libraries**: `CREATE LIBRARY` statements, external library calls
+- **Database links**: `CREATE DATABASE LINK` (Aurora has limited support)
+- **System packages**: `DBMS_PIPE`, `DBMS_ALERT`, `DBMS_LOCK` and other system-level packages
 
-### 💡 대안 솔루션 필요:
-위 기능들이 발견되면 다음과 같이 안내:
-- **AWS Lambda 함수**로 외부 처리 로직 구현
-- **Amazon S3**를 통한 파일 처리
-- **Amazon SES**를 통한 이메일 발송
-- **Amazon EventBridge**를 통한 스케줄링
-- **AWS SDK**를 통한 외부 API 호출
-- **RDS Proxy**를 통한 연결 관리
+### 💡 Alternative solutions needed:
+If the above features are found, guide as follows:
+- Implement external processing logic with **AWS Lambda functions**
+- File processing through **Amazon S3**
+- Email sending through **Amazon SES**
+- Scheduling through **Amazon EventBridge**
+- External API calls through **AWS SDK**
+- Connection management through **RDS Proxy**
 
 ## ⚠️ CRITICAL: Object Type Preservation Rule
 
@@ -77,6 +88,8 @@ $$;
 **ABSOLUTE RULE: Convert Oracle PROCEDURE to PostgreSQL PROCEDURE only with proper schema prefix and lowercase naming. Suggestions are welcome, but actual conversion must preserve object type.**
 
 ## PostgreSQL Migration Expert Conversion Rules
+
+**Follow AWS DMS Migration Playbook recommendations throughout all conversion phases.**
 
 ### 🔧 **Critical PostgreSQL Syntax Requirements**
 1. **Function Structure**: Must follow exact PostgreSQL syntax
@@ -140,6 +153,8 @@ $$;
 - `SYS_GUID()` → `gen_random_uuid()`
 - `INSTR(str, substr)` → `POSITION(substr IN str)`
 - `LISTAGG(col, delim)` → `STRING_AGG(col, delim)`
+- `EXECUTE IMMEDIATE` → `EXECUTE`
+- `PIVOT` → Use CASE and aggregate functions
 
 #### Date/Time Functions
 - `TO_DATE(date_str, 'YYYY-MM-DD')` → `date_str::date`
@@ -161,6 +176,7 @@ $$;
 - `DATE` → `TIMESTAMP` or `DATE`
 - `CLOB` → `TEXT`
 - `BLOB` → `BYTEA`
+- `RAW` → `BYTEA`
 
 **CRITICAL**: Always use consistent data types to avoid procedure overloading issues.
 
@@ -177,6 +193,9 @@ $$;
 #### Stored Procedure Calls
 - `{call PROC()}` → `CALL PROC()`
 - Remove curly braces from stored procedure calls
+
+#### Sequences
+- Oracle sequences → PostgreSQL sequence syntax
 
 #### Outer Join Conversion
 - `(+)` outer join → `LEFT JOIN` or `RIGHT JOIN`
@@ -271,36 +290,51 @@ SELECT columns FROM hierarchy
 - Cast parameters to match column types for type safety
 
 ## Output Requirements:
+**Reference AWS DMS Migration Playbook for detailed conversion patterns and best practices.**
+
 1. **DO NOT use fs_write or any file writing tools** - Only provide the converted SQL as text output
-2. **RDS/Aurora 제약사항 확인**: 먼저 위의 제약사항 목록을 확인하고, **실제 RDS/Aurora 관리형 데이터베이스에서만 제약이 있는 기능**이 발견되면 다음 형식으로 알림:
+2. **Provide only PostgreSQL conversion code** (exclude explanations, logs, markdown formatting)
+3. **All statements must end with semicolon (;)**
+4. **Apply proper indentation for readability**
+5. **Ensure PostgreSQL 13+ version compatibility**
+6. **RDS/Aurora constraint check**: First check the above constraint list, and if **features that are only constrained in actual RDS/Aurora managed databases** are found, notify in the following format:
    ```
-   ⚠️ RDS/Aurora 제약사항 발견:
-   - [발견된 기능]: [대안 솔루션 제안]
+   ⚠️ RDS/Aurora constraints found:
+   - [Found feature]: [Alternative solution suggestion]
    ```
    
-   **주의**: 다음은 일반적인 Oracle→PostgreSQL 차이점이므로 RDS/Aurora 제약사항으로 표시하지 마세요:
-   - `DBMS_OUTPUT` → `RAISE NOTICE` (일반적인 PostgreSQL 변환)
-   - `CONNECT BY` → `WITH RECURSIVE` (일반적인 PostgreSQL 변환)
-   - `||` → `CONCAT()` (일반적인 PostgreSQL 변환)
-   - `ROWNUM` → `ROW_NUMBER()` (일반적인 PostgreSQL 변환)
-   - `SYSDATE` → `CURRENT_TIMESTAMP` (일반적인 PostgreSQL 변환)
-   - `NVL` → `COALESCE` (일반적인 PostgreSQL 변환)
+   **Note**: The following are general Oracle→PostgreSQL differences, so do not mark them as RDS/Aurora constraints:
+   - `DBMS_OUTPUT` → `RAISE NOTICE` (general PostgreSQL conversion)
+   - `CONNECT BY` → `WITH RECURSIVE` (general PostgreSQL conversion)
+   - `||` → `CONCAT()` (general PostgreSQL conversion)
+   - `ROWNUM` → `ROW_NUMBER()` (general PostgreSQL conversion)
+   - `SYSDATE` → `CURRENT_TIMESTAMP` (general PostgreSQL conversion)
+   - `NVL` → `COALESCE` (general PostgreSQL conversion)
 
-2. **PostgreSQL 구문 검증**: 생성된 SQL이 다음 요구사항을 만족하는지 확인:
-   - 모든 괄호가 올바르게 매칭되는지 확인
-   - FOR 루프가 올바른 PostgreSQL 구문을 사용하는지 확인
-   - EXCEPTION 블록이 적절한 BEGIN...END 내에 있는지 확인
-   - WITH RECURSIVE 구문이 올바른 형태인지 확인
-   - 함수 정의가 완전하고 실행 가능한지 확인
+7. **PostgreSQL syntax validation**: Verify that the generated SQL meets the following requirements:
+   - Check that all parentheses are properly matched
+   - Check that FOR loops use correct PostgreSQL syntax
+   - Check that EXCEPTION blocks are within appropriate BEGIN...END
+   - Check that WITH RECURSIVE syntax is in correct form
+   - Check that function definitions are complete and executable
 
-3. **Preserve Business Logic**: Maintain identical functionality and behavior
-4. **Query Result Identity**: Converted queries MUST produce identical results to original Oracle queries
-5. **Direct Conversion Only**: Convert Oracle syntax to PostgreSQL syntax without optimization
-6. **Complete Conversion**: Apply ALL conversion rules systematically
-7. **Valid PostgreSQL DDL**: Output should be executable PostgreSQL DDL
+8. **Preserve Business Logic**: Maintain identical functionality and behavior
+9. **Query Result Identity**: Converted queries MUST produce identical results to original Oracle queries
+10. **Direct Conversion Only**: Convert Oracle syntax to PostgreSQL syntax without optimization
+11. **Complete Conversion**: Apply ALL conversion rules systematically
+12. **Valid PostgreSQL DDL**: Output should be executable PostgreSQL DDL
+13. **Convert PL/SQL blocks to PL/pgSQL correctly**
+14. **Verify index and constraint syntax compatibility**
+15. **Convert partitioning syntax to PostgreSQL approach**
 
 ## Final Output:
 **IMPORTANT: Provide ONLY the converted PostgreSQL DDL as plain text. Do NOT use any file writing tools.**
+
+**AWS Best Practice Compliance**: Ensure the conversion follows AWS DMS Migration Playbook recommendations for:
+- Data type mappings and precision handling
+- Function and procedure conversion patterns  
+- Performance optimization considerations
+- Security and compatibility requirements
 
 If RDS/Aurora limitations are found, provide the warning first, then provide the converted PostgreSQL DDL as plain text.
 

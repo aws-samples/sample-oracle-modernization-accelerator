@@ -23,11 +23,11 @@ def analyze_complex_objects(csv_file):
                         complex_objects[source_object] = complex_objects.get(source_object, 0) + 1
         
         if complex_objects:
-            print("복잡도가 Medium 또는 Complex인 오브젝트들:")
+            print("Objects with Medium or Complex complexity:")
             print("-" * 50)
             sorted_objects = sorted(complex_objects.items(), key=lambda x: x[1], reverse=True)
             for i, (obj, count) in enumerate(sorted_objects, 1):
-                print(f"{i}. {obj} (반복 횟수: {count})")
+                print(f"{i}. {obj} (occurrence count: {count})")
             
             # Save objects for later use
             with open('/tmp/complex_objects.txt', 'w') as f:
@@ -36,7 +36,7 @@ def analyze_complex_objects(csv_file):
             
             return True
         else:
-            print("복잡도가 Medium 또는 Complex인 오브젝트가 없습니다.")
+            print("No objects with Medium or Complex complexity found.")
             return False
             
     except Exception as e:
@@ -222,7 +222,7 @@ def deploy_to_postgresql(sql_file):
             stdout_lines = stdout.strip().split('\n')
             meaningful_stdout = [line for line in stdout_lines if line.strip() and line.strip() not in ['SET', 'DO']]
             if meaningful_stdout:
-                print("📋 실행 결과:")
+                print("📋 Execution result:")
                 for line in meaningful_stdout:
                     print(f"  {line}")
         
@@ -233,11 +233,11 @@ def deploy_to_postgresql(sql_file):
             warning_lines = [line for line in stderr_lines if 'WARNING:' in line or 'NOTICE:' in line]
             
             if error_lines:
-                print("❌ SQL 실행 중 오류 발생:")
+                print("❌ Error occurred during SQL execution:")
                 for line in error_lines:
                     print(f"  {line}")
             elif warning_lines:
-                print("⚠️  SQL 실행 중 경고:")
+                print("⚠️  Warning during SQL execution:")
                 for line in warning_lines:
                     print(f"  {line}")
             # Completely suppress all other stderr messages including psql technical output
