@@ -1,83 +1,83 @@
 #!/bin/bash
 
-# 색상 정의
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 도움말 표시 함수
+# Help display function
 show_help() {
-    echo -e "${BLUE}=== SQL 에러 수정 도구 사용법 ===${NC}"
+    echo -e "${BLUE}=== SQL Error Fix Tool Usage ===${NC}"
     echo ""
-    echo "사용법:"
-    echo "  ./error_fix.sh <result파일>           # 일반 모드 (수동 확인 후 삭제)"
-    echo "  ./error_fix.sh <result파일> -auto     # 자동 삭제 모드 (수정 후 자동 삭제)"
-    echo "  ./error_fix.sh --help                # 도움말 표시"
+    echo "Usage:"
+    echo "  ./error_fix.sh <result_file>           # Normal mode (manual confirmation before deletion)"
+    echo "  ./error_fix.sh <result_file> -auto     # Auto delete mode (automatic deletion after fix)"
+    echo "  ./error_fix.sh --help                  # Show help"
     echo ""
-    echo "예시:"
+    echo "Examples:"
     echo "  ./error_fix.sh result.txt"
     echo "  ./error_fix.sh result.catalina.out_20250813_093338.txt"
     echo "  ./error_fix.sh result.txt -auto"
     echo ""
-    echo "기능:"
-    echo "  - 지정된 result 파일의 에러 목록 표시"
-    echo "  - 에러 번호 선택"
-    echo "  - 자동 프롬프트 생성 및 Q CLI 실행"
-    echo "  - 수정 완료 후 해당 에러를 result 파일에서 삭제"
+    echo "Features:"
+    echo "  - Display error list from specified result file"
+    echo "  - Select error number"
+    echo "  - Auto prompt generation and Q CLI execution"
+    echo "  - Delete fixed error from result file after completion"
     echo ""
 }
 
-# 인자 확인
+# Argument validation
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     show_help
     exit 0
 fi
 
 if [ $# -eq 0 ]; then
-    echo -e "${RED}Error: result 파일을 지정해주세요.${NC}"
+    echo -e "${RED}Error: Please specify a result file.${NC}"
     echo ""
     show_help
     exit 1
 fi
 
-# result 파일 경로 설정
+# Set result file path
 RESULT_FILE="$1"
 
-# 자동 삭제 모드 확인
+# Check auto delete mode
 AUTO_DELETE=false
 if [[ "$2" == "-auto" || "$2" == "--auto" ]]; then
     AUTO_DELETE=true
-    echo -e "${BLUE}자동 삭제 모드가 활성화되었습니다.${NC}"
+    echo -e "${BLUE}Auto delete mode is enabled.${NC}"
 fi
 
-# result 파일 존재 확인
+# Check if result file exists
 if [ ! -f "$RESULT_FILE" ]; then
-    echo -e "${RED}Error: $RESULT_FILE 파일을 찾을 수 없습니다.${NC}"
-    echo "파일 경로를 확인해주세요."
+    echo -e "${RED}Error: Cannot find $RESULT_FILE file.${NC}"
+    echo "Please check the file path."
     exit 1
 fi
 
-# result 파일이 비어있는지 확인
+# Check if result file is empty
 if [ ! -s "$RESULT_FILE" ]; then
-    echo -e "${RED}Error: $RESULT_FILE 파일이 비어있습니다.${NC}"
+    echo -e "${RED}Error: $RESULT_FILE file is empty.${NC}"
     exit 1
 fi
 
-echo -e "${BLUE}=== SQL 에러 수정 도구 ===${NC}"
-echo -e "${YELLOW}대상 파일: $RESULT_FILE${NC}"
+echo -e "${BLUE}=== SQL Error Fix Tool ===${NC}"
+echo -e "${YELLOW}Target file: $RESULT_FILE${NC}"
 echo ""
 
-# 처음 실행할 때 에러 목록 표시
-echo -e "${BLUE}=== 데이터베이스 에러 목록 ===${NC}"
+# Display error list on first run
+echo -e "${BLUE}=== Database Error List ===${NC}"
 echo ""
 
-# result.txt 내용 표시 (SQL은 2줄만)
+# Display result.txt content (limit SQL to 2 lines)
 while IFS= read -r line; do
     if [[ "$line" =~ ^SQL:\ (.+)$ ]]; then
         sql_content="${BASH_REMATCH[1]}"
-        # SQL을 2줄로 제한 (첫 번째 줄은 처음 80자, 두 번째 줄은 다음 80자)
+        # Limit SQL to 2 lines (first line: first 80 chars, second line: next 80 chars)
         first_line="${sql_content:0:80}"
         second_line="${sql_content:80:80}"
 
@@ -96,27 +96,27 @@ done < "$RESULT_FILE"
 echo -e "${YELLOW}================================${NC}"
 echo ""
 
-# 사용자로부터 번호 입력 받기
+# Get number input from user
 while true; do
-    echo -n "수정할 에러 번호를 입력하세요 (목록 다시 보기: 'list', 종료: 'q'): "
+    echo -n "Enter error number to fix (show list again: 'list', exit: 'q'): "
     read -r selected_number
 
-    # 종료 조건
+    # Exit condition
     if [[ "$selected_number" == "q" || "$selected_number" == "Q" ]]; then
-        echo "프로그램을 종료합니다."
+        echo "Exiting program."
         exit 0
     fi
 
-    # 전체 목록 다시 보기
+    # Show full list again
     if [[ "$selected_number" == "list" || "$selected_number" == "LIST" ]]; then
-        echo -e "${BLUE}=== 데이터베이스 에러 목록 ===${NC}"
+        echo -e "${BLUE}=== Database Error List ===${NC}"
         echo ""
 
-        # result.txt 내용 표시 (SQL은 2줄만)
+        # Display result.txt content (limit SQL to 2 lines)
         while IFS= read -r line; do
             if [[ "$line" =~ ^SQL:\ (.+)$ ]]; then
                 sql_content="${BASH_REMATCH[1]}"
-                # SQL을 2줄로 제한 (첫 번째 줄은 처음 80자, 두 번째 줄은 다음 80자)
+                # Limit SQL to 2 lines (first line: first 80 chars, second line: next 80 chars)
                 first_line="${sql_content:0:80}"
                 second_line="${sql_content:80:80}"
 
@@ -137,32 +137,32 @@ while true; do
         continue
     fi
 
-    # 숫자인지 확인
+    # Check if it's a number
     if ! [[ "$selected_number" =~ ^[0-9]+$ ]]; then
-        echo -e "${RED}올바른 번호를 입력해주세요.${NC}"
+        echo -e "${RED}Please enter a valid number.${NC}"
         continue
     fi
 
-    # 선택한 번호가 존재하는지 확인
-    if ! grep -q "번호 \[$selected_number\]" "$RESULT_FILE"; then
-        echo -e "${RED}번호 [$selected_number]를 찾을 수 없습니다.${NC}"
+    # Check if selected number exists
+    if ! grep -q "Number \[$selected_number\]" "$RESULT_FILE"; then
+        echo -e "${RED}Number [$selected_number] not found.${NC}"
         continue
     fi
 
     break
 done
 
-echo -e "${GREEN}번호 [$selected_number]를 선택했습니다.${NC}"
+echo -e "${GREEN}Selected number [$selected_number].${NC}"
 echo ""
 
-# 선택한 번호의 정보만 추출
+# Extract information for selected number only
 temp_selected="/tmp/selected_error_$selected_number.tmp"
 
-# 선택한 번호부터 다음 번호 전까지 또는 파일 끝까지 추출
+# Extract from selected number to next number or end of file
 awk -v num="$selected_number" '
-    /^번호 \[/ {
+    /^Number \[/ {
         current_num = $0
-        gsub(/번호 \[|\]/, "", current_num)
+        gsub(/Number \[|\]/, "", current_num)
         if (current_num == num) {
             found = 1
         } else if (found) {
@@ -172,35 +172,35 @@ awk -v num="$selected_number" '
     found { print }
 ' "$RESULT_FILE" > "$temp_selected"
 
-# 정보 파싱
+# Parse information
 file_path=""
 sql_id=""
 error_msg=""
 sql_query=""
 
 while IFS= read -r line; do
-    if [[ "$line" =~ ^파일:\ (.+)$ ]]; then
+    if [[ "$line" =~ ^File:\ (.+)$ ]]; then
         file_path="${BASH_REMATCH[1]}"
     elif [[ "$line" =~ ^sqlid:\ (.+)$ ]]; then
         sql_id="${BASH_REMATCH[1]}"
-    elif [[ "$line" =~ ^에러:\ (.+)$ ]]; then
+    elif [[ "$line" =~ ^Error:\ (.+)$ ]]; then
         error_msg="${BASH_REMATCH[1]}"
     elif [[ "$line" =~ ^SQL:\ (.+)$ ]]; then
         sql_query="${BASH_REMATCH[1]}"
     fi
 done < "$temp_selected"
 
-# 템플릿 파일 경로
+# Template file path
 TEMPLATE_FILE="error_fix.md"
 
-# 템플릿 파일 존재 확인
+# Check if template file exists
 if [ ! -f "$TEMPLATE_FILE" ]; then
-    echo -e "${RED}Error: $TEMPLATE_FILE 템플릿 파일을 찾을 수 없습니다.${NC}"
+    echo -e "${RED}Error: Cannot find $TEMPLATE_FILE template file.${NC}"
     rm -f "$temp_selected"
     exit 1
 fi
 
-# 템플릿 읽기 및 변수 치환
+# Read template and substitute variables
 template_content=$(cat "$TEMPLATE_FILE")
 final_prompt=$(echo "$template_content" | \
     sed "s|{{FILE_PATH}}|$file_path|g" | \
@@ -208,69 +208,69 @@ final_prompt=$(echo "$template_content" | \
     sed "s|{{ERROR_MESSAGE}}|$error_msg|g" | \
     sed "s|{{SQL_QUERY}}|${sql_query:0:200}...|g")
 
-# 완성된 프롬프트 표시
-echo -e "${BLUE}=== 완성된 프롬프트 (복사해서 사용하세요) ===${NC}"
-echo -e "${YELLOW}==================== 프롬프트 시작 ====================${NC}"
+# Display completed prompt
+echo -e "${BLUE}=== Completed Prompt (copy and use) ===${NC}"
+echo -e "${YELLOW}==================== Prompt Start ====================${NC}"
 echo "$final_prompt"
-echo -e "${YELLOW}==================== 프롬프트 끝 ====================${NC}"
+echo -e "${YELLOW}==================== Prompt End ====================${NC}"
 echo ""
 
-# Q 바로 실행
-echo -e "${GREEN}Q를 실행합니다...${NC}"
+# Execute Q directly
+echo -e "${GREEN}Executing Q...${NC}"
 echo ""
 
-# Q 실행
+# Execute Q
 q chat
 
-# Q 실행 후 수정 완료 여부 확인
+# Check fix completion after Q execution
 echo ""
 if [ "$AUTO_DELETE" = true ]; then
-    echo -e "${GREEN}자동 삭제 모드: 번호 [$selected_number] 항목을 $RESULT_FILE에서 삭제합니다...${NC}"
+    echo -e "${GREEN}Auto delete mode: Deleting number [$selected_number] item from $RESULT_FILE...${NC}"
     fix_success="y"
 else
-    echo -n "수정이 성공적으로 완료되었나요? (y/n): "
+    echo -n "Was the fix completed successfully? (y/n): "
     read -r fix_success
 fi
 
 if [[ "$fix_success" == "y" || "$fix_success" == "Y" ]]; then
     if [ "$AUTO_DELETE" != true ]; then
-        echo -e "${GREEN}번호 [$selected_number] 항목을 $RESULT_FILE에서 삭제합니다...${NC}"
+        echo -e "${GREEN}Deleting number [$selected_number] item from $RESULT_FILE...${NC}"
     fi
 
-    # fix_list.csv에 정보 추가
+    # Add information to fix_list.csv
     FIX_LIST_FILE="fix_list.csv"
 
-    # CSV 헤더가 없으면 생성
+    # Create CSV header if it doesn't exist
     if [ ! -f "$FIX_LIST_FILE" ]; then
-        echo "번호,XML파일이름,sqlid (중복건수),에러메시지,결과처리" > "$FIX_LIST_FILE"
+        echo "Number,XML File Name,SQL ID (Duplicate Count),Error Message,Result Status" > "$FIX_LIST_FILE"
     fi
 
-    # XML 파일명 추출 (파일 경로에서 파일명만)
+    # Extract XML filename (filename only from file path)
     xml_filename=$(basename "$file_path")
 
-    # 중복건수 확인 (같은 sqlid가 result 파일에 몇 개 있는지)
+    # Check duplicate count (how many same sqlid exist in result file)
     duplicate_count=$(grep -c "sqlid: $sql_id" "$RESULT_FILE" 2>/dev/null || echo "1")
 
-    # CSV에 추가할 데이터 준비 (쉼표와 따옴표 처리)
+    # Prepare data to add to CSV (handle commas and quotes)
     csv_number="$selected_number"
     csv_xml_filename="\"$xml_filename\""
     csv_sqlid="\"$sql_id ($duplicate_count)\""
-    csv_error_msg="\"${error_msg//\"/\"\"}\""  # 따옴표 이스케이프
-    csv_result="\"수정완료\""
+    csv_error_msg="\"${error_msg//\"/\"\"}\""  # Escape quotes
+    csv_result="\"Fixed\""
 
-    # CSV 파일에 추가
+    # Add to CSV file
     echo "$csv_number,$csv_xml_filename,$csv_sqlid,$csv_error_msg,$csv_result" >> "$FIX_LIST_FILE"
 
-    echo -e "${BLUE}📝 fix_list.csv에 수정 내역이 기록되었습니다.${NC}"
+    echo -e "${BLUE}📝 Fix history has been recorded in fix_list.csv.${NC}"
 
-    # result 파일에서 해당 번호 항목 삭제
+    # Delete selected number item from result file
     temp_result="/tmp/result_temp_$$.txt"
 
-    # 선택한 번호부터 다음 번호 전까지 또는 파일 끝까지 제외하고 복사
+    # Copy excluding from selected number to next number or end of file
     awk -v num="$selected_number" '
-        /^번호 \[/ {
+        /^Number \[/ {
             current_num = $0
-            gsub(/번호 \[|\]/, "", current_num)
+            gsub(/Number \[|\]/, "", current_num)
             if (current_num == num) {
                 skip = 1
                 next
@@ -281,33 +281,33 @@ if [[ "$fix_success" == "y" || "$fix_success" == "Y" ]]; then
         !skip { print }
     ' "$RESULT_FILE" > "$temp_result"
 
-    # 원본 파일을 임시 파일로 교체
+    # Replace original file with temporary file
     mv "$temp_result" "$RESULT_FILE"
 
-    echo -e "${GREEN}✅ 번호 [$selected_number] 항목이 $RESULT_FILE에서 삭제되었습니다.${NC}"
+    echo -e "${GREEN}✅ Number [$selected_number] item has been deleted from $RESULT_FILE.${NC}"
 
-    # 남은 에러 개수 확인
-    remaining_errors=$(grep -c "^번호 \[" "$RESULT_FILE" 2>/dev/null || echo "0")
-    # 개행문자 제거 및 숫자만 추출
+    # Check remaining error count
+    remaining_errors=$(grep -c "^Number \[" "$RESULT_FILE" 2>/dev/null || echo "0")
+    # Remove newline characters and extract numbers only
     remaining_errors=$(echo "$remaining_errors" | tr -d '\n' | grep -o '[0-9]*' | head -1)
-    # 빈 값이면 0으로 설정
+    # Set to 0 if empty
     remaining_errors=${remaining_errors:-0}
 
-    echo -e "${BLUE}📊 남은 에러 개수: ${remaining_errors}개${NC}"
+    echo -e "${BLUE}📊 Remaining errors: ${remaining_errors}${NC}"
 
     if [ "$remaining_errors" -eq 0 ]; then
-        echo -e "${GREEN}🎉 축하합니다! 모든 에러가 수정 완료되었습니다!${NC}"
-        echo -e "${YELLOW}💡 이제 애플리케이션을 다시 테스트해보세요.${NC}"
+        echo -e "${GREEN}🎉 Congratulations! All errors have been fixed!${NC}"
+        echo -e "${YELLOW}💡 Now test your application again.${NC}"
     else
-        echo -e "${YELLOW}💡 다음 에러를 수정하려면 다시 ./error_fix.sh $RESULT_FILE를 실행하세요.${NC}"
+        echo -e "${YELLOW}💡 To fix the next error, run ./error_fix.sh $RESULT_FILE again.${NC}"
     fi
 else
-    echo -e "${YELLOW}번호 [$selected_number] 항목이 $RESULT_FILE에 그대로 유지됩니다.${NC}"
-    echo -e "${BLUE}💡 나중에 다시 수정을 시도할 수 있습니다.${NC}"
+    echo -e "${YELLOW}Number [$selected_number] item remains in $RESULT_FILE.${NC}"
+    echo -e "${BLUE}💡 You can try fixing it again later.${NC}"
 fi
 
-# 임시 파일 정리
+# Clean up temporary files
 rm -f "$temp_selected"
 
 echo ""
-echo -e "${GREEN}작업이 완료되었습니다.${NC}"
+echo -e "${GREEN}Task completed.${NC}"

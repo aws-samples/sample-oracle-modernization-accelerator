@@ -1,198 +1,329 @@
-# MyBatis Bulk Executor (개선된 버전)
+# MyBatis Oracle Modernization Testing Framework
 
-MyBatis XML 파일들을 재귀적으로 검색하여 모든 SQL ID를 자동으로 테스트하는 프로그램입니다.
+A comprehensive Java testing framework for Oracle database modernization projects, providing automated SQL testing, parameter generation, and result comparison across Oracle, MySQL, and PostgreSQL databases.
 
-## 주요 개선사항
+## Overview
 
-### 1. 리소스 관리 개선
-- try-with-resources 패턴 사용
-- 명시적 임시 파일 삭제
-- 예외 발생 시에도 안전한 리소스 정리
+This framework helps modernize Oracle applications by automatically testing MyBatis XML files against multiple database platforms, generating bind variables, and analyzing execution results to ensure compatibility during database migration.
 
-### 2. JSON 라이브러리 사용
-- Jackson 라이브러리를 사용한 안전한 JSON 생성
-- 수동 문자열 조작 대신 객체 기반 JSON 생성
+## Core Components
 
-### 3. XML 파싱 개선
-- DOM 파서를 사용한 안전한 XML 처리
-- 정규식 방식을 fallback으로 유지
-- 더 정확한 SQL ID 추출
+### 1. MyBatisBulkExecutorWithJson.java
+**Main bulk SQL execution engine with JSON reporting**
 
-### 4. 설정 파일 외부화
-- `mybatis-bulk-executor.properties` 파일로 설정 분리
-- 런타임 설정 변경 가능
-- 기본값 제공으로 설정 파일 없이도 실행 가능
+- Recursively searches MyBatis XML files and executes all SQL statements
+- Supports Oracle, MySQL, and PostgreSQL databases
+- Generates detailed JSON reports with execution statistics
+- Provides cross-database result comparison capabilities
+- Automatic parameter extraction and binding
 
-## 파일 구조
+**Key Features:**
+- Resource management with try-with-resources pattern
+- Jackson library for safe JSON generation
+- DOM parser for accurate XML processing
+- External configuration file support
+- Automatic example pattern skipping
 
-```
-├── MyBatisBulkExecutorWithJson.java             # 개선된 메인 클래스
-├── MyBatisBulkExecutorWithJson_archive.java     # 기존 버전 (백업)
-├── mybatis-bulk-executor.properties             # 설정 파일
-├── parameters.properties                        # SQL 파라미터 파일 (선택사항)
-├── pom.xml                                      # Maven 의존성 설정
-└── README.md                                    # 이 파일
-```
+### 2. MyBatisBulkPreparator.java
+**Intelligent parameter extraction and database sample value collection**
 
-## 환경 설정
+- Extracts bind variables from MyBatis XML files
+- Connects to Oracle database to collect sample values
+- Matches parameters with actual database columns
+- Generates comprehensive parameters.properties files
 
-### 필수 환경변수
+**Key Features:**
+- Oracle dictionary integration
+- Smart parameter-column matching
+- Automatic sample value collection
+- Fallback value generation
+- Metadata-driven parameter suggestions
 
-#### Oracle
+### 3. SimpleBindVariableGenerator.java
+**Oracle dictionary-based bind variable generator**
+
+- Reliable bind variable generation using Oracle system tables
+- Advanced parameter matching algorithms
+- Comprehensive mismatch reporting
+- Production-ready parameter file generation
+
+**Key Features:**
+- Oracle ALL_TAB_COLUMNS integration
+- Multiple matching strategies (exact, partial, camelCase)
+- Automatic data type-based value generation
+- Detailed mismatch location tracking
+
+### 4. SqlPlusBindVariableGeneratorSimple.java
+**AI-powered bind variable generator using Amazon Q**
+
+- Uses Amazon Q Chat for intelligent parameter value generation
+- Fast timeout-based execution for production environments
+- Fallback mechanisms for reliability
+- Context-aware value suggestions
+
+**Key Features:**
+- Amazon Q Chat integration
+- Intelligent parameter analysis
+- Configurable timeout settings
+- Automatic fallback value generation
+
+### 5. SqlListRepository.java
+**Advanced SQL comparison and verification system**
+
+- Stores and compares SQL execution results between databases
+- Supports Oracle ↔ MySQL/PostgreSQL comparisons
+- Normalized JSON result storage for accurate comparison
+- Comprehensive statistics and reporting
+
+**Key Features:**
+- Cross-database result comparison
+- Normalized JSON storage
+- Automatic table creation
+- Statistical analysis and reporting
+
+### 6. TestResultAnalyzer.java
+**Intelligent test result analysis and automatic fixing**
+
+- Analyzes PostgreSQL execution failures
+- Categorizes errors by type for targeted fixes
+- Identifies sorting differences vs actual data differences
+- Automatic ORDER BY clause insertion for sorting fixes
+
+**Key Features:**
+- Error categorization and analysis
+- Sorting difference detection
+- Automatic SQL fixing capabilities
+- Comprehensive failure reporting
+
+### 7. MyBatisSimpleExecutor.java
+**Single SQL execution utility**
+
+- Execute individual SQL statements from MyBatis XML files
+- Parameter file integration
+- Oracle TNS configuration support
+- Development and testing utility
+
+### 8. MyBatisTestPreparator.java
+**SQL analysis and test preparation utility**
+
+- Extracts SQL content from MyBatis XML files
+- Analyzes dynamic conditions and parameters
+- Generates parameter files for testing
+- Development support tool
+
+### 9. ResultNormalizer.java
+**Database result normalization utility**
+
+- Normalizes differences between Oracle and PostgreSQL results
+- Handles numeric precision differences
+- Standardizes NULL value representation
+- Ensures consistent comparison results
+
+## Environment Setup
+
+### Required Environment Variables
+
+#### Oracle Database
 ```bash
-export ORACLE_SVC_CONNECT_STRING="서비스명"
-export ORACLE_SVC_USER="사용자명"
-export ORACLE_SVC_PASSWORD="비밀번호"
+export ORACLE_SVC_USER="username"
+export ORACLE_SVC_PASSWORD="password"
+export ORACLE_SVC_CONNECT_STRING="host:port:sid"
 export ORACLE_HOME="/path/to/oracle/home"
-# TNS_ADMIN은 자동으로 $ORACLE_HOME/network/admin으로 설정됨
+export TNS_ADMIN="$ORACLE_HOME/network/admin"
 ```
 
-#### MySQL (현재 환경 설정됨)
+#### MySQL Database
 ```bash
-export MYSQL_HOST="d-gds-cluster-my-8.cluster-cfk2cceasiqp.ap-northeast-2.rds.amazonaws.com"
+export MYSQL_HOST="hostname"
 export MYSQL_TCP_PORT="3306"
-export MYSQL_DB="OAFS"
-export MYSQL_ADM_USER="root"
-export MYSQL_PASSWORD="testmysql21#!"
+export MYSQL_DATABASE="database_name"
+export MYSQL_USER="username"
+export MYSQL_PASSWORD="password"
 ```
 
-#### PostgreSQL
+#### PostgreSQL Database
 ```bash
-export PGHOST="localhost"
+export PGHOST="hostname"
 export PGPORT="5432"
-export PGDATABASE="postgres"
-export PGUSER="사용자명"
-export PGPASSWORD="비밀번호"
+export PGDATABASE="database_name"
+export PGUSER="username"
+export PGPASSWORD="password"
 ```
 
-## 빌드 및 실행
-
-### 1. Maven 빌드
+#### Comparison Testing
 ```bash
-mvn clean package
+export SOURCE_DBMS_TYPE="oracle"
+export TARGET_DBMS_TYPE="postgresql"  # or "mysql"
 ```
 
-### 2. 실행
+## Usage Examples
+
+### 1. Bulk SQL Testing
 ```bash
-# 기본 실행 (SELECT만)
-java -jar target/mybatis-bulk-executor-1.0.0-shaded.jar /path/to/mappers --db mysql
+# Test all SQL against Oracle (SELECT only)
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db oracle --select-only
 
-# 모든 SQL 실행
-java -jar target/mybatis-bulk-executor-1.0.0-shaded.jar /path/to/mappers --db mysql --all
+# Test all SQL against PostgreSQL with JSON output
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db postgresql --json --verbose
 
-# JSON 결과 파일 생성
-java -jar target/mybatis-bulk-executor-1.0.0-shaded.jar /path/to/mappers --db mysql --json
-
-# 상세 출력
-java -jar target/mybatis-bulk-executor-1.0.0-shaded.jar /path/to/mappers --db mysql --verbose
-
-# 요약만 출력
-java -jar target/mybatis-bulk-executor-1.0.0-shaded.jar /path/to/mappers --db mysql --summary
+# Cross-database comparison testing
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db oracle --compare
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db postgresql --compare
 ```
 
-### 3. 개발 환경에서 직접 실행
+### 2. Parameter Generation
 ```bash
-# 컴파일
-javac -cp "lib/*" MyBatisBulkExecutorWithJson.java
+# Extract parameters with Oracle database samples
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkPreparator /path/to/mappers --db oracle
 
-# 실행
-java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db mysql --json
+# Generate bind variables using Oracle dictionary
+java -cp ".:lib/*" com.test.mybatis.SimpleBindVariableGenerator /path/to/mappers
+
+# AI-powered parameter generation
+java -cp ".:lib/*" com.test.mybatis.SqlPlusBindVariableGeneratorSimple
 ```
 
-## 명령행 옵션
+### 3. Result Analysis
+```bash
+# Analyze test results and categorize errors
+java -cp ".:lib/*" com.test.mybatis.TestResultAnalyzer
 
-| 옵션 | 설명 | 필수 |
-|------|------|------|
-| `--db <type>` | 데이터베이스 타입 (oracle, mysql, postgresql) | ✅ |
-| `--select-only` | SELECT 구문만 실행 (기본값) | ❌ |
-| `--all` | 모든 SQL 구문 실행 (INSERT/UPDATE/DELETE 포함) | ❌ |
-| `--summary` | 요약 정보만 출력 | ❌ |
-| `--verbose` | 상세 정보 출력 | ❌ |
-| `--json` | JSON 결과 파일 생성 | ❌ |
+# Automatic sorting difference fixes
+java -cp ".:lib/*" com.test.mybatis.TestResultAnalyzer --fix-sorting
+```
 
-## 설정 파일 (mybatis-bulk-executor.properties)
+### 4. Single SQL Testing
+```bash
+# Test individual SQL statement
+java -cp ".:lib/*" com.test.mybatis.MyBatisSimpleExecutor /path/to/mapper.xml selectUserById
 
+# Prepare test for specific SQL
+java -cp ".:lib/*" com.test.mybatis.MyBatisTestPreparator /path/to/mapper.xml selectUserById
+```
+
+## Command Line Options
+
+### MyBatisBulkExecutorWithJson Options
+| Option | Description |
+|--------|-------------|
+| `--db <type>` | Database type (oracle, mysql, postgresql) - **required** |
+| `--select-only` | Execute SELECT statements only (default) |
+| `--all` | Execute all SQL statements including DML |
+| `--summary` | Output summary information only |
+| `--verbose` | Output detailed information |
+| `--json` | Generate JSON result file |
+| `--json-file <name>` | Specify custom JSON filename |
+| `--compare` | Enable cross-database result comparison |
+| `--show-data` | Output SQL result data |
+| `--include <pattern>` | Filter directories by pattern |
+
+### MyBatisBulkPreparator Options
+| Option | Description |
+|--------|-------------|
+| `--db <type>` | Database type for sample collection |
+| `--date-format <fmt>` | Date format (default: YYYY-MM-DD) |
+
+## Configuration Files
+
+### mybatis-bulk-executor.properties
 ```properties
-# 임시 파일 설정
+# Temporary file settings
 temp.config.prefix=mybatis-config-
 temp.mapper.prefix=mapper-
 temp.file.suffix=.xml
 
-# SQL 패턴 설정
+# SQL pattern settings
 sql.pattern.regex=<(select|insert|update|delete)\\s+id="([^"]+)"
 example.patterns=byexample,example,selectByExample,selectByExampleWithRowbounds
 
-# MyBatis 설정
+# MyBatis settings
 mybatis.mapUnderscoreToCamelCase=true
 mybatis.transactionManager=JDBC
 mybatis.dataSource=POOLED
 
-# 출력 설정
+# Output settings
 output.json.prefix=bulk_test_result_
 output.json.suffix=.json
 output.timestamp.format=yyyyMMdd_HHmmss
 output.datetime.format=yyyy-MM-dd HH:mm:ss
 
-# 데이터베이스 드라이버 설정
+# Database driver settings
 db.oracle.driver=oracle.jdbc.driver.OracleDriver
 db.mysql.driver=com.mysql.cj.jdbc.Driver
 db.postgresql.driver=org.postgresql.Driver
 ```
 
-## 출력 결과
+### parameters.properties (Generated)
+```properties
+# MyBatis parameter configuration file
+# Generated: 2024-12-01 14:30:22
+# Priority: DB sample values > default values > manual values
 
-### 콘솔 출력
-```
-=== MyBatis 대량 SQL 실행 테스트 (개선된 버전) ===
-검색 디렉토리: /path/to/mappers
-데이터베이스 타입: MYSQL
-실행 모드: SELECT만
-출력 모드: 일반
-JSON 출력: 활성화
+# Matched variables (matched with Oracle DB columns)
+# USERS.USER_ID (NUMBER)
+userId=1
 
-발견된 XML 파일 수: 15
-실행할 SQL 수: 127
+# USERS.EMAIL (VARCHAR2)
+email=test@example.com
 
-=== SQL 실행 테스트 시작 ===
-진행률: 100.0% [127/127] UserMapper.xml:selectUserById
-
-=== 실행 결과 요약 ===
-총 테스트 수: 127
-실제 실행: 115개
-스킵됨: 12개 (Example 패턴)
-성공: 110개
-실패: 5개
-실제 성공률: 95.7% (스킵 제외)
-
-📄 JSON 결과 파일 생성: bulk_test_result_20241201_143022.json
+# Unmatched variables (please set values manually)
+customParameter=DEFAULT_VALUE
 ```
 
-### JSON 출력 예시
+## Output Examples
+
+### Console Output
+```
+=== MyBatis Bulk SQL Execution Test (Enhanced Version) ===
+Search Directory: /path/to/mappers
+Database Type: POSTGRESQL
+Execution Mode: SELECT only
+Output Mode: Detailed
+Comparison Feature: Enabled
+
+XML Files Found: 25
+SQL Count to Execute: 147
+
+=== SQL Test Execution Started ===
+Progress: 100.0% [147/147] UserMapper.xml:selectUser
+
+=== Execution Results Summary ===
+Total Tests: 147
+Actually Executed: 142
+Skipped: 5 (Example patterns)
+Success: 138
+Failed: 4
+Actual Success Rate: 97.2% (excluding skipped)
+
+📄 JSON Result File Generated: bulk_test_result_20241201_143022.json
+```
+
+### JSON Output Structure
 ```json
 {
   "testInfo": {
     "timestamp": "2024-12-01 14:30:22",
     "directory": "/path/to/mappers",
-    "databaseType": "MYSQL",
-    "totalTests": 127,
-    "successCount": 110,
-    "failureCount": 5,
-    "successRate": "95.7"
+    "databaseType": "POSTGRESQL",
+    "totalTests": 147,
+    "successCount": 138,
+    "failureCount": 4,
+    "successRate": "97.2"
   },
   "successfulTests": [
     {
       "xmlFile": "UserMapper.xml",
-      "sqlId": "selectUserById",
+      "sqlId": "selectUser",
       "sqlType": "SELECT",
-      "rowCount": 1
+      "rowCount": 3
     }
   ],
   "failedTests": [
     {
       "xmlFile": "OrderMapper.xml",
-      "sqlId": "selectOrderWithDetails",
+      "sqlId": "selectOrder",
       "sqlType": "SELECT",
-      "errorMessage": "Table 'test.order_details' doesn't exist"
+      "errorMessage": "relation \"orders\" does not exist"
     }
   ],
   "fileStatistics": [
@@ -207,38 +338,125 @@ JSON 출력: 활성화
 }
 ```
 
-## 주요 특징
+## Key Features
 
-1. **자동 Example 패턴 스킵**: `selectByExample` 등 실행 불가능한 SQL 자동 감지
-2. **진행률 표시**: 실시간 진행률 및 현재 처리 중인 파일 표시
-3. **파일별 통계**: 각 XML 파일별 성공/실패 통계 제공
-4. **안전한 리소스 관리**: 임시 파일 자동 정리 및 예외 안전성
-5. **유연한 설정**: 외부 설정 파일을 통한 동작 커스터마이징
+### 1. Intelligent Parameter Generation
+- **Database Integration**: Connects to Oracle to extract actual column samples
+- **Smart Matching**: Multiple algorithms for parameter-column matching
+- **AI Enhancement**: Amazon Q integration for context-aware suggestions
+- **Fallback Mechanisms**: Reliable default value generation
 
-## 문제 해결
+### 2. Cross-Database Testing
+- **Multi-Platform Support**: Oracle, MySQL, PostgreSQL
+- **Result Comparison**: Normalized comparison across databases
+- **Difference Analysis**: Distinguishes sorting vs data differences
+- **Automatic Fixes**: ORDER BY insertion for sorting issues
 
-### 1. Jackson 라이브러리 없음
+### 3. Comprehensive Reporting
+- **JSON Output**: Structured result files for automation
+- **Statistical Analysis**: Success rates, error categorization
+- **Progress Tracking**: Real-time execution progress
+- **Error Classification**: Categorized failure analysis
+
+### 4. Production Ready
+- **Resource Management**: Safe cleanup and error handling
+- **Configuration**: External configuration file support
+- **Scalability**: Handles large XML file collections
+- **Reliability**: Timeout handling and fallback mechanisms
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. Database Connection Errors
 ```bash
-# Maven으로 의존성 설치
-mvn dependency:copy-dependencies
+# Verify environment variables
+echo $ORACLE_SVC_USER $ORACLE_SVC_PASSWORD $ORACLE_SVC_CONNECT_STRING
+
+# Test Oracle connectivity
+sqlplus $ORACLE_SVC_USER/$ORACLE_SVC_PASSWORD@$ORACLE_SVC_CONNECT_STRING
 ```
 
-### 2. 데이터베이스 드라이버 없음
+#### 2. Missing JDBC Drivers
 ```bash
-# pom.xml에서 필요한 드라이버만 활성화하거나
-# 수동으로 JDBC 드라이버 JAR 파일을 classpath에 추가
+# Ensure JDBC drivers are in classpath
+ls -la lib/ojdbc*.jar lib/mysql-connector*.jar lib/postgresql*.jar
 ```
 
-### 3. 설정 파일 없음
-- 프로그램이 기본 설정으로 자동 실행됨
-- 필요시 `mybatis-bulk-executor.properties` 파일 생성
-
-### 4. 환경변수 미설정
+#### 3. Parameter File Issues
 ```bash
-# 각 데이터베이스별 필수 환경변수 확인 후 설정
-# 프로그램 실행 시 오류 메시지에서 필요한 변수 확인 가능
+# Generate fresh parameter file
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkPreparator /path/to/mappers --db oracle
 ```
 
-## 라이센스
+#### 4. JSON Output Problems
+```bash
+# Check output directory permissions
+ls -la out/
+mkdir -p out
+chmod 755 out
+```
 
-이 프로젝트는 MIT 라이센스 하에 배포됩니다.
+### Performance Optimization
+
+#### 1. Large XML Collections
+- Use `--include` option to filter directories
+- Run with `--summary` for faster execution
+- Consider parallel execution for independent mapper groups
+
+#### 2. Database Performance
+- Ensure proper database connection pooling
+- Use `--select-only` for read-only testing
+- Monitor database connection limits
+
+#### 3. Memory Management
+- Increase JVM heap size for large result sets: `-Xmx4g`
+- Use streaming for very large XML files
+- Consider batch processing for massive collections
+
+## Integration Examples
+
+### CI/CD Pipeline Integration
+```bash
+#!/bin/bash
+# Automated testing pipeline
+
+# 1. Generate parameters
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkPreparator $MAPPER_DIR --db oracle
+
+# 2. Test Oracle compatibility
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson $MAPPER_DIR --db oracle --json --compare
+
+# 3. Test PostgreSQL migration
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson $MAPPER_DIR --db postgresql --json --compare
+
+# 4. Analyze results
+java -cp ".:lib/*" com.test.mybatis.TestResultAnalyzer
+
+# 5. Auto-fix sorting issues
+java -cp ".:lib/*" com.test.mybatis.TestResultAnalyzer --fix-sorting
+```
+
+### Development Workflow
+```bash
+# 1. Quick single SQL test
+java -cp ".:lib/*" com.test.mybatis.MyBatisSimpleExecutor UserMapper.xml selectUserById
+
+# 2. Prepare comprehensive test
+java -cp ".:lib/*" com.test.mybatis.MyBatisTestPreparator UserMapper.xml selectUserById
+
+# 3. Full mapper testing
+java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson /path/to/mappers --db oracle --verbose
+```
+
+## License
+
+This project is distributed under the MIT License.
+
+## Contributing
+
+1. Follow existing code patterns and naming conventions
+2. Add comprehensive JavaDoc comments for new methods
+3. Include unit tests for new functionality
+4. Update this README for new features or changes
+5. Ensure all Korean text is translated to English

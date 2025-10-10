@@ -1,39 +1,39 @@
-# SQL 에러 분석 및 수정 요청
+# SQL Error Analysis and Fix Request
 
-## 요청사항
-1. **환경변수에 적용된 현재 DB에 따라 PostgreSQL/MySQL Migration 전문가로서 작업 진행**
-2. **XML 파일 분석**: `{{FILE_PATH}}`에서 SQL ID `{{SQL_ID}}`로 해당하는 전체 SQL을 찾아 분석
-   - XML 화일만 입력된 경우 $TRANSFORM_XML_FOLDER의 하위 디렉토리를 검색
-3. **에러 분석**: `{{ERROR_MESSAGE}}` 에러 메시지를 분석해서 왜 문제가 되는지 첨부된 SQL `{{SQL_QUERY}}을 참조해서 분석 및 설명
-4. **해결 방안 제시**: 고칠 수 있는 해결 방안을 제시
-5. **XML 수정**: 원본 로직이나 포맷 및 구문은 무조건 유지하고 빠르게 Fix 할 수 있는 방안 (타겟 데이터베이스에서 돌아갈 수 있게)으로 xml을 수정.
-6. **백업 생성**: 수정 전 백업을 /tmp에 만들고 수정
+## Requirements
+1. **Work as PostgreSQL/MySQL Migration expert according to current DB applied in environment variables**
+2. **XML File Analysis**: Find and analyze the complete SQL corresponding to SQL ID `{{SQL_ID}}` in `{{FILE_PATH}}`
+   - When only XML file is provided, search subdirectories of $TRANSFORM_XML_FOLDER
+3. **Error Analysis**: Analyze `{{ERROR_MESSAGE}}` error message to understand why it's problematic, referencing attached SQL `{{SQL_QUERY}}` for analysis and explanation
+4. **Provide Solution**: Present fixable solutions
+5. **XML Modification**: Maintain original logic, format, and syntax unconditionally, and modify XML with quick fix approach (to run on target database)
+6. **Create Backup**: Create backup in /tmp before modification
 
-## 특별 에러 처리 규칙
-6. 에러 유형이 "Every derived table must have its own alias"인 경우 현재 디렉토리의 alias.md를 참조하여 수정합니다.
-7. 에러 유형이 "Unknown column 'ROWNUM' in 'order clause'"인 경우 수정 필요 없음으로 리턴합니다.
-8. Unknown column 에러인 경우, Table Alias와 컬럼 참조가 Alias에서 기술된 대/소문자로 지정 되었는지 우선 확인 해봅니다. ( 예. 오류 : Select a.name from EMP as A -> 해결책 A.name으로 대문자 Alias지정)
-9. XML에 simplified라는 주석이 포함된 경우 작업을 중지하고 사용자에게 노티합니다. 절대 simplified/truncated 하지 말것.
-10. XML 태그 유지. choose 및 CDATA 및 if 유지
-11. outer join, subqueyr alias 주의
-12. 테이블 및 alias 대문자. 
-13. MAX ( 는 MAX( 로 변경. MAX 함수 뒤에는 공백이 없어야 함.
-14. 특수 태그 변환: "_TAG_" → `_TAG_`, "_ROWI_" → `_ROWI_`, "_COUNT_" → `_COUNT_`
+## Special Error Handling Rules
+6. For error type "Every derived table must have its own alias", refer to alias.md in current directory for fixes.
+7. For error type "Unknown column 'ROWNUM' in 'order clause'", return as no fix needed.
+8. For Unknown column errors, first check if Table Alias and column references are specified with case-sensitive aliases as described in Alias. (e.g., Error: Select a.name from EMP as A -> Solution: A.name with uppercase Alias)
+9. If XML contains "simplified" comment, stop work and notify user. Never simplify/truncate.
+10. Maintain XML tags. Keep choose, CDATA, and if tags
+11. Be careful with outer join, subquery alias
+12. Tables and aliases in uppercase.
+13. Change MAX ( to MAX(. No space after MAX function.
+14. Special tag conversion: "_TAG_" → `_TAG_`, "_ROWI_" → `_ROWI_`, "_COUNT_" → `_COUNT_`
 
-## 작업 순서
-1. XML 파일을 읽어서 해당 SQL ID의 전체 SQL 확인
-2. 에러 메시지와 SQL을 비교 분석. 이미 수정 적용된 파일이면 스킵.
-3. 문제점 식별 및 해결 방안 제시
-4. 백업 파일 생성
-5. XML 파일 수정 ( 참조 : 필요하다면 $ORCL_XML_FOLDER의 하위 디렉토리를 검색해서 Oracle 원본과 로직을 비교 )
-6. 수정 내용 확인
+## Work Process
+1. Read XML file to check complete SQL for corresponding SQL ID
+2. Compare and analyze error message with SQL. Skip if already fixed.
+3. Identify problems and provide solutions
+4. Create backup file
+5. Modify XML file (Reference: Search subdirectories of $ORCL_XML_FOLDER if needed to compare logic with Oracle original)
+6. Verify modifications
 
-**⚠️ 중요: 코드 최적화 절대 금지**
-- 타겟 DB 호환성 변환 시 어떠한 코드 최적화도 하지 말 것
-- 중복 코드라도 Extract 파일과 동일하게 유지
-- 주석 처리된 코드(<!-- -->)도 그대로 보존
-- 들여쓰기, 공백, 탭도 최대한 원본과 동일하게 유지
-- 불필요해 보이는 조건문도 Extract와 동일하게 복원
-- 목적: Extract와 Transform 간 1:1 정확한 대응 관계 유지
+**⚠️ Important: Code Optimization Absolutely Prohibited**
+- Do not perform any code optimization when converting for target DB compatibility
+- Maintain identical to Extract file even for duplicate code
+- Preserve commented code (<!-- -->) as is
+- Keep indentation, spaces, tabs as identical to original as possible
+- Restore unnecessary-looking conditionals identical to Extract
+- Purpose: Maintain 1:1 accurate correspondence between Extract and Transform
 
-**지금 바로 XML 파일을 읽어서 분석을 시작해주세요.**
+**Please start analysis by reading the XML file right now.**

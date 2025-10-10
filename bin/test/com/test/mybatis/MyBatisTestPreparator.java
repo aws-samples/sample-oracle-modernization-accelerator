@@ -12,8 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * MyBatis XML 분석 및 테스트 준비 프로그램
- * XML 파일에서 SQL ID를 찾고, 파라미터를 분석하여 테스트용 파일을 생성합니다.
+ * MyBatis XML analysis and test preparation program
+ * Find SQL ID from XML file, analyze parameters and generate test files.
  */
 public class MyBatisTestPreparator {
     
@@ -21,8 +21,8 @@ public class MyBatisTestPreparator {
     
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("사용법: java MyBatisTestPreparator <XML파일경로> <SQLID>");
-            System.out.println("예시: java MyBatisTestPreparator /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml selectInventoryStatusAnalysis");
+            System.out.println("Usage: java MyBatisTestPreparator <XML_file_path> <SQL_ID>");
+            System.out.println("Example: java MyBatisTestPreparator /home/ec2-user/workspace/src-orcl/src/main/resources/sqlmap/mapper/inventory/InventoryMapper.xml selectInventoryStatusAnalysis");
             return;
         }
         
@@ -35,45 +35,45 @@ public class MyBatisTestPreparator {
     
     public void analyzeAndPrepare(String xmlFilePath, String sqlId) {
         try {
-            System.out.println("=== MyBatis XML 분석 시작 ===");
-            System.out.println("XML 파일: " + xmlFilePath);
+            System.out.println("=== MyBatis XML analysis Started ===");
+            System.out.println("XML file: " + xmlFilePath);
             System.out.println("SQL ID: " + sqlId);
             
-            // 1. XML 파일 읽기 및 SQL ID 찾기
+            // 1. Read XML file and find SQL ID
             Document document = parseXmlFile(xmlFilePath);
             Element sqlElement = findSqlElement(document, sqlId);
             
             if (sqlElement == null) {
-                System.err.println("SQL ID '" + sqlId + "'를 찾을 수 없습니다.");
+                System.err.println("SQL ID '" + sqlId + "' not found.");
                 return;
             }
             
-            // 2. SQL 내용 추출
+            // 2. Extract SQL content
             String sqlContent = extractSqlContent(sqlElement);
-            System.out.println("\n=== 추출된 SQL 내용 ===");
+            System.out.println("\n=== Extracted SQL Content ===");
             System.out.println(sqlContent);
             
-            // 3. 파라미터 분석 (타입별 구분)
+            // 3. Analyze parameters (by type)
             Map<String, String> parameterInfo = analyzeParametersWithType(sqlContent);
-            System.out.println("\n=== 발견된 파라미터 (타입별) ===");
+            System.out.println("\n=== Found Parameters (by type) ===");
             parameterInfo.forEach((param, type) -> 
                 System.out.println(type + "{" + param + "}"));
             
-            // 4. 파라미터 파일 생성
+            // 4. Generate parameter file
             saveParameters(parameterInfo.keySet());
             
-            System.out.println("\n=== 준비 완료 ===");
-            System.out.println("파라미터 파일: " + PARAMETERS_FILE);
-            System.out.println("파일을 편집한 후 MyBatisSimpleExecutor로 실행하세요.");
+            System.out.println("\n=== Preparation Completed ===");
+            System.out.println("Parameter file: " + PARAMETERS_FILE);
+            System.out.println("Edit the file and then run with MyBatisSimpleExecutor.");
             
         } catch (Exception e) {
-            System.err.println("오류 발생: " + e.getMessage());
+            System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * XML 파일을 파싱하여 Document 객체 반환
+     * Parse XML file and return Document object
      */
     private Document parseXmlFile(String xmlFilePath) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -82,7 +82,7 @@ public class MyBatisTestPreparator {
     }
     
     /**
-     * 지정된 SQL ID에 해당하는 Element 찾기
+     * Find Element corresponding to specified SQL ID
      */
     private Element findSqlElement(Document document, String sqlId) {
         NodeList selectNodes = document.getElementsByTagName("select");
@@ -90,7 +90,7 @@ public class MyBatisTestPreparator {
         NodeList updateNodes = document.getElementsByTagName("update");
         NodeList deleteNodes = document.getElementsByTagName("delete");
         
-        // 모든 SQL 태그에서 검색
+        // Search in all SQL tags
         NodeList[] allSqlNodes = {selectNodes, insertNodes, updateNodes, deleteNodes};
         
         for (NodeList nodeList : allSqlNodes) {
@@ -105,7 +105,7 @@ public class MyBatisTestPreparator {
     }
     
     /**
-     * SQL Element에서 텍스트 내용 추출
+     * Extract text content from SQL Element
      */
     private String extractSqlContent(Element sqlElement) {
         StringBuilder sqlBuilder = new StringBuilder();
@@ -114,7 +114,7 @@ public class MyBatisTestPreparator {
     }
     
     /**
-     * 재귀적으로 텍스트 내용 추출 (동적 조건 포함)
+     * Recursively extract text content (including dynamic conditions)
      */
     private void extractTextContent(Node node, StringBuilder sqlBuilder) {
         if (node.getNodeType() == Node.TEXT_NODE) {
@@ -123,7 +123,7 @@ public class MyBatisTestPreparator {
             Element element = (Element) node;
             String tagName = element.getTagName();
             
-            // 동적 조건 태그 처리
+            // Handle dynamic condition tags
             if ("if".equals(tagName)) {
                 sqlBuilder.append("/* IF: ").append(element.getAttribute("test")).append(" */ ");
             } else if ("choose".equals(tagName)) {
@@ -134,7 +134,7 @@ public class MyBatisTestPreparator {
                 sqlBuilder.append("/* OTHERWISE */ ");
             }
             
-            // 자식 노드 처리
+            // Process child nodes
             NodeList children = node.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {
                 extractTextContent(children.item(i), sqlBuilder);
@@ -143,12 +143,12 @@ public class MyBatisTestPreparator {
     }
     
     /**
-     * 파라미터 분석 (타입 정보 포함)
+     * Analyze parameters (including type information)
      */
     private Map<String, String> analyzeParametersWithType(String sqlContent) {
         Map<String, String> parameterInfo = new LinkedHashMap<>();
         
-        // #{paramName} 패턴 찾기 (PreparedStatement 바인딩)
+        // Find #{paramName} pattern (PreparedStatement binding)
         Pattern hashPattern = Pattern.compile("#\\{([^}]+)\\}");
         Matcher hashMatcher = hashPattern.matcher(sqlContent);
         
@@ -157,7 +157,7 @@ public class MyBatisTestPreparator {
             parameterInfo.put(param, "#");
         }
         
-        // ${paramName} 패턴 찾기 (문자열 치환)
+        // Find ${paramName} pattern (string substitution)
         Pattern dollarPattern = Pattern.compile("\\$\\{([^}]+)\\}");
         Matcher dollarMatcher = dollarPattern.matcher(sqlContent);
         
@@ -170,19 +170,19 @@ public class MyBatisTestPreparator {
     }
     
     /**
-     * 파라미터를 파일로 저장 (빈 값으로)
+     * Save parameters to file (with empty values)
      */
     private void saveParameters(Set<String> parameters) throws IOException {
         Properties props = new Properties();
         
-        // 헤더 주석 추가
+        // Add header comments
         StringBuilder header = new StringBuilder();
-        header.append("# MyBatis 파라미터 설정 파일\n");
-        header.append("# 생성일시: ").append(new Date()).append("\n");
-        header.append("# 사용법: 각 파라미터에 대해 테스트용 값을 설정하세요.\n");
-        header.append("# 빈 값은 null로 처리됩니다.\n\n");
+        header.append("# MyBatis parameter configuration file\n");
+        header.append("# Generated: ").append(new Date()).append("\n");
+        header.append("# Usage: Set test values for each parameter.\n");
+        header.append("# Empty values are treated as null.\n\n");
         
-        // 파라미터별로 빈 값 설정
+        // Set empty values for each parameter
         for (String param : parameters) {
             props.setProperty(param, "");
         }

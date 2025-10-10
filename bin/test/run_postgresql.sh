@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# PostgreSQL MyBatis 테스트 실행 스크립트
+# PostgreSQL MyBatis test execution script
 
-echo "=== PostgreSQL MyBatis 테스트 실행 ==="
+echo "=== PostgreSQL MyBatis Test Execution ==="
 
-# 환경변수 확인
+# Check environment variables
 if [ -z "$PGUSER" ] || [ -z "$PGPASSWORD" ]; then
-    echo "❌ PostgreSQL 환경변수가 설정되지 않았습니다."
-    echo "필요한 환경변수:"
-    echo "  PGUSER (필수)"
-    echo "  PGPASSWORD (필수)"
-    echo "  PGHOST (선택사항, 기본값: localhost)"
-    echo "  PGPORT (선택사항, 기본값: 5432)"
-    echo "  PGDATABASE (선택사항, 기본값: postgres)"
+    echo "❌ PostgreSQL environment variables are not set."
+    echo "Required environment variables:"
+    echo "  PGUSER (required)"
+    echo "  PGPASSWORD (required)"
+    echo "  PGHOST (optional, default: localhost)"
+    echo "  PGPORT (optional, default: 5432)"
+    echo "  PGDATABASE (optional, default: postgres)"
     echo ""
-    echo "예시:"
+    echo "Example:"
     echo "  export PGUSER=postgres"
     echo "  export PGPASSWORD=your_password"
     echo "  export PGHOST=localhost"
@@ -23,50 +23,50 @@ if [ -z "$PGUSER" ] || [ -z "$PGPASSWORD" ]; then
     exit 1
 fi
 
-echo "✅ PostgreSQL 환경변수 확인 완료"
-echo "   사용자: $PGUSER"
-echo "   호스트: ${PGHOST:-localhost}"
-echo "   포트: ${PGPORT:-5432}"
-echo "   데이터베이스: ${PGDATABASE:-postgres}"
+echo "✅ PostgreSQL environment variables verified"
+echo "   User: $PGUSER"
+echo "   Host: ${PGHOST:-localhost}"
+echo "   Port: ${PGPORT:-5432}"
+echo "   Database: ${PGDATABASE:-postgres}"
 
-# TARGET_DBMS_TYPE 설정 (SqlListRepository용)
+# Set TARGET_DBMS_TYPE (for SqlListRepository)
 export TARGET_DBMS_TYPE=postgresql
-echo "   타겟 DB 타입: $TARGET_DBMS_TYPE"
+echo "   Target DB type: $TARGET_DBMS_TYPE"
 
-# PostgreSQL JDBC 드라이버 확인
+# Check PostgreSQL JDBC driver
 if [ ! -f "lib/postgresql-42.7.1.jar" ]; then
-    echo "❌ PostgreSQL JDBC 드라이버가 없습니다."
+    echo "❌ PostgreSQL JDBC driver not found."
     exit 1
 fi
 
-# Oracle 연동을 위한 환경변수 확인 (선택사항)
+# Check Oracle integration environment variables (optional)
 if [ -n "$ORACLE_SVC_USER" ] && [ -n "$ORACLE_SVC_PASSWORD" ]; then
-    echo "✅ Oracle 연동 환경변수 확인 완료"
-    echo "   Oracle 사용자: $ORACLE_SVC_USER"
-    echo "   Oracle 연결문자열: ${ORACLE_SVC_CONNECT_STRING:-기본값 사용}"
+    echo "✅ Oracle integration environment variables verified"
+    echo "   Oracle user: $ORACLE_SVC_USER"
+    echo "   Oracle connection string: ${ORACLE_SVC_CONNECT_STRING:-using default}"
 else
-    echo "ℹ️  Oracle 연동 환경변수가 설정되지 않았습니다. (선택사항)"
-    echo "   Oracle 연동을 원하면 다음 환경변수를 설정하세요:"
+    echo "ℹ️  Oracle integration environment variables not set. (optional)"
+    echo "   To enable Oracle integration, set the following environment variables:"
     echo "   ORACLE_SVC_USER, ORACLE_SVC_PASSWORD, ORACLE_SVC_CONNECT_STRING"
 fi
 
-# 컴파일
+# Compile
 echo ""
-echo "=== Java 컴파일 ==="
+echo "=== Java Compilation ==="
 javac -cp ".:lib/*" com/test/mybatis/*.java
 
 if [ $? -ne 0 ]; then
-    echo "❌ 컴파일 실패"
+    echo "❌ Compilation failed"
     exit 1
 fi
 
-echo "✅ 컴파일 완료"
+echo "✅ Compilation completed"
 
-# 실행
+# Execute
 echo ""
-echo "=== PostgreSQL 테스트 실행 ==="
+echo "=== PostgreSQL Test Execution ==="
 
-# TEST_FOLDER 환경변수 설정 (첫 번째 인수가 매퍼 디렉토리)
+# Set TEST_FOLDER environment variable (first argument is mapper directory)
 if [ -z "$TEST_FOLDER" ] && [ -n "$1" ]; then
     export TEST_FOLDER="$1"
 fi
@@ -74,4 +74,4 @@ fi
 java -cp ".:lib/*" com.test.mybatis.MyBatisBulkExecutorWithJson "$@" --db postgres --compare
 
 echo ""
-echo "=== 실행 완료 ==="
+echo "=== Execution Completed ==="

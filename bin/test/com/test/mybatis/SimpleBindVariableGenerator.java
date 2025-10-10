@@ -9,13 +9,13 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 /**
- * 간단하고 확실한 바인드 변수 생성기
- * Oracle 딕셔너리 + 매퍼 바인드 변수 추출 + 매칭 + mismatch.lst 생성
+ * Simple and reliable bind variable generator
+ * Oracle Dictionary + Mapper bind variable extraction + Matching + mismatch.lst generation
  */
 public class SimpleBindVariableGenerator {
     
-    // Oracle 연결 정보
-    // Oracle 연결 정보
+    // Oracle connection information
+    // Oracle connection information
     private static final String ORACLE_HOST = System.getenv("ORACLE_HOST");
     private static final String ORACLE_PORT = System.getenv().getOrDefault("ORACLE_PORT", "1521");
     private static final String ORACLE_SVC_USER = System.getenv("ORACLE_SVC_USER");
@@ -33,39 +33,39 @@ public class SimpleBindVariableGenerator {
     }
     
     private void run(String mapperDir, String testFolder) {
-        System.out.println("=== 간단한 바인드 변수 생성기 ===\n");
+        System.out.println("=== Simple Bind Variable Generator ===\n");
         
         try {
-            // 1. Oracle 딕셔너리 수집
+            // 1. Collect Oracle dictionary
             collectOracleDictionary();
             
-            // 2. 매퍼에서 바인드 변수 추출
+            // 2. Extract bind variables from mappers
             extractBindVariables(mapperDir);
             
-            // 3. 딕셔너리와 매칭
+            // 3. Match with dictionary
             matchWithDictionary();
             
-            // 4. 파일 생성
+            // 4. Generate files
             generateFiles(testFolder);
             
-            System.out.println("✓ 완료!");
+            System.out.println("✓ Completed!");
             
         } catch (Exception e) {
-            System.err.println("오류: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     private void collectOracleDictionary() throws Exception {
-        System.out.println("1단계: Oracle 딕셔너리 수집...");
+        System.out.println("Step 1: Collecting Oracle dictionary...");
         
         try {
-            // SERVICE_NAME 환경변수 사용
+            // Use SERVICE_NAME environment variable
             String url = String.format("jdbc:oracle:thin:@%s:%s/%s", ORACLE_HOST, ORACLE_PORT, SERVICE_NAME);
-            System.out.println("Oracle 연결 시도: " + url);
+            System.out.println("Attempting Oracle connection: " + url);
             
             try (Connection conn = DriverManager.getConnection(url, ORACLE_SVC_USER, ORACLE_SVC_PASSWORD)) {
-                System.out.println("✓ Oracle DB 접속 성공");
+                System.out.println("✓ Oracle DB connection successful");
                 
                 String sql = "SELECT OWNER, TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM ALL_TAB_COLUMNS " +
                             "WHERE OWNER = ? ORDER BY OWNER, TABLE_NAME, COLUMN_ID";
@@ -87,27 +87,27 @@ public class SimpleBindVariableGenerator {
                             count++;
                         }
                         
-                        System.out.printf("✓ Oracle 딕셔너리 수집 완료 (%d개 컬럼)\n\n", count);
+                        System.out.printf("✓ Oracle dictionary collection completed (%d columns)\n\n", count);
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println("❌ Oracle 딕셔너리 수집 실패: " + e.getMessage());
-            System.out.println("Oracle 연결 정보를 확인해주세요.");
+            System.out.println("❌ Oracle dictionary collection failed: " + e.getMessage());
+            System.out.println("Please check Oracle connection information.");
             throw e;
         }
     }
     
     private void extractBindVariables(String mapperDir) throws Exception {
-        System.out.println("2단계: 매퍼에서 바인드 변수 추출...");
+        System.out.println("Step 2: Extracting bind variables from mappers...");
         
         File dir = new File(mapperDir);
         if (!dir.exists()) {
-            throw new Exception("매퍼 디렉토리를 찾을 수 없습니다: " + mapperDir);
+            throw new Exception("Mapper directory not found: " + mapperDir);
         }
         
         List<File> xmlFiles = findXmlFiles(dir);
-        System.out.printf("발견된 XML 파일: %d개\n", xmlFiles.size());
+        System.out.printf("XML files found: %d\n", xmlFiles.size());
         
         Pattern bindPattern = Pattern.compile("#\\{([^}]+)\\}|\\$\\{([^}]+)\\}");
         
@@ -119,7 +119,7 @@ public class SimpleBindVariableGenerator {
                     while (matcher.find()) {
                         String varName = matcher.group(1) != null ? matcher.group(1) : matcher.group(2);
                         
-                        // 복합 변수명 처리 (user.name -> user)
+                        // Handle composite variable names (user.name -> user)
                         if (varName.contains(".")) {
                             varName = varName.split("\\.")[0];
                         }
@@ -131,7 +131,7 @@ public class SimpleBindVariableGenerator {
             }
         }
         
-        System.out.printf("✓ 바인드 변수 추출 완료 (%d개)\n\n", bindVariables.size());
+        System.out.printf("✓ Bind variable extraction completed (%d variables)\n\n", bindVariables.size());
     }
     
     private List<File> findXmlFiles(File dir) {
@@ -152,14 +152,14 @@ public class SimpleBindVariableGenerator {
     }
     
     private void matchWithDictionary() {
-        System.out.println("3단계: 딕셔너리와 매칭...");
+        System.out.println("Step 3: Matching with dictionary...");
         
         int matchedCount = 0;
         
         for (BindVariable bindVar : bindVariables.values()) {
             String varName = bindVar.getName().toLowerCase();
             
-            // 딕셔너리에서 매칭되는 컬럼 찾기
+            // Find matching columns in dictionary
             for (String schema : dictionary.keySet()) {
                 for (String tableName : dictionary.get(schema).keySet()) {
                     for (String columnName : dictionary.get(schema).get(tableName).keySet()) {
@@ -177,32 +177,32 @@ public class SimpleBindVariableGenerator {
                 if (bindVar.getMatchedColumn() != null) break;
             }
             
-            // 매칭되지 않은 경우 기본값 생성
+            // Generate default value for unmatched cases
             if (bindVar.getMatchedColumn() == null) {
                 bindVar.setValue(generateDefaultValue(varName));
             }
         }
         
-        System.out.printf("✓ 매칭 완료 (매칭: %d개, 매칭 없음: %d개)\n\n", 
+        System.out.printf("✓ Matching completed (matched: %d, unmatched: %d)\n\n", 
                          matchedCount, bindVariables.size() - matchedCount);
     }
     
     private boolean isMatch(String varName, String columnName) {
-        // 정확한 매칭
+        // Exact matching
         if (varName.equals(columnName)) return true;
         
-        // 언더스코어를 카멜케이스로 변환한 매칭
+        // Underscore to camelCase matching
         String camelCaseColumn = underscoreToCamelCase(columnName);
         if (varName.equals(camelCaseColumn.toLowerCase())) return true;
         
-        // 카멜케이스를 언더스코어로 변환한 매칭
+        // CamelCase to underscore matching
         String underscoreVar = camelCaseToUnderscore(varName);
         if (underscoreVar.equals(columnName.toUpperCase())) return true;
         
-        // 부분 매칭
+        // Partial matching
         if (varName.contains(columnName) || columnName.contains(varName)) return true;
         
-        // ID 매칭
+        // ID matching
         if (varName.endsWith("id") && columnName.endsWith("_id")) return true;
         if (varName.contains("id") && columnName.contains("id")) return true;
         
@@ -286,9 +286,9 @@ public class SimpleBindVariableGenerator {
     }
     
     private void generateFiles(String testFolder) throws Exception {
-        System.out.println("4단계: 파일 생성...");
+        System.out.println("Step 4: Generating files...");
         
-        // 매칭된 변수와 매칭되지 않은 변수 분리
+        // Separate matched and unmatched variables
         List<String> matchedVars = new ArrayList<>();
         List<String> unmatchedVars = new ArrayList<>();
         
@@ -303,18 +303,18 @@ public class SimpleBindVariableGenerator {
         Collections.sort(matchedVars);
         Collections.sort(unmatchedVars);
         
-        // parameters.properties 파일 생성
+        // parameters.properties File generation
         String parametersFile = testFolder + "/parameters.properties";
         try (PrintWriter writer = new PrintWriter(new FileWriter(parametersFile))) {
-            writer.println("# 바인드 변수 매개변수 파일");
-            writer.println("# 생성일시: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            writer.println("# 총 변수: " + bindVariables.size() + "개 (매칭: " + matchedVars.size() + "개, 매칭 없음: " + unmatchedVars.size() + "개)");
+            writer.println("# Bind variable parameter file");
+            writer.println("# Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println("# Total variables: " + bindVariables.size() + " (matched: " + matchedVars.size() + ", unmatched: " + unmatchedVars.size() + ")");
             writer.println();
             
-            // 매칭된 변수들
+            // Matched variables
             if (!matchedVars.isEmpty()) {
                 writer.println("# =============================================================================");
-                writer.println("# 매칭된 변수들 (Oracle DB 컬럼과 매칭됨)");
+                writer.println("# Matched variables (matched with Oracle DB columns)");
                 writer.println("# =============================================================================");
                 writer.println();
                 
@@ -326,10 +326,10 @@ public class SimpleBindVariableGenerator {
                 }
             }
             
-            // 매칭되지 않은 변수들
+            // Unmatched variables
             if (!unmatchedVars.isEmpty()) {
                 writer.println("# =============================================================================");
-                writer.println("# 매칭되지 않은 변수들 (수동으로 값을 설정해주세요)");
+                writer.println("# Unmatched variables (please set values manually)");
                 writer.println("# =============================================================================");
                 writer.println();
                 
@@ -340,14 +340,14 @@ public class SimpleBindVariableGenerator {
             }
         }
         
-        // mismatch.lst 파일 생성
+        // mismatch.lst File generation
         if (!unmatchedVars.isEmpty()) {
             new File("out").mkdirs();
             
             try (PrintWriter writer = new PrintWriter(new FileWriter("out/mismatch.lst"))) {
-                writer.println("# 매칭되지 않은 바인드 변수 위치 정보");
-                writer.println("# 생성일시: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                writer.println("# 형식: 변수명 | 매퍼파일 | 라인번호 | SQL 컨텍스트");
+                writer.println("# Unmatched bind variable location information");
+                writer.println("# Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                writer.println("# Format: Variable name | Mapper file | Line number | SQL context");
                 writer.println();
                 
                 for (String varName : unmatchedVars) {
@@ -362,12 +362,12 @@ public class SimpleBindVariableGenerator {
             }
         }
         
-        System.out.printf("✓ parameters.properties 생성 완료 (%d개 변수)\n", bindVariables.size());
-        System.out.printf("  - 매칭됨: %d개\n", matchedVars.size());
-        System.out.printf("  - 매칭 없음: %d개\n", unmatchedVars.size());
+        System.out.printf("✓ parameters.properties generation completed (%d variables)\n", bindVariables.size());
+        System.out.printf("  - Matched: %d\n", matchedVars.size());
+        System.out.printf("  - Unmatched: %d\n", unmatchedVars.size());
         
         if (!unmatchedVars.isEmpty()) {
-            System.out.println("✓ out/mismatch.lst 생성 완료");
+            System.out.println("✓ out/mismatch.lst generation completed");
         }
     }
     
@@ -383,21 +383,21 @@ public class SimpleBindVariableGenerator {
                     String relativePath = getRelativePath(xmlFile);
                     String context = line.trim();
                     
-                    writer.printf("%s | %s | 라인 %d | %s%n", 
+                    writer.printf("%s | %s | Line %d | %s%n", 
                                 varName, relativePath, lineNumber, context);
                 }
             }
         } catch (Exception e) {
-            // 무시
+            // Ignore
         }
     }
     
     private String getRelativePath(String absolutePath) {
-        // 절대 경로 반환
+        // Return absolute path
         return absolutePath;
     }
     
-    // 내부 클래스들
+    // Inner classes
     static class BindVariable {
         private String name;
         private List<String> files = new ArrayList<>();

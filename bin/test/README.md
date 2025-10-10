@@ -1,109 +1,150 @@
-# MyBatis XML 테스트 프로그램
+# MyBatis XML Test Program
 
-MyBatis XML 파일의 SQL을 분석하고 실행하는 Java 프로그램입니다.
+A Java program that analyzes and executes SQL from MyBatis XML files.
 
-## 핵심 스크립트
+## Core Scripts
 
 ### 1. bulk_prepare.sh
-XML 파일들에서 파라미터를 일괄 추출하고 DB에서 샘플 값을 자동 수집합니다.
+Bulk extracts parameters from XML files and automatically collects sample values from the database.
 
 ```bash
-./bulk_prepare.sh <디렉토리경로> [--db <데이터베이스타입>] [--date-format <포맷>]
+./bulk_prepare.sh <directory_path>
 ```
 
-**기능:**
-- 모든 XML 파일에서 `#{}`, `${}` 파라미터 자동 추출
-- 실제 DB에서 파라미터명과 매칭되는 컬럼의 샘플 값 수집
-- `parameters.properties` 파일 자동 생성
+**Features:**
+- Automatically extract `#{}`, `${}` parameters from all XML files
+- Collect sample values from actual DB columns matching parameter names
+- Automatically generate `parameters.properties` file
 
-**예시:**
+**Example:**
 ```bash
-# 기본 파라미터 추출만
+# Basic parameter extraction only
 ./bulk_prepare.sh /path/to/mapper
 
-# Oracle DB에서 샘플 값 수집
-./bulk_prepare.sh /path/to/mapper --db oracle
-
-# PostgreSQL DB에서 샘플 값 수집 (커스텀 날짜 포맷)
-./bulk_prepare.sh /path/to/mapper --db postgresql --date-format YYYY/MM/DD
+# With Oracle DB sample value collection (automatic when ORACLE_SVC_USER is set)
+./bulk_prepare.sh /path/to/mapper
 ```
 
-### 2. run_oracle.sh
-Oracle 데이터베이스에 대해 MyBatis SQL을 실행합니다.
+### 2. run_bind_generator.sh
+Oracle dictionary-based bind variable generator that matches parameters with actual database columns.
 
 ```bash
-./run_oracle.sh <디렉토리경로> [옵션]
+./run_bind_generator.sh [mapper_directory]
 ```
 
-**기능:**
-- Oracle 환경변수 자동 인식 (`ORACLE_SVC_USER`, `ORACLE_SVC_PASSWORD`, `ORACLE_SVC_CONNECT_STRING`)
-- MyBatis 엔진을 통한 동적 SQL 처리
-- 실행 결과 및 통계 리포트 생성
+**Features:**
+- Extract bind variables from mapper files
+- Match with Oracle dictionary information
+- Generate `parameters.properties` with actual sample values
+- Create detailed matching reports
 
-### 3. run_postgresql.sh
-PostgreSQL 데이터베이스에 대해 MyBatis SQL을 실행합니다.
+### 3. run_oracle.sh
+Execute MyBatis SQL against Oracle database.
 
 ```bash
-./run_postgresql.sh <디렉토리경로> [옵션]
+./run_oracle.sh <directory_path> [options]
 ```
 
-**기능:**
-- PostgreSQL 환경변수 자동 인식 (`PGUSER`, `PGPASSWORD`, `PGHOST`, `PGPORT`, `PGDATABASE`)
-- PostgreSQL 전용 JDBC 드라이버 사용
-- 실행 결과 및 통계 리포트 생성
+**Features:**
+- Automatically recognize Oracle environment variables (`ORACLE_SVC_USER`, `ORACLE_SVC_PASSWORD`, `ORACLE_SVC_CONNECT_STRING`)
+- Dynamic SQL processing through MyBatis engine
+- Generate execution results and statistical reports
+- SQL result comparison with PostgreSQL/MySQL
 
-### 4. run_mysql.sh
-MySQL 데이터베이스에 대해 MyBatis SQL을 실행합니다.
+### 4. run_postgresql.sh
+Execute MyBatis SQL against PostgreSQL database.
 
 ```bash
-./run_mysql.sh <디렉토리경로> [옵션]
+./run_postgresql.sh <directory_path> [options]
 ```
 
-**기능:**
-- MySQL 환경변수 자동 인식 (`MYSQL_ADM_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, `MYSQL_TCP_PORT`, `MYSQL_DB`)
-- MySQL 전용 JDBC 드라이버 사용
-- 실행 결과 및 통계 리포트 생성
+**Features:**
+- Automatically recognize PostgreSQL environment variables (`PGUSER`, `PGPASSWORD`, `PGHOST`, `PGPORT`, `PGDATABASE`)
+- Use PostgreSQL-specific JDBC driver
+- Generate execution results and statistical reports
+- SQL result comparison with Oracle
 
-## 공통 옵션
+### 5. run_mysql.sh
+Execute MyBatis SQL against MySQL database.
 
-모든 실행 스크립트는 다음 옵션을 지원합니다:
-
-- `--select-only`: SELECT 구문만 실행 (기본값, 안전)
-- `--all`: 모든 SQL 구문 실행 (INSERT/UPDATE/DELETE 포함)
-- `--summary`: 요약 정보만 출력
-- `--verbose`: 상세 정보 출력
-- `--json`: JSON 결과 파일 생성 (`out/bulk_test_result_YYYYMMDD_HHMMSS.json`)
-
-## 사용 워크플로우
-
-### 1단계: 파라미터 준비
 ```bash
-# DB 샘플 값과 함께 파라미터 추출
-./bulk_prepare.sh /path/to/mapper --db oracle
+./run_mysql.sh <directory_path> [options]
 ```
 
-### 2단계: 파라미터 파일 편집 (선택사항)
-생성된 `parameters.properties` 파일에서 필요시 값을 수정합니다.
+**Features:**
+- Automatically recognize MySQL environment variables (`MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, `MYSQL_TCP_PORT`, `MYSQL_DATABASE`)
+- Use MySQL-specific JDBC driver
+- Generate execution results and statistical reports
 
-### 3단계: SQL 실행
+### 6. analyze_results.sh
+Analyze test results and provide SQL conversion suggestions.
+
 ```bash
-# Oracle에서 SELECT만 안전하게 실행
+./analyze_results.sh
+```
+
+**Features:**
+- Analyze test result files
+- Generate analysis reports
+- Automatic SQL conversion suggestions through Amazon Q
+- Fix sorting differences automatically
+
+## Common Options
+
+All execution scripts support the following options:
+
+- `--select-only`: Execute SELECT statements only (default, safe)
+- `--all`: Execute all SQL statements (including INSERT/UPDATE/DELETE)
+- `--summary`: Output summary information only
+- `--verbose`: Output detailed information
+- `--json`: Generate JSON result file (`out/bulk_test_result_YYYYMMDD_HHMMSS.json`)
+- `--compare`: Enable SQL result comparison between databases
+
+## Usage Workflow
+
+### Step 1: Parameter Preparation
+```bash
+# Extract parameters with DB sample values
+./bulk_prepare.sh /path/to/mapper
+
+# Or use bind variable generator for more accurate matching
+./run_bind_generator.sh /path/to/mapper
+```
+
+### Step 2: Edit Parameter File (Optional)
+Modify values in the generated `parameters.properties` file if needed.
+
+### Step 3: SQL Execution
+```bash
+# Safely execute SELECT only on Oracle
 ./run_oracle.sh /path/to/mapper --select-only --summary
 
-# PostgreSQL에서 모든 SQL 실행 (주의!)
+# Execute all SQL on PostgreSQL (caution!)
 ./run_postgresql.sh /path/to/mapper --all --verbose
 
-# MySQL에서 실행하고 JSON 결과 저장
+# Execute on MySQL and save JSON results
 ./run_mysql.sh /path/to/mapper --json
+
+# Compare results between Oracle and PostgreSQL
+./run_oracle.sh /path/to/mapper --compare --verbose
 ```
 
-## 환경변수 설정
+### Step 4: Result Analysis
+```bash
+# Analyze test results and get conversion suggestions
+./analyze_results.sh
+```
+
+## Environment Variable Setup
 
 ### Oracle
 ```bash
 export ORACLE_SVC_USER="username"
 export ORACLE_SVC_PASSWORD="password"
 export ORACLE_SVC_CONNECT_STRING="host:port:sid"
+# For bind variable generator
+export ORACLE_HOST="hostname"
+export ORACLE_SID="sid"
 ```
 
 ### PostgreSQL
@@ -117,37 +158,56 @@ export PGDATABASE="dbname"
 
 ### MySQL
 ```bash
-export MYSQL_ADM_USER="username"
+export MYSQL_USER="username"
 export MYSQL_PASSWORD="password"
 export MYSQL_HOST="localhost"
 export MYSQL_TCP_PORT="3306"
-export MYSQL_DB="dbname"
+export MYSQL_DATABASE="dbname"
 ```
 
-## 주요 특징
+## Key Features
 
-1. **실제 DB 샘플 값 활용**: 파라미터-컬럼명 매칭을 통한 자동 샘플 값 수집
-2. **MyBatis 엔진 사용**: 동적 조건 자동 처리, 정확한 동작 보장
-3. **다중 DB 지원**: Oracle, PostgreSQL, MySQL 모두 지원
-4. **안전한 실행**: 기본적으로 SELECT만 실행, 데이터 변경은 명시적 옵션 필요
-5. **상세한 리포트**: 성공/실패 통계, 오류 정보, JSON 추적 기능
+1. **Utilize Actual DB Sample Values**: Automatic sample value collection through parameter-column name matching
+2. **MyBatis Engine Usage**: Automatic dynamic condition processing, guaranteed accurate operation
+3. **Multi-DB Support**: Full support for Oracle, PostgreSQL, MySQL
+4. **Safe Execution**: Execute SELECT only by default, data modification requires explicit options
+5. **Detailed Reports**: Success/failure statistics, error information, JSON tracking functionality
+6. **Cross-DB Comparison**: Compare SQL execution results between different databases
+7. **AI-Powered Analysis**: Automatic SQL conversion suggestions through Amazon Q integration
 
-## 출력 예시
+## Output Example
 
 ```
-=== MyBatis 대량 테스트 시작 ===
-검색 디렉토리: /path/to/mapper
-발견된 XML 파일 수: 25
-총 SQL ID 수: 147
+=== MyBatis Bulk Test Started ===
+Search Directory: /path/to/mapper
+XML Files Found: 25
+Total SQL IDs: 147
 
-=== 테스트 실행 결과 ===
-✓ UserMapper.xml - selectUser: 성공 (3건)
-✓ UserMapper.xml - selectUserList: 성공 (15건)
-✗ OrderMapper.xml - selectOrder: 실패 (파라미터 부족: orderId)
+=== Test Execution Results ===
+✓ UserMapper.xml - selectUser: Success (3 records)
+✓ UserMapper.xml - selectUserList: Success (15 records)
+✗ OrderMapper.xml - selectOrder: Failed (Missing parameter: orderId)
 
-=== 최종 통계 ===
-총 실행: 147개
-성공: 142개 (96.6%)
-실패: 5개 (3.4%)
-실행 시간: 2분 34초
+=== Final Statistics ===
+Total Executed: 147
+Success: 142 (96.6%)
+Failed: 5 (3.4%)
+Execution Time: 2 minutes 34 seconds
+```
+
+## File Structure
+
+```
+bin/test/
+├── bulk_prepare.sh              # Parameter extraction with DB samples
+├── run_bind_generator.sh        # Oracle dictionary-based parameter generation
+├── run_oracle.sh               # Oracle test execution
+├── run_postgresql.sh           # PostgreSQL test execution  
+├── run_mysql.sh                # MySQL test execution
+├── analyze_results.sh          # Result analysis and AI suggestions
+├── mybatis-bulk-executor.properties  # Configuration file
+├── parameters.properties       # Generated parameter file
+├── lib/                        # JDBC drivers and dependencies
+├── com/test/mybatis/          # Java source files
+└── out/                       # Output files and reports
 ```

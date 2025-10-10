@@ -5,12 +5,12 @@ import java.math.RoundingMode;
 import java.util.*;
 
 /**
- * Oracle과 PostgreSQL 결과 차이를 정규화하는 유틸리티 클래스
+ * Utility class to normalize Oracle and PostgreSQL result differences
  */
 public class ResultNormalizer {
     
     /**
-     * SQL 실행 결과를 정규화하여 Oracle과 PostgreSQL 간 차이를 제거
+     * Normalize SQL execution results to remove differences between Oracle and PostgreSQL
      */
     public static List<Map<String, Object>> normalizeResults(List<Map<String, Object>> results) {
         if (results == null || results.isEmpty()) {
@@ -36,50 +36,50 @@ public class ResultNormalizer {
     }
     
     /**
-     * 개별 값을 정규화
+     * Normalize individual values
      */
     private static Object normalizeValue(Object value) {
         if (value == null) {
-            return ""; // NULL을 빈 문자열로 통일
+            return ""; // Unify NULL to empty string
         }
         
-        // 숫자 타입 처리
+        // Handle number types
         if (value instanceof Number) {
             return normalizeNumber((Number) value);
         }
         
-        // 문자열 타입 처리
+        // Handle string types
         if (value instanceof String) {
             return normalizeString((String) value);
         }
         
-        // 기타 타입은 문자열로 변환
+        // Convert other types to string
         return value.toString();
     }
     
     /**
-     * 숫자 값 정규화
+     * Normalize numeric values
      */
     private static String normalizeNumber(Number number) {
         if (number instanceof BigDecimal) {
             BigDecimal bd = (BigDecimal) number;
             
-            // 0에 가까운 값은 "0"으로 처리
+            // Handle values close to 0 as "0"
             if (bd.compareTo(BigDecimal.ZERO) == 0 || 
                 bd.abs().compareTo(new BigDecimal("0.000001")) < 0) {
                 return "0";
             }
             
-            // 정수인지 확인
+            // Check if it's an integer
             if (bd.scale() <= 0 || bd.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
                 return bd.toBigInteger().toString();
             }
             
-            // 소수점이 있는 경우 - 불필요한 0 제거
+            // For decimal values - remove unnecessary zeros
             return bd.stripTrailingZeros().toPlainString();
         }
         
-        // 다른 숫자 타입들
+        // Other number types
         if (number instanceof Integer || number instanceof Long) {
             return number.toString();
         }
@@ -87,17 +87,17 @@ public class ResultNormalizer {
         if (number instanceof Float || number instanceof Double) {
             double d = number.doubleValue();
             
-            // 0에 가까운 값 처리
+            // Handle values close to 0
             if (Math.abs(d) < 0.000001) {
                 return "0";
             }
             
-            // 정수인지 확인
+            // Check if it's an integer
             if (d == Math.floor(d)) {
                 return String.valueOf((long) d);
             }
             
-            // 소수점 처리 - BigDecimal로 변환하여 정확한 표현
+            // Handle decimals - convert to BigDecimal for accurate representation
             BigDecimal bd = BigDecimal.valueOf(d);
             return bd.stripTrailingZeros().toPlainString();
         }
@@ -106,37 +106,37 @@ public class ResultNormalizer {
     }
     
     /**
-     * 문자열 값 정규화
+     * Normalize string values
      */
     private static String normalizeString(String str) {
         if (str == null || str.trim().isEmpty()) {
             return "";
         }
         
-        // 과학적 표기법 처리 (예: "0E-20" → "0")
+        // Handle scientific notation (e.g., "0E-20" → "0")
         if (str.matches("^-?\\d+(\\.\\d+)?[Ee][+-]?\\d+$")) {
             try {
                 BigDecimal bd = new BigDecimal(str);
                 
-                // 0에 가까운 값은 "0"으로 처리
+                // Handle values close to 0 as "0"
                 if (bd.abs().compareTo(new BigDecimal("0.000001")) < 0) {
                     return "0";
                 }
                 
                 return bd.stripTrailingZeros().toPlainString();
             } catch (NumberFormatException e) {
-                // 변환 실패 시 원본 반환
+                // Return original if conversion fails
                 return str;
             }
         }
         
-        // 숫자 문자열인지 확인하고 정규화
+        // Check if it's a numeric string and normalize
         if (str.matches("^-?\\d+(\\.\\d+)?$")) {
             try {
                 BigDecimal bd = new BigDecimal(str);
                 return normalizeNumber(bd);
             } catch (NumberFormatException e) {
-                // 변환 실패 시 원본 반환
+                // Return original if conversion fails
                 return str;
             }
         }

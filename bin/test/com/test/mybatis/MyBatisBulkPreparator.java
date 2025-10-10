@@ -8,15 +8,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * MyBatis XML 파일들을 재귀적으로 검색하여 모든 파라미터를 추출하는 프로그램
- * DB 샘플 값 수집 기능 추가
+ * Program to recursively search MyBatis XML files and extract all parameters
+ * Added DB sample value collection functionality
  */
 public class MyBatisBulkPreparator {
     
     private static final Pattern PARAM_PATTERN = Pattern.compile("(#\\{[^}]+\\}|\\$\\{[^}]+\\})");
     private static final String OUTPUT_FILENAME = "parameters.properties";
     private static final String DEFAULT_PARAMS_FILE = "default.parameters";
-    // METADATA_FILE 경로를 동적으로 설정하도록 변경
+    // Set METADATA_FILE path dynamically
     
     private static String getOutputFilePath() {
         String testFolder = System.getenv("TEST_FOLDER");
@@ -33,14 +33,14 @@ public class MyBatisBulkPreparator {
         String dbType = null;
         String dateFormat = "YYYY-MM-DD";
         
-        // 옵션 파싱
+        // Option parsing
         for (int i = 1; i < args.length; i++) {
             switch (args[i]) {
                 case "--db":
                     if (i + 1 < args.length) {
                         dbType = args[++i];
                     } else {
-                        System.err.println("오류: --db 옵션에 데이터베이스 타입을 지정해주세요.");
+                        System.err.println("Error: Please specify database type for --db option.");
                         return;
                     }
                     break;
@@ -48,7 +48,7 @@ public class MyBatisBulkPreparator {
                     if (i + 1 < args.length) {
                         dateFormat = args[++i];
                     } else {
-                        System.err.println("오류: --date-format 옵션에 날짜 포맷을 지정해주세요.");
+                        System.err.println("Error: Please specify date format for --date-format option.");
                         return;
                     }
                     break;
@@ -64,108 +64,108 @@ public class MyBatisBulkPreparator {
     }
     
     private static void printUsage() {
-        System.out.println("사용법: java MyBatisBulkPreparator <디렉토리경로> [옵션]");
-        System.out.println("옵션:");
-        System.out.println("  --db <type>           데이터베이스 타입 (oracle, mysql, postgresql)");
-        System.out.println("  --date-format <fmt>   날짜 포맷 (기본값: YYYY-MM-DD)");
+        System.out.println("Usage: java MyBatisBulkPreparator <directory_path> [options]");
+        System.out.println("Options:");
+        System.out.println("  --db <type>           Database type (oracle, mysql, postgresql)");
+        System.out.println("  --date-format <fmt>   Date format (default: YYYY-MM-DD)");
         System.out.println();
-        System.out.println("예시:");
+        System.out.println("Examples:");
         System.out.println("  java MyBatisBulkPreparator /path/to/mappers");
         System.out.println("  java MyBatisBulkPreparator /path/to/mappers --db postgresql");
         System.out.println("  java MyBatisBulkPreparator /path/to/mappers --db oracle --date-format YYYY/MM/DD");
         System.out.println();
-        System.out.println("환경변수 설정:");
+        System.out.println("Environment variable setup:");
         System.out.println("  Oracle: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD, ORACLE_SVC_CONNECT_STRING");
         System.out.println("  MySQL: MYSQL_ADM_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_TCP_PORT, MYSQL_DB");
         System.out.println("  PostgreSQL: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE");
     }
     
     /**
-     * DB 샘플 값과 함께 파라미터 추출
+     * Extract parameters with DB sample values
      */
     public void extractParametersWithDbSamples(String directoryPath, String dbType, String dateFormat) {
         try {
-            System.out.println("=== MyBatis 파라미터 추출 + DB 샘플 값 수집 ===");
-            System.out.println("검색 디렉토리: " + directoryPath);
-            System.out.println("데이터베이스 타입: " + dbType.toUpperCase());
-            System.out.println("날짜 포맷: " + dateFormat);
+            System.out.println("=== MyBatis Parameter Extraction + DB Sample Value Collection ===");
+            System.out.println("Search directory: " + directoryPath);
+            System.out.println("Database type: " + dbType.toUpperCase());
+            System.out.println("Date format: " + dateFormat);
             System.out.println();
             
-            // 1. 파라미터 추출
+            // 1. Extract parameters
             Set<String> allParameters = extractParametersFromDirectory(directoryPath);
             
-            // 2. 메타데이터 로드
+            // 2. Load metadata
             List<ColumnInfo> columns = loadMetadata(directoryPath);
-            System.out.println("발견된 컬럼: " + columns.size() + "개");
+            System.out.println("Columns found: " + columns.size());
             
-            // 3. 파라미터-컬럼 매칭
+            // 3. Parameter-column matching
             Map<String, List<ColumnInfo>> matches = findMatches(allParameters, columns);
             
-            // 4. DB 연결 및 샘플 값 수집 (default.parameters 체크 포함)
+            // 4. DB connection and sample value collection (includes default.parameters check)
             Map<String, SampleValue> sampleValues = collectSampleValues(matches, dbType, dateFormat);
             
-            // 5. 기본값 로드 (파라미터 파일 생성용)
+            // 5. Load default values (for parameter file generation)
             Map<String, String> defaultValues = loadDefaultParameters();
             
-            // 6. 파라미터 파일 생성 (기본값 + DB 샘플 값)
+            // 6. Generate parameter file (default values + DB sample values)
             generateParameterFileWithSamples(allParameters, defaultValues, sampleValues);
             
-            // 7. 결과 출력
+            // 7. Output results
             printSummary(allParameters, defaultValues, sampleValues);
             
         } catch (Exception e) {
-            System.err.println("오류 발생: " + e.getMessage());
+            System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * 기존 파라미터 추출 (DB 연결 없음)
+     * Existing parameter extraction (no DB connection)
      */
     public void extractAllParameters(String directoryPath) {
         try {
-            System.out.println("=== MyBatis 대량 파라미터 추출 시작 ===");
-            System.out.println("검색 디렉토리: " + directoryPath);
+            System.out.println("=== MyBatis Bulk Parameter Extraction Started ===");
+            System.out.println("Search directory: " + directoryPath);
             
             Set<String> allParameters = extractParametersFromDirectory(directoryPath);
             generateParameterFile(allParameters);
             
-            System.out.println("\n=== 완료 ===");
-            System.out.println("파라미터 파일: " + getOutputFilePath());
-            System.out.println("파일을 편집한 후 MyBatisBulkExecutor로 실행하세요.");
+            System.out.println("\n=== Completed ===");
+            System.out.println("Parameter file: " + getOutputFilePath());
+            System.out.println("Edit the file and then run with MyBatisBulkExecutor.");
             
         } catch (Exception e) {
-            System.err.println("오류 발생: " + e.getMessage());
+            System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * 디렉토리에서 모든 파라미터 추출
+     * Extract all parameters from directory
      */
     private Set<String> extractParametersFromDirectory(String directoryPath) throws IOException {
-        // 1. XML 파일들을 재귀적으로 찾기
+        // 1. Find XML files recursively
         List<Path> xmlFiles = findXmlFiles(Paths.get(directoryPath));
-        System.out.println("발견된 XML 파일 수: " + xmlFiles.size());
+        System.out.println("XML files found: " + xmlFiles.size());
         
-        // 2. 모든 파라미터 수집 (중복 제거, 자동 정렬)
+        // 2. Collect all parameters (remove duplicates, automatic sorting)
         Set<String> allParameters = new TreeSet<>();
         int totalSqlCount = 0;
         
         for (Path xmlFile : xmlFiles) {
-            System.out.println("처리 중: " + xmlFile.getFileName());
+            System.out.println("Processing: " + xmlFile.getFileName());
             int sqlCount = processXmlFile(xmlFile, allParameters);
             totalSqlCount += sqlCount;
         }
         
-        // 3. 결과 출력
-        System.out.println("\n=== 추출 결과 ===");
-        System.out.println("처리된 XML 파일: " + xmlFiles.size() + "개");
-        System.out.println("처리된 SQL 구문: " + totalSqlCount + "개");
-        System.out.println("발견된 고유 파라미터: " + allParameters.size() + "개");
+        // 3. Output results
+        System.out.println("\n=== Extraction Results ===");
+        System.out.println("Processed XML files: " + xmlFiles.size());
+        System.out.println("Processed SQL statements: " + totalSqlCount);
+        System.out.println("Unique parameters found: " + allParameters.size());
         
         if (!allParameters.isEmpty()) {
-            System.out.println("\n=== 발견된 파라미터 (알파벳순) ===");
+            System.out.println("\n=== Found Parameters (alphabetical order) ===");
             allParameters.forEach(param -> System.out.println("#{" + param + "}"));
         }
         
@@ -173,30 +173,30 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * 메타데이터 파일 로드
+     * Load metadata file
      */
     private List<ColumnInfo> loadMetadata(String mapperPath) throws IOException {
         List<ColumnInfo> columns = new ArrayList<>();
         
-        // APP_TRANSFORM_FOLDER에서 oma_metadata.txt 파일 찾기
+        // Find oma_metadata.txt file in APP_TRANSFORM_FOLDER
         String transformFolder = System.getenv("APP_TRANSFORM_FOLDER");
         String metadataFile;
         
         if (transformFolder != null && !transformFolder.isEmpty()) {
             metadataFile = transformFolder + "/oma_metadata.txt";
         } else {
-            // 환경변수가 없으면 매퍼 경로에서 찾기 (기존 방식)
+            // If environment variable is not set, find in mapper path (existing method)
             metadataFile = mapperPath + "/oma_metadata.txt";
         }
         
         Path metadataPath = Paths.get(metadataFile);
         
         if (!Files.exists(metadataPath)) {
-            System.out.println("⚠️  메타데이터 파일을 찾을 수 없습니다: " + metadataFile);
+            System.out.println("⚠️  Metadata file not found: " + metadataFile);
             if (transformFolder != null) {
                 System.out.println("   APP_TRANSFORM_FOLDER: " + transformFolder);
             }
-            System.out.println("   DB 샘플 값 수집을 건너뜁니다.");
+            System.out.println("   Skipping DB sample value collection.");
             return columns;
         }
         
@@ -206,7 +206,7 @@ public class MyBatisBulkPreparator {
             
             while ((line = reader.readLine()) != null) {
                 lineCount++;
-                if (lineCount <= 2) continue; // 헤더 스킵
+                if (lineCount <= 2) continue; // Skip header
                 
                 line = line.trim();
                 if (line.isEmpty()) continue;
@@ -231,7 +231,7 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * default.parameters 파일에서 기본값 로드
+     * Load default values from default.parameters file
      */
     private Map<String, String> loadDefaultParameters() {
         Map<String, String> defaultValues = new HashMap<>();
@@ -244,12 +244,12 @@ public class MyBatisBulkPreparator {
                 lineCount++;
                 line = line.trim();
                 
-                // 주석이나 빈 줄 스킵
+                // Skip comments or empty lines
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
                 
-                // key=value 형태 파싱
+                // Parse key=value format
                 if (line.contains("=")) {
                     String[] parts = line.split("=", 2);
                     if (parts.length == 2) {
@@ -263,18 +263,18 @@ public class MyBatisBulkPreparator {
             }
             
             if (!defaultValues.isEmpty()) {
-                System.out.println("기본값 파일 로드 완료: " + DEFAULT_PARAMS_FILE + " (" + defaultValues.size() + "개 값)");
+                System.out.println("Default values file loaded successfully: " + DEFAULT_PARAMS_FILE + " (" + defaultValues.size() + " values)");
             }
             
         } catch (IOException e) {
-            System.out.println("기본값 파일을 찾을 수 없습니다: " + DEFAULT_PARAMS_FILE + " (스킵)");
+            System.out.println("Default values file not found: " + DEFAULT_PARAMS_FILE + " (skipped)");
         }
         
         return defaultValues;
     }
     
     /**
-     * 파라미터와 컬럼 매칭
+     * Match parameters with columns
      */
     private Map<String, List<ColumnInfo>> findMatches(Set<String> parameters, List<ColumnInfo> columns) {
         Map<String, List<ColumnInfo>> matches = new HashMap<>();
@@ -286,20 +286,20 @@ public class MyBatisBulkPreparator {
             for (ColumnInfo column : columns) {
                 String columnNormalized = normalizeName(column.column);
                 
-                // 정확한 매치
+                // Exact match
                 if (paramNormalized.equals(columnNormalized)) {
                     column.matchType = "exact";
                     column.score = 100;
                     matchingColumns.add(column);
                 }
-                // 파라미터가 컬럼명에 포함
+                // Parameter contained in column name
                 else if (columnNormalized.contains(paramNormalized)) {
                     ColumnInfo match = new ColumnInfo(column);
                     match.matchType = "param_in_column";
                     match.score = 80;
                     matchingColumns.add(match);
                 }
-                // 컬럼명이 파라미터에 포함
+                // Column name contained in parameter
                 else if (paramNormalized.contains(columnNormalized)) {
                     ColumnInfo match = new ColumnInfo(column);
                     match.matchType = "column_in_param";
@@ -308,7 +308,7 @@ public class MyBatisBulkPreparator {
                 }
             }
             
-            // 점수순으로 정렬
+            // Sort by score
             matchingColumns.sort((a, b) -> Integer.compare(b.score, a.score));
             matches.put(param, matchingColumns);
         }
@@ -317,16 +317,16 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * DB에서 샘플 값 수집 (default.parameters에 값이 있는 파라미터는 제외)
+     * Collect sample values from DB (exclude parameters that already have values in default.parameters)
      */
     private Map<String, SampleValue> collectSampleValues(Map<String, List<ColumnInfo>> matches, String dbType, String dateFormat) {
         Map<String, SampleValue> sampleValues = new HashMap<>();
         
-        // default.parameters 파일에서 기본값 로드
+        // Load default values from default.parameters file
         Map<String, String> defaultValues = loadDefaultParameters();
         
         try (Connection conn = createConnection(dbType)) {
-            System.out.println("\n=== 샘플 값 수집 중 ===");
+            System.out.println("\n=== Collecting Sample Values ===");
             
             int processedCount = 0;
             int skippedCount = 0;
@@ -335,16 +335,16 @@ public class MyBatisBulkPreparator {
                 String param = entry.getKey();
                 List<ColumnInfo> matchingColumns = entry.getValue();
                 
-                // default.parameters에 값이 이미 설정된 파라미터는 스킵
+                // Skip parameters that already have values set in default.parameters
                 if (defaultValues.containsKey(param) && !defaultValues.get(param).trim().isEmpty()) {
                     skippedCount++;
-                    System.out.printf("SKIP: %s (기본값 사용: %s)%n", param, defaultValues.get(param));
+                    System.out.printf("SKIP: %s (using default value: %s)%n", param, defaultValues.get(param));
                     continue;
                 }
                 
                 if (!matchingColumns.isEmpty()) {
                     ColumnInfo bestMatch = matchingColumns.get(0);
-                    // 정확한 매치 또는 부분 매치만 처리
+                    // Process only exact matches or partial matches
                     if (bestMatch.matchType.equals("exact") || 
                         bestMatch.matchType.equals("param_in_column") || 
                         bestMatch.matchType.equals("column_in_param")) {
@@ -361,20 +361,20 @@ public class MyBatisBulkPreparator {
                             sample.matchType = bestMatch.matchType;
                             
                             sampleValues.put(param, sample);
-                            System.out.printf("   → 샘플 값: %s%n", sampleValue);
+                            System.out.printf("   → Sample value: %s%n", sampleValue);
                         } else {
-                            System.out.printf("   → 샘플 값 없음 (NULL 또는 오류)%n");
+                            System.out.printf("   → No sample value (NULL or error)%n");
                         }
                     }
                 }
             }
             
             if (skippedCount > 0) {
-                System.out.printf("\n기본값으로 인해 스킵된 파라미터: %d개%n", skippedCount);
+                System.out.printf("\nParameters skipped due to default values: %d%n", skippedCount);
             }
             
         } catch (Exception e) {
-            System.err.println("DB 연결 또는 샘플 값 수집 중 오류: " + e.getMessage());
+            System.err.println("Error during DB connection or sample value collection: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -382,7 +382,7 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * DB 연결 생성 (MyBatisBulkExecutorWithJson에서 참조)
+     * Create DB connection (referenced by MyBatisBulkExecutorWithJson)
      */
     private Connection createConnection(String dbType) throws SQLException {
         switch (dbType.toLowerCase()) {
@@ -394,7 +394,7 @@ public class MyBatisBulkPreparator {
             case "pg":
                 return createPostgreSQLConnection();
             default:
-                throw new SQLException("지원하지 않는 데이터베이스 타입: " + dbType);
+                throw new SQLException("Unsupported database type: " + dbType);
         }
     }
     
@@ -406,27 +406,27 @@ public class MyBatisBulkPreparator {
         String oracleHome = System.getenv("ORACLE_HOME");
         
         if (username == null || password == null) {
-            throw new SQLException("Oracle 환경변수가 설정되지 않았습니다. 필요한 변수: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
+            throw new SQLException("Oracle environment variables not set. Required variables: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
         }
         
-        // TNS_ADMIN 자동 설정 (개선된 로직)
+        // Automatic TNS_ADMIN setup (improved logic)
         if (tnsAdmin == null && oracleHome != null) {
             tnsAdmin = oracleHome + "/network/admin";
             System.setProperty("oracle.net.tns_admin", tnsAdmin);
-            System.out.println("TNS_ADMIN 자동 설정: " + tnsAdmin);
+            System.out.println("TNS_ADMIN automatically set: " + tnsAdmin);
         }
         
         String jdbcUrl;
         if (tnsAdmin != null && connectString != null) {
-            // TNS 이름 사용
+            // Use TNS name
             jdbcUrl = "jdbc:oracle:thin:@" + connectString;
         } else {
-            // 기본 연결 방식
+            // Basic connection method
             String defaultService = "orcl";
             jdbcUrl = "jdbc:oracle:thin:@" + (connectString != null ? connectString : defaultService);
         }
         
-        System.out.println("Oracle 연결 정보: " + username + "@" + jdbcUrl);
+        System.out.println("Oracle connection info: " + username + "@" + jdbcUrl);
         
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
@@ -439,7 +439,7 @@ public class MyBatisBulkPreparator {
         String password = System.getenv("MYSQL_PASSWORD");
         
         if (username == null || password == null) {
-            throw new SQLException("MySQL 환경변수가 설정되지 않았습니다. 필요한 변수: MYSQL_ADM_USER, MYSQL_PASSWORD");
+            throw new SQLException("MySQL environment variables not set. Required variables: MYSQL_ADM_USER, MYSQL_PASSWORD");
         }
         
         if (host == null) host = "localhost";
@@ -448,7 +448,7 @@ public class MyBatisBulkPreparator {
         
         String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", 
             host, port, database);
-        System.out.println("MySQL 연결 정보: " + username + "@" + jdbcUrl);
+        System.out.println("MySQL connection info: " + username + "@" + jdbcUrl);
         
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
@@ -461,7 +461,7 @@ public class MyBatisBulkPreparator {
         String password = System.getenv("PGPASSWORD");
         
         if (username == null || password == null) {
-            throw new SQLException("PostgreSQL 환경변수가 설정되지 않았습니다. 필요한 변수: PGUSER, PGPASSWORD");
+            throw new SQLException("PostgreSQL environment variables not set. Required variables: PGUSER, PGPASSWORD");
         }
         
         if (host == null) host = "localhost";
@@ -469,19 +469,19 @@ public class MyBatisBulkPreparator {
         if (database == null) database = "postgres";
         
         String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
-        System.out.println("PostgreSQL 연결 정보: " + username + "@" + jdbcUrl);
+        System.out.println("PostgreSQL connection info: " + username + "@" + jdbcUrl);
         
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
     
     /**
-     * DB에서 샘플 값 가져오기
+     * Get sample value from DB
      */
     private String getSampleValue(Connection conn, ColumnInfo column, String dateFormat, String dbType) {
         try {
             String query;
             
-            // 날짜 타입인 경우 포맷 적용
+            // Apply format for date types
             if (isDateType(column.dataType)) {
                 if (dbType.equalsIgnoreCase("postgresql")) {
                     query = String.format("SELECT TO_CHAR(%s, ?) as formatted_value FROM %s.%s WHERE %s IS NOT NULL LIMIT 1",
@@ -524,18 +524,18 @@ public class MyBatisBulkPreparator {
             }
             
         } catch (SQLException e) {
-            System.out.printf("  오류: %s.%s.%s - %s%n", column.schema, column.table, column.column, e.getMessage());
+            System.out.printf("  error: %s.%s.%s - %s%n", column.schema, column.table, column.column, e.getMessage());
         }
         
         return null;
     }
     
     /**
-     * 날짜 포맷 변환 (DB별)
+     * Convert date format (by DB type)
      */
     private String convertDateFormat(String format, String dbType) {
         if (dbType.equalsIgnoreCase("mysql")) {
-            // MySQL DATE_FORMAT 포맷으로 변환
+            // Convert to MySQL DATE_FORMAT format
             return format.replace("YYYY", "%Y")
                         .replace("MM", "%m")
                         .replace("DD", "%d")
@@ -543,12 +543,12 @@ public class MyBatisBulkPreparator {
                         .replace("MI", "%i")
                         .replace("SS", "%s");
         }
-        // PostgreSQL, Oracle은 동일한 포맷 사용
+        // PostgreSQL and Oracle use the same format
         return format;
     }
     
     /**
-     * 날짜/시간 타입 확인
+     * Check date/time type
      */
     private boolean isDateType(String dataType) {
         String lowerType = dataType.toLowerCase();
@@ -556,28 +556,28 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * 이름 정규화
+     * Normalize name
      */
     private String normalizeName(String name) {
         return name.toLowerCase().replaceAll("[_\\s]", "");
     }
     
     /**
-     * 샘플 값이 포함된 파라미터 파일 생성
+     * Generate parameter file with sample values
      */
     private void generateParameterFileWithSamples(Set<String> parameters, Map<String, String> defaultValues, Map<String, SampleValue> sampleValues) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(getOutputFilePath()))) {
-            writer.println("# MyBatis 파라미터 설정 파일 (기본값 + DB 샘플 값 포함)");
-            writer.println("# 생성일시: " + new java.util.Date());
-            writer.println("# 우선순위: DB 샘플 값 > 기본값 > 빈 값");
+            writer.println("# MyBatis parameter configuration file (includes default values + DB sample values)");
+            writer.println("# Generated: " + new java.util.Date());
+            writer.println("# Priority: DB sample values > default values > empty values");
             writer.println();
             
-            // 매치되지 않은 파라미터들을 먼저 출력
-            writer.println("# 매치 없음 - 기본값 또는 수동 설정");
+            // Output unmatched parameters first
+            writer.println("# No match - default or manual setting");
             boolean hasUnmatched = false;
             for (String param : parameters) {
                 if (!sampleValues.containsKey(param)) {
-                    // 기본값이 있으면 사용, 없으면 추정값 사용
+                    // Use default value if available, otherwise use estimated value
                     String value = defaultValues.getOrDefault(param, suggestDefaultValue(param));
                     writer.println(param + "=" + value);
                     hasUnmatched = true;
@@ -588,11 +588,11 @@ public class MyBatisBulkPreparator {
                 writer.println();
             }
             
-            // 매치된 파라미터들 출력 (DB 샘플 값)
+            // Output matched parameters (DB sample values)
             for (String param : parameters) {
                 SampleValue sample = sampleValues.get(param);
                 if (sample != null) {
-                    writer.printf("# %s (%s) - %s 매치%n", sample.source, sample.dataType, sample.matchType);
+                    writer.printf("# %s (%s) - %s match%n", sample.source, sample.dataType, sample.matchType);
                     writer.println(param + "=" + sample.value);
                     writer.println();
                 }
@@ -601,7 +601,7 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * 결과 요약 출력
+     * Print results summary
      */
     private void printSummary(Set<String> parameters, Map<String, String> defaultValues, Map<String, SampleValue> sampleValues) {
         int totalParams = parameters.size();
@@ -609,7 +609,7 @@ public class MyBatisBulkPreparator {
         int defaultValueCount = 0;
         int emptyCount = 0;
         
-        // 매치되지 않은 파라미터들 중 기본값이 있는 것과 없는 것 구분
+        // Distinguish between unmatched parameters with and without default values
         for (String param : parameters) {
             if (!sampleValues.containsKey(param)) {
                 if (defaultValues.containsKey(param) && !defaultValues.get(param).isEmpty()) {
@@ -620,16 +620,16 @@ public class MyBatisBulkPreparator {
             }
         }
         
-        System.out.println("\n=== 최종 통계 ===");
-        System.out.println("총 파라미터: " + totalParams + "개");
-        System.out.println("DB 샘플 값: " + dbSampleCount + "개");
-        System.out.println("기본값 사용: " + defaultValueCount + "개");
-        System.out.println("수동 설정 필요: " + emptyCount + "개");
-        System.out.printf("자동 설정률: %.1f%% (DB 샘플 + 기본값)%n", 
+        System.out.println("\n=== Final Statistics ===");
+        System.out.println("Total parameters: " + totalParams);
+        System.out.println("DB sample values: " + dbSampleCount);
+        System.out.println("Default values used: " + defaultValueCount);
+        System.out.println("Manual setting required: " + emptyCount);
+        System.out.printf("Auto-configuration rate: %.1f%% (DB samples + default values)%n", 
             ((dbSampleCount + defaultValueCount) * 100.0 / totalParams));
-        System.out.println("\n" + getOutputFilePath() + " 파일이 생성되었습니다.");
+        System.out.println("\n" + getOutputFilePath() + " file has been generated.");
         
-        // 수동 설정이 필요한 파라미터 목록
+        // List of parameters requiring manual setting
         Set<String> manualParams = new TreeSet<>();
         for (String param : parameters) {
             if (!sampleValues.containsKey(param) && 
@@ -639,12 +639,12 @@ public class MyBatisBulkPreparator {
         }
         
         if (!manualParams.isEmpty()) {
-            System.out.println("\n수동 설정 필요한 파라미터:");
+            System.out.println("\nParameters requiring manual setting:");
             manualParams.forEach(param -> System.out.println("  - " + param));
         }
         
         if (defaultValueCount > 0) {
-            System.out.println("\n기본값이 적용된 파라미터:");
+            System.out.println("\nParameters with default values applied:");
             for (String param : parameters) {
                 if (!sampleValues.containsKey(param) && 
                     defaultValues.containsKey(param) && !defaultValues.get(param).isEmpty()) {
@@ -654,10 +654,10 @@ public class MyBatisBulkPreparator {
         }
     }
     
-    // 기존 메서드들...
+    // Existing methods...
     
     /**
-     * 디렉토리에서 XML 파일들을 재귀적으로 찾기
+     * Find XML files recursively in directory
      */
     private List<Path> findXmlFiles(Path directory) throws IOException {
         List<Path> xmlFiles = new ArrayList<>();
@@ -671,33 +671,33 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * XML 파일에서 모든 파라미터 추출
+     * Extract all parameters from XML file
      */
     private int processXmlFile(Path xmlFile, Set<String> allParameters) {
         try {
             String content = Files.readString(xmlFile);
             
-            // SQL 태그 개수 세기
+            // Count SQL tags
             int sqlCount = countSqlTags(content);
             
-            // 파라미터 추출
+            // Extract parameters
             Set<String> fileParameters = extractParameters(content);
             allParameters.addAll(fileParameters);
             
             if (!fileParameters.isEmpty()) {
-                System.out.println("  -> " + fileParameters.size() + "개 파라미터, " + sqlCount + "개 SQL");
+                System.out.println("  -> " + fileParameters.size() + " parameters, " + sqlCount + " SQL");
             }
             
             return sqlCount;
             
         } catch (IOException e) {
-            System.err.println("파일 읽기 오류: " + xmlFile + " - " + e.getMessage());
+            System.err.println("File read error: " + xmlFile + " - " + e.getMessage());
             return 0;
         }
     }
     
     /**
-     * SQL 태그 개수 세기
+     * Count SQL tags
      */
     private int countSqlTags(String content) {
         Pattern sqlTagPattern = Pattern.compile("<(select|insert|update|delete)\\s+[^>]*id=\"[^\"]+\"");
@@ -710,7 +710,7 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * 파라미터 추출 (JDBC 타입, typeHandler 등 모든 속성 제거)
+     * Extract parameters (remove JDBC type, typeHandler and all attributes)
      */
     private Set<String> extractParameters(String content) {
         Set<String> parameters = new TreeSet<>();
@@ -718,16 +718,16 @@ public class MyBatisBulkPreparator {
         
         while (matcher.find()) {
             String param = matcher.group(1);
-            // #{paramName} 또는 ${paramName}에서 paramName만 추출
+            // Extract only paramName from #{paramName} or ${paramName}
             String paramContent = param.substring(2, param.length() - 1);
             
-            // JDBC 타입, typeHandler, mode 등 모든 속성 제거 (콤마 앞부분만 사용)
+            // Remove all attributes like JDBC type, typeHandler, mode (use only part before comma)
             String paramName = paramContent;
             if (paramContent.contains(",")) {
                 paramName = paramContent.split(",")[0];
             }
             
-            // 점이나 대괄호가 있는 경우 첫 번째 부분만 사용 (예: user.name -> user)
+            // Use only first part if dot or bracket exists (e.g., user.name -> user)
             if (paramName.contains(".")) {
                 paramName = paramName.split("\\.")[0];
             }
@@ -735,11 +735,11 @@ public class MyBatisBulkPreparator {
                 paramName = paramName.split("\\[")[0];
             }
             
-            // 공백, 탭, 특수문자 제거
+            // Remove spaces, tabs, special characters
             paramName = paramName.trim();
             paramName = paramName.replaceAll("[\\s\\t]+", "");
             
-            // 유효하지 않은 파라미터 제외
+            // Exclude invalid parameters
             if (!paramName.isEmpty() && 
                 !paramName.equals("sys:topas") && 
                 !paramName.startsWith("topas_") &&
@@ -752,29 +752,29 @@ public class MyBatisBulkPreparator {
     }
     
     /**
-     * 파라미터명에 따른 기본값 제안 (dtm만)
+     * Suggest default value based on parameter name (dtm only)
      */
     private String suggestDefaultValue(String paramName) {
         String lowerName = paramName.toLowerCase();
         
-        // dtm이 포함된 경우만 기본값 제안
+        // Suggest default value only when dtm is included
         if (lowerName.contains("dtm")) {
             return "20250801";
         }
         
-        // 나머지는 빈 값
+        // Empty value for others
         return "";
     }
     
     /**
-     * 파라미터 파일 생성 (알파벳순 정렬)
+     * Generate parameter file (alphabetically sorted)
      */
     private void generateParameterFile(Set<String> parameters) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(getOutputFilePath()))) {
-            writer.println("# MyBatis 파라미터 설정 파일 (대량 추출)");
-            writer.println("# 생성일시: " + new java.util.Date());
-            writer.println("# 사용법: 각 파라미터에 대해 테스트용 값을 설정하세요.");
-            writer.println("# 빈 값은 null로 처리됩니다.");
+            writer.println("# MyBatis parameter configuration file (bulk extraction)");
+            writer.println("# Generated: " + new java.util.Date());
+            writer.println("# Usage: Set test values for each parameter.");
+            writer.println("# Empty values are treated as null.");
             writer.println();
             
             // TreeSet을 사용했으므로 이미 알파벳순으로 정렬됨
@@ -785,7 +785,7 @@ public class MyBatisBulkPreparator {
         }
     }
     
-    // 내부 클래스들
+    // Inner classes
     private static class ColumnInfo {
         String schema;
         String table;

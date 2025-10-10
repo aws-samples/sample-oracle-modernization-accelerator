@@ -9,8 +9,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- * MyBatis를 사용한 간단한 SQL 실행 프로그램
- * 파라미터 파일만 있으면 동적 조건까지 자동으로 처리됩니다.
+ * Simple SQL execution program using MyBatis
+ * Automatically handles dynamic conditions with just a parameter file.
  */
 public class MyBatisSimpleExecutor {
     
@@ -18,10 +18,10 @@ public class MyBatisSimpleExecutor {
     
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("사용법: java MyBatisSimpleExecutor <XML파일경로> <SQLID>");
-            System.out.println("예시: java MyBatisSimpleExecutor /path/to/mapper.xml selectInventoryStatusAnalysis");
-            System.out.println("Oracle 환경변수가 설정되어 있어야 합니다 (ORACLE_SVC_USER, ORACLE_SVC_PASSWORD).");
-            System.out.println("tnsnames에서 orcl로 접속 가능해야 합니다.");
+            System.out.println("Usage: java MyBatisSimpleExecutor <XML_file_path> <SQL_ID>");
+            System.out.println("Example: java MyBatisSimpleExecutor /path/to/mapper.xml selectInventoryStatusAnalysis");
+            System.out.println("Oracle environment variables must be set (ORACLE_SVC_USER, ORACLE_SVC_PASSWORD).");
+            System.out.println("Must be able to connect to orcl from tnsnames.");
             return;
         }
         
@@ -34,44 +34,44 @@ public class MyBatisSimpleExecutor {
     
     public void executeWithMyBatis(String xmlFilePath, String sqlId) {
         try {
-            System.out.println("=== MyBatis 간단 실행 프로그램 ===");
-            System.out.println("XML 파일: " + xmlFilePath);
+            System.out.println("=== MyBatis Simple Execution Program ===");
+            System.out.println("XML file: " + xmlFilePath);
             System.out.println("SQL ID: " + sqlId);
             
-            // 1. 파라미터 로드
+            // 1. Parameter loading
             Map<String, Object> parameters = loadParameters();
-            System.out.println("\n=== 로드된 파라미터 ===");
+            System.out.println("\n=== Loaded parameters ===");
             parameters.forEach((key, value) -> 
                 System.out.println(key + " = " + value));
             
-            // 2. MyBatis 설정 생성
+            // 2. Create MyBatis configuration
             SqlSessionFactory sqlSessionFactory = createSqlSessionFactory(xmlFilePath);
             
-            // 3. SQL 실행
+            // 3. Execute SQL
             try (SqlSession session = sqlSessionFactory.openSession()) {
-                System.out.println("\n=== SQL 실행 ===");
+                System.out.println("\n=== Execute SQL ===");
                 
-                // SQL ID로 직접 실행 (MyBatis가 동적 조건 자동 처리)
+                // Execute directly with SQL ID (MyBatis automatically handles dynamic conditions)
                 List<Map<String, Object>> results = session.selectList(sqlId, parameters);
                 
-                System.out.println("실행 결과:");
+                System.out.println("Execution result:");
                 if (results.isEmpty()) {
-                    System.out.println("결과가 없습니다.");
+                    System.out.println("No results found.");
                 } else {
-                    // 첫 번째 행의 컬럼명 출력
+                    // Output column names from first row
                     Map<String, Object> firstRow = results.get(0);
-                    System.out.println("컬럼: " + String.join(", ", firstRow.keySet()));
+                    System.out.println("Columns: " + String.join(", ", firstRow.keySet()));
                     System.out.println("─".repeat(80));
                     
-                    // 데이터 출력 (최대 10행)
+                    // Output data (maximum 10 rows)
                     int count = 0;
                     for (Map<String, Object> row : results) {
                         if (count >= 10) {
-                            System.out.println("... (처음 10행만 표시, 총 " + results.size() + "행)");
+                            System.out.println("... (showing first 10 rows only, total " + results.size() + " rows)");
                             break;
                         }
                         
-                        // 각 컬럼 값을 탭으로 구분해서 출력
+                        // Output each column value separated by tabs
                         List<String> values = new ArrayList<>();
                         for (Object value : row.values()) {
                             values.add(value != null ? value.toString() : "NULL");
@@ -79,18 +79,18 @@ public class MyBatisSimpleExecutor {
                         System.out.println(String.join("\t", values));
                         count++;
                     }
-                    System.out.println("\n총 " + results.size() + "행이 조회되었습니다.");
+                    System.out.println("\nTotal " + results.size() + " rows retrieved.");
                 }
             }
             
         } catch (Exception e) {
-            System.err.println("오류 발생: " + e.getMessage());
+            System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * 파라미터 파일 로드
+     * Load parameter file
      */
     private Map<String, Object> loadParameters() throws IOException {
         Map<String, Object> paramMap = new HashMap<>();
@@ -98,7 +98,7 @@ public class MyBatisSimpleExecutor {
         
         File file = new File(PARAMETERS_FILE);
         if (!file.exists()) {
-            System.out.println("파라미터 파일이 없습니다: " + PARAMETERS_FILE);
+            System.out.println("Parameter file not found: " + PARAMETERS_FILE);
             return paramMap;
         }
         
@@ -106,13 +106,13 @@ public class MyBatisSimpleExecutor {
             props.load(fis);
         }
         
-        // Properties를 Map으로 변환하면서 타입 변환
+        // Convert Properties to Map with type conversion
         for (String key : props.stringPropertyNames()) {
             String value = props.getProperty(key);
             if (value == null || value.trim().isEmpty()) {
                 paramMap.put(key, null);
             } else {
-                // 숫자인지 확인
+                // Check if it's a number
                 if (isNumeric(value)) {
                     try {
                         if (value.contains(".")) {
@@ -133,7 +133,7 @@ public class MyBatisSimpleExecutor {
     }
     
     /**
-     * 숫자 여부 확인
+     * Check if string is numeric
      */
     private boolean isNumeric(String str) {
         try {
@@ -145,32 +145,32 @@ public class MyBatisSimpleExecutor {
     }
     
     /**
-     * MyBatis SqlSessionFactory 생성
+     * Create MyBatis SqlSessionFactory
      */
     private SqlSessionFactory createSqlSessionFactory(String xmlFilePath) throws IOException {
-        // TNS_ADMIN 환경변수 설정
+        // Set TNS_ADMIN environment variable
         String oracleHome = System.getenv("ORACLE_HOME");
         if (oracleHome != null) {
             String tnsAdmin = oracleHome + "/network/admin";
             System.setProperty("oracle.net.tns_admin", tnsAdmin);
-            System.setProperty("TNS_ADMIN", tnsAdmin);  // 추가 설정
-            System.out.println("TNS_ADMIN 설정: " + tnsAdmin);
+            System.setProperty("TNS_ADMIN", tnsAdmin);  // Additional setting
+            System.out.println("TNS_ADMIN set: " + tnsAdmin);
             
-            // tnsnames.ora 파일 존재 확인
+            // Check if tnsnames.ora file exists
             File tnsnamesFile = new File(tnsAdmin + "/tnsnames.ora");
             if (tnsnamesFile.exists()) {
-                System.out.println("tnsnames.ora 파일 확인됨: " + tnsnamesFile.getAbsolutePath());
+                System.out.println("tnsnames.ora file confirmed: " + tnsnamesFile.getAbsolutePath());
             } else {
-                System.out.println("경고: tnsnames.ora 파일을 찾을 수 없습니다: " + tnsnamesFile.getAbsolutePath());
+                System.out.println("Warning: tnsnames.ora file not found: " + tnsnamesFile.getAbsolutePath());
             }
         } else {
-            System.out.println("경고: ORACLE_HOME 환경변수가 설정되지 않았습니다.");
+            System.out.println("Warning: ORACLE_HOME environment variable not set.");
         }
         
-        // 1. 원본 XML 파일을 읽어서 resultType을 map으로 변경
+        // 1. Read original XML file and change resultType to map
         String modifiedXmlContent = modifyXmlForTesting(xmlFilePath);
         
-        // 2. 수정된 XML을 임시 파일로 저장
+        // 2. Save modified XML as temporary file
         File tempXmlFile = File.createTempFile("mapper", ".xml");
         tempXmlFile.deleteOnExit();
         
@@ -178,10 +178,10 @@ public class MyBatisSimpleExecutor {
             writer.write(modifiedXmlContent);
         }
         
-        // 3. MyBatis 설정 XML 생성
+        // 3. Generate MyBatis configuration XML
         String configXml = createMyBatisConfig(tempXmlFile.getAbsolutePath());
         
-        // 4. 임시 설정 파일 생성
+        // 4. Generate temporary configuration file
         File tempConfigFile = File.createTempFile("mybatis-config", ".xml");
         tempConfigFile.deleteOnExit();
         
@@ -189,14 +189,14 @@ public class MyBatisSimpleExecutor {
             writer.write(configXml);
         }
         
-        // 5. SqlSessionFactory 생성
+        // 5. Create SqlSessionFactory
         try (InputStream inputStream = new FileInputStream(tempConfigFile)) {
             return new SqlSessionFactoryBuilder().build(inputStream);
         }
     }
     
     /**
-     * XML 파일의 resultType을 테스트용으로 수정
+     * Modify XML file's resultType for testing
      */
     private String modifyXmlForTesting(String xmlFilePath) throws IOException {
         StringBuilder content = new StringBuilder();
@@ -204,11 +204,11 @@ public class MyBatisSimpleExecutor {
         try (BufferedReader reader = new BufferedReader(new FileReader(xmlFilePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // resultType을 map으로 변경
+                // Change resultType to map
                 if (line.contains("resultType=")) {
                     line = line.replaceAll("resultType=\"[^\"]*\"", "resultType=\"map\"");
                 }
-                // parameterType도 map으로 변경
+                // Change parameterType to map as well
                 if (line.contains("parameterType=")) {
                     line = line.replaceAll("parameterType=\"[^\"]*\"", "parameterType=\"map\"");
                 }
@@ -220,26 +220,26 @@ public class MyBatisSimpleExecutor {
     }
     
     /**
-     * MyBatis 설정 XML 생성 (Oracle 환경변수 사용)
+     * Generate MyBatis configuration XML (using Oracle environment variables)
      */
     private String createMyBatisConfig(String xmlFilePath) {
-        // Oracle 환경변수에서 연결 정보 구성
+        // Configure connection info from Oracle environment variables
         String connectString = System.getenv("ORACLE_SVC_CONNECT_STRING");
         String username = System.getenv("ORACLE_SVC_USER");
         String password = System.getenv("ORACLE_SVC_PASSWORD");
         
         if (username == null || password == null) {
-            throw new RuntimeException("Oracle 환경변수가 설정되지 않았습니다. 필요한 변수: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
+            throw new RuntimeException("Oracle environment variables not set. Required variables: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
         }
         
-        // tnsnames 방식으로 JDBC URL 구성 (TNS_ADMIN이 설정되어 있으므로 가능)
+        // Configure JDBC URL using tnsnames method (possible since TNS_ADMIN is set)
         String jdbcUrl = "jdbc:oracle:thin:@" + (connectString != null ? connectString : "orcl");
         
-        System.out.println("Oracle 연결 정보:");
+        System.out.println("Oracle connection info:");
         System.out.println("  JDBC URL: " + jdbcUrl);
-        System.out.println("  사용자: " + username);
+        System.out.println("  User: " + username);
         
-        // 절대 경로로 변환
+        // Convert to absolute path
         File xmlFile = new File(xmlFilePath);
         String absolutePath = xmlFile.getAbsolutePath();
         

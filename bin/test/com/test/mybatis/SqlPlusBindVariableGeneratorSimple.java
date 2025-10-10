@@ -8,21 +8,21 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * 간단한 Q Chat 기반 바인드 변수 생성기
+ * Simple Q Chat-based bind variable generator
  */
 public class SqlPlusBindVariableGeneratorSimple {
     
-    // Q Chat 설정 (빠른 응답 최적화)
+    // Q Chat settings (optimized for fast response)
     private static final int Q_CHAT_TIMEOUT = Integer.parseInt(System.getenv().getOrDefault("Q_CHAT_TIMEOUT", "3"));
     
-    // Oracle 연결 정보
+    // Oracle connection information
     private static final String ORACLE_HOST = System.getenv("ORACLE_HOST");
     private static final String ORACLE_PORT = System.getenv().getOrDefault("ORACLE_PORT", "1521");
     private static final String ORACLE_SVC_USER = System.getenv("ORACLE_SVC_USER");
     private static final String ORACLE_SVC_PASSWORD = System.getenv("ORACLE_SVC_PASSWORD");
     private static final String ORACLE_SID = System.getenv("ORACLE_SID");
     
-    // Fallback 값들
+    // Fallback values
     private static final String FALLBACK_DATE = "2025-08-24";
     private static final String FALLBACK_TIMESTAMP = "2025-08-24 10:30:00";
     private static final int FALLBACK_ID = 1;
@@ -36,59 +36,59 @@ public class SqlPlusBindVariableGeneratorSimple {
     }
     
     private void run() {
-        System.out.println("=== 간단한 Q Chat 기반 바인드 변수 생성기 ===\n");
+        System.out.println("=== Simple Q Chat-based Bind Variable Generator ===\n");
         
         try {
-            // 1. 바인드 변수 추출
+            // 1. Extract bind variables
             extractBindVariables();
             
-            // 2. Q Chat으로 값 생성
+            // 2. Generate values with Q Chat
             generateValues();
             
-            // 3. 파일 생성
+            // 3. Generate file
             generatePropertiesFile();
             
-            System.out.println("✓ 완료!");
+            System.out.println("✓ Completed!");
             
         } catch (Exception e) {
-            System.err.println("오류: " + e.getMessage());
+            System.err.println("error: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     private void extractBindVariables() {
-        System.out.println("1단계: 바인드 변수 추출...");
+        System.out.println("Step 1: Extracting bind variables...");
         
-        // 하드코딩된 테스트 변수들 (실제로는 XML에서 추출)
+        // Hardcoded test variables (in practice, extracted from XML)
         bindVariables.put("year", null);
         bindVariables.put("minReactivationProbability", null);
         bindVariables.put("userId", null);
         bindVariables.put("status", null);
         bindVariables.put("email", null);
         
-        System.out.printf("✓ %d개 변수 추출 완료\n\n", bindVariables.size());
+        System.out.printf("✓ %d variables extraction completed\n\n", bindVariables.size());
     }
     
     private void generateValues() {
-        System.out.println("2단계: Q Chat 기반 값 생성...");
+        System.out.println("Step 2: Q Chat-based value generation...");
         
         for (String varName : bindVariables.keySet()) {
-            System.out.printf("=== 변수: %s ===\n", varName);
+            System.out.printf("=== Variable: %s ===\n", varName);
             
             try {
                 String value = callQChatForValue(varName);
                 if (value != null && !value.trim().isEmpty()) {
                     bindVariables.put(varName, value.trim());
-                    System.out.printf("✓ Q Chat 성공: %s\n", value.trim());
+                    System.out.printf("✓ Q Chat Success: %s\n", value.trim());
                 } else {
                     String fallback = generateFallbackValue(varName);
                     bindVariables.put(varName, fallback);
-                    System.out.printf("✓ Fallback 사용: %s\n", fallback);
+                    System.out.printf("✓ Using fallback: %s\n", fallback);
                 }
             } catch (Exception e) {
                 String fallback = generateFallbackValue(varName);
                 bindVariables.put(varName, fallback);
-                System.out.printf("✓ Q Chat 실패, Fallback 사용: %s\n", fallback);
+                System.out.printf("✓ Q Chat failed, using fallback: %s\n", fallback);
             }
             
             System.out.println();
@@ -96,20 +96,20 @@ public class SqlPlusBindVariableGeneratorSimple {
     }
     
     private String callQChatForValue(String varName) throws Exception {
-        // 간단한 프롬프트
+        // Simple prompt
         String prompt = String.format(
-            "SQL 바인드 변수 #{%s}에 적합한 값을 생성해주세요.\n" +
-            "변수명의 의미를 파악하여 적절한 값을 반환하세요.\n" +
-            "숫자는 숫자만, 문자열은 작은따옴표로 감싸서 반환하세요.\n" +
-            "값만 반환하고 설명은 하지 마세요.",
+            "Generate an appropriate value for SQL bind variable #{%s}.\n" +
+            "Understand the meaning of the variable name and return an appropriate value.\n" +
+            "Return only numbers for numeric values, and wrap strings in single quotes.\n" +
+            "Return only the value without explanation.",
             varName
         );
         
-        System.out.println("🤖 Q Chat 프롬프트:");
+        System.out.println("🤖 Q Chat prompt:");
         System.out.println(prompt);
         System.out.println("-".repeat(40));
         
-        // Q Chat 실행
+        // Execute Q Chat
         ProcessBuilder pb = new ProcessBuilder("q", "chat", prompt);
         Process process = pb.start();
         
@@ -124,15 +124,15 @@ public class SqlPlusBindVariableGeneratorSimple {
         boolean finished = process.waitFor(Q_CHAT_TIMEOUT, TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
-            throw new Exception("Q Chat 타임아웃");
+            throw new Exception("Q Chat timeout");
         }
         
         if (process.exitValue() != 0) {
-            throw new Exception("Q Chat 실행 실패");
+            throw new Exception("Q Chat execution failed");
         }
         
         String response = output.toString().trim();
-        System.out.println("🤖 Q Chat 응답:");
+        System.out.println("🤖 Q Chat response:");
         System.out.println(response);
         System.out.println("-".repeat(40));
         
@@ -144,10 +144,10 @@ public class SqlPlusBindVariableGeneratorSimple {
             return null;
         }
         
-        // ANSI 색상 코드 제거
+        // Remove ANSI color codes
         String clean = response.replaceAll("\\u001B\\[[;\\d]*m", "").trim();
         
-        // 라인별로 확인하여 마지막 유효한 값 찾기
+        // Check line by line to find the last valid value
         String[] lines = clean.split("\n");
         for (int i = lines.length - 1; i >= 0; i--) {
             String line = lines[i].trim();
@@ -156,17 +156,17 @@ public class SqlPlusBindVariableGeneratorSimple {
                 continue;
             }
             
-            // 숫자 값
+            // Numeric value
             if (line.matches("^\\d+$")) {
                 return line;
             }
             
-            // 따옴표로 감싸진 값
+            // Value wrapped in quotes
             if (line.matches("^'[^']*'$")) {
                 return line;
             }
             
-            // 간단한 단어
+            // Simple word
             if (line.matches("^[A-Za-z0-9_-]+$") && line.length() <= 20) {
                 return line;
             }
@@ -192,11 +192,11 @@ public class SqlPlusBindVariableGeneratorSimple {
     }
     
     private void generatePropertiesFile() throws IOException {
-        System.out.println("3단계: parameters.properties 파일 생성...");
+        System.out.println("Step 3: Generating parameters.properties file...");
         
         try (PrintWriter writer = new PrintWriter(new FileWriter("parameters.properties"))) {
-            writer.println("# Q Chat 기반 바인드 변수 매개변수 파일");
-            writer.println("# 생성일시: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println("# Q Chat-based bind variable parameter file");
+            writer.println("# Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             writer.println();
             
             List<String> sortedVars = new ArrayList<>(bindVariables.keySet());
@@ -204,12 +204,12 @@ public class SqlPlusBindVariableGeneratorSimple {
             
             for (String varName : sortedVars) {
                 String value = bindVariables.get(varName);
-                writer.println("# 변수: " + varName);
+                writer.println("# Variable: " + varName);
                 writer.println(varName + "=" + value);
                 writer.println();
             }
         }
         
-        System.out.printf("✓ parameters.properties 파일 생성 완료 (%d개 변수)\n", bindVariables.size());
+        System.out.printf("✓ parameters.properties file generation completed (%d variables)\n", bindVariables.size());
     }
 }

@@ -13,17 +13,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Oracle vs PostgreSQL 테스트 결과 분석 프로그램
+ * Oracle vs PostgreSQL test result analysis program
  * 
- * 기능:
- * 1. PostgreSQL 실행 실패 SQL 에러 분석
- * 2. sqllist 테이블의 same='N' 케이스 분석
- *    - 길이 다른 경우: '결과가 다름'
- *    - 길이 같은 경우: JSON 정렬 후 비교하여 '정렬 방식 차이' vs '결과가 다름' 구분
+ * Features:
+ * 1. Analyze PostgreSQL Execute SQL Failed SQL errors
+ * 2. Analyze sqllist table same='N' cases
+ *    - Different lengths: 'Results differ'
+ *    - Same length: Compare after JSON sorting to distinguish 'Sorting difference' vs 'Results differ'
  */
 public class TestResultAnalyzer {
     
-    // PostgreSQL 접속 정보를 환경변수에서 읽기
+    // Read PostgreSQL connection information from environment variables
     private static final String POSTGRES_HOST = System.getenv("PGHOST") != null ? System.getenv("PGHOST") : "localhost";
     private static final String POSTGRES_PORT = System.getenv("PGPORT") != null ? System.getenv("PGPORT") : "5432";
     private static final String POSTGRES_DATABASE = System.getenv("PGDATABASE") != null ? System.getenv("PGDATABASE") : "oma";
@@ -44,52 +44,52 @@ public class TestResultAnalyzer {
         
         try {
             if (args.length > 0 && "--fix-sorting".equals(args[0])) {
-                // 정렬 차이 자동 수정 모드
+                // Automatic sorting difference fix mode
                 analyzer.fixSortingDifferences();
             } else {
-                // 일반 분석 모드
-                System.out.println("=== Oracle vs PostgreSQL 테스트 결과 분석 ===\n");
+                // Normal analysis mode
+                System.out.println("=== Oracle vs PostgreSQL Test Result Analysis ===\n");
                 
-                // 1. PostgreSQL 실행 실패 분석
+                // 1. PostgreSQL Execute SQL Failed analysis
                 analyzer.analyzePostgreSQLErrors();
                 
                 System.out.println("\n" + "=".repeat(80) + "\n");
                 
-                // 2. sqllist 테이블 same='N' 케이스 분석
+                // 2. sqllist table same='N' case analysis
                 analyzer.analyzeSqlListDifferences();
             }
         } catch (Exception e) {
-            System.err.println("분석 중 오류 발생: " + e.getMessage());
+            System.err.println("Error occurred during analysis: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * 1. PostgreSQL 실행 실패 SQL 에러 분석
+     * 1. PostgreSQL SQL execution failure error analysis
      */
     private void analyzePostgreSQLErrors() throws Exception {
-        System.out.println("📊 1. PostgreSQL 실행 실패 SQL 에러 분석");
+        System.out.println("📊 1. PostgreSQL SQL execution failure error analysis");
         System.out.println("-".repeat(50));
         
-        // 최신 PostgreSQL 결과 파일 찾기
+        // Find latest PostgreSQL result file
         String resultFile = findLatestPostgreSQLResultFile();
         if (resultFile == null) {
-            System.out.println("✅ PostgreSQL 실행 실패 SQL이 없습니다. (모든 SQL이 성공적으로 실행됨)");
+            System.out.println("✅ No PostgreSQL SQL execution failures. (All SQL executed successfully)");
             return;
         }
         
-        System.out.println("📄 분석 파일: " + resultFile);
+        System.out.println("📄 Analysis file: " + resultFile);
         
-        // JSON 파일 파싱
+        // Parse JSON file
         JsonNode rootNode = objectMapper.readTree(new File(resultFile));
         JsonNode failedTests = rootNode.get("failedTests");
         
         if (failedTests == null || !failedTests.isArray() || failedTests.size() == 0) {
-            System.out.println("✅ PostgreSQL 실행 실패 SQL이 없습니다.");
+            System.out.println("✅ No PostgreSQL SQL execution failures.");
             return;
         }
         
-        // 에러 유형별 분류
+        // Classify by error type
         Map<String, List<FailedTest>> errorTypeMap = new LinkedHashMap<>();
         
         for (JsonNode failedTest : failedTests) {
@@ -103,16 +103,16 @@ public class TestResultAnalyzer {
                        .add(new FailedTest(xmlFile, sqlId, errorMessage));
         }
         
-        // 결과 출력
-        System.out.println("\n🔍 에러 유형별 분석 결과:");
-        System.out.println("총 실패 SQL 수: " + failedTests.size() + "개\n");
+        // Output results
+        System.out.println("\n🔍 Error type analysis results:");
+        System.out.println("Total failed SQL count: " + failedTests.size() + "\n");
         
         int typeIndex = 1;
         for (Map.Entry<String, List<FailedTest>> entry : errorTypeMap.entrySet()) {
             String errorType = entry.getKey();
             List<FailedTest> tests = entry.getValue();
             
-            System.out.println(typeIndex + ". " + errorType + " (" + tests.size() + "개)");
+            System.out.println(typeIndex + ". " + errorType + " (" + tests.size() + ")");
             System.out.println("   " + "-".repeat(40));
             
             for (FailedTest test : tests) {
@@ -123,28 +123,28 @@ public class TestResultAnalyzer {
             typeIndex++;
         }
         
-        // Q Chat용 분석 요청은 제거 (불필요)
+        // Q Chat analysis request removed (unnecessary)
     }
     
     /**
-     * 2. sqllist 테이블 same='N' 케이스 분석
+     * 2. sqllist table same='N' case analysis
      */
     private void analyzeSqlListDifferences() throws Exception {
-        System.out.println("📊 2. sqllist 테이블 same='N' 케이스 분석");
+        System.out.println("📊 2. sqllist table same='N' case analysis");
         System.out.println("-".repeat(50));
         
-        // 환경변수에서 DB 타입 읽기
+        // Read DB type from environment variables
         String srcDbType = System.getenv("SOURCE_DBMS_TYPE");
         String tgtDbType = System.getenv("TARGET_DBMS_TYPE");
         
         if (srcDbType == null) srcDbType = "Source";
         if (tgtDbType == null) tgtDbType = "Target";
         
-        System.out.println("🔍 DB 타입: " + srcDbType + " vs " + tgtDbType + "\n");
+        System.out.println("🔍 DB type: " + srcDbType + " vs " + tgtDbType + "\n");
         
         try (Connection conn = DriverManager.getConnection(POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD)) {
             
-            // same='N' 케이스 조회
+            // Query same='N' cases
             String sql = """
                 SELECT sql_id, src_result, tgt_result, src_path, tgt_path,
                        LENGTH(src_result) as src_length,
@@ -175,10 +175,10 @@ public class TestResultAnalyzer {
                     SqlDifference diff = new SqlDifference(sqlId, srcResult, tgtResult, srcLength, tgtLength, srcPath, tgtPath);
                     
                     if (srcLength != tgtLength) {
-                        // 길이가 다른 경우: 결과가 다름
+                        // Different lengths: Results differ
                         lengthDifferent.add(diff);
                     } else {
-                        // 길이가 같은 경우: JSON 정렬 후 비교
+                        // Same length: Compare after JSON sorting
                         if (compareJsonAfterSorting(srcResult, tgtResult)) {
                             sortingDifferent.add(diff);
                         } else {
@@ -188,16 +188,16 @@ public class TestResultAnalyzer {
                 }
             }
             
-            // 결과 출력
-            System.out.println("\n🔍 same='N' 케이스 분석 결과:");
-            System.out.println("총 분석 대상: " + (lengthDifferent.size() + sortingDifferent.size() + contentDifferent.size()) + "개\n");
+            // Output results
+            System.out.println("\n🔍 same='N' case analysis results:");
+            System.out.println("Total analysis targets: " + (lengthDifferent.size() + sortingDifferent.size() + contentDifferent.size()) + "\n");
             
-            // 1. 결과가 다름 (길이 차이 + 내용 차이)
+            // 1. Results differ (length difference + content difference)
             List<SqlDifference> allDifferent = new ArrayList<>();
             allDifferent.addAll(lengthDifferent);
             allDifferent.addAll(contentDifferent);
             
-            System.out.println("1. 결과가 다름 - " + allDifferent.size() + "개");
+            System.out.println("1. Results differ - " + allDifferent.size());
             System.out.println("   " + "-".repeat(50));
             for (SqlDifference diff : allDifferent) {
                 String[] parts = diff.sqlId.split("\\.");
@@ -206,17 +206,17 @@ public class TestResultAnalyzer {
                 
                 if (diff.srcLength != diff.tgtLength) {
                     System.out.println("   📁 " + mapper + " → " + sqlIdOnly + 
-                                     " (길이 차이: " + srcDbType + " " + diff.srcLength + " bytes, " + tgtDbType + " " + diff.tgtLength + " bytes)");
+                                     " (length difference: " + srcDbType + " " + diff.srcLength + " bytes, " + tgtDbType + " " + diff.tgtLength + " bytes)");
                 } else {
-                    System.out.println("   📁 " + mapper + " → " + sqlIdOnly + " (내용 차이)");
+                    System.out.println("   📁 " + mapper + " → " + sqlIdOnly + " (content difference)");
                 }
                 System.out.println("      📂 " + srcDbType + ": " + (diff.srcPath != null ? diff.srcPath : "N/A"));
                 System.out.println("      📂 " + tgtDbType + ": " + (diff.tgtPath != null ? diff.tgtPath : "N/A"));
                 System.out.println();
             }
             
-            // 2. 정렬 방식 차이
-            System.out.println("2. 정렬 방식 차이 - " + sortingDifferent.size() + "개");
+            // 2. Sorting difference
+            System.out.println("2. Sorting difference - " + sortingDifferent.size());
             System.out.println("   " + "-".repeat(50));
             for (SqlDifference diff : sortingDifferent) {
                 String[] parts = diff.sqlId.split("\\.");
@@ -228,41 +228,41 @@ public class TestResultAnalyzer {
                 System.out.println();
             }
             
-            // 요약 통계
-            System.out.println("\n📈 분석 요약:");
-            System.out.println("   • 결과가 다름: " + allDifferent.size() + "개 (길이 차이: " + lengthDifferent.size() + "개, 내용 차이: " + contentDifferent.size() + "개)");
-            System.out.println("   • 정렬 방식 차이 (실제로는 동일): " + sortingDifferent.size() + "개");
+            // Summary statistics
+            System.out.println("\n📈 Analysis summary:");
+            System.out.println("   • Results differ: " + allDifferent.size() + " (length difference: " + lengthDifferent.size() + ", content difference: " + contentDifferent.size() + ")");
+            System.out.println("   • Sorting difference (actually identical): " + sortingDifferent.size());
             if (sortingDifferent.size() > 0) {
-                System.out.println("   • 잠재적 성공률 향상: +" + sortingDifferent.size() + "개");
+                System.out.println("   • Potential success rate improvement: +" + sortingDifferent.size());
             }
         }
     }
     
     /**
-     * JSON 정렬 후 비교 - results 배열만 정렬
+     * Compare after JSON sorting - sort only results array
      */
     private boolean compareJsonAfterSorting(String json1, String json2) {
         try {
             JsonNode node1 = objectMapper.readTree(json1);
             JsonNode node2 = objectMapper.readTree(json2);
             
-            // results 배열 추출
+            // Extract results array
             JsonNode results1 = node1.get("results");
             JsonNode results2 = node2.get("results");
             
             if (results1 == null || results2 == null) {
-                return false; // results가 없으면 다른 것으로 처리
+                return false; // Treat as different if results are missing
             }
             
             if (!results1.isArray() || !results2.isArray()) {
-                return false; // 배열이 아니면 다른 것으로 처리
+                return false; // Treat as different if not arrays
             }
             
-            // results 배열만 정렬하여 비교
+            // Sort and compare only results arrays
             ArrayNode sortedResults1 = sortJsonArray((ArrayNode) results1);
             ArrayNode sortedResults2 = sortJsonArray((ArrayNode) results2);
             
-            // 정렬된 results 배열을 문자열로 변환하여 비교
+            // Convert sorted results arrays to strings and compare
             String sortedStr1 = objectMapper.writeValueAsString(sortedResults1);
             String sortedStr2 = objectMapper.writeValueAsString(sortedResults2);
             
@@ -274,16 +274,16 @@ public class TestResultAnalyzer {
     }
     
     /**
-     * JSON 배열 정렬 - 각 객체를 정규화된 문자열로 변환하여 정렬
+     * Sort JSON array - convert each object to normalized string and sort
      */
     private ArrayNode sortJsonArray(ArrayNode arrayNode) {
         List<JsonNode> nodeList = new ArrayList<>();
         arrayNode.forEach(nodeList::add);
         
-        // 각 JSON 객체를 정규화된 문자열로 변환하여 정렬
+        // Sort by converting each JSON object to normalized string
         nodeList.sort((a, b) -> {
             try {
-                // 객체 내부 키도 정렬하여 정규화
+                // Normalize by sorting keys within objects
                 String strA = objectMapper.writeValueAsString(a);
                 String strB = objectMapper.writeValueAsString(b);
                 return strA.compareTo(strB);
@@ -298,7 +298,7 @@ public class TestResultAnalyzer {
     }
     
     /**
-     * 전체 JSON 정렬 후 비교
+     * Compare after sorting entire JSON
      */
     private boolean sortJsonAndCompare(JsonNode node1, JsonNode node2) {
         try {
@@ -311,35 +311,35 @@ public class TestResultAnalyzer {
     }
     
     /**
-     * 에러 유형 분류
+     * Categorize error types
      */
     private String categorizeError(String errorMessage) {
         if (errorMessage.contains("operator does not exist")) {
-            return "데이터 타입 캐스팅 오류";
+            return "Data type casting error";
         } else if (errorMessage.contains("cannot cast type integer to interval")) {
-            return "날짜/시간 처리 오류 (INTERVAL 캐스팅)";
+            return "Date/time processing error (INTERVAL casting)";
         } else if (errorMessage.contains("invalid input syntax for type integer")) {
-            return "데이터 타입 입력 오류";
+            return "Data type input error";
         } else if (errorMessage.contains("recursive reference to query")) {
-            return "재귀 쿼리 구문 오류";
+            return "Recursive query syntax error";
         } else if (errorMessage.contains("relation") && errorMessage.contains("does not exist")) {
-            return "테이블/뷰 존재하지 않음";
+            return "Table/view does not exist";
         } else if (errorMessage.contains("function") && errorMessage.contains("does not exist")) {
-            return "함수 존재하지 않음";
+            return "Function does not exist";
         } else {
-            return "기타 오류";
+            return "Other errors";
         }
     }
     
     /**
-     * 정렬 방식 차이 자동 수정
+     * Automatic fix for sorting differences
      */
     private void fixSortingDifferences() throws Exception {
-        System.out.println("🔧 정렬 방식 차이 자동 수정 시작...");
+        System.out.println("🔧 Automatic sorting difference fix started...");
         
         try (Connection conn = DriverManager.getConnection(POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD)) {
             
-            // 정렬 차이 케이스 조회 (길이는 같지만 내용이 다른 경우)
+            // Query sorting difference cases (same length but different content)
             String sql = """
                 SELECT sql_id, src_result, tgt_result, tgt_path
                 FROM oma.sqllist 
@@ -361,26 +361,26 @@ public class TestResultAnalyzer {
                     String tgtResult = rs.getString("tgt_result");
                     String tgtPath = rs.getString("tgt_path");
                     
-                    // JSON 정렬 후 비교하여 정렬 차이인지 확인
+                    // Check if it's a sorting difference by comparing after JSON sorting
                     if (compareJsonAfterSorting(srcResult, tgtResult)) {
-                        System.out.println("📝 정렬 차이 수정: " + sqlId);
+                        System.out.println("📝 Fixing sorting difference: " + sqlId);
                         
                         if (addOrderByToSql(tgtPath, sqlId)) {
                             fixedCount++;
-                            System.out.println("   ✅ ORDER BY 추가 완료");
+                            System.out.println("   ✅ ORDER BY addition completed");
                         } else {
-                            System.out.println("   ❌ 수정 실패");
+                            System.out.println("   ❌ Fix failed");
                         }
                     }
                 }
             }
             
-            System.out.println("\n✅ 정렬 차이 자동 수정 완료: " + fixedCount + "개 수정됨");
+            System.out.println("\n✅ Automatic sorting difference fix completed: " + fixedCount + " fixed");
         }
     }
     
     /**
-     * XML 파일에서 해당 SQL에 ORDER BY 추가
+     * Add ORDER BY to corresponding SQL in XML file
      */
     private boolean addOrderByToSql(String xmlPath, String fullSqlId) {
         try {
@@ -389,10 +389,10 @@ public class TestResultAnalyzer {
             
             String sqlIdOnly = parts[1];
             
-            // XML 파일 읽기
+            // Read XML file
             String content = Files.readString(Paths.get(xmlPath));
             
-            // SQL 태그 찾기
+            // Find SQL tag
             String pattern = "(<(select|insert|update|delete)[^>]*id\\s*=\\s*[\"']" + sqlIdOnly + "[\"'][^>]*>)(.*?)(</\\2>)";
             java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern, java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.DOTALL);
             java.util.regex.Matcher m = p.matcher(content);
@@ -402,14 +402,14 @@ public class TestResultAnalyzer {
                 String sqlContent = m.group(3);
                 String closeTag = m.group(4);
                 
-                // SELECT 문인지 확인
+                // Check if it's a SELECT statement
                 if (openTag.toLowerCase().contains("<select")) {
-                    // 이미 ORDER BY가 있는지 더 정확하게 확인 (CDATA, 주석 등 고려)
+                    // More accurately check if ORDER BY already exists (considering CDATA, comments, etc.)
                     String cleanSqlContent = sqlContent.replaceAll("<!\\[CDATA\\[.*?\\]\\]>", "")
                                                       .replaceAll("<!--.*?-->", "");
                     
                     if (!cleanSqlContent.toLowerCase().matches(".*\\border\\s+by\\b.*")) {
-                        // 가장 마지막 부분에 ORDER BY 1 추가
+                        // Add ORDER BY 1 at the very end
                         sqlContent = sqlContent.trim();
                         if (sqlContent.endsWith(";")) {
                             sqlContent = sqlContent.substring(0, sqlContent.length() - 1) + "\n        ORDER BY 1;";
@@ -421,7 +421,7 @@ public class TestResultAnalyzer {
                         Files.writeString(Paths.get(xmlPath), newContent);
                         return true;
                     } else {
-                        System.out.println("   ⚠️  이미 ORDER BY가 존재합니다");
+                        System.out.println("   ⚠️  ORDER BY already exists");
                         return false;
                     }
                 }
@@ -430,13 +430,13 @@ public class TestResultAnalyzer {
             return false;
             
         } catch (Exception e) {
-            System.err.println("ORDER BY 추가 실패: " + e.getMessage());
+            System.err.println("ORDER BY addition failed: " + e.getMessage());
             return false;
         }
     }
     
     /**
-     * 에러 메시지 요약 추출
+     * Extract error message summary
      */
     private String extractErrorSummary(String errorMessage) {
         String[] lines = errorMessage.split("\n");
@@ -445,11 +445,11 @@ public class TestResultAnalyzer {
                 return line.trim();
             }
         }
-        return "오류 정보 없음";
+        return "No error information";
     }
     
     /**
-     * 최신 PostgreSQL 결과 파일 찾기
+     * Find latest PostgreSQL result file
      */
     private String findLatestPostgreSQLResultFile() {
         try {
@@ -467,7 +467,7 @@ public class TestResultAnalyzer {
     
     // generateQChatAnalysisRequest 메서드 제거됨
     
-    // 내부 클래스들
+    // Inner classes
     static class FailedTest {
         String xmlFile;
         String sqlId;

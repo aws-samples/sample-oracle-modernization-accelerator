@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * MyBatis XML 파일들을 재귀적으로 검색하여 모든 SQL ID를 자동으로 테스트하는 프로그램
+ * Program to recursively search MyBatis XML files and automatically test all SQL IDs
  */
 public class MyBatisBulkExecutor {
     
@@ -21,15 +21,15 @@ public class MyBatisBulkExecutor {
     
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("사용법: java MyBatisBulkExecutor <디렉토리경로> [옵션]");
-            System.out.println("옵션:");
-            System.out.println("  --select-only    SELECT 구문만 실행 (기본값)");
-            System.out.println("  --all           모든 SQL 구문 실행 (INSERT/UPDATE/DELETE 포함)");
-            System.out.println("  --summary       요약 정보만 출력");
-            System.out.println("  --verbose       상세 정보 출력");
+            System.out.println("Usage: java MyBatisBulkExecutor <directory_path> [options]");
+            System.out.println("Options:");
+            System.out.println("  --select-only    Execute SELECT statements only (default)");
+            System.out.println("  --all           Execute all SQL statements (including INSERT/UPDATE/DELETE)");
+            System.out.println("  --summary       Output summary information only");
+            System.out.println("  --verbose       Output detailed information");
             System.out.println();
-            System.out.println("예시: java MyBatisBulkExecutor /path/to/mapper/directory");
-            System.out.println("예시: java MyBatisBulkExecutor /path/to/mapper/directory --all --verbose");
+            System.out.println("Example: java MyBatisBulkExecutor /path/to/mapper/directory");
+            System.out.println("Example: java MyBatisBulkExecutor /path/to/mapper/directory --all --verbose");
             return;
         }
         
@@ -38,7 +38,7 @@ public class MyBatisBulkExecutor {
         boolean summaryOnly = false;
         boolean verbose = false;
         
-        // 옵션 파싱
+        // Option parsing
         for (int i = 1; i < args.length; i++) {
             switch (args[i]) {
                 case "--all":
@@ -62,49 +62,49 @@ public class MyBatisBulkExecutor {
     
     public void executeAllSql(String directoryPath, boolean selectOnly, boolean summaryOnly, boolean verbose) {
         try {
-            System.out.println("=== MyBatis 대량 SQL 실행 테스트 ===");
-            System.out.println("검색 디렉토리: " + directoryPath);
-            System.out.println("실행 모드: " + (selectOnly ? "SELECT만" : "모든 SQL"));
-            System.out.println("출력 모드: " + (summaryOnly ? "요약만" : verbose ? "상세" : "기본"));
+            System.out.println("=== MyBatis Bulk SQL Execution Test ===");
+            System.out.println("Search directory: " + directoryPath);
+            System.out.println("Execution mode: " + (selectOnly ? "SELECT only" : "All SQL"));
+            System.out.println("Output mode: " + (summaryOnly ? "Summary only" : verbose ? "Detailed" : "Basic"));
             
-            // 1. 파라미터 로드
+            // 1. Load parameters
             Map<String, Object> parameters = loadParameters();
             if (!summaryOnly) {
-                System.out.println("\n=== 로드된 파라미터 ===");
-                System.out.println("총 " + parameters.size() + "개 파라미터 로드됨");
+                System.out.println("\n=== Loaded Parameters ===");
+                System.out.println("Total " + parameters.size() + " parameters loaded");
                 if (verbose) {
                     parameters.forEach((key, value) -> 
                         System.out.println("  " + key + " = " + (value != null ? value : "null")));
                 }
             }
             
-            // 2. XML 파일들을 재귀적으로 찾기
+            // 2. Find XML files recursively
             List<Path> xmlFiles = findXmlFiles(Paths.get(directoryPath));
-            System.out.println("\n발견된 XML 파일 수: " + xmlFiles.size());
+            System.out.println("\nXML files found: " + xmlFiles.size());
             
-            // 3. 모든 SQL 정보 수집
+            // 3. Collect all SQL information
             List<SqlTestInfo> allSqlTests = new ArrayList<>();
             for (Path xmlFile : xmlFiles) {
                 List<SqlTestInfo> sqlTests = collectSqlTests(xmlFile, selectOnly);
                 allSqlTests.addAll(sqlTests);
             }
             
-            System.out.println("실행할 SQL 수: " + allSqlTests.size());
+            System.out.println("SQL count to execute: " + allSqlTests.size());
             
-            // 4. SQL 실행 테스트
+            // 4. Execute SQL tests
             TestResults results = executeTests(allSqlTests, parameters, summaryOnly, verbose);
             
-            // 5. 결과 요약
+            // 5. Results summary
             printSummary(results);
             
         } catch (Exception e) {
-            System.err.println("오류 발생: " + e.getMessage());
+            System.err.println("Error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
     
     /**
-     * 디렉토리에서 XML 파일들을 재귀적으로 찾기
+     * Find XML files recursively in directory
      */
     private List<Path> findXmlFiles(Path directory) throws IOException {
         List<Path> xmlFiles = new ArrayList<>();
@@ -118,7 +118,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * XML 파일에서 SQL 테스트 정보 수집
+     * Collect SQL test information from XML file
      */
     private List<SqlTestInfo> collectSqlTests(Path xmlFile, boolean selectOnly) {
         List<SqlTestInfo> sqlTests = new ArrayList<>();
@@ -131,7 +131,7 @@ public class MyBatisBulkExecutor {
                 String sqlType = matcher.group(1).toLowerCase();
                 String sqlId = matcher.group(2);
                 
-                // SELECT만 실행하는 경우 필터링
+                // Filter when executing SELECT only
                 if (selectOnly && !sqlType.equals("select")) {
                     continue;
                 }
@@ -145,20 +145,20 @@ public class MyBatisBulkExecutor {
             }
             
         } catch (IOException e) {
-            System.err.println("파일 읽기 오류: " + xmlFile + " - " + e.getMessage());
+            System.err.println("File read error: " + xmlFile + " - " + e.getMessage());
         }
         
         return sqlTests;
     }
     
     /**
-     * 모든 SQL 테스트 실행
+     * Execute all SQL tests
      */
     private TestResults executeTests(List<SqlTestInfo> sqlTests, Map<String, Object> parameters, 
                                    boolean summaryOnly, boolean verbose) {
         TestResults results = new TestResults();
         
-        System.out.println("\n=== SQL 실행 테스트 시작 ===");
+        System.out.println("\n=== SQL Execution Test Started ===");
         
         for (int i = 0; i < sqlTests.size(); i++) {
             SqlTestInfo testInfo = sqlTests.get(i);
@@ -174,9 +174,9 @@ public class MyBatisBulkExecutor {
             
             if (!summaryOnly) {
                 if (result.success) {
-                    System.out.println("  ✅ 성공 - " + result.rowCount + "행");
+                    System.out.println("  ✅ Success - " + result.rowCount + " rows");
                 } else {
-                    System.out.println("  ❌ 실패 - " + result.errorMessage);
+                    System.out.println("  ❌ Failed - " + result.errorMessage);
                 }
             }
         }
@@ -185,7 +185,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * 단일 SQL 테스트 실행
+     * Execute single SQL test
      */
     private TestResult executeSingleTest(SqlTestInfo testInfo, Map<String, Object> parameters, 
                                        boolean summaryOnly, boolean verbose) {
@@ -193,10 +193,10 @@ public class MyBatisBulkExecutor {
         result.testInfo = testInfo;
         
         try {
-            // MyBatis 설정 생성
+            // Create MyBatis configuration
             SqlSessionFactory sqlSessionFactory = createSqlSessionFactory(testInfo.xmlFile.toString());
             
-            // SQL 실행
+            // Execute SQL
             try (SqlSession session = sqlSessionFactory.openSession()) {
                 if (testInfo.sqlType.equals("select")) {
                     List<Map<String, Object>> rows = session.selectList(testInfo.sqlId, parameters);
@@ -204,15 +204,15 @@ public class MyBatisBulkExecutor {
                     result.rowCount = rows.size();
                     
                     if (verbose && !summaryOnly && !rows.isEmpty()) {
-                        System.out.println("    컬럼: " + String.join(", ", rows.get(0).keySet()));
+                        System.out.println("    Columns: " + String.join(", ", rows.get(0).keySet()));
                         if (rows.size() <= 3) {
                             for (Map<String, Object> row : rows) {
-                                System.out.println("    데이터: " + formatRowData(row));
+                                System.out.println("    Data: " + formatRowData(row));
                             }
                         }
                     }
                 } else {
-                    // INSERT/UPDATE/DELETE의 경우 실제 실행하지 않고 파싱만 확인
+                    // For INSERT/UPDATE/DELETE, only check parsing without actual execution
                     session.selectList(testInfo.sqlId, parameters);
                     result.success = true;
                     result.rowCount = 0;
@@ -231,7 +231,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * 행 데이터 포맷팅
+     * Format row data
      */
     private String formatRowData(Map<String, Object> row) {
         List<String> values = new ArrayList<>();
@@ -246,26 +246,26 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * 결과 요약 출력
+     * Print results summary
      */
     private void printSummary(TestResults results) {
-        System.out.println("\n=== 실행 결과 요약 ===");
-        System.out.println("총 테스트 수: " + results.totalTests);
-        System.out.println("성공: " + results.successCount + "개");
-        System.out.println("실패: " + results.failureCount + "개");
-        System.out.println("성공률: " + String.format("%.1f%%", results.getSuccessRate()));
+        System.out.println("\n=== Execution Results Summary ===");
+        System.out.println("Total tests: " + results.totalTests);
+        System.out.println("Success: " + results.successCount);
+        System.out.println("Failed: " + results.failureCount);
+        System.out.println("Success rate: " + String.format("%.1f%%", results.getSuccessRate()));
         
         if (results.failureCount > 0) {
-            System.out.println("\n=== 실패한 테스트 ===");
+            System.out.println("\n=== Failed Tests ===");
             for (TestResult result : results.failures) {
                 System.out.println("❌ " + result.testInfo.xmlFile.getFileName() + 
                     ":" + result.testInfo.sqlId + " - " + result.errorMessage);
             }
         }
         
-        // 파일별 통계
-        System.out.println("\n=== 파일별 통계 ===");
-        Map<String, Integer[]> fileStats = new HashMap<>(); // [성공, 실패]
+        // Statistics by file
+        System.out.println("\n=== Statistics by File ===");
+        Map<String, Integer[]> fileStats = new HashMap<>(); // [Success, Failed]
         
         for (TestResult result : results.allResults) {
             String fileName = result.testInfo.xmlFile.getFileName().toString();
@@ -290,7 +290,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * 파라미터 파일 로드
+     * Load parameter file
      */
     private Map<String, Object> loadParameters() throws IOException {
         Map<String, Object> paramMap = new HashMap<>();
@@ -298,7 +298,7 @@ public class MyBatisBulkExecutor {
         
         File file = new File(PARAMETERS_FILE);
         if (!file.exists()) {
-            System.out.println("파라미터 파일이 없습니다: " + PARAMETERS_FILE);
+            System.out.println("Parameter file not found: " + PARAMETERS_FILE);
             return paramMap;
         }
         
@@ -306,13 +306,13 @@ public class MyBatisBulkExecutor {
             props.load(fis);
         }
         
-        // Properties를 Map으로 변환하면서 타입 변환
+        // Convert Properties to Map with type conversion
         for (String key : props.stringPropertyNames()) {
             String value = props.getProperty(key);
             if (value == null || value.trim().isEmpty()) {
                 paramMap.put(key, null);
             } else {
-                // 숫자인지 확인
+                // Check if numeric
                 if (isNumeric(value)) {
                     try {
                         if (value.contains(".")) {
@@ -333,7 +333,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * 숫자 여부 확인
+     * Check if string is numeric
      */
     private boolean isNumeric(String str) {
         try {
@@ -345,10 +345,10 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * MyBatis SqlSessionFactory 생성
+     * Create MyBatis SqlSessionFactory
      */
     private SqlSessionFactory createSqlSessionFactory(String xmlFilePath) throws IOException {
-        // TNS_ADMIN 환경변수를 프로그램 내에서 설정
+        // Set TNS_ADMIN environment variable within program
         String oracleHome = System.getenv("ORACLE_HOME");
         if (oracleHome != null) {
             String tnsAdmin = oracleHome + "/network/admin";
@@ -356,10 +356,10 @@ public class MyBatisBulkExecutor {
             System.setProperty("TNS_ADMIN", tnsAdmin);
         }
         
-        // 1. 원본 XML 파일을 읽어서 resultType을 map으로 변경
+        // 1. Read original XML file and change resultType to map
         String modifiedXmlContent = modifyXmlForTesting(xmlFilePath);
         
-        // 2. 수정된 XML을 임시 파일로 저장
+        // 2. Save modified XML as temporary file
         File tempXmlFile = File.createTempFile("mapper", ".xml");
         tempXmlFile.deleteOnExit();
         
@@ -367,10 +367,10 @@ public class MyBatisBulkExecutor {
             writer.write(modifiedXmlContent);
         }
         
-        // 3. MyBatis 설정 XML 생성
+        // 3. Generate MyBatis configuration XML
         String configXml = createMyBatisConfig(tempXmlFile.getAbsolutePath());
         
-        // 4. 임시 설정 파일 생성
+        // 4. Generate temporary configuration file
         File tempConfigFile = File.createTempFile("mybatis-config", ".xml");
         tempConfigFile.deleteOnExit();
         
@@ -378,14 +378,14 @@ public class MyBatisBulkExecutor {
             writer.write(configXml);
         }
         
-        // 5. SqlSessionFactory 생성
+        // 5. Create SqlSessionFactory
         try (InputStream inputStream = new FileInputStream(tempConfigFile)) {
             return new SqlSessionFactoryBuilder().build(inputStream);
         }
     }
     
     /**
-     * XML 파일의 resultType을 테스트용으로 수정
+     * Modify XML file's resultType for testing
      */
     private String modifyXmlForTesting(String xmlFilePath) throws IOException {
         StringBuilder content = new StringBuilder();
@@ -393,11 +393,11 @@ public class MyBatisBulkExecutor {
         try (BufferedReader reader = new BufferedReader(new FileReader(xmlFilePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // resultType을 map으로 변경
+                // Change resultType to map
                 if (line.contains("resultType=")) {
                     line = line.replaceAll("resultType=\"[^\"]*\"", "resultType=\"map\"");
                 }
-                // parameterType도 map으로 변경
+                // Also change parameterType to map
                 if (line.contains("parameterType=")) {
                     line = line.replaceAll("parameterType=\"[^\"]*\"", "parameterType=\"map\"");
                 }
@@ -409,7 +409,7 @@ public class MyBatisBulkExecutor {
     }
     
     /**
-     * MyBatis 설정 XML 생성
+     * Generate MyBatis configuration XML
      */
     private String createMyBatisConfig(String xmlFilePath) {
         String connectString = System.getenv("ORACLE_SVC_CONNECT_STRING");
@@ -417,7 +417,7 @@ public class MyBatisBulkExecutor {
         String password = System.getenv("ORACLE_SVC_PASSWORD");
         
         if (username == null || password == null) {
-            throw new RuntimeException("Oracle 환경변수가 설정되지 않았습니다. 필요한 변수: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
+            throw new RuntimeException("Oracle environment variables not set. Required variables: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
         }
         
         String jdbcUrl = "jdbc:oracle:thin:@" + (connectString != null ? connectString : "orcl");
@@ -448,7 +448,7 @@ public class MyBatisBulkExecutor {
                "</configuration>";
     }
     
-    // 내부 클래스들
+    // Inner classes
     private static class SqlTestInfo {
         Path xmlFile;
         String sqlId;

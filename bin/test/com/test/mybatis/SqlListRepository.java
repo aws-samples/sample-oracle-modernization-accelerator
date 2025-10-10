@@ -10,8 +10,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * SQL 비교 검증을 위한 Repository 클래스
- * Oracle(소스) ↔ MySQL/PostgreSQL(타겟) 간 SQL 실행 결과 비교 및 저장
+ * Repository class for SQL comparison verification
+ * Compare and store SQL execution results between Oracle(source) ↔ MySQL/PostgreSQL(target)
  */
 public class SqlListRepository {
     
@@ -25,72 +25,72 @@ public class SqlListRepository {
     private String targetPassword;
     private String targetDriverClass;
     
-    private String targetDbType;           // "mysql" 또는 "postgresql"
+    private String targetDbType;           // "mysql" or "postgresql"
     private ObjectMapper objectMapper;
     
     private static final String TABLE_NAME = "sqllist";
     
     /**
-     * 생성자 - 환경변수 TARGET_DBMS_TYPE으로 타겟 DB 판단
+     * Constructor - Determine target DB by environment variable TARGET_DBMS_TYPE
      */
     public SqlListRepository() {
         this.objectMapper = new ObjectMapper();
         this.targetDbType = getTargetDbType();
         
-        System.out.println("=== SqlListRepository 초기화 ===");
-        System.out.println("타겟 DB 타입: " + targetDbType);
+        System.out.println("=== SqlListRepository Initialization ===");
+        System.out.println("Target DB type: " + targetDbType);
         
         try {
             initializeSourceConnection();
             initializeTargetConnection();
-            System.out.println("데이터베이스 연결 정보 초기화 완료");
+            System.out.println("Database connection information initialization completed");
         } catch (Exception e) {
-            System.err.println("데이터베이스 연결 정보 초기화 실패: " + e.getMessage());
-            throw new RuntimeException("SqlListRepository 초기화 실패", e);
+            System.err.println("Database connection information initialization failed: " + e.getMessage());
+            throw new RuntimeException("SqlListRepository initialization failed", e);
         }
     }
     
     /**
-     * 환경변수에서 타겟 DB 타입 조회
+     * Get target DB type from environment variable
      */
     private String getTargetDbType() {
         String dbType = System.getenv("TARGET_DBMS_TYPE");
         if (dbType == null || dbType.trim().isEmpty()) {
-            throw new IllegalStateException("환경변수 TARGET_DBMS_TYPE이 설정되지 않았습니다. (mysql, postgresql, postgres)");
+            throw new IllegalStateException("Environment variable TARGET_DBMS_TYPE not set. (mysql, postgresql, postgres)");
         }
         
         dbType = dbType.toLowerCase().trim();
         
-        // postgres를 postgresql로 정규화
+        // Normalize postgres to postgresql
         if (dbType.equals("postgres")) {
             dbType = "postgresql";
         }
         
         if (!dbType.equals("mysql") && !dbType.equals("postgresql")) {
-            throw new IllegalArgumentException("지원하지 않는 DB 타입: " + dbType + " (mysql, postgresql, postgres만 지원)");
+            throw new IllegalArgumentException("Unsupported DB type: " + dbType + " (only mysql, postgresql, postgres supported)");
         }
         
         return dbType;
     }
     
     /**
-     * Oracle 소스 연결 정보 초기화
+     * Initialize Oracle source connection information
      */
     private void initializeSourceConnection() {
-        // Oracle 환경변수 확인
+        // Check Oracle environment variables
         String user = System.getenv("ORACLE_SVC_USER");
         String password = System.getenv("ORACLE_SVC_PASSWORD");
         String connectString = System.getenv("ORACLE_SVC_CONNECT_STRING");
         
         if (user == null || password == null) {
-            throw new IllegalStateException("Oracle 환경변수가 설정되지 않았습니다: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
+            throw new IllegalStateException("Oracle environment variables not set: ORACLE_SVC_USER, ORACLE_SVC_PASSWORD");
         }
         
-        // JDBC URL 구성
+        // Configure JDBC URL
         if (connectString != null && !connectString.trim().isEmpty()) {
             sourceJdbcUrl = "jdbc:oracle:thin:@" + connectString;
         } else {
-            // 기본 연결 정보 사용
+            // Use basic connection information
             String host = System.getenv("ORACLE_HOST");
             String port = System.getenv("ORACLE_PORT");
             String sid = System.getenv("ORACLE_SID");
@@ -106,11 +106,11 @@ public class SqlListRepository {
         sourcePassword = password;
         sourceDriverClass = "oracle.jdbc.driver.OracleDriver";
         
-        System.out.println("Oracle 연결 설정: " + sourceJdbcUrl);
+        System.out.println("Oracle connection setup: " + sourceJdbcUrl);
     }
     
     /**
-     * 타겟 DB 연결 정보 초기화 (MySQL 또는 PostgreSQL)
+     * Initialize target DB connection information (MySQL or PostgreSQL)
      */
     private void initializeTargetConnection() {
         switch (targetDbType) {
@@ -121,12 +121,12 @@ public class SqlListRepository {
                 initializePostgreSQLConnection();
                 break;
             default:
-                throw new IllegalArgumentException("지원하지 않는 DB 타입: " + targetDbType);
+                throw new IllegalArgumentException("Unsupported DB type: " + targetDbType);
         }
     }
     
     /**
-     * MySQL 연결 정보 초기화
+     * Initialize MySQL connection information
      */
     private void initializeMySQLConnection() {
         String host = System.getenv("MYSQL_HOST");
@@ -136,7 +136,7 @@ public class SqlListRepository {
         String password = System.getenv("MYSQL_PASSWORD");
         
         if (user == null || password == null) {
-            throw new IllegalStateException("MySQL 환경변수가 설정되지 않았습니다: MYSQL_USER, MYSQL_PASSWORD");
+            throw new IllegalStateException("MySQL environment variables not set: MYSQL_USER, MYSQL_PASSWORD");
         }
         
         if (host == null) host = "localhost";
@@ -149,11 +149,11 @@ public class SqlListRepository {
         targetPassword = password;
         targetDriverClass = "com.mysql.cj.jdbc.Driver";
         
-        System.out.println("MySQL 연결 설정: " + targetJdbcUrl);
+        System.out.println("MySQL connection setup: " + targetJdbcUrl);
     }
     
     /**
-     * PostgreSQL 연결 정보 초기화
+     * Initialize PostgreSQL connection information
      */
     private void initializePostgreSQLConnection() {
         String host = System.getenv("PGHOST");
@@ -163,7 +163,7 @@ public class SqlListRepository {
         String password = System.getenv("PGPASSWORD");
         
         if (user == null || password == null) {
-            throw new IllegalStateException("PostgreSQL 환경변수가 설정되지 않았습니다: PGUSER, PGPASSWORD");
+            throw new IllegalStateException("PostgreSQL environment variables not set: PGUSER, PGPASSWORD");
         }
         
         if (host == null) host = "localhost";
@@ -175,61 +175,61 @@ public class SqlListRepository {
         targetPassword = password;
         targetDriverClass = "org.postgresql.Driver";
         
-        System.out.println("PostgreSQL 연결 설정: " + targetJdbcUrl);
+        System.out.println("PostgreSQL connection setup: " + targetJdbcUrl);
     }
     
     /**
-     * 소스 DB 연결 생성
+     * Create source DB connection
      */
     private Connection getSourceConnection() throws SQLException {
         try {
             Class.forName(sourceDriverClass);
             return DriverManager.getConnection(sourceJdbcUrl, sourceUsername, sourcePassword);
         } catch (ClassNotFoundException e) {
-            throw new SQLException("Oracle JDBC 드라이버를 찾을 수 없습니다: " + sourceDriverClass, e);
+            throw new SQLException("Oracle JDBC driver not found: " + sourceDriverClass, e);
         }
     }
     
     /**
-     * 타겟 DB 연결 생성 (외부 접근용)
+     * Create target DB connection (for external access)
      */
     public Connection getTargetConnection() throws SQLException {
         try {
             Class.forName(targetDriverClass);
             return DriverManager.getConnection(targetJdbcUrl, targetUsername, targetPassword);
         } catch (ClassNotFoundException e) {
-            throw new SQLException("타겟 DB JDBC 드라이버를 찾을 수 없습니다: " + targetDriverClass, e);
+            throw new SQLException("Target DB JDBC driver not found: " + targetDriverClass, e);
         }
     }
     
     /**
-     * 타겟 DB 연결 생성 (내부용)
+     * Create target DB connection (for internal use)
      */
     private Connection getTargetConnectionInternal() throws SQLException {
         return getTargetConnection();
     }
     
     /**
-     * 타겟 DB에 sqllist 테이블 생성 (없는 경우)
+     * Create sqllist table in target DB (if not exists)
      */
     public void ensureTargetTableExists() {
         try (Connection conn = getTargetConnection()) {
             if (!tableExists(conn, TABLE_NAME)) {
-                System.out.println("sqllist 테이블이 존재하지 않습니다. 생성합니다...");
+                System.out.println("sqllist table does not exist. Creating...");
                 createTable(conn);
                 createIndexes(conn);
-                System.out.println("sqllist 테이블 생성 완료");
+                System.out.println("sqllist table creation completed");
             } else {
-                System.out.println("sqllist 테이블이 이미 존재합니다.");
+                System.out.println("sqllist table already exists.");
             }
         } catch (SQLException e) {
-            System.err.println("테이블 생성 확인 실패: " + e.getMessage());
-            throw new RuntimeException("테이블 생성 실패", e);
+            System.err.println("Table creation check failed: " + e.getMessage());
+            throw new RuntimeException("Table creation failed", e);
         }
     }
     
     /**
-     * 테이블 존재 여부 확인
+     * Check if table exists
      */
     private boolean tableExists(Connection conn, String tableName) throws SQLException {
         DatabaseMetaData metaData = conn.getMetaData();
@@ -237,14 +237,14 @@ public class SqlListRepository {
             if (rs.next()) return true;
         }
         
-        // 소문자로도 확인
+        // Check with lowercase as well
         try (ResultSet rs = metaData.getTables(null, null, tableName.toLowerCase(), new String[]{"TABLE"})) {
             return rs.next();
         }
     }
     
     /**
-     * sqllist 테이블 생성
+     * Create sqllist table
      */
     private void createTable(Connection conn) throws SQLException {
         String ddl = getTargetDdl();
@@ -254,7 +254,7 @@ public class SqlListRepository {
     }
     
     /**
-     * 인덱스 생성
+     * Create indexes
      */
     private void createIndexes(Connection conn) throws SQLException {
         String[] indexes = {
@@ -267,7 +267,7 @@ public class SqlListRepository {
                 try {
                     stmt.execute(indexSql);
                 } catch (SQLException e) {
-                    // 인덱스가 이미 존재하는 경우 무시
+                    // Ignore if index already exists
                     if (!e.getMessage().contains("already exists") && 
                         !e.getMessage().contains("Duplicate key name")) {
                         throw e;
@@ -278,7 +278,7 @@ public class SqlListRepository {
     }
     
     /**
-     * 타겟 DB 타입에 따른 DDL 반환
+     * Return DDL based on target DB type
      */
     private String getTargetDdl() {
         switch (targetDbType) {
@@ -287,7 +287,7 @@ public class SqlListRepository {
             case "postgresql":
                 return getPostgreSQLDdl();
             default:
-                throw new IllegalArgumentException("지원하지 않는 DB 타입: " + targetDbType);
+                throw new IllegalArgumentException("Unsupported DB type: " + targetDbType);
         }
     }
     
@@ -298,18 +298,18 @@ public class SqlListRepository {
         return "CREATE TABLE sqllist (" +
                "sql_id VARCHAR(100) NOT NULL COMMENT 'SQL ID'," +
                "sql_type CHAR(1) NOT NULL CHECK (sql_type IN ('S', 'I', 'U', 'D', 'P', 'O')) " +
-               "COMMENT 'SQL 타입 코드 (S:SELECT, I:INSERT, U:UPDATE, D:DELETE, P:PL/SQL, O:OTHERS)'," +
-               "src_path TEXT COMMENT 'Source DB 매퍼 파일 경로'," +
-               "src_stmt LONGTEXT COMMENT 'Source DB 매퍼 파일에서 추출된 SQL 구문'," +
-               "src_params TEXT COMMENT 'Source SQL 파라미터 리스트 (콤마구분)'," +
-               "src_result LONGTEXT COMMENT 'Source DB SQL 실행 결과'," +
-               "tgt_path TEXT COMMENT 'Target DB 매퍼 파일 경로'," +
-               "tgt_stmt LONGTEXT COMMENT 'Target DB 매퍼 파일에서 추출된 SQL 구문'," +
-               "tgt_params TEXT COMMENT 'Target SQL 파라미터 리스트 (콤마구분)'," +
-               "tgt_result LONGTEXT COMMENT 'Target DB SQL 실행 결과'," +
-               "same CHAR(1) CHECK (same IN ('Y', 'N')) COMMENT '실행 결과 동일 여부 (Y/N)'," +
+               "COMMENT 'SQL type code (S:SELECT, I:INSERT, U:UPDATE, D:DELETE, P:PL/SQL, O:OTHERS)'," +
+               "src_path TEXT COMMENT 'Source DB mapper file path'," +
+               "src_stmt LONGTEXT COMMENT 'SQL statement extracted from Source DB mapper file'," +
+               "src_params TEXT COMMENT 'Source SQL parameter list (comma separated)'," +
+               "src_result LONGTEXT COMMENT 'Source DB SQL execution result'," +
+               "tgt_path TEXT COMMENT 'Target DB mapper file path'," +
+               "tgt_stmt LONGTEXT COMMENT 'SQL statement extracted from Target DB mapper file'," +
+               "tgt_params TEXT COMMENT 'Target SQL parameter list (comma separated)'," +
+               "tgt_result LONGTEXT COMMENT 'Target DB SQL execution result'," +
+               "same CHAR(1) CHECK (same IN ('Y', 'N')) COMMENT 'Whether execution results are identical (Y/N)'," +
                "PRIMARY KEY (sql_id)" +
-               ") COMMENT='Source/Target DB SQL 비교 검증 테이블'";
+               ") COMMENT='Source/Target DB SQL comparison verification table'";
     }
     
     /**
@@ -333,7 +333,7 @@ public class SqlListRepository {
     }
     
     /**
-     * 소스 SQL 정보 저장 (최초 저장)
+     * Save source SQL information (initial save)
      */
     public void saveSqlInfo(String sqlId, String sqlType, String srcPath, String srcStmt, String srcParams) {
         String sql = getUpsertSql("src");
@@ -348,16 +348,16 @@ public class SqlListRepository {
             pstmt.setString(5, srcParams);
             
             int result = pstmt.executeUpdate();
-            System.out.println("소스 SQL 정보 저장: " + sqlId + " (" + result + "건)");
+            System.out.println("Source SQL information saved: " + sqlId + " (" + result + " records)");
             
         } catch (SQLException e) {
-            System.err.println("소스 SQL 정보 저장 실패: " + sqlId + " - " + e.getMessage());
-            throw new RuntimeException("SQL 정보 저장 실패", e);
+            System.err.println("Source SQL information save failed: " + sqlId + " - " + e.getMessage());
+            throw new RuntimeException("SQL information save failed", e);
         }
     }
     
     /**
-     * 타겟 SQL 정보 업데이트
+     * Update target SQL information
      */
     public void updateTargetInfo(String sqlId, String tgtPath, String tgtStmt, String tgtParams) {
         String sql = "UPDATE " + TABLE_NAME + " SET tgt_path = ?, tgt_stmt = ?, tgt_params = ? WHERE sql_id = ?";
@@ -372,19 +372,19 @@ public class SqlListRepository {
             
             int result = pstmt.executeUpdate();
             if (result > 0) {
-                System.out.println("타겟 SQL 정보 업데이트: " + sqlId);
+                System.out.println("Target SQL information updated: " + sqlId);
             } else {
-                System.out.println("타겟 SQL 정보 업데이트 실패 - 해당 SQL ID 없음: " + sqlId);
+                System.out.println("Target SQL information update failed - SQL ID not found: " + sqlId);
             }
             
         } catch (SQLException e) {
-            System.err.println("타겟 SQL 정보 업데이트 실패: " + sqlId + " - " + e.getMessage());
-            throw new RuntimeException("타겟 SQL 정보 업데이트 실패", e);
+            System.err.println("Target SQL information update failed: " + sqlId + " - " + e.getMessage());
+            throw new RuntimeException("Target SQL information update failed", e);
         }
     }
     
     /**
-     * UPSERT SQL 생성
+     * Generate UPSERT SQL
      */
     private String getUpsertSql(String type) {
         switch (targetDbType) {
@@ -411,11 +411,11 @@ public class SqlListRepository {
                 }
                 break;
         }
-        throw new IllegalArgumentException("지원하지 않는 UPSERT 타입: " + type + ", DB: " + targetDbType);
+        throw new IllegalArgumentException("Unsupported UPSERT type: " + type + ", DB: " + targetDbType);
     }
     
     /**
-     * 소스 DB 실행 결과 저장
+     * Save source DB execution result
      */
     public void saveSourceResult(String sqlId, List<Map<String, Object>> results, Map<String, Object> parameters) {
         String resultJson = convertResultSetToJson(results, sqlId, "oracle", parameters);
@@ -429,19 +429,19 @@ public class SqlListRepository {
             
             int result = pstmt.executeUpdate();
             if (result > 0) {
-                System.out.println("소스 실행 결과 저장: " + sqlId + " (" + results.size() + "건)");
+                System.out.println("Source execution result saved: " + sqlId + " (" + results.size() + " records)");
             } else {
-                System.out.println("소스 실행 결과 저장 실패 - 해당 SQL ID 없음: " + sqlId);
+                System.out.println("Source execution result save failed - SQL ID not found: " + sqlId);
             }
             
         } catch (SQLException e) {
-            System.err.println("소스 실행 결과 저장 실패: " + sqlId + " - " + e.getMessage());
-            throw new RuntimeException("소스 실행 결과 저장 실패", e);
+            System.err.println("Source execution result save failed: " + sqlId + " - " + e.getMessage());
+            throw new RuntimeException("Source execution result save failed", e);
         }
     }
     
     /**
-     * 타겟 DB 실행 결과 저장
+     * Save target DB execution result
      */
     public void saveTargetResult(String sqlId, List<Map<String, Object>> results, Map<String, Object> parameters) {
         String resultJson = convertResultSetToJson(results, sqlId, targetDbType, parameters);
@@ -455,55 +455,55 @@ public class SqlListRepository {
             
             int result = pstmt.executeUpdate();
             if (result > 0) {
-                System.out.println("타겟 실행 결과 저장: " + sqlId + " (" + results.size() + "건)");
+                System.out.println("Target execution result saved: " + sqlId + " (" + results.size() + " records)");
             } else {
-                System.out.println("타겟 실행 결과 저장 실패 - 해당 SQL ID 없음: " + sqlId);
+                System.out.println("Target execution result save failed - SQL ID not found: " + sqlId);
             }
             
         } catch (SQLException e) {
-            System.err.println("타겟 실행 결과 저장 실패: " + sqlId + " - " + e.getMessage());
-            throw new RuntimeException("타겟 실행 결과 저장 실패", e);
+            System.err.println("Target execution result save failed: " + sqlId + " - " + e.getMessage());
+            throw new RuntimeException("Target execution result save failed", e);
         }
     }
     
     /**
-     * ResultSet을 정규화된 JSON 형태로 변환
-     * - sqlId는 매퍼명 제거하고 순수 ID만 사용
-     * - timestamp는 고정값 사용 (비교 시 차이 제거)
-     * - 컬럼명은 소문자로 통일
-     * - 데이터 타입은 적절히 변환
+     * Convert ResultSet to normalized JSON format
+     * - sqlId uses pure ID only, removing mapper name
+     * - timestamp uses fixed value (remove differences during comparison)
+     * - column names unified to lowercase
+     * - data types converted appropriately
      */
     public String convertResultSetToJson(List<Map<String, Object>> results, String sqlId, String database, Map<String, Object> parameters) {
         try {
             ObjectNode root = objectMapper.createObjectNode();
             
-            // testInfo 섹션 - 정규화
+            // testInfo section - normalization
             ObjectNode testInfo = objectMapper.createObjectNode();
             
-            // sqlId 정규화: 매퍼명 제거하고 순수 ID만 사용
+            // sqlId normalization: remove mapper name and use pure ID only
             String normalizedSqlId = sqlId;
             if (sqlId.contains(".")) {
                 normalizedSqlId = sqlId.substring(sqlId.lastIndexOf(".") + 1);
             }
             testInfo.put("sqlId", normalizedSqlId);
             
-            // database는 고정값 사용 (비교 시 차이 제거)
+            // database uses fixed value (remove differences during comparison)
             testInfo.put("database", "normalized");
             
-            // timestamp는 고정값 사용 (비교 시 차이 제거)
+            // timestamp uses fixed value (remove differences during comparison)
             testInfo.put("timestamp", "2025-01-01T00:00:00Z");
             
-            // parameters 섹션 - 정규화
+            // parameters section - normalization
             ObjectNode paramsNode = objectMapper.createObjectNode();
             if (parameters != null) {
-                // 파라미터를 알파벳순으로 정렬
+                // Sort parameters alphabetically
                 Map<String, Object> sortedParams = new TreeMap<>(parameters);
                 for (Map.Entry<String, Object> entry : sortedParams.entrySet()) {
                     Object value = entry.getValue();
                     if (value == null) {
                         paramsNode.putNull(entry.getKey());
                     } else {
-                        // 모든 파라미터 값을 문자열로 통일
+                        // Unify all parameter values to strings
                         paramsNode.put(entry.getKey(), value.toString());
                     }
                 }
@@ -511,33 +511,33 @@ public class SqlListRepository {
             testInfo.set("parameters", paramsNode);
             root.set("testInfo", testInfo);
             
-            // results 섹션 - 정규화
+            // results section - normalization
             ArrayNode resultsArray = objectMapper.createArrayNode();
             
-            // 결과를 정렬 가능한 형태로 변환
+            // Convert results to sortable format
             List<Map<String, Object>> normalizedResults = new ArrayList<>();
             for (Map<String, Object> row : results) {
-                Map<String, Object> normalizedRow = new TreeMap<>(); // 컬럼 순서 정렬
+                Map<String, Object> normalizedRow = new TreeMap<>(); // Sort column order
                 
                 for (Map.Entry<String, Object> entry : row.entrySet()) {
-                    // 컬럼명을 소문자로 정규화
+                    // Normalize column names to lowercase
                     String normalizedKey = entry.getKey().toLowerCase();
                     Object value = entry.getValue();
                     
-                    // 값 정규화
+                    // Normalize values
                     Object normalizedValue = normalizeValue(value);
                     normalizedRow.put(normalizedKey, normalizedValue);
                 }
                 normalizedResults.add(normalizedRow);
             }
             
-            // 결과를 정렬 (모든 컬럼 값 기준으로 안정적 정렬)
+            // Sort results (stable sorting based on all column values)
             normalizedResults.sort((row1, row2) -> {
                 if (row1.isEmpty() && row2.isEmpty()) return 0;
                 if (row1.isEmpty()) return -1;
                 if (row2.isEmpty()) return 1;
                 
-                // 모든 컬럼 값을 문자열로 연결해서 비교
+                // Compare by concatenating all column values as strings
                 String str1 = row1.values().stream()
                     .map(v -> v == null ? "null" : v.toString())
                     .sorted()
@@ -551,7 +551,7 @@ public class SqlListRepository {
                 return str1.compareTo(str2);
             });
             
-            // JSON 배열 생성
+            // Create JSON array
             for (Map<String, Object> row : normalizedResults) {
                 ObjectNode rowNode = objectMapper.createObjectNode();
                 for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -576,41 +576,41 @@ public class SqlListRepository {
             }
             root.set("results", resultsArray);
             
-            // metadata 섹션 - 정규화
+            // metadata section - normalization
             ObjectNode metadata = objectMapper.createObjectNode();
             metadata.put("rowCount", results.size());
             metadata.put("columnCount", results.isEmpty() ? 0 : results.get(0).size());
-            metadata.put("executionTimeMs", 0); // 실행 시간은 0으로 고정 (비교 시 차이 제거)
+            metadata.put("executionTimeMs", 0); // Execution time fixed to 0 (remove differences during comparison)
             root.set("metadata", metadata);
             
             return objectMapper.writeValueAsString(root);
             
         } catch (Exception e) {
-            System.err.println("JSON 변환 실패: " + e.getMessage());
-            return "{\"error\":\"JSON 변환 실패: " + e.getMessage() + "\"}";
+            System.err.println("JSON conversion failed: " + e.getMessage());
+            return "{\"error\":\"JSON conversion failed: " + e.getMessage() + "\"}";
         }
     }
     
     /**
-     * 값 정규화 메서드
-     * - 문자열 숫자를 실제 숫자로 변환
-     * - 날짜/시간 형식 통일
+     * Value normalization method
+     * - Convert string numbers to actual numbers
+     * - Unify date/time formats
      */
     private Object normalizeValue(Object value) {
         if (value == null) {
             return null;
         }
         
-        // 문자열인 경우 숫자 변환 시도
+        // Try number conversion for strings
         if (value instanceof String) {
             String strValue = (String) value;
             
-            // 빈 문자열 처리
+            // Handle empty strings
             if (strValue.trim().isEmpty()) {
                 return strValue;
             }
             
-            // 숫자 문자열 변환 시도
+            // Try converting numeric strings
             try {
                 if (strValue.contains(".")) {
                     return Double.parseDouble(strValue);
@@ -618,27 +618,27 @@ public class SqlListRepository {
                     return Long.parseLong(strValue);
                 }
             } catch (NumberFormatException e) {
-                // 숫자가 아니면 문자열 그대로 반환
+                // Return as string if not a number
                 return strValue;
             }
         }
         
-        // 이미 숫자인 경우 그대로 반환
+        // Return numbers as is
         if (value instanceof Number) {
             return value;
         }
         
-        // 날짜/시간 타입 처리
+        // Handle date/time types
         if (value instanceof java.sql.Timestamp || value instanceof java.sql.Date) {
             return value.toString();
         }
         
-        // 기타 타입은 문자열로 변환
+        // Convert other types to string
         return value.toString();
     }
     
     /**
-     * 모든 레코드의 소스/타겟 결과 비교 후 same 컬럼 업데이트
+     * Compare source/target results for all records and update same column
      */
     public void compareAndUpdateResults() {
         String selectSql = "SELECT sql_id, src_result, tgt_result FROM " + TABLE_NAME + 
@@ -668,19 +668,19 @@ public class SqlListRepository {
                 }
             }
             
-            System.out.println("=== 결과 비교 완료 ===");
-            System.out.println("총 비교 건수: " + totalCount);
-            System.out.println("동일한 결과: " + sameCount + "건");
-            System.out.println("다른 결과: " + differentCount + "건");
+            System.out.println("=== Result Comparison Completed ===");
+            System.out.println("Total comparisons: " + totalCount);
+            System.out.println("Identical results: " + sameCount + " records");
+            System.out.println("Different results: " + differentCount + " records");
             
         } catch (SQLException e) {
-            System.err.println("결과 비교 실패: " + e.getMessage());
-            throw new RuntimeException("결과 비교 실패", e);
+            System.err.println("Result comparison failed: " + e.getMessage());
+            throw new RuntimeException("Result comparison failed", e);
         }
     }
     
     /**
-     * 특정 SQL ID의 same 컬럼 업데이트
+     * Update same column for specific SQL ID
      */
     private void updateSameColumn(String sqlId, boolean isSame) {
         String sql = "UPDATE " + TABLE_NAME + " SET same = ? WHERE sql_id = ?";
@@ -694,29 +694,29 @@ public class SqlListRepository {
             pstmt.executeUpdate();
             
         } catch (SQLException e) {
-            System.err.println("same 컬럼 업데이트 실패: " + sqlId + " - " + e.getMessage());
+            System.err.println("same column update failed: " + sqlId + " - " + e.getMessage());
         }
     }
     
     /**
-     * 두 JSON 결과 비교 (정규화된 JSON이므로 문자열 비교)
+     * Compare two JSON results (string comparison since JSON is normalized)
      */
     public boolean compareJsonResults(String srcJson, String tgtJson) {
         try {
             if (srcJson == null && tgtJson == null) return true;
             if (srcJson == null || tgtJson == null) return false;
             
-            // 정규화된 JSON이므로 문자열 비교만으로 충분
+            // String comparison is sufficient since JSON is normalized
             return srcJson.equals(tgtJson);
             
         } catch (Exception e) {
-            System.err.println("JSON 비교 중 오류 발생: " + e.getMessage());
+            System.err.println("Error occurred during JSON comparison: " + e.getMessage());
             return false;
         }
     }
     
     /**
-     * SQL 타입명을 코드로 변환
+     * Convert SQL type name to code
      */
     public String getSqlTypeCode(String sqlType) {
         if (sqlType == null) return "O";
@@ -726,13 +726,13 @@ public class SqlListRepository {
             case "INSERT": return "I";
             case "UPDATE": return "U";
             case "DELETE": return "D";
-            case "CALL": return "P";  // PL/SQL 프로시저 호출
-            default: return "O";      // 기타
+            case "CALL": return "P";  // PL/SQL procedure call
+            default: return "O";      // Others
         }
     }
     
     /**
-     * 파라미터 Set을 콤마 구분 문자열로 변환
+     * Convert parameter Set to comma-separated string
      */
     public String formatParameterList(Set<String> parameters) {
         if (parameters == null || parameters.isEmpty()) {
@@ -745,7 +745,7 @@ public class SqlListRepository {
     }
     
     /**
-     * 비교 통계 조회
+     * Get comparison statistics
      */
     public Map<String, Integer> getComparisonStatistics() {
         Map<String, Integer> stats = new HashMap<>();
@@ -775,21 +775,21 @@ public class SqlListRepository {
             }
             
         } catch (SQLException e) {
-            System.err.println("통계 조회 실패: " + e.getMessage());
+            System.err.println("Statistics query failed: " + e.getMessage());
         }
         
         return stats;
     }
     
     /**
-     * 리소스 정리
+     * Resource cleanup
      */
     public void close() {
-        System.out.println("SqlListRepository 리소스 정리 완료");
+        System.out.println("SqlListRepository resource cleanup completed");
     }
     
     /**
-     * SQL 정보를 담는 내부 클래스
+     * Inner class to hold SQL information
      */
     public static class SqlInfo {
         public String sqlId;
