@@ -10,8 +10,8 @@ import pandas as pd
 
 
 def render_postgresql_meta_page():
-    """PostgreSQL 메타데이터 생성 페이지"""
-    # 전체 페이지 폭을 강제로 확장하는 CSS
+    """PostgreSQL metadata generation page"""
+    # CSS to forcefully expand full page width
     st.markdown("""
     <style>
     .main .block-container {
@@ -26,16 +26,16 @@ def render_postgresql_meta_page():
     </style>
     """, unsafe_allow_html=True)
     
-    # 홈 버튼을 상단 좌측에 간단하게 배치
-    if st.button("🏠 홈으로", key="postgresql_meta_home"):
+    # Place Home button simply at top left
+    if st.button("🏠 Home", key="postgresql_meta_home"):
         st.session_state.selected_action = None
         st.rerun()
     
-    # 제목을 전체 폭으로 표시
-    st.markdown("# 🗄️ PostgreSQL 메타데이터")
+    # Display title in full width
+    st.markdown("# 🗄️ PostgreSQL Metadata")
     
-    # 탭 구성
-    tab1, tab2 = st.tabs(["📊 메타데이터 생성", "🔍 메타데이터 검증"])
+    # Tab configuration
+    tab1, tab2 = st.tabs(["📊 Generate Metadata", "🔍 Validate Metadata"])
     
     with tab1:
         render_metadata_generation_tab()
@@ -45,193 +45,193 @@ def render_postgresql_meta_page():
 
 
 def render_metadata_generation_tab():
-    """메타데이터 생성 탭"""
-    st.markdown("## 📊 PostgreSQL 메타데이터 생성")
+    """Metadata generation tab"""
+    st.markdown("## 📊 PostgreSQL Metadata Generation")
     
-    # 명령어 정보
+    # Command Info
     script_path = "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh"
     expanded_script_path = os.path.expandvars(script_path)
     
-    st.info(f"**실행 스크립트:** `{script_path}`")
-    st.caption(f"📄 실제 경로: {expanded_script_path}")
+    st.info(f"**Execution script:** `{script_path}`")
+    st.caption(f"📄 Actual path: {expanded_script_path}")
     
-    # 스크립트 존재 확인
+    # Check script existence
     if not os.path.exists(expanded_script_path):
-        st.error(f"❌ 스크립트 파일을 찾을 수 없습니다: {expanded_script_path}")
-        st.info("💡 환경 변수 설정을 확인하거나 파일 경로를 확인해주세요.")
+        st.error(f"❌ Script file not found: {expanded_script_path}")
+        st.info("💡 Please check environment variable settings or file path.")
         return
     
-    # 실행 중인 작업 확인
+    # Check running tasks
     if st.session_state.oma_controller.is_any_task_running():
-        st.error("❌ 다른 작업이 실행 중입니다. 기존 작업을 완료하거나 중단한 후 다시 시도하세요.")
+        st.error("❌ Another task is currently running. Please complete or stop the existing task before trying again.")
         return
     
-    # 실행 버튼
-    if st.button("🚀 실행", key="run_postgresql_meta", type="primary"):
+    # Execute button
+    if st.button("🚀 Execute", key="run_postgresql_meta", type="primary"):
         execute_postgresql_meta_script(expanded_script_path)
     
-    st.caption("스크립트를 실행하여 PostgreSQL 메타데이터를 생성합니다")
+    st.caption("Execute script to generate PostgreSQL metadata")
 
 
 def render_metadata_verification_tab():
-    """메타데이터 검증 탭"""
-    st.markdown("## 🔍 메타데이터 검증")
+    """Metadata verification tab"""
+    st.markdown("## 🔍 Metadata Verification")
     
-    # 메타데이터 파일 경로
+    # Metadata file path
     metadata_file = "$APP_TRANSFORM_FOLDER/oma_metadata.txt"
     expanded_metadata_file = os.path.expandvars(metadata_file)
     
-    st.info(f"**메타데이터 파일:** `{metadata_file}`")
-    st.caption(f"📄 실제 경로: {expanded_metadata_file}")
+    st.info(f"**Metadata file:** `{metadata_file}`")
+    st.caption(f"📄 Actual path: {expanded_metadata_file}")
     
-    # 파일 존재 확인
+    # Check file existence
     if not os.path.exists(expanded_metadata_file):
-        st.error(f"❌ 메타데이터 파일을 찾을 수 없습니다: {expanded_metadata_file}")
-        st.info("💡 먼저 '메타데이터 생성' 탭에서 메타데이터를 생성해주세요.")
+        st.error(f"❌ Metadata file not found: {expanded_metadata_file}")
+        st.info("💡 Please first generate metadata in the 'Generate Metadata' tab.")
         return
     
-    # 메타데이터 로드 및 표시
+    # Load and display metadata
     try:
         metadata_df = load_metadata_file(expanded_metadata_file)
         
         if metadata_df is not None and not metadata_df.empty:
-            # 검색 필터 UI
-            st.markdown("### 🔍 검색 필터")
+            # Search filter UI
+            st.markdown("### 🔍 Search Filters")
             
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                # 스키마 필터
-                schemas = ['전체'] + sorted(metadata_df['table_schema'].unique().tolist())
-                selected_schema = st.selectbox("스키마", schemas, key="schema_filter")
+                # Schema filter
+                schemas = ['All'] + sorted(metadata_df['table_schema'].unique().tolist())
+                selected_schema = st.selectbox("Schema", schemas, key="schema_filter")
             
             with col2:
-                # 테이블명 필터
-                table_filter = st.text_input("테이블명 (부분 검색)", key="table_filter", 
-                                           help="테이블명의 일부를 입력하세요")
+                # Table name filter
+                table_filter = st.text_input("Table Name (partial search)", key="table_filter", 
+                                           help="Enter part of table name")
             
             with col3:
-                # 컬럼명 필터
-                column_filter = st.text_input("컬럼명 (부분 검색)", key="column_filter",
-                                            help="컬럼명의 일부를 입력하세요")
+                # Column name filter
+                column_filter = st.text_input("Column Name (partial search)", key="column_filter",
+                                            help="Enter part of column name")
             
-            # 필터 적용
+            # Apply filters
             filtered_df = apply_metadata_filters(metadata_df, selected_schema, table_filter, column_filter)
             
-            # 결과 표시
-            st.markdown("### 📋 검색 결과")
-            st.info(f"총 {len(filtered_df):,}개의 레코드가 검색되었습니다.")
+            # Display results
+            st.markdown("### 📋 Search Results")
+            st.info(f"Total {len(filtered_df):,} records found.")
             
             if not filtered_df.empty:
-                # 데이터프레임 표시 (높이 조정)
+                # Display dataframe (height adjusted)
                 st.dataframe(
                     filtered_df,
                     use_container_width=True,
                     height=600,
                     column_config={
-                        "table_schema": st.column_config.TextColumn("스키마", width="medium"),
-                        "table_name": st.column_config.TextColumn("테이블명", width="medium"),
-                        "column_name": st.column_config.TextColumn("컬럼명", width="medium"),
-                        "data_type": st.column_config.TextColumn("데이터 타입", width="medium"),
+                        "table_schema": st.column_config.TextColumn("Schema", width="medium"),
+                        "table_name": st.column_config.TextColumn("Table Name", width="medium"),
+                        "column_name": st.column_config.TextColumn("Column Name", width="medium"),
+                        "data_type": st.column_config.TextColumn("Data Type", width="medium"),
                     }
                 )
                 
-                # 다운로드 버튼
+                # Download button
                 csv_data = filtered_df.to_csv(index=False, encoding='utf-8-sig')
                 st.download_button(
-                    label="📥 CSV 다운로드",
+                    label="📥 CSV Download",
                     data=csv_data,
                     file_name=f"metadata_filtered_{len(filtered_df)}_records.csv",
                     mime="text/csv",
                     key="download_filtered_metadata"
                 )
             else:
-                st.warning("검색 조건에 맞는 데이터가 없습니다.")
+                st.warning("No data matches the search criteria.")
         else:
-            st.error("메타데이터 파일이 비어있거나 올바르지 않은 형식입니다.")
+            st.error("Metadata file is empty or in incorrect format.")
             
     except Exception as e:
-        st.error(f"❌ 메타데이터 파일 로드 중 오류 발생: {str(e)}")
-        st.info("💡 메타데이터 파일 형식을 확인해주세요.")
+        st.error(f"❌ Error occurred while loading metadata file: {str(e)}")
+        st.info("💡 Please check the metadata file format.")
 
 
 def load_metadata_file(file_path):
-    """메타데이터 파일을 로드하여 DataFrame으로 반환"""
+    """Load metadata file and return as DataFrame"""
     try:
-        # 파일 읽기 (파이프 구분자, 1행은 헤더, 2행은 구분자라서 건너뛰기)
+        # Read file (pipe separator, 1st row is header, skip 2nd row as separator)
         df = pd.read_csv(file_path, sep='|', encoding='utf-8', header=0, skiprows=[1])
         
-        # 컬럼명 정리 (공백 제거)
+        # Clean column names (remove spaces)
         df.columns = df.columns.str.strip()
         
-        # 필수 컬럼 확인
+        # Check required columns
         required_columns = ['table_schema', 'table_name', 'column_name', 'data_type']
         missing_columns = [col for col in required_columns if col not in df.columns]
         
         if missing_columns:
-            st.error(f"필수 컬럼이 없습니다: {missing_columns}")
-            st.info(f"현재 컬럼: {list(df.columns)}")
+            st.error(f"Required columns missing: {missing_columns}")
+            st.info(f"Current columns: {list(df.columns)}")
             
-            # 파일의 처음 5줄을 보여주어 구조 확인
+            # Show first 5 lines of file to check structure
             with open(file_path, 'r', encoding='utf-8') as f:
                 first_lines = [f.readline().strip() for _ in range(5)]
-            st.info("파일의 처음 5줄:")
+            st.info("First 5 lines of file:")
             for i, line in enumerate(first_lines, 1):
                 st.text(f"{i}: {line}")
             return None
         
-        # 데이터 정리
-        df = df.fillna('')  # NaN 값을 빈 문자열로 변경
-        df = df.astype(str)  # 모든 컬럼을 문자열로 변환
+        # Clean data
+        df = df.fillna('')  # Change NaN values to empty strings
+        df = df.astype(str)  # Convert all columns to string
         
-        # 데이터 값의 공백도 제거
+        # Remove spaces from data values as well
         for col in df.columns:
             df[col] = df[col].str.strip()
         
-        # 빈 행 제거
+        # Remove empty rows
         df = df[df['table_schema'] != '']
         
-        # 마지막 줄이 카운트 정보인지 확인하고 제거
+        # Check if last line is count info and remove it
         if not df.empty:
             last_row = df.iloc[-1]
-            # 마지막 행이 숫자로만 구성되어 있거나 "Total:", "Count:" 등이 포함된 경우 제거
+            # Remove if last row consists only of numbers or contains "Total:", "Count:" etc
             last_row_text = ' '.join(last_row.values).lower()
             if (last_row_text.isdigit() or 
                 'total' in last_row_text or 
                 'count' in last_row_text or 
                 'records' in last_row_text or
-                '개' in last_row_text or
+                'items' in last_row_text or
                 'rows' in last_row_text):
-                df = df.iloc[:-1]  # 마지막 행 제거
-                st.info(f"마지막 줄 카운트 정보 제거: {last_row_text}")
+                df = df.iloc[:-1]  # Remove last row
+                st.info(f"Removed last line count info: {last_row_text}")
         
         return df
         
     except pd.errors.EmptyDataError:
-        st.error("메타데이터 파일이 비어있습니다.")
+        st.error("Metadata file is empty.")
         return None
     except pd.errors.ParserError as e:
-        st.error(f"파일 파싱 오류: {e}")
-        st.info("파일이 파이프(|) 구분자로 되어있는지 확인해주세요.")
+        st.error(f"File parsing error: {e}")
+        st.info("Please check if the file uses pipe (|) separators.")
         return None
     except Exception as e:
-        st.error(f"파일 로드 오류: {e}")
+        st.error(f"File load error: {e}")
         return None
 
 
 def apply_metadata_filters(df, schema_filter, table_filter, column_filter):
-    """메타데이터에 필터를 적용"""
+    """Apply filters to metadata"""
     filtered_df = df.copy()
     
-    # 스키마 필터
-    if schema_filter and schema_filter != '전체':
+    # Schema filter
+    if schema_filter and schema_filter != 'All':
         filtered_df = filtered_df[filtered_df['table_schema'].str.contains(schema_filter, case=False, na=False)]
     
-    # 테이블명 필터
+    # Table name filter
     if table_filter:
         filtered_df = filtered_df[filtered_df['table_name'].str.contains(table_filter, case=False, na=False)]
     
-    # 컬럼명 필터
+    # Column name filter
     if column_filter:
         filtered_df = filtered_df[filtered_df['column_name'].str.contains(column_filter, case=False, na=False)]
     
@@ -239,115 +239,115 @@ def apply_metadata_filters(df, schema_filter, table_filter, column_filter):
 
 
 def clean_ansi_codes(text):
-    """ANSI 색상 코드 및 제어 문자, HTML 태그 제거"""
-    # ANSI 색상 코드 제거 (예: [0;34m, [1;32m 등)
+    """Remove ANSI color codes, control characters, and HTML tags"""
+    # Remove ANSI color codes (e.g., [0;34m, [1;32m etc)
     text = re.sub(r'\x1b\[[0-9;]*m', '', text)
     
-    # 기타 ANSI 이스케이프 시퀀스 제거
+    # Remove other ANSI escape sequences
     text = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', text)
     
-    # 커서 제어 시퀀스 제거 ([?25l, [?25h 등)
+    # Remove cursor control sequences ([?25l, [?25h etc)
     text = re.sub(r'\x1b\[\?[0-9]+[lh]', '', text)
     
-    # 백스페이스, 캐리지 리턴 등 제어 문자 제거
+    # Remove control characters like backspace, carriage return etc
     text = re.sub(r'[\x08\x0c\x0e\x0f\r]', '', text)
     
-    # HTML 태그 제거 (</textarea>, </div> 등)
+    # Remove HTML tags (</textarea>, </div> etc)
     text = re.sub(r'</?(textarea|div)[^>]*>', '', text, flags=re.IGNORECASE)
     
-    # 기타 HTML 태그 제거
+    # Remove other HTML tags
     text = re.sub(r'<[^>]+>', '', text)
     
-    # HTML 엔티티 디코딩 (&lt;, &gt; 등을 <, >로 변환)
+    # HTML entity decoding (convert &lt;, &gt; etc to <, >)
     import html as html_module
     text = html_module.unescape(text)
     
-    # 연속된 공백을 하나로 정리
+    # Consolidate consecutive spaces into one
     text = re.sub(r' +', ' ', text)
     
-    # 빈 줄 정리 (3개 이상의 연속 줄바꿈을 2개로)
+    # Clean up empty lines (reduce 3+ consecutive line breaks to 2)
     text = re.sub(r'\n{3,}', '\n\n', text)
     
     return text.strip()
 
 
 def execute_postgresql_meta_script(script_path):
-    """PostgreSQL 메타데이터 스크립트 실행 및 결과 표시"""
-    st.markdown("## 📊 실행 결과")
+    """Execute PostgreSQL metadata script and display results"""
+    st.markdown("## 📊 Execute Result")
     
-    # 진행률 표시
+    # Display progress
     progress_bar = st.progress(0)
     status_text = st.empty()
     
     try:
-        status_text.text("🔄 스크립트 실행 중...")
+        status_text.text("🔄 Executing script...")
         progress_bar.progress(25)
         
-        # 스크립트 실행
+        # Execute script
         result = subprocess.run(
             f"bash '{script_path}'",
             shell=True,
             capture_output=True,
             text=True,
-            timeout=60,  # 60초 타임아웃
+            timeout=60,  # 60 second timeout
             cwd=os.path.dirname(script_path)
         )
         
         progress_bar.progress(75)
-        status_text.text("📝 결과 처리 중...")
+        status_text.text("📝 Processing results...")
         
-        # 결과 표시
+        # Display results
         progress_bar.progress(100)
-        status_text.text("✅ 완료!")
+        status_text.text("✅ Complete!")
         
-        # 진행률 바 제거
+        # Remove progress bar
         progress_bar.empty()
         status_text.empty()
         
-        # 성공/실패 여부 확인
+        # Check success/failure status
         if result.returncode == 0:
-            st.success("✅ PostgreSQL 메타데이터 생성 완료!")
+            st.success("✅ PostgreSQL Metadata Create Complete!")
             
-            # 실행 결과를 적당한 폭으로 표시
+            # Display Execute Result with appropriate width
             if result.stdout.strip():
                 st.markdown("---")
-                st.markdown("### 📄 실행 결과")
+                st.markdown("### 📄 Execute Result")
                 
-                # ANSI 코드 제거 및 HTML 이스케이프 처리
+                # Remove ANSI codes and handle HTML escaping
                 clean_stdout = clean_ansi_codes(result.stdout)
                 escaped_stdout = html.escape(clean_stdout)
                 
-                # HTML 구조를 한 줄로 작성하여 줄바꿈 문제 방지 (라이트 테마)
+                # Write HTML structure in one line to prevent line break issues (light theme)
                 st.markdown(f'<div style="width: 85%; margin: 0 auto; padding: 0 1rem;"><textarea readonly style="width: 100%; height: 600px; background-color: #f8f9fa; color: #212529; border: 1px solid #dee2e6; border-radius: 0.5rem; padding: 1rem; font-family: \'Source Code Pro\', monospace; font-size: 14px; line-height: 1.4; resize: vertical; box-sizing: border-box;">{escaped_stdout}</textarea></div>', unsafe_allow_html=True)
             
-            # 경고 메시지가 있는 경우
+            # If there are warning messages
             if result.stderr.strip():
-                st.markdown("### ⚠️ 경고/정보 메시지")
+                st.markdown("### ⚠️ Warning/Info Messages")
                 
-                # ANSI 코드 제거 및 HTML 이스케이프 처리
+                # Remove ANSI codes and handle HTML escaping
                 clean_stderr = clean_ansi_codes(result.stderr)
                 escaped_stderr = html.escape(clean_stderr)
                 
                 st.markdown(f'<div style="width: 85%; margin: 0 auto; padding: 0 1rem;"><textarea readonly style="width: 100%; height: 200px; background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; border-radius: 0.5rem; padding: 1rem; font-family: \'Source Code Pro\', monospace; font-size: 14px; line-height: 1.4; resize: vertical; box-sizing: border-box;">{escaped_stderr}</textarea></div>', unsafe_allow_html=True)
                 
         else:
-            st.error(f"❌ 스크립트 실행 실패 (종료 코드: {result.returncode})")
+            st.error(f"❌ Script execution failed (exit code: {result.returncode})")
             
-            # 에러 메시지
+            # Error messages
             if result.stderr.strip():
-                st.markdown("### 🚨 에러 메시지")
+                st.markdown("### 🚨 Error Messages")
                 
-                # ANSI 코드 제거 및 HTML 이스케이프 처리
+                # Remove ANSI codes and handle HTML escaping
                 clean_stderr = clean_ansi_codes(result.stderr)
                 escaped_stderr = html.escape(clean_stderr)
                 
                 st.markdown(f'<div style="width: 85%; margin: 0 auto; padding: 0 1rem;"><textarea readonly style="width: 100%; height: 400px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 0.5rem; padding: 1rem; font-family: \'Source Code Pro\', monospace; font-size: 14px; line-height: 1.4; resize: vertical; box-sizing: border-box;">{escaped_stderr}</textarea></div>', unsafe_allow_html=True)
             
-            # 표준 출력도 표시
+            # Also display standard output
             if result.stdout.strip():
-                st.markdown("### 📄 출력 내용")
+                st.markdown("### 📄 Output Content")
                 
-                # ANSI 코드 제거 및 HTML 이스케이프 처리
+                # Remove ANSI codes and handle HTML escaping
                 clean_stdout = clean_ansi_codes(result.stdout)
                 escaped_stdout = html.escape(clean_stdout)
                 
@@ -356,11 +356,11 @@ def execute_postgresql_meta_script(script_path):
     except subprocess.TimeoutExpired:
         progress_bar.empty()
         status_text.empty()
-        st.error("❌ 스크립트 실행 시간이 초과되었습니다 (60초)")
-        st.info("💡 스크립트가 너무 오래 실행되고 있습니다. 수동으로 확인해주세요.")
+        st.error("❌ Script execution timeout exceeded (60 seconds)")
+        st.info("💡 The script is taking too long to execute. Please check manually.")
         
     except Exception as e:
         progress_bar.empty()
         status_text.empty()
-        st.error(f"❌ 스크립트 실행 중 오류 발생: {str(e)}")
-        st.info("💡 스크립트 파일 권한이나 환경 설정을 확인해주세요.")
+        st.error(f"❌ Error occurred during script execution: {str(e)}")
+        st.info("💡 Please check script file permissions or environment setup.")

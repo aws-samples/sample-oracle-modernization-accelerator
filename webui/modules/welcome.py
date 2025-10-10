@@ -1,5 +1,5 @@
 """
-환영 페이지 (Welcome Page)
+Welcome Page
 """
 import streamlit as st
 import os
@@ -155,7 +155,7 @@ def show_workflow_diagram():
             line_dash = "solid"
             opacity = 0.7
         
-        # 화살표 효과를 위한 연결선
+        # Arrow effect connection line
         fig.add_trace(go.Scatter(
             x=[from_step["x"], to_step["x"]],
             y=[from_step["y"], to_step["y"]],
@@ -166,7 +166,7 @@ def show_workflow_diagram():
             hoverinfo='skip'
         ))
         
-        # 화살표 추가 (연결선 끝부분) - 크기 증가
+        # Add arrow (end of connection line) - increased size
         arrow_x = to_step["x"] - 0.1 * (to_step["x"] - from_step["x"])
         arrow_y = to_step["y"] - 0.1 * (to_step["y"] - from_step["y"])
         
@@ -178,20 +178,20 @@ def show_workflow_diagram():
                 symbol='triangle-right',
                 size=16,  # 12 → 16
                 color=line_color,
-                line=dict(color='white', width=2)  # 테두리도 두껍게
+                line=dict(color='white', width=2)  # Thick border
             ),
             showlegend=False,
             hoverinfo='skip'
         ))
     
-    # 단계 노드 추가 - 테스트 및 결과 수정 특별 표시
+    # Add step nodes - special display for test and result modification
     for step in steps:
-        # 테스트 및 결과 수정은 특별한 스타일 (터미널 작업 강조)
-        if step["id"] == 8:  # 테스트 및 결과 수정
+        # Test and result modification has special style (terminal work emphasis)
+        if step["id"] == 8:  # Test and result modification
             marker_size = 110
             marker_color = step["color"]
             border_width = 5
-            border_color = '#FFD700'  # 골드 테두리
+            border_color = '#FFD700'  # Gold border
             text_size = 14
         else:
             marker_size = 95
@@ -200,7 +200,7 @@ def show_workflow_diagram():
             border_color = 'white'
             text_size = 13
         
-        # 메인 노드 (그림자 제거)
+        # Main node (shadow removed)
         fig.add_trace(go.Scatter(
             x=[step["x"]],
             y=[step["y"]],
@@ -215,13 +215,13 @@ def show_workflow_diagram():
             textposition="middle center",
             textfont=dict(size=text_size, color='white', family="Arial"),
             showlegend=False,
-            hovertemplate=f"<b>{step['name'].replace('<br>', ' ')}</b><br>단계 {step['id']}<br>그룹: {get_group_name(step['id'])}<extra></extra>"
+            hovertemplate=f"<b>{step['name'].replace('<br>', ' ')}</b><br>Step {step['id']}<br>Group: {get_group_name(step['id'])}<extra></extra>"
         ))
     
-    # 레이아웃 설정 - 더 모던하고 예쁜 스타일
+    # Layout settings - more modern and beautiful style
     fig.update_layout(
         title={
-            'text': "🌟 OMA 워크플로우 - 단계별 프로세스 🌟",
+            'text': "🌟 OMA Workflow - Step-by-Step Process 🌟",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 28, 'color': '#2C3E50', 'family': 'Arial Black'}  # 24 → 28
@@ -236,13 +236,13 @@ def show_workflow_diagram():
             showgrid=False,
             showticklabels=False,
             zeroline=False,
-            range=[-1.4, 7.8]  # -1.2, 7.6 → -1.4, 7.8 (더 넓은 범위로 여유 확보)
+            range=[-1.4, 7.8]  # -1.2, 7.6 → -1.4, 7.8 (wider range for more space)
         ),
         plot_bgcolor='rgba(248, 249, 250, 0.9)',
         paper_bgcolor='rgba(255, 255, 255, 0.95)',
-        height=750,  # 650 → 750 (높이 100px 증가)
-        margin=dict(l=40, r=40, t=120, b=50),  # 하단 여백 40 → 50
-        # 호버 효과 개선
+        height=750,  # 650 → 750 (height increased by 100px)
+        margin=dict(l=40, r=40, t=120, b=50),  # bottom margin 40 → 50
+        # Improved hover effect
         hoverlabel=dict(
             bgcolor="white",
             font_size=16,  # 14 → 16
@@ -250,7 +250,7 @@ def show_workflow_diagram():
         )
     )
     
-    # 다이어그램 표시 - 그라데이션 배경 컨테이너로 감싸기
+    # Display diagram - wrapped in gradient background container
     st.markdown("""
     <style>
     .workflow-container {
@@ -263,21 +263,21 @@ def show_workflow_diagram():
     </style>
     """, unsafe_allow_html=True)
     
-    # 그라데이션 배경 컨테이너로 감싸기
+    # Wrap in gradient background container
     st.markdown('<div class="workflow-container">', unsafe_allow_html=True)
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # 워크플로우 설명을 더 예쁘게
+    # Make workflow description more beautiful
     st.markdown("""
     <div style="text-align: center; margin: 2rem 0;">
-        <h3 style="color: #2C3E50; font-family: Arial Black;">✨ 각 단계를 클릭하여 상세 정보를 확인하세요 ✨</h3>
-        <p style="color: #7F8C8D; font-size: 16px;">화살표를 따라 순서대로 진행하면 완벽한 마이그레이션이 가능합니다!</p>
+        <h3 style="color: #2C3E50; font-family: Arial Black;">✨ Click each step to view detailed information ✨</h3>
+        <p style="color: #7F8C8D; font-size: 16px;">Follow the arrows in order for perfect migration!</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # 단계별 설명을 4컬럼으로 구성 - 동일한 높이
-    st.markdown("### 📋 단계별 상세 가이드")
+    # Configure step-by-step description in 4 columns - same height
+    st.markdown("### 📋 Step-by-Step Detailed Guide")
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -285,11 +285,11 @@ def show_workflow_diagram():
         st.markdown("""
         <div style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 107, 107, 0.05)); 
                     padding: 1rem; border-radius: 10px; border-left: 4px solid #FF6B6B; margin-bottom: 1rem; height: 200px; display: flex; flex-direction: column;">
-        <h4 style="color: #FF6B6B; margin-top: 0;">🔴 1단계: 환경 설정</h4>
+        <h4 style="color: #FF6B6B; margin-top: 0;">🔴 Step 1: Environment Setup</h4>
         <ul style="flex-grow: 1;">
-        <li>📊 프로젝트 환경 정보</li>
+        <li>📊 Project Environment Information</li>
         </ul>
-        <small style="margin-top: auto;"><em>모든 작업의 기초가 되는 환경 변수 설정</em></small>
+        <small style="margin-top: auto;"><em>Setting environment variables that form the foundation of all tasks</em></small>
         </div>
         """, unsafe_allow_html=True)
     
@@ -297,14 +297,14 @@ def show_workflow_diagram():
         st.markdown("""
         <div style="background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(78, 205, 196, 0.05)); 
                     padding: 1rem; border-radius: 10px; border-left: 4px solid #4ECDC4; margin-bottom: 1rem; height: 200px; display: flex; flex-direction: column;">
-        <h4 style="color: #4ECDC4; margin-top: 0;">🟢 2단계: 분석</h4>
+        <h4 style="color: #4ECDC4; margin-top: 0;">🟢 Step 2: Analysis</h4>
         <ul style="flex-grow: 1;">
-        <li>🔍 애플리케이션 분석</li>
-        <li>📄 분석 보고서 작성</li>
-        <li>📋 분석 보고서 리뷰</li>
-        <li>🗄️ PostgreSQL 메타데이터</li>
+        <li>🔍 Application Analysis</li>
+        <li>📄 Analysis Report Generation</li>
+        <li>📋 Analysis Report Review</li>
+        <li>🗄️ PostgreSQL Metadata</li>
         </ul>
-        <small style="margin-top: auto;"><em>소스 코드 분석 및 변환 계획 수립</em></small>
+        <small style="margin-top: auto;"><em>Source code analysis and transformation planning</em></small>
         </div>
         """, unsafe_allow_html=True)
     
@@ -312,14 +312,14 @@ def show_workflow_diagram():
         st.markdown("""
         <div style="background: linear-gradient(135deg, rgba(69, 183, 209, 0.1), rgba(69, 183, 209, 0.05)); 
                     padding: 1rem; border-radius: 10px; border-left: 4px solid #45B7D1; margin-bottom: 1rem; height: 200px; display: flex; flex-direction: column;">
-        <h4 style="color: #45B7D1; margin-top: 0;">🔵 3단계: 변환</h4>
+        <h4 style="color: #45B7D1; margin-top: 0;">🔵 Step 3: Transformation</h4>
         <ul style="flex-grow: 1;">
-        <li>🧪 샘플 변환</li>
-        <li>🚀 전체 변환</li>
-        <li>🔧 테스트 및 결과 수정</li>
+        <li>🧪 Sample Transform</li>
+        <li>🚀 Full Transform</li>
+        <li>🔧 Test and Result Modification</li>
         <li>🔗 XML Merge</li>
         </ul>
-        <small style="margin-top: auto;"><em>실제 SQL 변환 작업 수행<br>(테스트 및 수정은 터미널 작업)</em></small>
+        <small style="margin-top: auto;"><em>Perform actual SQL transformation tasks<br>(Test and modification are terminal tasks)</em></small>
         </div>
         """, unsafe_allow_html=True)
     
@@ -327,24 +327,24 @@ def show_workflow_diagram():
         st.markdown("""
         <div style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(230, 126, 34, 0.05)); 
                     padding: 1rem; border-radius: 10px; border-left: 4px solid #E67E22; margin-bottom: 1rem; height: 200px; display: flex; flex-direction: column;">
-        <h4 style="color: #E67E22; margin-top: 0;">🟠 4단계: 테스트 & 보고서</h4>
+        <h4 style="color: #E67E22; margin-top: 0;">🟠 Step 4: Test & Reports</h4>
         <ul style="flex-grow: 1;">
         <li>⚖️ Compare SQL Test</li>
-        <li>📊 변환 보고서 생성</li>
-        <li>📄 변환 보고서 보기</li>
+        <li>📊 Generate Transform Report</li>
+        <li>📄 View Transform Report</li>
         </ul>
-        <small style="margin-top: auto;"><em>변환 결과 검증 및 최종 보고서</em></small>
+        <small style="margin-top: auto;"><em>Validate transformation results and final reports</em></small>
         </div>
         """, unsafe_allow_html=True)
 
 
 def get_group_name(step_id):
-    """단계 ID에 따른 그룹명 반환"""
+    """Return group name based on step ID"""
     if step_id == 1:
-        return "1단계: 환경 설정"
+        return "Step 1: Environment Setup"
     elif 2 <= step_id <= 5:
-        return "2단계: 분석"
+        return "Step 2: Analysis"
     elif 6 <= step_id <= 9:
-        return "3단계: 변환"
+        return "Step 3: Transformation"
     else:
-        return "4단계: 테스트 & 보고서"
+        return "Step 4: Test & Reports"

@@ -1,5 +1,5 @@
 """
-XML Merge 페이지
+XML Merge Page
 """
 import streamlit as st
 import subprocess
@@ -10,8 +10,8 @@ import pandas as pd
 
 
 def render_merge_transform_page():
-    """XML Merge 실행 페이지"""
-    # 전체 페이지 폭을 강제로 확장하는 CSS
+    """XML Merge execution page"""
+    # CSS to forcefully expand full page width
     st.markdown("""
     <style>
     .main .block-container {
@@ -26,16 +26,16 @@ def render_merge_transform_page():
     </style>
     """, unsafe_allow_html=True)
     
-    # 홈 버튼을 상단 좌측에 간단하게 배치
-    if st.button("🏠 홈으로", key="merge_transform_home"):
+    # Place Home button simply at top left
+    if st.button("🏠 Home", key="merge_transform_home"):
         st.session_state.selected_action = None
         st.rerun()
     
-    # 제목을 전체 폭으로 표시
-    st.markdown("# 🔗 XML Merge 실행")
+    # Display title in full width
+    st.markdown("# 🔗 XML Merge Execute")
     
-    # 탭 구성
-    tab1, tab2 = st.tabs(["🔗 XML Merge 실행", "📋 실행 결과"])
+    # Tab configuration
+    tab1, tab2 = st.tabs(["🔗 XML Merge Execute", "📋 Execute Result"])
     
     with tab1:
         render_xml_merge_execution_tab()
@@ -45,75 +45,75 @@ def render_merge_transform_page():
 
 
 def render_xml_merge_execution_tab():
-    """XML Merge 실행 탭"""
-    st.markdown("## 🔗 XML Merge 작업")
+    """XML Merge execution tab"""
+    st.markdown("## 🔗 XML Merge Task")
     
-    # 작업 설명
+    # Task description
     st.info("""
-    **XML Merge 작업 순서:**
-    1. 기존 타겟 XML 파일들 삭제 (`delete_target_xml_files.sh`)
-    2. SQL 변환 Merge 작업 실행 (`processSqlTransform.sh merge`)
+    **XML Merge Task Order:**
+    1. Delete existing target XML files (`delete_target_xml_files.sh`)
+    2. Execute SQL Transform Merge Task (`processSqlTransform.sh merge`)
     
-    이 작업은 변환된 SQL 파일들을 병합하여 최종 XML 파일을 생성합니다.
+    This task merges transformed SQL files to create final XML files.
     """)
     
-    # 환경 변수 확인
+    # Check environment variables
     app_tools_folder = os.environ.get('APP_TOOLS_FOLDER')
     oma_base_dir = os.environ.get('OMA_BASE_DIR')
     
     if not app_tools_folder or not oma_base_dir:
-        st.error("❌ 필요한 환경 변수가 설정되지 않았습니다. 프로젝트 환경을 먼저 설정하세요.")
+        st.error("❌ Required environment variables are not set. Please configure project environment first.")
         return
     
-    # 스크립트 파일 존재 확인
+    # Check script file existence
     delete_script = os.path.join(app_tools_folder, "..", "postTransform", "delete_target_xml_files.sh")
     transform_script = os.path.join(oma_base_dir, "bin", "processSqlTransform.sh")
     
-    st.markdown("### 📁 스크립트 파일 확인")
+    st.markdown("### 📁 Script File Check")
     col1, col2 = st.columns(2)
     
     with col1:
         if os.path.exists(delete_script):
             st.success(f"✅ delete_target_xml_files.sh")
         else:
-            st.error(f"❌ delete_target_xml_files.sh 파일이 없습니다")
-        st.caption(f"경로: {delete_script}")
+            st.error(f"❌ delete_target_xml_files.sh file not found")
+        st.caption(f"Path: {delete_script}")
     
     with col2:
         if os.path.exists(transform_script):
             st.success(f"✅ processSqlTransform.sh")
         else:
-            st.error(f"❌ processSqlTransform.sh 파일이 없습니다")
-        st.caption(f"경로: {transform_script}")
+            st.error(f"❌ processSqlTransform.sh file not found")
+        st.caption(f"Path: {transform_script}")
     
-    # 실행 버튼
-    st.markdown("### 🚀 XML Merge 실행")
+    # Execute button
+    st.markdown("### 🚀 XML Merge Execute")
     
-    # 실행 중인지 확인
+    # Check if execution is in progress
     if st.session_state.oma_controller.is_any_task_running():
-        st.warning("⚠️ 다른 작업이 실행 중입니다. 잠시 후 다시 시도하세요.")
+        st.warning("⚠️ Another task is currently running. Please try again later.")
         return
     
-    if st.button("🔗 XML Merge 시작", type="primary", use_container_width=True):
+    if st.button("🔗 XML Merge Start", type="primary", use_container_width=True):
         if os.path.exists(delete_script) and os.path.exists(transform_script):
-            # 복합 명령어 구성
+            # Compose compound command
             command = f"{delete_script} && cd {oma_base_dir}/bin && ./processSqlTransform.sh merge"
             
-            # TaskManager 없이 직접 실행
+            # Execute directly without TaskManager
             execute_xml_merge_directly(command)
         else:
-            st.error("❌ 필요한 스크립트 파일이 존재하지 않습니다.")
+            st.error("❌ Required script files do not exist.")
 
 
 def execute_xml_merge_directly(command):
-    """XML Merge를 TaskManager 없이 직접 실행"""
-    st.info(f"🔗 **XML Merge 실행:** `{command}`")
+    """Execute XML Merge directly without TaskManager"""
+    st.info(f"🔗 **XML Merge Execute:** `{command}`")
     
-    # 로그 컨테이너
+    # Log container
     log_container = st.empty()
     
     try:
-        # 프로세스 실행
+        # Execute process
         process = subprocess.Popen(
             command,
             shell=True,
@@ -123,7 +123,7 @@ def execute_xml_merge_directly(command):
             bufsize=1
         )
         
-        # 실시간 로그 수집
+        # Collect real-time logs
         log_lines = []
         
         while True:
@@ -137,7 +137,7 @@ def execute_xml_merge_directly(command):
             if clean_line:
                 log_lines.append(clean_line)
                 
-                # 로그 표시 (최근 100줄만)
+                # Display logs (last 100 lines only)
                 display_lines = log_lines[-100:] if len(log_lines) > 100 else log_lines
                 log_text = '\n'.join(display_lines)
                 
@@ -148,52 +148,52 @@ def execute_xml_merge_directly(command):
                     </div>
                     """, unsafe_allow_html=True)
         
-        # 프로세스 완료 대기
+        # Wait for process completion
         return_code = process.wait()
         
         if return_code == 0:
-            st.success("✅ XML Merge 작업이 성공적으로 완료되었습니다!")
+            st.success("✅ XML Merge task completed successfully!")
         else:
-            st.error(f"❌ XML Merge 작업이 실패했습니다. (종료 코드: {return_code})")
+            st.error(f"❌ XML Merge task failed. (Exit code: {return_code})")
             
     except Exception as e:
-        st.error(f"❌ XML Merge 실행 중 오류가 발생했습니다: {str(e)}")
+        st.error(f"❌ An error occurred during XML Merge execution: {str(e)}")
 
 
 def render_xml_merge_results_tab():
-    """XML Merge 결과 탭"""
-    st.markdown("## 📋 XML Merge 실행 결과")
+    """XML Merge results tab"""
+    st.markdown("## 📋 XML Merge Execute Result")
     
-    # TARGET_SQL_MAPPER_FOLDER 확인
+    # Check TARGET_SQL_MAPPER_FOLDER
     target_sql_mapper_folder = os.environ.get('TARGET_SQL_MAPPER_FOLDER')
     
     if not target_sql_mapper_folder:
-        st.warning("⚠️ TARGET_SQL_MAPPER_FOLDER 환경 변수가 설정되지 않았습니다.")
+        st.warning("⚠️ TARGET_SQL_MAPPER_FOLDER environment variable is not set.")
         return
     
     if not os.path.exists(target_sql_mapper_folder):
-        st.error(f"❌ TARGET_SQL_MAPPER_FOLDER 경로가 존재하지 않습니다: {target_sql_mapper_folder}")
+        st.error(f"❌ TARGET_SQL_MAPPER_FOLDER path does not exist: {target_sql_mapper_folder}")
         return
     
     st.info(f"📁 **TARGET_SQL_MAPPER_FOLDER:** {target_sql_mapper_folder}")
     
-    # 1/3, 2/3 컬럼 분할
+    # 1/3, 2/3 column split
     col_list, col_content = st.columns([1, 2])
     
     with col_list:
-        st.markdown("### 🔍 XML 파일 목록")
+        st.markdown("### 🔍 XML File List")
         
-        # 파일명 필터
+        # Filename filter
         file_filter = st.text_input(
-            "파일명 필터",
+            "Filename Filter",
             value="",
-            placeholder="예: mapper, user",
-            help="파일명이나 경로에 포함된 텍스트로 필터링"
+            placeholder="e.g.: mapper, user",
+            help="Filter by text contained in filename or path"
         )
         
-        show_all = st.checkbox("모든 파일 표시", value=True)
+        show_all = st.checkbox("Show All Files", value=True)
         
-        # XML 파일 검색
+        # Search XML files
         xml_files = []
         if os.path.exists(target_sql_mapper_folder):
             for root, dirs, files in os.walk(target_sql_mapper_folder):
@@ -202,7 +202,7 @@ def render_xml_merge_results_tab():
                         full_path = os.path.join(root, file)
                         rel_path = os.path.relpath(full_path, target_sql_mapper_folder)
                         
-                        # 필터 적용
+                        # Apply filter
                         if show_all or not file_filter or file_filter.lower() in full_path.lower():
                             xml_files.append({
                                 'name': file,
@@ -212,68 +212,68 @@ def render_xml_merge_results_tab():
                                 'dir': os.path.dirname(rel_path) if os.path.dirname(rel_path) else '.'
                             })
         
-        # 결과 표시
+        # Display results
         if xml_files:
-            st.success(f"✅ {len(xml_files)}개 파일")
+            st.success(f"✅ {len(xml_files)} Files")
             
-            # 표 형태로 표시
-            # 데이터프레임 생성
+            # Display in table format
+            # Create dataframe
             df_data = []
             for xml_file in sorted(xml_files, key=lambda x: x['rel_path']):
                 df_data.append({
-                    '디렉토리': xml_file['dir'],
-                    '파일명': xml_file['name'],
-                    '크기': f"{xml_file['size']:,}",
-                    '경로': xml_file['full_path']
+                    'Directory': xml_file['dir'],
+                    'Filename': xml_file['name'],
+                    'Size': f"{xml_file['size']:,}",
+                    'Path': xml_file['full_path']
                 })
             
             df = pd.DataFrame(df_data)
             
-            # 선택 가능한 표로 표시
+            # Display as selectable table
             selected_indices = st.dataframe(
-                df[['디렉토리', '파일명', '크기']],
+                df[['Directory', 'Filename', 'Size']],
                 use_container_width=True,
                 hide_index=True,
                 on_select="rerun",
                 selection_mode="single-row"
             )
             
-            # 선택된 행이 있으면 파일 내용 표시
+            # Display file content if row is selected
             if selected_indices.selection.rows:
                 selected_idx = selected_indices.selection.rows[0]
-                selected_file_path = df.iloc[selected_idx]['경로']
+                selected_file_path = df.iloc[selected_idx]['Path']
                 st.session_state.selected_xml_file = selected_file_path
         
         else:
             if file_filter:
-                st.info(f"'{file_filter}' 조건에 맞는 파일이 없습니다.")
+                st.info(f"No files match the condition '{file_filter}'.")
             else:
-                st.info("XML 파일이 없습니다.")
+                st.info("No XML files found.")
     
     with col_content:
-        st.markdown("### 📄 XML 파일 내용")
+        st.markdown("### 📄 XML File Content")
         
-        # 선택된 파일 내용 표시
+        # Display selected file content
         if 'selected_xml_file' in st.session_state and st.session_state.selected_xml_file:
             display_xml_content_inline(st.session_state.selected_xml_file)
         else:
-            st.info("👈 왼쪽에서 XML 파일을 선택하세요.")
+            st.info("👈 Please select an XML file from the left.")
 
 
 def display_xml_content_inline(file_path):
-    """선택된 XML 파일 내용을 인라인으로 표시"""
-    # 파일 정보
+    """Display selected XML file content inline"""
+    # File information
     file_name = os.path.basename(file_path)
     file_size = os.path.getsize(file_path)
     rel_path = os.path.relpath(file_path, os.environ.get('TARGET_SQL_MAPPER_FOLDER', ''))
     
-    # 헤더 (파일 정보 + 닫기 버튼)
+    # Header (File info + close button)
     col1, col2 = st.columns([4, 1])
     with col1:
         st.markdown(f"**{file_name}**")
         st.caption(f"📁 {rel_path} | 💾 {file_size:,} bytes")
     with col2:
-        if st.button("❌", key="close_xml_viewer", help="닫기"):
+        if st.button("❌", key="close_xml_viewer", help="Close"):
             del st.session_state.selected_xml_file
             st.rerun()
     
@@ -281,25 +281,25 @@ def display_xml_content_inline(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 통계 정보 (간단하게)
+        # Statistics info (simple)
         line_count = len(content.split('\n'))
         char_count = len(content)
         sql_count = content.count('<select') + content.count('<insert') + content.count('<update') + content.count('<delete')
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("라인", f"{line_count:,}")
+            st.metric("Lines", f"{line_count:,}")
         with col2:
-            st.metric("문자", f"{char_count:,}")
+            st.metric("Characters", f"{char_count:,}")
         with col3:
             st.metric("SQL", f"{sql_count:,}")
         
-        # XML 내용을 코드 블록으로 표시 (높이 조정)
+        # Display XML content as code block (height adjusted)
         st.code(content, language='xml', line_numbers=True)
         
-        # 다운로드 버튼
+        # Download button
         st.download_button(
-            "💾 파일 다운로드",
+            "💾 File Download",
             data=content,
             file_name=file_name,
             mime="application/xml",
@@ -308,6 +308,6 @@ def display_xml_content_inline(file_path):
         )
         
     except Exception as e:
-        st.error(f"❌ 파일을 읽을 수 없습니다: {str(e)}")
-        if st.button("🔄 다시 시도", key="retry_xml_read"):
+        st.error(f"❌ Cannot read file: {str(e)}")
+        if st.button("🔄 Retry", key="retry_xml_read"):
             st.rerun()
