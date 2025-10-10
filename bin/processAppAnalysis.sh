@@ -46,7 +46,7 @@ process_app_analysis() {
     print_separator
     echo -e "${BLUE}${BOLD}Execution command:${NC}"
     echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
-    echo -e "${YELLOW}Log file: $LOG_FILE${NC}"
+    echo -e "${YELLOW}Please review activities via this log file: $LOG_FILE${NC}"
 
     # Execute appAnalysis.md (Generate analysis data) - Save log
     if [ -f "$APP_TOOLS_FOLDER/appAnalysis.md" ]; then
@@ -83,7 +83,7 @@ process_app_analysis() {
 # 메인 실행
 clear
 print_separator
-echo -e "${BLUE}${BOLD}Step 2-1: 애플리케이션 분석 스크립트${NC}"
+echo -e "${BLUE}${BOLD}Step 2-1: Application Analysis${NC}"
 print_separator
 
 # 환경 변수 확인
