@@ -106,7 +106,7 @@ process_app_reporting() {
 # 메인 실행
 clear
 print_separator
-echo -e "${BLUE}${BOLD}Step 2-2: 분석 보고서 작성 및 SQL변환 대상 추출 스크립트${NC}"
+echo -e "${BLUE}${BOLD}Step 2-2: Application Report & Extract Transform SQL Target${NC}"
 print_separator
 
 # 환경 변수 확인
