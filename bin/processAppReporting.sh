@@ -17,107 +17,107 @@ print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
 
-# 환경 변수 확인 함수
+# Environment variable check function
 check_environment() {
     if [ -z "$APPLICATION_NAME" ]; then
-        echo -e "${RED}${BOLD}오류: 환경 변수가 설정되지 않았습니다.${NC}"
-        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        echo -e "${RED}${BOLD}Error: Environment variables are not set.${NC}"
+        echo -e "${YELLOW}Please source the environment variable file. Example: source ./oma_env_projectname.sh${NC}"
         exit 1
     fi
 }
 
 # ====================================================
-# Step 2-2: 분석 보고서 작성 및 SQL변환 대상 추출
+# Step 2-2: Analysis report creation and SQL transformation target extraction
 # ====================================================
 process_app_reporting() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 2-2: 분석 보고서 작성 및 SQL변환 대상 추출${NC}"
+    echo -e "${BLUE}${BOLD}Step 2-2: Analysis Report Creation and SQL Transformation Target Extraction${NC}"
     print_separator
-    echo -e "${CYAN}이 단계에서는 다음 작업을 수행합니다:${NC}"
-    echo -e "${CYAN}1. HTML 분석 리포트 생성 (appReporting.md)${NC}"
-    echo -e "${CYAN}2. JNDI와 Mapper 파일 조합 생성${NC}"
-    echo -e "${CYAN}3. SQL 변환 대상 목록 추출${NC}"
-    echo -e "${CYAN}4. 통합 분석 리포트 (DiscoveryReport.html) 생성${NC}"
+    echo -e "${CYAN}This step performs the following tasks:${NC}"
+    echo -e "${CYAN}1. Generate HTML analysis report (appReporting.md)${NC}"
+    echo -e "${CYAN}2. Generate JNDI and Mapper file combinations${NC}"
+    echo -e "${CYAN}3. Extract SQL transformation target list${NC}"
+    echo -e "${CYAN}4. Generate integrated analysis report (DiscoveryReport.html)${NC}"
     print_separator
-    echo -e "${BLUE}${BOLD}실행 순서:${NC}"
+    echo -e "${BLUE}${BOLD}Execution order:${NC}"
     echo -e "${BLUE}${BOLD}1. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
     echo -e "${BLUE}${BOLD}2. python3 $APP_TOOLS_FOLDER/genSqlTransformTarget.py${NC}"
 
-    # 1. appReporting.md 실행 (HTML 리포트 생성)
+    # 1. Execute appReporting.md (Generate HTML report)
     if [ -f "$APP_TOOLS_FOLDER/appReporting.md" ]; then
-        echo -e "${CYAN}1. HTML 분석 리포트 생성 중...${NC}"
+        echo -e "${CYAN}1. Generating HTML analysis report...${NC}"
         
-        # q chat 로그 디렉토리 생성
+        # Create q chat log directory
         mkdir -p "$APP_LOGS_FOLDER/qlogs"
         
-        # 로그 파일에 시작 시간 기록
-        echo "=== q chat appReporting.md 실행 시작: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+        # Record start time in log file
+        echo "=== q chat appReporting.md execution started: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
         
-        # q chat 실행 및 로그 저장
+        # Execute q chat and save log
         q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log" 2>&1
         
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ HTML 분석 리포트 생성이 완료되었습니다.${NC}"
-            echo "=== q chat appReporting.md 실행 완료: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+            echo -e "${GREEN}✓ HTML analysis report generation completed.${NC}"
+            echo "=== q chat appReporting.md execution completed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
         else
-            echo -e "${RED}오류: appReporting.md 실행 중 오류가 발생했습니다.${NC}"
-            echo "=== q chat appReporting.md 실행 실패: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+            echo -e "${RED}Error: An error occurred during appReporting.md execution.${NC}"
+            echo "=== q chat appReporting.md execution failed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
             return 1
         fi
     else
-        echo -e "${RED}오류: appReporting.md 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/appReporting.md${NC}"
+        echo -e "${RED}Error: appReporting.md file not found: $APP_TOOLS_FOLDER/appReporting.md${NC}"
         return 1
     fi
 
-    # 2. JNDI와 Mapper 파일 조합 생성 (후속 처리)
-    echo -e "${CYAN}2. JNDI와 Mapper 파일 조합 생성 중...${NC}"
+    # 2. Generate JNDI and Mapper file combinations (follow-up processing)
+    echo -e "${CYAN}2. Generating JNDI and Mapper file combinations...${NC}"
     if [ -f "$APP_TOOLS_FOLDER/genSqlTransformTarget.py" ]; then
-        # 로그 디렉토리 생성
+        # Create log directory
         mkdir -p "$APP_LOGS_FOLDER/pylogs"
         
-        # 로그 파일에 시작 시간 기록
-        echo "=== genSqlTransformTarget.py 실행 시작: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
+        # Record start time in log file
+        echo "=== genSqlTransformTarget.py execution started: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
         
-        # Python 스크립트 실행 및 로그 저장
+        # Execute Python script and save log
         python3 "$APP_TOOLS_FOLDER/genSqlTransformTarget.py" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log" 2>&1
         
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ SQL 변환 대상 목록 추출이 완료되었습니다.${NC}"
-            echo "=== genSqlTransformTarget.py 실행 완료: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
+            echo -e "${GREEN}✓ SQL transformation target list extraction completed.${NC}"
+            echo "=== genSqlTransformTarget.py execution completed: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
         else
-            echo -e "${RED}오류: genSqlTransformTarget.py 실행 중 오류가 발생했습니다.${NC}"
-            echo "=== genSqlTransformTarget.py 실행 실패: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
+            echo -e "${RED}Error: An error occurred during genSqlTransformTarget.py execution.${NC}"
+            echo "=== genSqlTransformTarget.py execution failed: $(date) ===" >> "$APP_LOGS_FOLDER/pylogs/genSqlTransformTarget.log"
             return 1
         fi
     else
-        echo -e "${YELLOW}경고: genSqlTransformTarget.py 파일을 찾을 수 없습니다: $APP_TOOLS_FOLDER/genSqlTransformTarget.py${NC}"
-        echo -e "${YELLOW}SQL 변환 대상 추출 단계를 건너뜁니다.${NC}"
+        echo -e "${YELLOW}Warning: genSqlTransformTarget.py file not found: $APP_TOOLS_FOLDER/genSqlTransformTarget.py${NC}"
+        echo -e "${YELLOW}Skipping SQL transformation target extraction step.${NC}"
     fi
     
-    # SQL Mapper Report 생성 (주석 처리된 부분 - 필요시 활성화)
+    # SQL Mapper Report generation (commented section - activate if needed)
     #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/GenSQLMapperReport.txt${NC}"
     #q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/GenSQLMapperReport.txt"
 
-    # SQL Transform Target Report 생성 (주석 처리된 부분 - 필요시 활성화)
-    #echo -e "${BLUE}${BOLD}SQL Transform Target Report 생성중입니다.${NC}"
+    # SQL Transform Target Report generation (commented section - activate if needed)
+    #echo -e "${BLUE}${BOLD}Generating SQL Transform Target Report.${NC}"
     #python3 "$APP_TOOLS_FOLDER/ReportSQLTransformTarget.py"
 }
 
 # 메인 실행
 clear
 print_separator
-echo -e "${BLUE}${BOLD}Step 2-2: 분석 보고서 작성 및 SQL변환 대상 추출 스크립트${NC}"
+echo -e "${BLUE}${BOLD}Step 2-2: Application Report & Extract Transform SQL Target${NC}"
 print_separator
 
 # 환경 변수 확인
 check_environment
 
-echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
+echo -e "${GREEN}Currently configured project: $APPLICATION_NAME${NC}"
 print_separator
 
 # 분석 보고서 작성 실행
 process_app_reporting
 
-echo -e "${GREEN}Step 2-2: 분석 보고서 작성 및 SQL변환 대상 추출 작업이 완료되었습니다.${NC}"
-echo -e "${YELLOW}다음 단계: 'PostgreSQL 데이터베이스 메타데이터 작성' 또는 'SQL 변환 작업'을 실행하세요.${NC}"
+echo -e "${GREEN}Step 2-2: Analysis report creation and SQL transformation target extraction task completed.${NC}"
+echo -e "${YELLOW}Next step: Execute 'PostgreSQL database metadata creation' or 'SQL transformation task'.${NC}"
 print_separator

@@ -1,13 +1,104 @@
 #!/bin/bash
 
+# 공통 메시지 함수들
+msg_error() {
+    echo -e "${RED}${ERROR_PREFIX}$1${NC}"
+}
+
+msg_success() {
+    echo -e "${GREEN}${SUCCESS_PREFIX}$1${NC}"
+}
+
+msg_warning() {
+    echo -e "${YELLOW}${WARNING_PREFIX}$1${NC}"
+}
+
+msg_info() {
+    echo -e "${CYAN}$1${NC}"
+}
+
+msg_wait_3sec() {
+    echo -e "${BLUE}${BOLD}$1${STARTING_TASK}${WAITING_3_SECONDS}${NC}"
+    sleep 3
+}
+
+msg_script_exec() {
+    echo -e "${BLUE}${BOLD}$1 ${SCRIPT_EXECUTION}${NC}"
+}
+
+msg_running_script() {
+    echo -e "${CYAN}$1${RUNNING_SCRIPT}${NC}"
+}
+
+msg_file_not_found() {
+    msg_error "${FILE_NOT_FOUND}$1"
+}
+
+msg_task_completed() {
+    echo -e "${GREEN}$1 ${TASK_COMPLETED}${NC}"
+}
+
+msg_task_failed() {
+    echo -e "${RED}$1 ${TASK_FAILED}${NC}"
+}
+
+# 언어 설정 (기본값: 한국어)
+LANGUAGE="ko"
+
+# oma.properties에서 언어 설정 읽기
+load_language_from_properties() {
+    local props_file="$OMA_BASE_DIR/config/oma.properties"
+    if [ -f "$props_file" ]; then
+        local lang=$(grep "^LANGUAGE=" "$props_file" | cut -d'=' -f2)
+        if [ -n "$lang" ]; then
+            LANGUAGE="$lang"
+        fi
+    fi
+}
+
+# oma.properties에 언어 설정 저장
+save_language_to_properties() {
+    local props_file="$OMA_BASE_DIR/config/oma.properties"
+    if [ -f "$props_file" ]; then
+        sed -i.bak "s/^LANGUAGE=.*/LANGUAGE=$LANGUAGE/" "$props_file"
+    fi
+}
+
+# 메시지 로딩 함수
+load_messages() {
+    local msg_file="$OMA_BASE_DIR/config/messages_${LANGUAGE}.msg"
+    if [ -f "$msg_file" ]; then
+        source "$msg_file"
+    else
+        echo "Warning: Message file not found: $msg_file"
+    fi
+}
+
+# 언어 변경 함수
+change_language() {
+    if [ "$LANGUAGE" = "ko" ]; then
+        LANGUAGE="en"
+    else
+        LANGUAGE="ko"
+    fi
+    load_messages
+    save_language_to_properties
+    echo -e "${GREEN}${LANGUAGE_CHANGED}${NC}"
+    sleep 1
+    clear
+}
+
 # OMA_BASE_DIR 환경 변수 확인 및 설정
 if [ -z "$OMA_BASE_DIR" ]; then
-    # 현재 스크립트의 디렉토리를 기준으로 OMA_BASE_DIR 설정
-    # initOMA.sh가 OMA_BASE_DIR에 있다고 가정
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     export OMA_BASE_DIR="$SCRIPT_DIR"
-    echo "OMA_BASE_DIR이 설정되지 않아 자동으로 설정합니다: $OMA_BASE_DIR"
+    echo "${OMA_BASE_DIR_AUTO_SET}$OMA_BASE_DIR"
 fi
+
+# 언어 설정 로딩
+load_language_from_properties
+# 메시지 로딩
+load_messages
 
 # bin 디렉토리로 이동
 cd "$OMA_BASE_DIR/bin"
@@ -39,18 +130,18 @@ print_separator() {
 check_environment() {
     if [ -z "$APPLICATION_NAME" ]; then
         print_separator
-        echo -e "${RED}${BOLD}오류: 환경 변수가 설정되지 않았습니다.${NC}"
+        msg_error "${ENV_VAR_NOT_SET}"
         print_separator
-        echo -e "${YELLOW}OMA 변환 작업을 수행하려면 먼저 환경 설정이 필요합니다.${NC}"
+        echo -e "${YELLOW}${ENV_SETUP_REQUIRED}${NC}"
         echo ""
-        echo -e "${CYAN}${BOLD}환경 설정 방법:${NC}"
-        echo -e "${CYAN}1. 프로젝트 초기 설정 및 환경 변수 파일 생성:${NC}"
+        echo -e "${CYAN}${BOLD}${ENV_SETUP_METHODS}${NC}"
+        echo -e "${CYAN}${ENV_SETUP_STEP1}${NC}"
         echo -e "${GREEN}   ./setEnv.sh${NC}"
         echo ""
-        echo -e "${CYAN}2. 환경 변수 파일이 이미 있는 경우 (예: oma_env_MyProject.sh):${NC}"
-        echo -e "${GREEN}   source ./oma_env_프로젝트명.sh${NC}"
+        echo -e "${CYAN}${ENV_SETUP_STEP2}${NC}"
+        echo -e "${GREEN}${SOURCE_ENV_EXAMPLE}${NC}"
         echo ""
-        echo -e "${CYAN}3. 현재 디렉토리의 환경 변수 파일 확인:${NC}"
+        echo -e "${CYAN}${ENV_SETUP_STEP3}${NC}"
         echo -e "${GREEN}   ls -la oma_env_*.sh${NC}"
         print_separator
 
@@ -58,70 +149,70 @@ check_environment() {
         cd "$OMA_BASE_DIR"
         env_files=(oma_env_*.sh)
         if [ -f "${env_files[0]}" ]; then
-            echo -e "${BLUE}${BOLD}발견된 환경 변수 파일들:${NC}"
+            echo -e "${BLUE}${BOLD}${FOUND_ENV_FILES}${NC}"
             for file in oma_env_*.sh; do
                 if [ -f "$file" ]; then
                     echo -e "${GREEN}  - $file${NC}"
                 fi
             done
             echo ""
-            echo -e "${YELLOW}위 파일 중 하나를 선택하여 source 하시겠습니까?${NC}"
-            echo -ne "${BLUE}${BOLD}파일을 선택하시겠습니까? (y/N): ${NC}"
+            echo -e "${YELLOW}${SELECT_ENV_FILE}${NC}"
+            echo -ne "${BLUE}${BOLD}${SELECT_FILE_PROMPT}${NC}"
             read select_env_file
 
             if [[ "$select_env_file" =~ ^[Yy]$ ]]; then
-                echo -e "${CYAN}사용할 환경 변수 파일을 선택하세요:${NC}"
-                select env_file in oma_env_*.sh "취소"; do
+                echo -e "${CYAN}${SELECT_ENV_FILE_PROMPT}${NC}"
+                select env_file in oma_env_*.sh "${CANCEL}"; do
                     case $env_file in
-                        "취소")
-                            echo -e "${YELLOW}환경 설정을 취소합니다.${NC}"
+                        "${CANCEL}")
+                            echo -e "${YELLOW}${ENV_SETUP_CANCELLED}${NC}"
                             exit 1
                             ;;
                         *.sh)
                             if [ -f "$env_file" ]; then
-                                echo -e "${GREEN}선택된 파일: $env_file${NC}"
-                                echo -e "${BLUE}환경 변수를 로딩합니다...${NC}"
+                                echo -e "${GREEN}${SELECTED_FILE}$env_file${NC}"
+                                echo -e "${BLUE}${LOADING_ENV_VARS}${NC}"
                                 source "$OMA_BASE_DIR/$env_file"
                                 if [ -n "$APPLICATION_NAME" ]; then
-                                    echo -e "${GREEN}✓ 환경 변수가 성공적으로 로딩되었습니다.${NC}"
-                                    echo -e "${GREEN}현재 프로젝트: $APPLICATION_NAME${NC}"
+                                    msg_success "${ENV_LOADED_SUCCESS}"
+                                    echo -e "${GREEN}${CURRENT_PROJECT}$APPLICATION_NAME${NC}"
                                     cd "$OMA_BASE_DIR/bin"
                                     return 0
                                 else
-                                    echo -e "${RED}환경 변수 로딩에 실패했습니다.${NC}"
+                                    msg_error "${ENV_LOADING_FAILED}"
                                     exit 1
                                 fi
                             else
-                                echo -e "${RED}파일을 찾을 수 없습니다: $env_file${NC}"
+                                msg_error "${FILE_NOT_FOUND}$env_file"
                             fi
                             break
                             ;;
                         *)
-                            echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                            echo -e "${RED}${INVALID_SELECTION}${NC}"
                             ;;
                     esac
                 done
             else
-                echo -e "${YELLOW}환경 설정을 건너뜁니다.${NC}"
-                echo -e "${CYAN}수동으로 환경을 설정한 후 다시 실행하세요.${NC}"
+                echo -e "${YELLOW}${SKIP_ENV_SETUP}${NC}"
+                echo -e "${CYAN}${MANUAL_ENV_SETUP}${NC}"
                 exit 1
             fi
         else
-            echo -e "${YELLOW}환경 변수 파일이 발견되지 않았습니다.${NC}"
-            echo -e "${CYAN}setEnv.sh를 먼저 실행하여 프로젝트를 설정하세요.${NC}"
+            echo -e "${YELLOW}${NO_ENV_FILES_FOUND}${NC}"
+            echo -e "${CYAN}${RUN_SETENV_FIRST}${NC}"
             echo ""
-            echo -ne "${BLUE}${BOLD}지금 setEnv.sh를 실행하시겠습니까? (y/N): ${NC}"
+            echo -ne "${BLUE}${BOLD}${RUN_SETENV_NOW}${NC}"
             read run_setenv
 
             if [[ "$run_setenv" =~ ^[Yy]$ ]]; then
-                echo -e "${GREEN}setEnv.sh를 실행합니다...${NC}"
+                echo -e "${GREEN}${RUNNING_SETENV}${NC}"
                 print_separator
                 cd "$OMA_BASE_DIR/bin"
                 ./setEnv.sh
                 if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}setEnv.sh 실행이 완료되었습니다.${NC}"
-                    echo -e "${YELLOW}환경 변수를 로딩하기 위해 initOMA.sh를 다시 실행하세요.${NC}"
-                    echo -e "${CYAN}또는 생성된 환경 변수 파일을 source 하세요:${NC}"
+                    echo -e "${GREEN}${SETENV_COMPLETED}${NC}"
+                    echo -e "${YELLOW}${RESTART_INITOMA}${NC}"
+                    echo -e "${CYAN}${OR_SOURCE_ENV_FILE}${NC}"
                     cd "$OMA_BASE_DIR"
                     for file in oma_env_*.sh; do
                         if [ -f "$file" ]; then
@@ -130,18 +221,18 @@ check_environment() {
                         fi
                     done
                 else
-                    echo -e "${RED}setEnv.sh 실행에 실패했습니다.${NC}"
+                    msg_error "${SETENV_FAILED}"
                 fi
                 exit 0
             else
-                echo -e "${YELLOW}환경 설정을 건너뜁니다.${NC}"
+                echo -e "${YELLOW}${SKIP_ENV_SETUP}${NC}"
                 exit 1
             fi
         fi
     else
         print_separator
-        echo -e "${GREEN}${BOLD}✅ 환경 변수 확인 완료!${NC}"
-        echo -e "${GREEN}${BOLD}현재 프로젝트: $APPLICATION_NAME${NC}"
+        echo -e "${GREEN}${BOLD}${SUCCESS_PREFIX}${ENV_CHECK_COMPLETE}${NC}"
+        echo -e "${GREEN}${BOLD}${CURRENT_PROJECT}$APPLICATION_NAME${NC}"
     fi
 }
 
@@ -152,15 +243,15 @@ check_environment() {
 # 환경 설정 다시 수행
 execute_setenv() {
     print_separator
-    echo -e "${YELLOW}환경 설정을 다시 수행합니다.${NC}"
-    echo -e "${CYAN}setEnv.sh를 실행합니다...${NC}"
+    echo -e "${YELLOW}${ENV_SETUP_RETRY_MSG}${NC}"
+    msg_running_script "setEnv.sh"
     cd "$OMA_BASE_DIR/bin"
     ./setEnv.sh
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}환경 설정이 완료되었습니다.${NC}"
-        echo -e "${YELLOW}환경 변수가 설정되었으므로 계속 진행할 수 있습니다.${NC}"
+        msg_success "환경 설정이 완료되었습니다."
+        echo -e "${YELLOW}${ENV_VAR_SET_CONTINUE}${NC}"
     else
-        echo -e "${RED}환경 설정에 실패했습니다.${NC}"
+        msg_error "환경 설정에 실패했습니다."
         return 1
     fi
     print_separator
@@ -169,7 +260,7 @@ execute_setenv() {
 # 현재 환경 변수 확인
 execute_checkenv() {
     print_separator
-    echo -e "${CYAN}현재 환경 변수를 확인합니다.${NC}"
+    msg_info "현재 환경 변수를 확인합니다."
     cd "$OMA_BASE_DIR/bin"
     ./checkEnv.sh
     print_separator
@@ -178,21 +269,20 @@ execute_checkenv() {
 # DB Schema 변환
 execute_db_schema() {
     print_separator
-    echo -e "${BLUE}${BOLD}DB Schema 변환을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}DB Schema 변환 스크립트 실행${NC}"
+    msg_wait_3sec "DB Schema 변환"
+    msg_script_exec "DB Schema 변환"
 
     if [ -f "$OMA_BASE_DIR/bin/processDbSchema.sh" ]; then
-        echo -e "${CYAN}processDbSchema.sh를 실행합니다...${NC}"
+        msg_running_script "processDbSchema.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processDbSchema.sh
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}DB Schema 변환이 완료되었습니다.${NC}"
+            msg_task_completed "DB Schema 변환이"
         else
-            echo -e "${RED}DB Schema 변환 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "DB Schema 변환"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processDbSchema.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/processDbSchema.sh"
         return 1
     fi
     print_separator
@@ -201,21 +291,20 @@ execute_db_schema() {
 # 애플리케이션 분석
 execute_app_analysis() {
     print_separator
-    echo -e "${BLUE}${BOLD}애플리케이션 분석을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}애플리케이션 분석 스크립트 실행${NC}"
+    msg_wait_3sec "애플리케이션 분석"
+    msg_script_exec "애플리케이션 분석"
 
     if [ -f "$OMA_BASE_DIR/bin/processAppAnalysis.sh" ]; then
-        echo -e "${CYAN}processAppAnalysis.sh를 실행합니다...${NC}"
+        msg_running_script "processAppAnalysis.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processAppAnalysis.sh
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}애플리케이션 분석이 완료되었습니다.${NC}"
+            msg_task_completed "애플리케이션 분석이"
         else
-            echo -e "${RED}애플리케이션 분석 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "애플리케이션 분석"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processAppAnalysis.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/processAppAnalysis.sh"
         return 1
     fi
     print_separator
@@ -224,21 +313,20 @@ execute_app_analysis() {
 # 분석 보고서 작성
 execute_app_reporting() {
     print_separator
-    echo -e "${BLUE}${BOLD}분석 보고서 작성을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}분석 보고서 작성 스크립트 실행${NC}"
+    msg_wait_3sec "분석 보고서 작성"
+    msg_script_exec "분석 보고서 작성"
 
     if [ -f "$OMA_BASE_DIR/bin/processAppReporting.sh" ]; then
-        echo -e "${CYAN}processAppReporting.sh를 실행합니다...${NC}"
+        msg_running_script "processAppReporting.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processAppReporting.sh
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}분석 보고서 작성이 완료되었습니다.${NC}"
+            msg_task_completed "분석 보고서 작성이"
         else
-            echo -e "${RED}분석 보고서 작성 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "분석 보고서 작성"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processAppReporting.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/processAppReporting.sh"
         return 1
     fi
     print_separator
@@ -247,24 +335,24 @@ execute_app_reporting() {
 # SQL 샘플 변환
 execute_sql_sample_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL 샘플 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    msg_wait_3sec "SQL 샘플 변환 작업"
     echo ""
-    echo -e "${BLUE}${BOLD}샘플 변환: SampleTransformTarget.csv의 샘플 항목만 변환합니다...${NC}"
+    echo -e "${BLUE}${BOLD}${SAMPLE_TRANSFORM_DESC}${NC}"
     sleep 3
-    echo -e "${BLUE}${BOLD}SQL 샘플 변환 스크립트 실행${NC}"
+    msg_script_exec "SQL 샘플 변환"
 
     if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
-        echo -e "${CYAN}sqlTransformTarget.py를 샘플 모드로 실행합니다...${NC}"
+        msg_info "sqlTransformTarget.py를 샘플 모드로 실행합니다..."
         echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py --file $APP_TRANSFORM_FOLDER/SampleTransformTarget.csv${NC}"
         cd "$OMA_BASE_DIR/bin"
         python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}SQL 샘플 변환 작업이 완료되었습니다.${NC}"
+            msg_task_completed "SQL 샘플 변환 작업이"
         else
-            echo -e "${RED}SQL 샘플 변환 작업 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "SQL 샘플 변환 작업"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/sqlTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
         return 1
     fi
     print_separator
@@ -273,24 +361,24 @@ execute_sql_sample_transform() {
 # SQL 전체 변환
 execute_sql_full_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL 전체 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
+    msg_wait_3sec "SQL 전체 변환 작업"
     echo ""
-    echo -e "${BLUE}${BOLD}전체 변환: SQLTransformTarget.csv의 모든 항목을 변환합니다...${NC}"
+    echo -e "${BLUE}${BOLD}${FULL_TRANSFORM_DESC}${NC}"
     sleep 3
-    echo -e "${BLUE}${BOLD}SQL 전체 변환 스크립트 실행${NC}"
+    msg_script_exec "SQL 전체 변환"
 
     if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
-        echo -e "${CYAN}sqlTransformTarget.py를 전체 모드로 실행합니다...${NC}"
+        msg_info "sqlTransformTarget.py를 전체 모드로 실행합니다..."
         echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py${NC}"
         cd "$OMA_BASE_DIR/bin"
         python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}SQL 전체 변환 작업이 완료되었습니다.${NC}"
+            msg_task_completed "SQL 전체 변환 작업이"
         else
-            echo -e "${RED}SQL 전체 변환 작업 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "SQL 전체 변환 작업"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/sqlTransformTarget.py 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
         return 1
     fi
     print_separator
@@ -299,21 +387,20 @@ execute_sql_full_transform() {
 # XML List 생성
 execute_xml_list_generation() {
     print_separator
-    echo -e "${BLUE}${BOLD}바인드 변수 생성을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}바인드 변수 생성 스크립트 실행${NC}"
+    msg_wait_3sec "바인드 변수 생성"
+    msg_script_exec "바인드 변수 생성"
 
     if [ -f "$OMA_BASE_DIR/bin/test/run_bind_generator.sh" ]; then
-        echo -e "${CYAN}run_bind_generator.sh를 실행합니다...${NC}"
+        msg_running_script "run_bind_generator.sh"
         echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_bind_generator.sh${NC}"
         "$OMA_BASE_DIR/bin/test/run_bind_generator.sh"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}바인드 변수 생성이 완료되었습니다.${NC}"
+            msg_task_completed "바인드 변수 생성이"
         else
-            echo -e "${RED}바인드 변수 생성 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "바인드 변수 생성"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/test/run_bind_generator.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/test/run_bind_generator.sh"
         return 1
     fi
     print_separator
@@ -322,59 +409,58 @@ execute_xml_list_generation() {
 # SQL Unit Test
 execute_sql_unittest() {
     print_separator
-    echo -e "${BLUE}${BOLD}애플리케이션 SQL Unit Test를 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}SQL Unit Test 스크립트 실행${NC}"
+    msg_wait_3sec "애플리케이션 SQL Unit Test"
+    msg_script_exec "SQL Unit Test"
 
     # Oracle 테스트 실행
     if [ -f "$OMA_BASE_DIR/bin/test/run_oracle.sh" ]; then
-        echo -e "${CYAN}Oracle 테스트를 실행합니다...${NC}"
+        msg_info "${ORACLE_TEST_RUNNING}"
         echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_oracle.sh $SOURCE_SQL_MAPPER_FOLDER/mapper${NC}"
         cd "$OMA_BASE_DIR/bin/test"
         ./run_oracle.sh "$SOURCE_SQL_MAPPER_FOLDER/mapper"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Oracle 테스트가 완료되었습니다.${NC}"
+            msg_success "${ORACLE_TEST_COMPLETED}"
         else
-            echo -e "${RED}Oracle 테스트 중 오류가 발생했습니다.${NC}"
+            msg_error "${ORACLE_TEST_FAILED}"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/test/run_oracle.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/test/run_oracle.sh"
         return 1
     fi
 
     # Target DBMS 테스트 실행
     if [ "$TARGET_DBMS_TYPE" = "postgres" ]; then
         if [ -f "$OMA_BASE_DIR/bin/test/run_postgresql.sh" ]; then
-            echo -e "${CYAN}PostgreSQL 테스트를 실행합니다...${NC}"
+            msg_info "${POSTGRESQL_TEST_RUNNING}"
             echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_postgresql.sh $TARGET_SQL_MAPPER_FOLDER/mapper${NC}"
             cd "$OMA_BASE_DIR/bin/test"
             ./run_postgresql.sh "$TARGET_SQL_MAPPER_FOLDER/mapper"
             if [ $? -eq 0 ]; then
-                echo -e "${GREEN}PostgreSQL 테스트가 완료되었습니다.${NC}"
+                msg_success "${POSTGRESQL_TEST_COMPLETED}"
             else
-                echo -e "${RED}PostgreSQL 테스트 중 오류가 발생했습니다.${NC}"
+                msg_error "${POSTGRESQL_TEST_FAILED}"
             fi
         else
-            echo -e "${RED}오류: $OMA_BASE_DIR/bin/test/run_postgresql.sh 파일을 찾을 수 없습니다.${NC}"
+            msg_file_not_found "$OMA_BASE_DIR/bin/test/run_postgresql.sh"
             return 1
         fi
     elif [ "$TARGET_DBMS_TYPE" = "mysql" ]; then
         if [ -f "$OMA_BASE_DIR/bin/test/run_mysql.sh" ]; then
-            echo -e "${CYAN}MySQL 테스트를 실행합니다...${NC}"
+            msg_info "${MYSQL_TEST_RUNNING}"
             echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_mysql.sh $TARGET_SQL_MAPPER_FOLDER/mapper${NC}"
             cd "$OMA_BASE_DIR/bin/test"
             ./run_mysql.sh "$TARGET_SQL_MAPPER_FOLDER/mapper"
             if [ $? -eq 0 ]; then
-                echo -e "${GREEN}MySQL 테스트가 완료되었습니다.${NC}"
+                msg_success "${MYSQL_TEST_COMPLETED}"
             else
-                echo -e "${RED}MySQL 테스트 중 오류가 발생했습니다.${NC}"
+                msg_error "${MYSQL_TEST_FAILED}"
             fi
         else
-            echo -e "${RED}오류: $OMA_BASE_DIR/bin/test/run_mysql.sh 파일을 찾을 수 없습니다.${NC}"
+            msg_file_not_found "$OMA_BASE_DIR/bin/test/run_mysql.sh"
             return 1
         fi
     else
-        echo -e "${RED}오류: 지원되지 않는 TARGET_DBMS_TYPE입니다: $TARGET_DBMS_TYPE${NC}"
+        msg_error "${UNSUPPORTED_TARGET_DBMS}$TARGET_DBMS_TYPE"
         return 1
     fi
 
@@ -384,21 +470,20 @@ execute_sql_unittest() {
 # 샘플 테스트 및 결과 수정
 execute_sample_test_fix() {
     print_separator
-    echo -e "${BLUE}${BOLD}샘플 테스트 및 결과 수정을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}샘플 테스트 및 결과 수정을 수행합니다...${NC}"
+    msg_wait_3sec "샘플 테스트 및 결과 수정"
+    echo -e "${BLUE}${BOLD}${SAMPLE_TEST_FIX_PERFORMING}${NC}"
 
     if [ -f "$APP_TOOLS_FOLDER/../postTransform/editErrors.md" ]; then
-        echo -e "${CYAN}editErrors.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        msg_info "editErrors.md를 사용하여 Amazon Q chat을 실행합니다..."
         echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editErrors.md\"${NC}"
         q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}샘플 테스트 및 결과 수정이 완료되었습니다.${NC}"
+            msg_task_completed "샘플 테스트 및 결과 수정이"
         else
-            echo -e "${RED}샘플 테스트 및 결과 수정 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "샘플 테스트 및 결과 수정"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../postTransform/editErrors.md 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
         return 1
     fi
 
@@ -408,39 +493,39 @@ execute_sample_test_fix() {
 # SQL 변환 Merge
 execute_sql_transform_merge() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL 변환 Merge 작업을 시작하기 전 3초 대기합니다...${NC}"
+    msg_wait_3sec "SQL 변환 Merge 작업"
     echo ""
-    echo -e "${BLUE}${BOLD}변환된 SQL들을 Merge 처리합니다...${NC}"
+    echo -e "${BLUE}${BOLD}${MERGE_PROCESSING}${NC}"
     sleep 3
 
     # Merge 작업 전에 delete_target_xml_files.sh 실행
     if [ -f "$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh" ]; then
-        echo -e "${CYAN}Merge 작업 전 delete_target_xml_files.sh를 실행합니다...${NC}"
+        msg_info "${DELETE_TARGET_XML_RUNNING}"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh${NC}"
         "$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}delete_target_xml_files.sh 실행이 완료되었습니다.${NC}"
+            msg_success "${DELETE_TARGET_XML_COMPLETED}"
         else
-            echo -e "${RED}delete_target_xml_files.sh 실행 중 오류가 발생했습니다.${NC}"
-            echo -e "${YELLOW}계속 진행합니다...${NC}"
+            msg_error "${DELETE_TARGET_XML_FAILED}"
+            echo -e "${YELLOW}${CONTINUE_PROCESSING}${NC}"
         fi
     else
-        echo -e "${YELLOW}경고: $APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh 파일을 찾을 수 없습니다.${NC}"
-        echo -e "${YELLOW}Merge 작업을 계속 진행합니다...${NC}"
+        msg_warning "$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh 파일을 찾을 수 없습니다."
+        echo -e "${YELLOW}${MERGE_CONTINUE}${NC}"
     fi
-    echo -e "${BLUE}${BOLD}SQL 변환 Merge 스크립트 실행${NC}"
+    msg_script_exec "SQL 변환 Merge"
 
     if [ -f "$OMA_BASE_DIR/bin/processSqlTransform.sh" ]; then
-        echo -e "${CYAN}processSqlTransform.sh merge 옵션으로 실행합니다...${NC}"
+        msg_info "processSqlTransform.sh merge 옵션으로 실행합니다..."
         cd "$OMA_BASE_DIR/bin"
         ./processSqlTransform.sh merge
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}SQL 변환 Merge 작업이 완료되었습니다.${NC}"
+            msg_task_completed "SQL 변환 Merge 작업이"
         else
-            echo -e "${RED}SQL 변환 Merge 작업 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "SQL 변환 Merge 작업"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTransform.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/processSqlTransform.sh"
         return 1
     fi
     print_separator
@@ -449,21 +534,20 @@ execute_sql_transform_merge() {
 # 변환 작업 보고서
 execute_transform_report() {
     print_separator
-    echo -e "${BLUE}${BOLD}변환 작업 보고서를 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}변환 작업 보고서 스크립트 실행${NC}"
+    msg_wait_3sec "변환 작업 보고서"
+    msg_script_exec "변환 작업 보고서"
 
     if [ -f "$OMA_BASE_DIR/bin/processSqlTransformReport.sh" ]; then
-        echo -e "${CYAN}processSqlTransformReport.sh를 실행합니다...${NC}"
+        msg_running_script "processSqlTransformReport.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processSqlTransformReport.sh
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}변환 작업 보고서가 완료되었습니다.${NC}"
+            msg_task_completed "변환 작업 보고서가"
         else
-            echo -e "${RED}변환 작업 보고서 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "변환 작업 보고서"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/processSqlTransformReport.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/processSqlTransformReport.sh"
         return 1
     fi
     print_separator
@@ -472,33 +556,32 @@ execute_transform_report() {
 # PostgreSQL 메타데이터 작성
 execute_postgresql_meta() {
     print_separator
-    echo -e "${BLUE}${BOLD}PostgreSQL 데이터베이스 메타데이터 작성을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}PostgreSQL 메타데이터 작성 스크립트 실행${NC}"
+    msg_wait_3sec "PostgreSQL 데이터베이스 메타데이터 작성"
+    msg_script_exec "PostgreSQL 메타데이터 작성"
 
     if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh" ]; then
-        echo -e "${CYAN}genPostgreSqlMeta.sh를 직접 실행합니다...${NC}"
+        msg_running_script "genPostgreSqlMeta.sh"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh${NC}"
         "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
+            msg_task_completed "PostgreSQL 메타데이터 작성이"
         else
-            echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "PostgreSQL 메타데이터 작성"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSqlMeta.sh 파일을 찾을 수 없습니다.${NC}"
-        echo -e "${YELLOW}대안: 기존 AI 방식을 사용합니다...${NC}"
+        msg_error "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh 파일을 찾을 수 없습니다."
+        echo -e "${YELLOW}${AI_ALTERNATIVE}${NC}"
         if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md" ]; then
-            echo -e "${CYAN}genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+            msg_info "genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다..."
             echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
             q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
             if [ $? -eq 0 ]; then
-                echo -e "${GREEN}PostgreSQL 메타데이터 작성이 완료되었습니다.${NC}"
+                msg_task_completed "PostgreSQL 메타데이터 작성이"
             else
-                echo -e "${RED}PostgreSQL 메타데이터 작성 중 오류가 발생했습니다.${NC}"
+                msg_task_failed "PostgreSQL 메타데이터 작성"
             fi
         else
-            echo -e "${RED}오류: $APP_TOOLS_FOLDER/genPostgreSqlMeta.md 파일도 찾을 수 없습니다.${NC}"
+            msg_file_not_found "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
             return 1
         fi
     fi
@@ -508,26 +591,25 @@ execute_postgresql_meta() {
 # Java Source 변환
 execute_java_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}애플리케이션 Java Source 변환 작업을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}Java Source 변환 작업을 수행합니다...${NC}"
+    msg_wait_3sec "애플리케이션 Java Source 변환 작업"
+    echo -e "${BLUE}${BOLD}${JAVA_TRANSFORM_PERFORMING}${NC}"
     echo ""
-    echo -e "${RED}${BOLD}⚠️  중요 안내: Target Java Source Folder 지정 필요${NC}"
-    echo -e "${YELLOW}${BOLD}Java Source 변환 작업 시 변환할 Java 소스 코드가 위치한 디렉토리를 지정해야 합니다.${NC}"
-    echo -e "${CYAN}${BOLD}예시: /workspace/project/src/main/java 또는 /home/user/myproject/backend${NC}"
+    echo -e "${RED}${BOLD}${TARGET_JAVA_FOLDER_REQUIRED}${NC}"
+    echo -e "${YELLOW}${BOLD}${JAVA_TRANSFORM_NOTICE}${NC}"
+    echo -e "${CYAN}${BOLD}${JAVA_TRANSFORM_EXAMPLE}${NC}"
     echo ""
 
     if [ -f "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md" ]; then
-        echo -e "${CYAN}convertOracleJava.md를 사용하여 Amazon Q chat을 실행합니다...${NC}"
+        msg_info "convertOracleJava.md를 사용하여 Amazon Q chat을 실행합니다..."
         echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md\"${NC}"
         q chat --trust-all-tools "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Java Source 변환 작업이 완료되었습니다.${NC}"
+            msg_task_completed "Java Source 변환 작업이"
         else
-            echo -e "${RED}Java Source 변환 작업 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "Java Source 변환 작업"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/postTransform/convertOracleJava.md 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
         return 1
     fi
 
@@ -542,14 +624,14 @@ execute_java_transform() {
 show_environment_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}0. 환경 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}0. ${ENV_MENU}${NC}"
         print_separator
-        echo -e "${CYAN}1. 환경 설정 다시 수행 (setEnv.sh)${NC}"
-        echo -e "${CYAN}2. 현재 환경 변수 확인 (checkEnv.sh)${NC}"
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
+        echo -e "${CYAN}1. ${ENV_SETUP_RETRY}${NC}"
+        echo -e "${CYAN}2. ${ENV_VAR_CHECK}${NC}"
+        echo -e "${YELLOW}b. ${BACK_TO_MAIN}${NC}"
+        echo -e "${YELLOW}q. ${QUIT}${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,b,q): ${NC}"
+        echo -ne "${CYAN}${SELECT_OPTION} (1,2,b,q): ${NC}"
         read choice
 
         case $choice in
@@ -568,12 +650,12 @@ show_environment_menu() {
             q|Q)
                 clear
                 print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                echo -e "${GREEN}${PROGRAM_EXIT}${NC}"
                 print_separator
                 exit 0
                 ;;
             *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                echo -e "${RED}${INVALID_SELECTION}${NC}"
                 sleep 2
                 clear
                 ;;
@@ -585,17 +667,18 @@ show_environment_menu() {
 show_analysis_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}2. 애플리케이션 분석 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}2. ${APP_ANALYSIS_MENU}${NC}"
         print_separator
-        echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
+        echo -e "${CYAN}1. ${APP_ANALYSIS}${NC}${YELLOW} : ${APP_ANALYSIS_DESC}${NC}"
         echo ""
-        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}${YELLOW} : HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
+        echo -e "${CYAN}2. ${APP_REPORTING_SQL_EXTRACT}${NC}${YELLOW} : ${APP_REPORTING_DESC}${NC}"
         echo ""
-        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}${YELLOW} : PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
+        echo -e "${CYAN}3. ${POSTGRESQL_ONLY_META}${NC}${YELLOW} : ${POSTGRESQL_META_DESC}${NC}"
         echo ""
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
-        echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
+        echo -e "${YELLOW}b. ${BACK_TO_MAIN}${NC}"
+        echo -e "${YELLOW}q. ${QUIT}${NC}"
+        print_separator
+        echo -ne "${CYAN}${SELECT_OPTION} (1,2,3,b,q): ${NC}"
         read choice
 
         case $choice in
@@ -618,63 +701,12 @@ show_analysis_menu() {
             q|Q)
                 clear
                 print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                echo -e "${GREEN}${PROGRAM_EXIT}${NC}"
                 print_separator
                 exit 0
                 ;;
             *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
-                sleep 2
-                clear
-                ;;
-        esac
-    done
-}
-
-# 애플리케이션 분석 메뉴
-show_analysis_menu() {
-    while true; do
-        print_separator
-        echo -e "${BLUE}${BOLD}2. 애플리케이션 분석 메뉴${NC}"
-        print_separator
-        echo -e "${CYAN}1. 애플리케이션 분석${NC}${YELLOW} : Java 소스 코드 및 MyBatis Mapper 파일 분석${NC}"
-        echo ""
-        echo -e "${CYAN}2. 분석 보고서 작성 및 SQL변환 대상 추출${NC}${YELLOW} : HTML 리포트 생성 및 SQL 변환 대상 목록 추출${NC}"
-        echo ""
-        echo -e "${CYAN}3. (PostgreSQL Only) 데이터베이스 메타데이터 작성${NC}${YELLOW} : PostgreSQL 데이터베이스 메타데이터 생성 (Amazon Q Chat 사용)${NC}"
-        echo ""
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
-        print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
-        read choice
-
-        case $choice in
-            1)
-                clear
-                execute_app_analysis
-                ;;
-            2)
-                clear
-                execute_app_reporting
-                ;;
-            3)
-                clear
-                execute_postgresql_meta
-                ;;
-            b|B)
-                clear
-                return
-                ;;
-            q|Q)
-                clear
-                print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
-                print_separator
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                echo -e "${RED}${INVALID_SELECTION}${NC}"
                 sleep 2
                 clear
                 ;;
@@ -685,18 +717,18 @@ show_analysis_menu() {
 # Compare XMLs 실행
 execute_compare_xmls() {
     print_separator
-    echo -e "${BLUE}${BOLD}XML 파일 비교 도구를 실행합니다...${NC}"
+    echo -e "${BLUE}${BOLD}${XML_COMPARE_TOOL_RUNNING}${NC}"
 
     if [ -f "$APP_TOOLS_FOLDER/compareXMLs.sh" ]; then
-        echo -e "${CYAN}compareXMLs.sh를 실행합니다...${NC}"
+        msg_running_script "compareXMLs.sh"
         "$APP_TOOLS_FOLDER/compareXMLs.sh"
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}XML 파일 비교가 완료되었습니다.${NC}"
+            msg_task_completed "XML 파일 비교가"
         else
-            echo -e "${RED}XML 파일 비교 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "XML 파일 비교"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/compareXMLs.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$APP_TOOLS_FOLDER/compareXMLs.sh"
         return 1
     fi
     print_separator
@@ -705,21 +737,20 @@ execute_compare_xmls() {
 # Parameter 구성 실행
 execute_parameter_config() {
     print_separator
-    echo -e "${BLUE}${BOLD}Parameter 구성을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}Parameter 구성 스크립트 실행${NC}"
+    msg_wait_3sec "Parameter 구성"
+    msg_script_exec "Parameter 구성"
 
     if [ -f "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" ]; then
-        echo -e "${CYAN}bulk_prepare.sh를 실행합니다...${NC}"
+        msg_running_script "bulk_prepare.sh"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../test/bulk_prepare.sh $SOURCE_SQL_MAPPER_FOLDER${NC}"
         (cd "$APP_TOOLS_FOLDER/../test" && ./bulk_prepare.sh "$SOURCE_SQL_MAPPER_FOLDER")
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Parameter 구성이 완료되었습니다.${NC}"
+            msg_task_completed "Parameter 구성이"
         else
-            echo -e "${RED}Parameter 구성 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "Parameter 구성"
         fi
     else
-        echo -e "${RED}오류: $APP_TOOLS_FOLDER/../test/bulk_prepare.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh"
         return 1
     fi
     print_separator
@@ -729,24 +760,24 @@ execute_parameter_config() {
 show_application_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}3. 애플리케이션 변환 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}3. ${APP_TRANSFORM_MENU}${NC}"
         print_separator
-        echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
-        echo -e "${YELLOW}Sample 변환을 수행한 이후에, 테스트 및 결과 수정을 먼저 수행해야 합니다.${NC}"
-        echo -e "${YELLOW}이를 통해서 변환 프롬프트를 프로젝트 특성에 맞게 조정해야 합니다.${NC}"
+        echo -e "${RED}${BOLD}${IMPORTANT_NOTICE}${NC}"
+        echo -e "${YELLOW}${SAMPLE_TRANSFORM_NOTICE}${NC}"
+        echo -e "${YELLOW}${TRANSFORM_PROMPT_ADJUST}${NC}"
         print_separator
-        echo -e "${CYAN}1. 샘플 변환${NC}"
-        echo -e "${CYAN}2. 애플리케이션 SQL 전체 변환 작업${NC}"
+        echo -e "${CYAN}1. ${SAMPLE_TRANSFORM}${NC}"
+        echo -e "${CYAN}2. ${FULL_SQL_TRANSFORM}${NC}"
         echo ""
-        echo -e "${CYAN}3. Compare XMLs${NC}${YELLOW} : 원본과 변환된 XML 파일 비교${NC}"
-        echo -e "${CYAN}4. 변환 테스트 및 결과 수정${NC}${YELLOW} : 문법 검증${NC}"
+        echo -e "${CYAN}3. ${COMPARE_XMLS}${NC}${YELLOW} : ${COMPARE_XMLS_DESC}${NC}"
+        echo -e "${CYAN}4. ${TRANSFORM_TEST_FIX}${NC}${YELLOW} : ${TRANSFORM_TEST_FIX_DESC}${NC}"
         echo ""
-        echo -e "${CYAN}5. XML Merge 작업 - SQLID to XML${NC}"
+        echo -e "${CYAN}5. ${XML_MERGE}${NC}"
         echo ""
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
+        echo -e "${YELLOW}b. ${BACK_TO_MAIN}${NC}"
+        echo -e "${YELLOW}q. ${QUIT}${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,4,5,b,q): ${NC}"
+        echo -ne "${CYAN}${SELECT_OPTION} (1,2,3,4,5,b,q): ${NC}"
         read choice
 
         case $choice in
@@ -777,12 +808,12 @@ show_application_menu() {
             q|Q)
                 clear
                 print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                echo -e "${GREEN}${PROGRAM_EXIT}${NC}"
                 print_separator
                 exit 0
                 ;;
             *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                echo -e "${RED}${INVALID_SELECTION}${NC}"
                 sleep 2
                 clear
                 ;;
@@ -793,22 +824,21 @@ show_application_menu() {
 # SQL 결과 불일치 수정
 execute_sql_result_fix() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL 결과 불일치 수정을 시작하기 전 3초 대기합니다...${NC}"
-    sleep 3
-    echo -e "${BLUE}${BOLD}SQL 결과 불일치 수정 스크립트 실행${NC}"
+    msg_wait_3sec "SQL 결과 불일치 수정"
+    msg_script_exec "SQL 결과 불일치 수정"
 
     if [ -f "$OMA_BASE_DIR/bin/test/analyze_results.sh" ]; then
-        echo -e "${CYAN}analyze_results.sh를 실행합니다...${NC}"
+        msg_running_script "analyze_results.sh"
         echo -e "${BLUE}${BOLD}cd $OMA_BASE_DIR/bin/test && ./analyze_results.sh${NC}"
         cd "$OMA_BASE_DIR/bin/test"
         ./analyze_results.sh
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}SQL 결과 불일치 수정이 완료되었습니다.${NC}"
+            msg_task_completed "SQL 결과 불일치 수정이"
         else
-            echo -e "${RED}SQL 결과 불일치 수정 중 오류가 발생했습니다.${NC}"
+            msg_task_failed "SQL 결과 불일치 수정"
         fi
     else
-        echo -e "${RED}오류: $OMA_BASE_DIR/bin/test/analyze_results.sh 파일을 찾을 수 없습니다.${NC}"
+        msg_file_not_found "$OMA_BASE_DIR/bin/test/analyze_results.sh"
         return 1
     fi
     print_separator
@@ -818,15 +848,15 @@ execute_sql_result_fix() {
 show_test_menu() {
     while true; do
         print_separator
-        echo -e "${BLUE}${BOLD}4. SQL 데이터 테스트 수행 메뉴${NC}"
+        echo -e "${BLUE}${BOLD}4. ${SQL_TEST_MENU}${NC}"
         print_separator
-        echo -e "${CYAN}1. 바인드 변수 생성${NC}${YELLOW} : SQL Unit Test 용 바인드 변수 생성${NC}"
-        echo -e "${CYAN}2. 애플리케이션 SQL Unit Test${NC}${YELLOW} : 변환된 SQL 테스트 및 결과 분석 (DB 연결 필요)${NC}"
-        echo -e "${CYAN}3. SQL 결과 불일치 수정${NC}${YELLOW} : 소스와 타겟의 결과가 다른 SQL 구문 수정${NC}"
-        echo -e "${YELLOW}b. 메인 메뉴로 돌아가기${NC}"
-        echo -e "${YELLOW}q. 종료${NC}"
+        echo -e "${CYAN}1. ${BIND_VAR_GEN}${NC}${YELLOW} : ${BIND_VAR_GEN_DESC}${NC}"
+        echo -e "${CYAN}2. ${SQL_UNIT_TEST}${NC}${YELLOW} : ${SQL_UNIT_TEST_DESC}${NC}"
+        echo -e "${CYAN}3. ${SQL_RESULT_FIX}${NC}${YELLOW} : ${SQL_RESULT_FIX_DESC}${NC}"
+        echo -e "${YELLOW}b. ${BACK_TO_MAIN}${NC}"
+        echo -e "${YELLOW}q. ${QUIT}${NC}"
         print_separator
-        echo -ne "${CYAN}선택하세요 (1,2,3,b,q): ${NC}"
+        echo -ne "${CYAN}${SELECT_OPTION} (1,2,3,b,q): ${NC}"
         read choice
 
         case $choice in
@@ -849,12 +879,12 @@ show_test_menu() {
             q|Q)
                 clear
                 print_separator
-                echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+                echo -e "${GREEN}${PROGRAM_EXIT}${NC}"
                 print_separator
                 exit 0
                 ;;
             *)
-                echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+                echo -e "${RED}${INVALID_SELECTION}${NC}"
                 sleep 2
                 clear
                 ;;
@@ -877,29 +907,34 @@ check_environment
 
 # 메인 메뉴 루프
 print_separator
-echo -e "${BLUE}${BOLD}OMA는 AWS에서 사전 환경이 구성된 상태에서 DB/Application 변환을 수행합니다.${NC}"
-echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
-echo -e "${RED}${BOLD}⚠️  중요 안내${NC}"
-echo -e "${YELLOW}OMA 변환 작업 수행 중 데이터베이스 연관된 작업은 Source 시스템과 연결이 되는 AWS 환경 구성을 사전에 요구합니다.${NC}"
-echo -e "${YELLOW}(DB Schema 변환, SQL Unit Test 등)${NC}"
-echo -e "${CYAN}${BOLD}사전 환경 구성이 필요한 경우 AWS 환경 설정을 먼저 수행하세요.${NC}"
+echo -e "${BLUE}${BOLD}${OMA_INTRO}${NC}"
+echo -e "${GREEN}${CURRENT_PROJECT}${APPLICATION_NAME}${NC}"
+echo -e "${RED}${BOLD}${IMPORTANT_NOTICE}${NC}"
+echo -e "${YELLOW}${DB_CONNECTION_REQUIRED}${NC}"
+echo -e "${YELLOW}${DB_TASKS_EXAMPLES}${NC}"
+echo -e "${CYAN}${BOLD}${AWS_ENV_SETUP_REQUIRED}${NC}"
 
 while true; do
     print_separator
-    echo -e "${BLUE}${BOLD}OMA 메인 메뉴${NC}"
+    echo -e "${BLUE}${BOLD}${MAIN_MENU}${NC}"
     print_separator
-    echo -e "${YELLOW}0. 환경 설정 및 확인${NC}"
-    echo -e "${CYAN}1. DBMS 추가변환${NC}"
-    echo -e "${CYAN}2. 애플리케이션 분석${NC}"
-    echo -e "${CYAN}3. 애플리케이션 변환${NC}"
-    echo -e "${CYAN}4. SQL 데이터 테스트 수행${NC}"
-    echo -e "${CYAN}5. 변환 작업 보고서${NC}"
-    echo -e "${YELLOW}q. 종료${NC}"
+    echo -e "${MAGENTA}l. ${LANGUAGE_CHANGE}${NC}"
+    echo -e "${YELLOW}0. ${ENV_SETUP_CHECK}${NC}"
+    echo -e "${CYAN}1. ${DBMS_ADDITIONAL_TRANSFORM}${NC}"
+    echo -e "${CYAN}2. ${APP_ANALYSIS}${NC}"
+    echo -e "${CYAN}3. ${APP_TRANSFORM}${NC}"
+    echo -e "${CYAN}4. ${SQL_DATA_TEST}${NC}"
+    echo -e "${CYAN}5. ${TRANSFORM_REPORT}${NC}"
+    echo -e "${YELLOW}q. ${QUIT}${NC}"
     print_separator
-    echo -ne "${CYAN}메뉴를 선택하세요 (0,1,2,3,4,5,q): ${NC}"
+    echo -ne "${CYAN}${SELECT_MENU}${NC}"
     read choice
 
     case $choice in
+        l|L)
+            clear
+            change_language
+            ;;
         0)
             clear
             show_environment_menu
@@ -927,16 +962,16 @@ while true; do
         q|Q)
             clear
             print_separator
-            echo -e "${GREEN}프로그램을 종료합니다.${NC}"
+            echo -e "${GREEN}${PROGRAM_EXIT}${NC}"
             print_separator
             exit 0
             ;;
         *)
-            echo -e "${RED}잘못된 선택입니다. 다시 선택하세요.${NC}"
+            echo -e "${RED}${INVALID_SELECTION}${NC}"
             sleep 2
             clear
             ;;
     esac
 done
 
-echo -e "${GREEN}모든 설정이 완료되었습니다.${NC}"
+echo -e "${GREEN}${ALL_SETUP_COMPLETED}${NC}"

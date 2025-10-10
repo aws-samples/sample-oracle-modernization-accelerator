@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 색상 정의
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -11,32 +11,32 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 UNDERLINE='\033[4m'
 
-# 구분선 출력 함수
+# Separator output function
 print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " " "
 }
 
 # ====================================================
-# config/oma.properties 파일을 읽고 파싱하는 함수
+# Function to read and parse config/oma.properties file
 # ====================================================
 read_properties() {
     local APPLICATION_NAME=$1
     local DEBUG_MODE=${2:-false}
     
     if [ "$DEBUG_MODE" = true ]; then
-        echo "디버깅: Properties 파일 읽기 시작"
+        echo "Debug: Starting to read properties file"
     fi
     
-    # APPLICATION_NAME을 즉시 export (COMMON 섹션 치환용)
+    # Export APPLICATION_NAME immediately (for COMMON section substitution)
     export APPLICATION_NAME="$APPLICATION_NAME"
     
-    # 1단계: COMMON 섹션 먼저 읽기
+    # 1st step: Read COMMON section first
     local in_common_section=false
     while read -r line || [ -n "$line" ]; do
-        # 빈 줄이나 주석 건너뛰기
+        # Skip empty lines or comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
         
-        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        # Split key and value based on = (use only first =)
         if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
             key="${BASH_REMATCH[1]}"
             value="${BASH_REMATCH[2]}"
@@ -45,54 +45,54 @@ read_properties() {
             value=""
         fi
         
-        # 선행/후행 공백 제거
+        # Remove leading/trailing spaces
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         
-        # 디버깅 출력
+        # Debug output
         if [ "$DEBUG_MODE" = true ]; then
-            echo "디버깅: COMMON 단계 - 키='$key', 값='$value', 섹션상태=$in_common_section"
+            echo "Debug: COMMON step - key='$key', value='$value', section_status=$in_common_section"
         fi
         
-        # COMMON 섹션인지 확인
+        # Check if it's COMMON section
         if [[ $key == "[COMMON]" ]]; then
             in_common_section=true
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: COMMON 섹션 시작"
+                echo "Debug: COMMON section started"
             fi
             continue
         elif [[ $key =~ ^\[.*\]$ ]]; then
             in_common_section=false
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: 다른 섹션 시작 - $key"
+                echo "Debug: Other section started - $key"
             fi
             continue
         fi
         
-        # COMMON 섹션에 있고 키-값 쌍이 있는 경우
+        # If in COMMON section and has key-value pair
         if [ "$in_common_section" = true ] && [[ -n $key && -n $value ]]; then
-            # 키를 대문자로 변환하고 공백을 언더스코어로 변경
+            # Convert key to uppercase and replace spaces with underscores
             env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
             
-            # 환경 변수 확장 (APPLICATION_NAME 치환)
+            # Environment variable expansion (APPLICATION_NAME substitution)
             expanded_value="${value//\$\{APPLICATION_NAME\}/$APPLICATION_NAME}"
             
-            # 환경 변수 설정 (세션 환경 변수로 export)
+            # Set environment variable (export as session environment variable)
             export "$env_var"="$expanded_value"
             
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: COMMON 환경변수 설정 - $env_var='$expanded_value'"
+                echo "Debug: COMMON environment variable set - $env_var='$expanded_value'"
             fi
         fi
     done < "../config/oma.properties"
     
-    # 2단계: 프로젝트 섹션 읽기 (오버라이드)
+    # 2nd step: Read project section (override)
     local in_project_section=false
     while read -r line || [ -n "$line" ]; do
-        # 빈 줄이나 주석 건너뛰기
+        # Skip empty lines or comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
         
-        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        # Split key and value based on = (use only first =)
         if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
             key="${BASH_REMATCH[1]}"
             value="${BASH_REMATCH[2]}"
@@ -101,67 +101,67 @@ read_properties() {
             value=""
         fi
         
-        # 선행/후행 공백 제거
+        # Remove leading/trailing spaces
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         
-        # 디버깅 출력
+        # Debug output
         if [ "$DEBUG_MODE" = true ]; then
-            echo "디버깅: PROJECT 단계 - 키='$key', 값='$value', 섹션상태=$in_project_section"
+            echo "Debug: PROJECT step - key='$key', value='$value', section_status=$in_project_section"
         fi
         
-        # 올바른 프로젝트 섹션인지 확인
+        # Check if it's the correct project section
         if [[ $key == "[$APPLICATION_NAME]" ]]; then
             in_project_section=true
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: 프로젝트 섹션 [$APPLICATION_NAME] 시작"
+                echo "Debug: Project section [$APPLICATION_NAME] started"
             fi
             continue
         elif [[ $key =~ ^\[.*\]$ ]]; then
             in_project_section=false
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: 다른 섹션 시작 - $key"
+                echo "Debug: Other section started - $key"
             fi
             continue
         fi
         
-        # 올바른 프로젝트 섹션에 있고 키-값 쌍이 있는 경우
+        # If in correct project section and has key-value pair
         if [ "$in_project_section" = true ] && [[ -n $key && -n $value ]]; then
-            # 키를 대문자로 변환하고 공백을 언더스코어로 변경
+            # Convert key to uppercase and replace spaces with underscores
             env_var=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr ' ' '_')
             
-            # 환경 변수 확장
+            # Environment variable expansion
             expanded_value="${value//\$\{APPLICATION_NAME\}/$APPLICATION_NAME}"
             expanded_value="${expanded_value//\$\{JAVA_SOURCE_FOLDER\}/$JAVA_SOURCE_FOLDER}"
             expanded_value="${expanded_value//\$\{APPLICATION_FOLDER\}/$APPLICATION_FOLDER}"
             expanded_value="${expanded_value//\$\{OMA_BASE_DIR\}/$OMA_BASE_DIR}"
             
-            # TRANSFORM_RELATED_CLASS인 경우 쉼표 구분 형식을 유지
+            # For TRANSFORM_RELATED_CLASS, maintain comma-separated format
             if [ "$env_var" = "TRANSFORM_RELATED_CLASS" ]; then
-                # 쉼표 구분 형식을 그대로 유지하면서 환경 변수 설정 (세션 환경 변수로 export)
+                # Maintain comma-separated format while setting environment variable (export as session environment variable)
                 export "$env_var"="$expanded_value"
             else
-                # 일반적인 환경 변수 설정 (세션 환경 변수로 export)
+                # General environment variable setting (export as session environment variable)
                 export "$env_var"="$expanded_value"
             fi
             
             if [ "$DEBUG_MODE" = true ]; then
-                echo "디버깅: PROJECT 환경변수 설정 - $env_var='$expanded_value'"
+                echo "Debug: PROJECT environment variable set - $env_var='$expanded_value'"
             fi
         fi
     done < "../config/oma.properties"
     
     if [ "$DEBUG_MODE" = true ]; then
-        echo "디버깅: Properties 파일 읽기 완료"
+        echo "Debug: Properties file reading completed"
     fi
 }
 
 # ====================================================
-# 환경 변수 출력 함수
+# Environment variable output function
 # ====================================================
 print_environment_variables() {
     print_separator
-    echo -e "${BLUE}${BOLD}[환경 변수 설정 결과]${NC}"
+    echo -e "${BLUE}${BOLD}[Environment Variable Settings Result]${NC}"
     print_separator
     echo -e "${GREEN}APPLICATION_NAME: $APPLICATION_NAME${NC}"
     echo -e "${GREEN}JAVA_SOURCE_FOLDER: $JAVA_SOURCE_FOLDER${NC}"
@@ -172,7 +172,7 @@ print_environment_variables() {
     echo -e "${GREEN}TRANSFORM_JNDI: $TRANSFORM_JNDI${NC}"
     echo -e "${GREEN}TRANSFORM_RELATED_CLASS: $TRANSFORM_RELATED_CLASS${NC}"
     print_separator
-    echo -e "${BLUE}${BOLD}[DB 연결 환경 변수]${NC}"
+    echo -e "${BLUE}${BOLD}[DB Connection Environment Variables]${NC}"
     print_separator
     echo -e "${GREEN}Oracle Connection:${NC}"
     echo -e "${GREEN}  ORACLE_ADM_USER: ${ORACLE_ADM_USER:-'(not set)'}${NC}"
@@ -187,247 +187,247 @@ print_environment_variables() {
 }
 
 # ====================================================
-# Application 분석 환경 설정 함수
+# Application analysis environment setup function
 # ====================================================
 setup_application_environment() {
     print_separator
-    echo -e "${BLUE}${BOLD}Application 분석 환경 설정${NC}"
+    echo -e "${BLUE}${BOLD}Application Analysis Environment Setup${NC}"
     print_separator
 
-    # JAVA_SOURCE_FOLDER의 src 확인
+    # Check JAVA_SOURCE_FOLDER src directory
     if [ ! -d "$JAVA_SOURCE_FOLDER" ]; then
-        echo -e "${RED}오류: $JAVA_SOURCE_FOLDER 디렉토리가 존재하지 않습니다.${NC}"
+        echo -e "${RED}Error: $JAVA_SOURCE_FOLDER directory does not exist.${NC}"
         exit 1
     fi
-    echo -e "${GREEN}✓ JAVA_SOURCE_FOLDER의 src 디렉토리 확인 완료${NC}"
+    echo -e "${GREEN}✓ JAVA_SOURCE_FOLDER src directory check completed${NC}"
 
-    # 기존 분석 내용 확인
+    # Check existing analysis content
     local existing_analysis=false
     if [ -d "$APPLICATION_FOLDER" ] && [ "$(ls -A $APPLICATION_FOLDER 2>/dev/null)" ]; then
         existing_analysis=true
-        echo -e "${YELLOW}⚠️  기존 분석 내용이 존재합니다: $APPLICATION_FOLDER${NC}"
-        echo -e "${CYAN}기존 분석 결과를 유지하고 스크립트 복제를 건너뜁니다.${NC}"
+        echo -e "${YELLOW}⚠️  Existing analysis content found: $APPLICATION_FOLDER${NC}"
+        echo -e "${CYAN}Keeping existing analysis results and skipping script duplication.${NC}"
     fi
 
     # ====================================================
-    # 01.Database 디렉토리 구조 생성
+    # 01.Database directory structure creation
     # ====================================================
-    echo -e "${BLUE}${BOLD}01.Database 디렉토리 구조 생성${NC}"
+    echo -e "${BLUE}${BOLD}01.Database Directory Structure Creation${NC}"
     
     mkdir -p "$DBMS_FOLDER"
     mkdir -p "$DBMS_LOGS_FOLDER"
     
-    echo -e "${GREEN}✓ DBMS_FOLDER 디렉토리 생성 완료${NC}"
-    echo -e "${GREEN}✓ DBMS_LOGS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ DBMS_FOLDER directory creation completed${NC}"
+    echo -e "${GREEN}✓ DBMS_LOGS_FOLDER directory creation completed${NC}"
 
     # ====================================================
-    # 02.Application 디렉토리 구조 생성
+    # 02.Application directory structure creation
     # ====================================================
-    echo -e "${BLUE}${BOLD}02.Application 디렉토리 구조 생성${NC}"
+    echo -e "${BLUE}${BOLD}02.Application Directory Structure Creation${NC}"
     
     mkdir -p "$APPLICATION_FOLDER"
     mkdir -p "$APP_TRANSFORM_FOLDER"
     mkdir -p "$APP_LOGS_FOLDER"
     
-    echo -e "${GREEN}✓ APPLICATION_FOLDER 디렉토리 생성 완료${NC}"
-    echo -e "${GREEN}✓ APP_TRANSFORM_FOLDER 디렉토리 생성 완료${NC}"
-    echo -e "${GREEN}✓ APP_LOGS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ APPLICATION_FOLDER directory creation completed${NC}"
+    echo -e "${GREEN}✓ APP_TRANSFORM_FOLDER directory creation completed${NC}"
+    echo -e "${GREEN}✓ APP_LOGS_FOLDER directory creation completed${NC}"
 
     # ====================================================
-    # 03.Test 디렉토리 구조 생성
+    # 03.Test directory structure creation
     # ====================================================
-    echo -e "${BLUE}${BOLD}03.Test 디렉토리 구조 생성${NC}"
+    echo -e "${BLUE}${BOLD}03.Test Directory Structure Creation${NC}"
     
     mkdir -p "$TEST_FOLDER"
     mkdir -p "$TEST_LOGS_FOLDER"
     
-    echo -e "${GREEN}✓ TEST_FOLDER 디렉토리 생성 완료${NC}"
-    echo -e "${GREEN}✓ TEST_LOGS_FOLDER 디렉토리 생성 완료${NC}"
+    echo -e "${GREEN}✓ TEST_FOLDER directory creation completed${NC}"
+    echo -e "${GREEN}✓ TEST_LOGS_FOLDER directory creation completed${NC}"
 
     # ====================================================
-    # 프로젝트 구조 생성 (기존 분석 내용이 없는 경우에만)
+    # Project structure creation (only when no existing analysis content)
     # ====================================================
     if [ "$existing_analysis" = false ]; then
 
         
-        # 프로젝트 루트에 README 파일 생성
+        # Create README file in project root
         local readme_file="$OMA_BASE_DIR/${APPLICATION_NAME}/README.md"
         cat > "$readme_file" << 'EOF'
-## 환경 설정
+## Environment Setup
 ```bash
-# 환경 변수 로드
+# Load environment variables
 source ./bin/oma_env_${APPLICATION_NAME}.sh
 
-# 환경 변수 확인
+# Check environment variables
 ./checkEnv.sh
 ```
 
-## 변환 작업 수행
+## Perform Transformation Tasks
 ```bash
-# 각 디렉토리에서 필요한 작업 수행
-# 각 디렉토리에서 필요한 작업 수행
+# Perform necessary tasks in each directory
+# Perform necessary tasks in each directory
 
-# 각 도구별로 실행
+# Execute by each tool
 ```
 
-## 디렉토리 구조
-- `transform` - DB 스키마 변환 결과
-- `transform` - 애플리케이션 분석 및 변환 결과
-- `transform` - 테스트 관련 파일들
+## Directory Structure
+- `transform` - DB schema transformation results
+- `transform` - Application analysis and transformation results
+- `transform` - Test related files
 
-## 주의사항
-- DB 관련 작업은 Oracle/PostgreSQL 연결이 필요합니다
-- 환경 변수 파일을 먼저 source 해야 합니다
+## Notes
+- DB related tasks require Oracle/PostgreSQL connection
+- Environment variable file must be sourced first
 EOF
         
-        echo -e "${GREEN}✓ README.md 파일 생성 완료${NC}"
+        echo -e "${GREEN}✓ README.md file creation completed${NC}"
         
     else
         print_separator
-        echo -e "${CYAN}${BOLD}기존 분석 프로젝트 - 스크립트 업데이트${NC}"
+        echo -e "${CYAN}${BOLD}Existing Analysis Project - Script Update${NC}"
         print_separator
-        echo -e "${CYAN}기존 프로젝트 구조를 그대로 사용합니다.${NC}"
+        echo -e "${CYAN}Using existing project structure as is.${NC}"
         
-        # README 파일이 없으면 생성
+        # Create README file if it doesn't exist
         local readme_file="$OMA_BASE_DIR/${APPLICATION_NAME}/README.md"
         if [ ! -f "$readme_file" ]; then
             cat > "$readme_file" << 'EOF'
-# OMA 프로젝트 실행 가이드
+# OMA Project Execution Guide
 
-## 환경 설정
+## Environment Setup
 ```bash
-# 환경 변수 로드
+# Load environment variables
 source ./bin/oma_env_${APPLICATION_NAME}.sh
 
-# 환경 변수 확인
+# Check environment variables
 ./checkEnv.sh
 ```
 
-## 변환 작업 수행
+## Perform Transformation Tasks
 ```bash
-# 각 디렉토리에서 필요한 작업 수행
-# 각 디렉토리에서 필요한 작업 수행
+# Perform necessary tasks in each directory
+# Perform necessary tasks in each directory
 
-# 각 도구별로 실행
+# Execute by each tool
 ```
 
-## 디렉토리 구조
-- `transform` - DB 스키마 변환 결과
-- `transform` - 애플리케이션 분석 및 변환 결과
-- `transform` - 테스트 관련 파일들
+## Directory Structure
+- `transform` - DB schema transformation results
+- `transform` - Application analysis and transformation results
+- `transform` - Test related files
 
-## 주의사항
-- DB 관련 작업은 Oracle/PostgreSQL 연결이 필요합니다
-- 환경 변수 파일을 먼저 source 해야 합니다
+## Notes
+- DB related tasks require Oracle/PostgreSQL connection
+- Environment variable file must be sourced first
 EOF
-            echo -e "${GREEN}✓ README.md 파일 생성 완료${NC}"
+            echo -e "${GREEN}✓ README.md file creation completed${NC}"
         fi
     fi
 }
 
 # ====================================================
-# 메인 실행 부분
+# Main execution section
 # ====================================================
 
-# config/oma.properties 파일 존재 확인
+# Check if config/oma.properties file exists
 if [ ! -f "../config/oma.properties" ]; then
-    echo -e "${RED}오류: config/oma.properties 파일을 찾을 수 없습니다.${NC}"
+    echo -e "${RED}Error: config/oma.properties file not found.${NC}"
     exit 1
 fi
 
-# config/oma.properties에서 프로젝트 목록 가져오기 (COMMON 제외)
+# Get project list from config/oma.properties (excluding COMMON)
 projects=($(grep -o '\[.*\]' ../config/oma.properties | tr -d '[]' | grep -v '^COMMON$'))
 
 if [ ${#projects[@]} -eq 0 ]; then
-    echo -e "${RED}오류: config/oma.properties에 프로젝트가 정의되어 있지 않습니다.${NC}"
+    echo -e "${RED}Error: No projects defined in config/oma.properties.${NC}"
     exit 1
 fi
 
-# 프로젝트 선택 메뉴 표시
+# Display project selection menu
 print_separator
-echo -e "${BLUE}${BOLD}환경 변수 설정을 위한 프로젝트를 선택하세요:${NC}"
+echo -e "${BLUE}${BOLD}Select a project for environment variable setup:${NC}"
 print_separator
-echo -e "${BLUE}${BOLD}사용 가능한 프로젝트 목록:${NC}"
+echo -e "${BLUE}${BOLD}Available project list:${NC}"
 for i in "${!projects[@]}"; do
     echo -e "${CYAN}$((i+1)). ${projects[$i]}${NC}"
 done
 
-# 사용자 선택 받기
-echo -ne "${BLUE}${BOLD}프로젝트 번호를 선택하세요 (1-${#projects[@]}): ${NC}"
+# Get user selection
+echo -ne "${BLUE}${BOLD}Select project number (1-${#projects[@]}): ${NC}"
 read selection
 
-# 선택 유효성 검사
+# Validate selection
 if [[ $selection -lt 1 || $selection -gt ${#projects[@]} ]]; then
-    echo -e "${RED}잘못된 선택입니다. 1-${#projects[@]} 범위의 번호를 입력하세요.${NC}"
+    echo -e "${RED}Invalid selection. Please enter a number between 1-${#projects[@]}.${NC}"
     exit 1
 fi
 
-# 선택된 프로젝트 이름 가져오기
+# Get selected project name
 selected_project="${projects[$((selection-1))]}"
 
-# 프로젝트 이름을 환경 변수로 설정
+# Set project name as environment variable
 export APPLICATION_NAME="$selected_project"
 
-# 디버그 모드 확인
+# Check debug mode
 DEBUG_MODE=false
 if [[ "$*" == *"--debug"* ]]; then
     DEBUG_MODE=true
 fi
 
-# 선택된 프로젝트의 속성 읽기 및 설정
+# Read and set properties for selected project
 read_properties "$selected_project" "$DEBUG_MODE"
 
-# 자동으로 Application 분석 환경 설정 수행
-echo -e "${BLUE}${BOLD}선택된 프로젝트: $selected_project${NC}"
-echo -e "${CYAN}환경 설정을 자동으로 수행합니다...${NC}"
+# Automatically perform Application analysis environment setup
+echo -e "${BLUE}${BOLD}Selected project: $selected_project${NC}"
+echo -e "${CYAN}Automatically performing environment setup...${NC}"
 setup_application_environment
 
-# 기존 분석 내용 확인 및 알림 (환경 설정 후)
+# Check and notify existing analysis content (after environment setup)
 if [ -d "$APPLICATION_FOLDER" ] && [ "$(ls -A $APPLICATION_FOLDER 2>/dev/null)" ]; then
     print_separator
-    echo -e "${YELLOW}${BOLD}⚠️  기존 분석 내용이 존재합니다${NC}"
+    echo -e "${YELLOW}${BOLD}⚠️  Existing analysis content found${NC}"
     echo -e "${CYAN}APPLICATION_FOLDER: $APPLICATION_FOLDER${NC}"
-    echo -e "${CYAN}기존 분석 결과가 보호되었습니다.${NC}"
+    echo -e "${CYAN}Existing analysis results have been protected.${NC}"
     print_separator
     sleep 2
 fi
 
-# 환경 변수 출력 (디버그 모드일 때만)
+# Output environment variables (only in debug mode)
 if [ "$DEBUG_MODE" = true ]; then
     print_environment_variables
 fi
 
-echo -e "${GREEN}환경 설정이 완료되었습니다.${NC}"
-echo -e "${CYAN}프로젝트 구조 생성이 완료되었습니다.${NC}"
+echo -e "${GREEN}Environment setup completed.${NC}"
+echo -e "${CYAN}Project structure creation completed.${NC}"
 
-# 현재 디렉토리와 프로젝트 루트에 환경 변수 파일 생성
+# Create environment variable file in current directory and project root
 ENV_FILE="./oma_env_${APPLICATION_NAME}.sh"
 PROJECT_ENV_FILE="$OMA_BASE_DIR/oma_env_${APPLICATION_NAME}.sh"
 
-echo -e "${BLUE}${BOLD}환경 변수를 파일에 저장 중...${NC}"
+echo -e "${BLUE}${BOLD}Saving environment variables to file...${NC}"
 
-# 환경 변수 파일 생성 - 완전히 동적으로 처리
+# Create environment variable file - handle completely dynamically
 cat > "$ENV_FILE" << EOF
 #!/bin/bash
-# OMA 환경 변수 설정 (자동 생성됨)
-# 프로젝트: $APPLICATION_NAME
-# 생성 시간: $(date)
+# OMA environment variable settings (auto-generated)
+# Project: $APPLICATION_NAME
+# Creation time: $(date)
 
 EOF
 
-# 현재 설정된 모든 환경 변수를 동적으로 추출하여 파일에 저장
-# oma.properties에서 정의된 모든 변수들을 확인
+# Dynamically extract all currently set environment variables and save to file
+# Check all variables defined in oma.properties
 if [ -f "../config/oma.properties" ]; then
-    # 모든 정의된 변수들을 수집
+    # Collect all defined variables
     all_defined_vars=()
     
-    # COMMON 섹션 처리
+    # Process COMMON section
     in_common_section=false
     while read -r line || [ -n "$line" ]; do
-        # 빈 줄이나 주석 건너뛰기
+        # Skip empty lines or comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
         
-        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        # Split key and value based on = (use only first =)
         if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
             key="${BASH_REMATCH[1]}"
             value="${BASH_REMATCH[2]}"
@@ -452,13 +452,13 @@ if [ -f "../config/oma.properties" ]; then
         fi
     done < "../config/oma.properties"
     
-    # 프로젝트 섹션 처리
+    # Process project section
     in_project_section=false
     while read -r line || [ -n "$line" ]; do
-        # 빈 줄이나 주석 건너뛰기
+        # Skip empty lines or comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
         
-        # = 기준으로 key와 value 분리 (첫 번째 =만 사용)
+        # Split key and value based on = (use only first =)
         if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
             key="${BASH_REMATCH[1]}"
             value="${BASH_REMATCH[2]}"
@@ -483,70 +483,70 @@ if [ -f "../config/oma.properties" ]; then
         fi
     done < "../config/oma.properties"
     
-    # 중복 제거하고 정렬
+    # Remove duplicates and sort
     unique_vars=($(printf "%s\n" "${all_defined_vars[@]}" | sort -u))
     
-    # 설정된 환경 변수들만 파일에 저장
+    # Save only set environment variables to file
     for var in "${unique_vars[@]}"; do
         if [ -n "${!var}" ]; then
             echo "export $var=\"${!var}\"" >> "$ENV_FILE"
         fi
     done
     
-    # PATH 설정 추가
+    # Add PATH setting
     echo "" >> "$ENV_FILE"
-    echo "# PATH 설정" >> "$ENV_FILE"
+    echo "# PATH setting" >> "$ENV_FILE"
     echo "export PATH=\"\$APP_TOOLS_FOLDER:\$OMA_BASE_DIR/bin:\$PATH\"" >> "$ENV_FILE"
     
-    # Alias 설정 추가
+    # Add Alias settings
     echo "" >> "$ENV_FILE"
-    echo "# Alias 설정" >> "$ENV_FILE"
+    echo "# Alias settings" >> "$ENV_FILE"
     echo "alias qlog='cd \$APP_LOGS_FOLDER/qlogs && \$APP_TOOLS_FOLDER/tailLatestLog.sh'" >> "$ENV_FILE"
 
-    # NLS 환경 변수 추가
+    # Add NLS environment variables
     echo "" >> "$ENV_FILE"
     echo "# NLS Environment Variables" >> "$ENV_FILE"
     echo "export NLS_DATE_FORMAT=${NLS_DATE_FORMAT}" >> "$ENV_FILE"
     echo "export NLS_LANG=${NLS_LANG}" >> "$ENV_FILE"
 
-    # 데이터베이스 연결 alias 추가
+    # Add database connection aliases
     echo "" >> "$ENV_FILE"
     echo "# Database Connection Aliases" >> "$ENV_FILE"
     echo "alias sqlplus-oma='sqlplus \$ORACLE_ADM_USER/\$ORACLE_ADM_PASSWORD@\$ORACLE_HOST:1521/\$ORACLE_SID'" >> "$ENV_FILE"
 fi
 
-# 환경 변수 파일에 실행 권한 부여
+# Grant execute permission to environment variable file
 chmod +x "$ENV_FILE"
 
-# 프로젝트 루트에도 환경 변수 파일 복사
+# Copy environment variable file to project root
 cp "$ENV_FILE" "$PROJECT_ENV_FILE"
 chmod +x "$PROJECT_ENV_FILE"
 
-echo -e "${GREEN}✓ 환경 변수 파일 생성: $ENV_FILE${NC}"
-echo -e "${GREEN}✓ 환경 변수 파일 복사: $PROJECT_ENV_FILE${NC}"
+echo -e "${GREEN}✓ Environment variable file created: $ENV_FILE${NC}"
+echo -e "${GREEN}✓ Environment variable file copied: $PROJECT_ENV_FILE${NC}"
 
-# 현재 셸에 환경 변수 설정
-echo -e "${BLUE}${BOLD}현재 셸 세션에 환경 변수 설정 중...${NC}"
+# Set environment variables in current shell
+echo -e "${BLUE}${BOLD}Setting environment variables in current shell session...${NC}"
 source "$ENV_FILE"
 
-# PATH에 필요한 디렉토리 추가
-echo -e "${BLUE}${BOLD}PATH 환경 변수 업데이트 중...${NC}"
+# Update PATH environment variable
+echo -e "${BLUE}${BOLD}Updating PATH environment variable...${NC}"
 export PATH="$APP_TOOLS_FOLDER:$OMA_BASE_DIR/bin:$PATH"
-echo -e "${GREEN}✓ PATH에 APP_TOOLS_FOLDER와 OMA_BASE_DIR/bin이 추가되었습니다.${NC}"
+echo -e "${GREEN}✓ APP_TOOLS_FOLDER and OMA_BASE_DIR/bin added to PATH.${NC}"
 
-echo -e "${GREEN}✓ 환경 변수가 현재 셸 세션에 설정되었습니다.${NC}"
-echo -e "${BLUE}${BOLD}현재 프로젝트: ${GREEN}$APPLICATION_NAME${NC}"
+echo -e "${GREEN}✓ Environment variables set in current shell session.${NC}"
+echo -e "${BLUE}${BOLD}Current project: ${GREEN}$APPLICATION_NAME${NC}"
 
 print_separator
-echo -e "${YELLOW}${BOLD}환경 변수 자동 로딩 설정${NC}"
+echo -e "${YELLOW}${BOLD}Automatic Environment Variable Loading Setup${NC}"
 print_separator
-echo -e "${CYAN}로그인 시 자동으로 OMA 환경 변수를 로딩하시겠습니까?${NC}"
-echo -e "${YELLOW}(쉘 프로필에 source 명령을 추가합니다)${NC}"
-echo -ne "${BLUE}${BOLD}자동 로딩 설정 (y/N): ${NC}"
+echo -e "${CYAN}Would you like to automatically load OMA environment variables on login?${NC}"
+echo -e "${YELLOW}(This will add source command to shell profile)${NC}"
+echo -ne "${BLUE}${BOLD}Setup automatic loading (y/N): ${NC}"
 read auto_load
 
 if [[ "$auto_load" =~ ^[Yy]$ ]]; then
-    # 사용 중인 쉘 확인
+    # Check current shell
     CURRENT_SHELL=$(basename "$SHELL")
     
     case "$CURRENT_SHELL" in
@@ -564,50 +564,50 @@ if [[ "$auto_load" =~ ^[Yy]$ ]]; then
             ;;
     esac
     
-    # 현재 디렉토리의 절대 경로
+    # Absolute path of current directory
     CURRENT_DIR="$(pwd)"
     SOURCE_LINE="source \"$CURRENT_DIR/$ENV_FILE\""
     
-    # 이미 추가되어 있는지 확인
+    # Check if already added
     if grep -q "$SOURCE_LINE" "$PROFILE_FILE" 2>/dev/null; then
-        echo -e "${YELLOW}이미 프로필에 설정되어 있습니다: $PROFILE_FILE${NC}"
+        echo -e "${YELLOW}Already configured in profile: $PROFILE_FILE${NC}"
     else
-        # 프로필 파일에 추가
+        # Add to profile file
         echo "" >> "$PROFILE_FILE"
-        echo "# OMA 환경 변수 자동 로딩 ($(date))" >> "$PROFILE_FILE"
+        echo "# OMA environment variable auto-loading ($(date))" >> "$PROFILE_FILE"
         echo "$SOURCE_LINE" >> "$PROFILE_FILE"
         
-        echo -e "${GREEN}✓ 프로필에 자동 로딩 설정 추가: $PROFILE_FILE${NC}"
-        echo -e "${CYAN}다음 로그인부터 자동으로 OMA 환경 변수가 로딩됩니다.${NC}"
+        echo -e "${GREEN}✓ Auto-loading configuration added to profile: $PROFILE_FILE${NC}"
+        echo -e "${CYAN}OMA environment variables will be loaded automatically from next login.${NC}"
         
-        # 현재 세션에서 바로 적용할지 확인
-        echo -ne "${BLUE}현재 세션에서 바로 적용하시겠습니까? (Y/n): ${NC}"
+        # Check if apply to current session immediately
+        echo -ne "${BLUE}Apply to current session immediately? (Y/n): ${NC}"
         read apply_now
         if [[ ! "$apply_now" =~ ^[Nn]$ ]]; then
             source "$PROFILE_FILE"
-            echo -e "${GREEN}✓ 현재 세션에 적용되었습니다.${NC}"
+            echo -e "${GREEN}✓ Applied to current session.${NC}"
         fi
     fi
 else
-    echo -e "${CYAN}자동 로딩 설정을 건너뜁니다.${NC}"
+    echo -e "${CYAN}Skipping auto-loading setup.${NC}"
 fi
 
 print_separator
-echo -e "${YELLOW}${BOLD}사용 방법:${NC}"
-echo -e "${CYAN}${BOLD}bin 디렉토리에서:${NC}"
-echo -e "${CYAN}1. 환경 변수 확인: ${BOLD}./checkEnv.sh${NC}"
-echo -e "${CYAN}2. 프로젝트 디렉토리 이동: ${BOLD}# 각 디렉토리에서 필요한 작업 수행${NC}"
-echo -e "${CYAN}3. 수동으로 환경 변수 로드: ${BOLD}source $ENV_FILE${NC}"
-echo -e "${CYAN}${BOLD}프로젝트 디렉토리($APPLICATION_NAME)에서:${NC}"
-echo -e "${CYAN}1. 환경 변수 로드: ${BOLD}source ./oma_env_${APPLICATION_NAME}.sh${NC}"
-echo -e "${CYAN}2. 환경 변수 확인: ${BOLD}./checkEnv.sh${NC}"
-echo -e "${CYAN}3. 프로젝트 디렉토리 이동: ${BOLD}# 각 디렉토리에서 필요한 작업 수행${NC}"
+echo -e "${YELLOW}${BOLD}Usage:${NC}"
+echo -e "${CYAN}${BOLD}From bin directory:${NC}"
+echo -e "${CYAN}1. Check environment variables: ${BOLD}./checkEnv.sh${NC}"
+echo -e "${CYAN}2. Move to project directory: ${BOLD}# Perform necessary tasks in each directory${NC}"
+echo -e "${CYAN}3. Manually load environment variables: ${BOLD}source $ENV_FILE${NC}"
+echo -e "${CYAN}${BOLD}From project directory($APPLICATION_NAME):${NC}"
+echo -e "${CYAN}1. Load environment variables: ${BOLD}source ./oma_env_${APPLICATION_NAME}.sh${NC}"
+echo -e "${CYAN}2. Check environment variables: ${BOLD}./checkEnv.sh${NC}"
+echo -e "${CYAN}3. Move to project directory: ${BOLD}# Perform necessary tasks in each directory${NC}"
 if [[ "$auto_load" =~ ^[Yy]$ ]]; then
-    echo -e "${CYAN}4. 자동 로딩 제거: 프로필 파일($PROFILE_FILE)에서 해당 라인 삭제${NC}"
+    echo -e "${CYAN}4. Remove auto-loading: Delete corresponding line from profile file($PROFILE_FILE)${NC}"
 fi
 print_separator
 
-echo -e "${YELLOW}환경 변수 파일 위치:${NC}"
-echo -e "${GREEN}  - bin 디렉토리: $ENV_FILE${NC}"
-echo -e "${GREEN}  - 프로젝트 루트: $PROJECT_ENV_FILE${NC}"
-echo -e "${CYAN}프로젝트 디렉토리로 이동하여 독립적으로 작업할 수 있습니다.${NC}"
+echo -e "${YELLOW}Environment variable file locations:${NC}"
+echo -e "${GREEN}  - bin directory: $ENV_FILE${NC}"
+echo -e "${GREEN}  - project root: $PROJECT_ENV_FILE${NC}"
+echo -e "${CYAN}You can move to project directory and work independently.${NC}"
