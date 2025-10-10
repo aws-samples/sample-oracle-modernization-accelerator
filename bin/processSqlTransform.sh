@@ -17,11 +17,11 @@ print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
 
-# 환경 변수 확인 함수
+# Environment variable check function
 check_environment() {
     if [ -z "$APPLICATION_NAME" ]; then
-        echo -e "${RED}${BOLD}오류: 환경 변수가 설정되지 않았습니다.${NC}"
-        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        echo -e "${RED}${BOLD}Error: Environment variables are not set.${NC}"
+        echo -e "${YELLOW}Please source the environment variable file. Example: source ./oma_env_projectname.sh${NC}"
         exit 1
     fi
 }
@@ -30,68 +30,68 @@ check_environment() {
 # Step 3: SQL 변환 작업
 # ====================================================
 
-# Merge 모드 처리 함수
+# Merge mode processing function
 process_sql_transform_merge() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 3: SQL 변환 Merge 작업${NC}"
+    echo -e "${BLUE}${BOLD}Step 3: SQL Transform Merge Task${NC}"
     print_separator
-    echo -e "${CYAN}이 단계에서는 변환된 SQL들을 Merge 처리합니다.${NC}"
+    echo -e "${CYAN}This step performs merge processing of transformed SQLs.${NC}"
     print_separator
     
-    echo -e "${BLUE}${BOLD}실행 명령:${NC}"
+    echo -e "${BLUE}${BOLD}Execution command:${NC}"
     echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py --mode merge${NC}"
     print_separator
 
-    echo -e "${BLUE}${BOLD}작업을 수행하기 이전에 3초 대기 합니다.${NC}"
+    echo -e "${BLUE}${BOLD}Waiting 3 seconds before performing the task.${NC}"
     sleep 3
 
     python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --mode merge
     print_separator
-    echo -e "${GREEN}SQL 변환 Merge 작업이 완료되었습니다.${NC}"
+    echo -e "${GREEN}SQL Transform Merge task completed.${NC}"
     print_separator
 }
 
 process_sql_transform() {
     print_separator
-    echo -e "${BLUE}${BOLD}Step 3: SQL 변환 작업${NC}"
+    echo -e "${BLUE}${BOLD}Step 3: SQL Transform Task${NC}"
     print_separator
-    echo -e "${CYAN}이 단계에서는 SQL 변환 작업을 수행합니다.${NC}"
+    echo -e "${CYAN}This step performs SQL transformation tasks.${NC}"
     print_separator
     
-    # 실행 모드 선택
-    echo -e "${YELLOW}실행 모드를 선택하세요:${NC}"
-    echo -e "${CYAN}1. 선별적 변환 - SQLTransformTargetSelective.csv의 항목만 재변환 (사용자 임의 선택 변환)${NC}"
-    echo -e "${CYAN}2. 전체 - SQLTransformTarget.csv의 모든 항목을 변환 (Completed되지 않은 XML 변환 수행)${NC}"
-    echo -e "${CYAN}3. 샘플 - SampleTransformTarget.csv의 샘플 항목만 변환 (테스트 목적)${NC}"
+    # Select execution mode
+    echo -e "${YELLOW}Select execution mode:${NC}"
+    echo -e "${CYAN}1. Selective transformation - Re-transform only items in SQLTransformTargetSelective.csv (User arbitrary selection transformation)${NC}"
+    echo -e "${CYAN}2. Full - Transform all items in SQLTransformTarget.csv (Perform XML transformation for non-Completed items)${NC}"
+    echo -e "${CYAN}3. Sample - Transform only sample items in SampleTransformTarget.csv (For testing purposes)${NC}"
     echo ""
-    echo -e "${MAGENTA}${BOLD}프로세스 실행시 qlog 를 실행하면 실시간 로그를 확인 할 수 있습니다.${NC}"
+    echo -e "${MAGENTA}${BOLD}You can check real-time logs by running qlog during process execution.${NC}"
     read retry_mode
-    retry_mode=${retry_mode:-1}  # 기본값 1
+    retry_mode=${retry_mode:-1}  # Default value 1
     
     local retry_arg=""
     if [ "$retry_mode" = "1" ]; then
-        echo -e "${GREEN}선별적 변환 모드로 실행합니다. SQLTransformTargetSelective.csv의 항목만 처리합니다.${NC}"
+        echo -e "${GREEN}Running in selective transformation mode. Processing only items in SQLTransformTargetSelective.csv.${NC}"
         retry_arg="--file $APP_TRANSFORM_FOLDER/SQLTransformTargetSelective.csv"
     elif [ "$retry_mode" = "3" ]; then
-        echo -e "${GREEN}샘플 모드로 실행합니다. SampleTransformTarget.csv의 항목만 처리합니다.${NC}"
+        echo -e "${GREEN}Running in sample mode. Processing only items in SampleTransformTarget.csv.${NC}"
         retry_arg="--file $APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"
     else
-        echo -e "${GREEN}전체 모드로 실행합니다. SQLTransformTarget.csv의 모든 항목을 처리합니다.${NC}"
+        echo -e "${GREEN}Running in full mode. Processing all items in SQLTransformTarget.csv.${NC}"
     fi
     
-    echo -e "${BLUE}${BOLD}실행 명령:${NC}"
+    echo -e "${BLUE}${BOLD}Execution command:${NC}"
     echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py $retry_arg${NC}"
     print_separator
 
-    echo -e "${BLUE}${BOLD}작업을 수행하기 이전에 3초 대기 합니다.${NC}"
+    echo -e "${BLUE}${BOLD}Waiting 3 seconds before performing the task.${NC}"
     sleep 3
 
     python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" $retry_arg
     print_separator
-    echo -e "${GREEN}SQL 변환 작업이 완료되었습니다.${NC}"
+    echo -e "${GREEN}SQL transformation task completed.${NC}"
     print_separator
-    echo -e "${BLUE}${BOLD}SQL Transform 작업 결과는 리포트 작성으로 검증하세요.${NC}"
-    echo -e "${YELLOW}${BOLD}$APP_TOOLS_FOLDER 에서 확인 가능합니다.${NC}"
+    echo -e "${BLUE}${BOLD}Verify SQL Transform task results by creating a report.${NC}"
+    echo -e "${YELLOW}${BOLD}Available at $APP_TOOLS_FOLDER.${NC}"
 }
 
 # 메인 실행
@@ -103,18 +103,18 @@ print_separator
 # 환경 변수 확인
 check_environment
 
-echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
+echo -e "${GREEN}Currently configured project: $APPLICATION_NAME${NC}"
 print_separator
 
 # 파라미터 확인 및 처리
 if [ "$1" = "merge" ]; then
-    # Merge 모드 실행
+    # Execute Merge mode
     process_sql_transform_merge
-    echo -e "${GREEN}Step 3: SQL 변환 Merge 작업이 완료되었습니다.${NC}"
+    echo -e "${GREEN}Step 3: SQL Transform Merge task completed.${NC}"
 else
-    # 일반 SQL 변환 작업 실행
+    # Execute general SQL transformation task
     process_sql_transform
-    echo -e "${GREEN}Step 3: 애플리케이션 SQL 변환 작업이 완료되었습니다.${NC}"
+    echo -e "${GREEN}Step 3: Application SQL transformation task completed.${NC}"
 fi
 
 print_separator

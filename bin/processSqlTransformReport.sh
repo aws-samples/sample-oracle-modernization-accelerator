@@ -17,42 +17,42 @@ print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
 
-# 환경 변수 확인 함수
+# Environment variable check function
 check_environment() {
     if [ -z "$APPLICATION_NAME" ]; then
-        echo -e "${RED}${BOLD}오류: 환경 변수가 설정되지 않았습니다.${NC}"
-        echo -e "${YELLOW}환경 변수 파일을 source 하세요. 예: source ./oma_env_프로젝트명.sh${NC}"
+        echo -e "${RED}${BOLD}Error: Environment variables are not set.${NC}"
+        echo -e "${YELLOW}Please source the environment variable file. Example: source ./oma_env_projectname.sh${NC}"
         exit 1
     fi
 }
 
 # ====================================================
-# SQL Transform 결과 보고서 생성
+# SQL Transform Result Report Generation
 # ====================================================
 generate_sql_transform_report() {
     print_separator
-    echo -e "${BLUE}${BOLD}SQL Transform 작업 결과 보고서를 작성합니다.${NC}"
+    echo -e "${BLUE}${BOLD}Generating SQL Transform work result report.${NC}"
     print_separator
     
-    # sqlTransformReport.md 파일 존재 확인
+    # Check if sqlTransformReport.md file exists
     if [ ! -f "$APP_TOOLS_FOLDER/sqlTransformReport.md" ]; then
-        echo -e "${RED}${BOLD}오류: sqlTransformReport.md 파일을 찾을 수 없습니다.${NC}"
-        echo -e "${YELLOW}파일 경로: $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
+        echo -e "${RED}${BOLD}Error: sqlTransformReport.md file not found.${NC}"
+        echo -e "${YELLOW}File path: $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
         exit 1
     fi
     
-    echo -e "${CYAN}보고서 생성 명령을 실행합니다...${NC}"
+    echo -e "${CYAN}Executing report generation command...${NC}"
     sleep 1
     echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
     
-    # Amazon Q를 통한 보고서 생성 실행
+    # Execute report generation through Amazon Q
     q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"
     
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}SQL 변환 작업 보고서가 성공적으로 작성되었습니다.${NC}"
-        echo -e "${YELLOW}${BOLD}보고서는 $APP_TOOLS_FOLDER 에서 확인 가능합니다.${NC}"
+        echo -e "${GREEN}SQL transformation work report has been successfully created.${NC}"
+        echo -e "${YELLOW}${BOLD}Report can be checked at $APP_TOOLS_FOLDER.${NC}"
     else
-        echo -e "${RED}보고서 생성 중 오류가 발생했습니다.${NC}"
+        echo -e "${RED}An error occurred during report generation.${NC}"
         return 1
     fi
     
@@ -69,11 +69,11 @@ print_separator
 # 환경 변수 확인
 check_environment
 
-echo -e "${GREEN}현재 설정된 프로젝트: $APPLICATION_NAME${NC}"
+echo -e "${GREEN}Currently configured project: $APPLICATION_NAME${NC}"
 print_separator
 
 # 보고서 생성 실행
 generate_sql_transform_report
 
-echo -e "${GREEN}SQL Transform 결과 보고서 생성이 완료되었습니다.${NC}"
+echo -e "${GREEN}SQL Transform result report generation completed.${NC}"
 print_separator

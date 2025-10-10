@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# 로그 함수들
+# Log functions
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -24,18 +24,18 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 환경변수 체크 함수
+# Environment variable check function
 check_environment() {
-    log_info "환경변수 체크를 시작합니다..."
+    log_info "Starting environment variable check..."
     
     local missing_vars=()
     
-    # 필수 환경변수 체크
+    # Check required environment variables
     if [[ -z "$APP_TOOLS_FOLDER" ]]; then
         missing_vars+=("APP_TOOLS_FOLDER")
     fi
     
-    # 추가로 필요할 수 있는 환경변수들 체크 (필요에 따라 수정)
+    # Check additional environment variables that may be needed (modify as needed)
     # if [[ -z "$AWS_REGION" ]]; then
     #     missing_vars+=("AWS_REGION")
     # fi
@@ -44,73 +44,73 @@ check_environment() {
     #     missing_vars+=("AWS_PROFILE")
     # fi
     
-    # 누락된 환경변수가 있는지 확인
+    # Check if there are missing environment variables
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        log_error "다음 환경변수들이 설정되지 않았습니다:"
+        log_error "The following environment variables are not set:"
         for var in "${missing_vars[@]}"; do
             echo "  - $var"
         done
-        log_error "필요한 환경변수를 설정한 후 다시 실행해주세요."
+        log_error "Please set the required environment variables and run again."
         exit 1
     fi
     
-    # APP_TOOLS_FOLDER 경로 존재 여부 확인
+    # Check if APP_TOOLS_FOLDER path exists
     if [[ ! -d "$APP_TOOLS_FOLDER" ]]; then
-        log_error "APP_TOOLS_FOLDER 경로가 존재하지 않습니다: $APP_TOOLS_FOLDER"
+        log_error "APP_TOOLS_FOLDER path does not exist: $APP_TOOLS_FOLDER"
         exit 1
     fi
     
-    # sqlTransformReport.md 파일 존재 여부 확인
+    # Check if sqlTransformReport.md file exists
     if [[ ! -f "$APP_TOOLS_FOLDER/sqlTransformReport.md" ]]; then
-        log_error "sqlTransformReport.md 파일이 존재하지 않습니다: $APP_TOOLS_FOLDER/sqlTransformReport.md"
+        log_error "sqlTransformReport.md file does not exist: $APP_TOOLS_FOLDER/sqlTransformReport.md"
         exit 1
     fi
     
-    log_info "환경변수 체크 완료"
+    log_info "Environment variable check completed"
     log_info "APP_TOOLS_FOLDER: $APP_TOOLS_FOLDER"
 }
 
-# q 명령어 존재 여부 체크
+# Check q command existence
 check_q_command() {
-    log_info "q 명령어 존재 여부를 확인합니다..."
+    log_info "Checking q command existence..."
     
     if ! command -v q &> /dev/null; then
-        log_error "q 명령어를 찾을 수 없습니다."
-        log_error "Amazon Q CLI가 설치되어 있는지 확인해주세요."
+        log_error "q command not found."
+        log_error "Please check if Amazon Q CLI is installed."
         exit 1
     fi
     
-    log_info "q 명령어 확인 완료"
+    log_info "q command check completed"
 }
 
-# 메인 실행 함수
+# Main execution function
 run_sql_transform_report() {
-    log_info "SQL Transform Report 생성을 시작합니다..."
-    log_info "입력 파일: $APP_TOOLS_FOLDER/sqlTransformReport.md"
+    log_info "Starting SQL Transform Report generation..."
+    log_info "Input file: $APP_TOOLS_FOLDER/sqlTransformReport.md"
     
-    # q chat 명령어 실행
+    # Execute q chat command
     if q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"; then
-        log_info "SQL Transform Report 생성이 완료되었습니다."
+        log_info "SQL Transform Report generation completed."
     else
-        log_error "SQL Transform Report 생성 중 오류가 발생했습니다."
+        log_error "An error occurred during SQL Transform Report generation."
         exit 1
     fi
 }
 
-# 메인 실행부
+# Main execution section
 main() {
-    log_info "=== SQL Transform Report 생성 스크립트 시작 ==="
+    log_info "=== SQL Transform Report Generation Script Started ==="
     
-    # 환경변수 체크
+    # Environment variable check
     check_environment
     
-    # q 명령어 체크
+    # q command check
     check_q_command
     
-    # SQL Transform Report 실행
+    # Execute SQL Transform Report
     run_sql_transform_report
     
-    log_info "=== 스크립트 실행 완료 ==="
+    log_info "=== Script execution completed ==="
 }
 
 # 스크립트 실행
