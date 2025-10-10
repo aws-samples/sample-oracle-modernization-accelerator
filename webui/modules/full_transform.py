@@ -1,5 +1,5 @@
 """
-전체 변환 페이지
+Full Transform Page
 """
 import streamlit as st
 import subprocess
@@ -9,17 +9,17 @@ import datetime
 
 
 def render_full_transform_page():
-    """전체 변환 페이지"""
-    # 상단에 홈 버튼 추가
+    """Full transform page"""
+    # Add home button at the top
     col1, col2 = st.columns([1, 4])
     with col1:
-        if st.button("🏠 홈으로", key="full_transform_home"):
+        if st.button("🏠 Home", key="full_transform_home"):
             st.session_state.selected_action = None
             st.rerun()
     with col2:
-        st.markdown("## 🚀 SQL 전체 변환")
+        st.markdown("## 🚀 SQL Full Transform")
     
-    # 명령어 정보 (전체 변환용 CSV 파일 사용)
+    # Command info (using CSV file for full transform)
     command = 'python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SQLTransformTarget.csv"'
     log_file_path = "$APP_LOGS_FOLDER/pylogs/SQLTransformTarget.log"
     expanded_log_path = os.path.expandvars(log_file_path)

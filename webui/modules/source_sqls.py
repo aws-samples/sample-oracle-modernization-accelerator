@@ -1,5 +1,5 @@
 """
-Compare SQL Test 페이지 - XML 파일 리스트 및 SQL 테스트
+Compare SQL Test Page - XML File List and SQL Testing
 """
 import streamlit as st
 import os

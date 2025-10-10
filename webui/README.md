@@ -1,114 +1,114 @@
 # OMA Streamlit Web Application
 
-Oracle Migration Assistant (OMA)의 shell 스크립트를 Streamlit 웹 애플리케이션으로 변환한 버전입니다.
+Oracle Migration Assistant (OMA) shell scripts converted to a Streamlit web application.
 
-## 주요 기능
+## Key Features
 
-### 🏠 환경 설정
-- 환경 변수 설정 및 확인
-- 프로젝트 초기 설정
+### 🏠 Environment Setup
+- Environment variable configuration and verification
+- Project initialization
 
-### 📊 애플리케이션 분석
-- Java 소스 코드 및 MyBatis Mapper 파일 분석
-- 분석 보고서 작성 및 SQL 변환 대상 추출
-- PostgreSQL 메타데이터 생성
+### 📊 Application Analysis
+- Java source code and MyBatis Mapper file analysis
+- Analysis report generation and SQL transformation target extraction
+- PostgreSQL metadata generation
 
-### 🔄 애플리케이션 변환
-- SQL 샘플 변환
-- SQL 전체 변환
-- 변환 테스트 및 결과 수정
-- XML Merge 작업
+### 🔄 Application Transformation
+- Sample SQL transformation
+- Full SQL transformation
+- Transformation testing and result modification
+- XML Merge operations
 
-### 🧪 SQL 테스트
-- XML List 생성
-- SQL Unit Test 실행
+### 🧪 SQL Testing
+- XML List generation
+- SQL Unit Test execution
 
-### 📋 변환 보고서
-- 변환 작업 보고서 생성
-- Java Source 변환
+### 📋 Transformation Reports
+- Transformation work report generation
+- Java Source transformation
 
-## 실행 방법
+## How to Run
 
-### 1. 간단한 실행 (권장)
+### 1. Simple Execution (Recommended)
 ```bash
 ./run_oma_app.sh
 ```
 
-### 2. 수동 실행
+### 2. Manual Execution
 ```bash
-# 필요한 패키지 설치
+# Install required packages
 pip install -r requirements.txt
 
-# 환경 변수 설정 (필요한 경우)
+# Set environment variables (if needed)
 export OMA_BASE_DIR="$HOME/workspace/oma"
 
-# Streamlit 애플리케이션 실행
+# Run Streamlit application
 streamlit run oma_streamlit_app.py --server.port 8501 --server.address 0.0.0.0
 ```
 
-## 접속 방법
+## Access Method
 
-애플리케이션이 시작되면 브라우저에서 다음 주소로 접속하세요:
-- 로컬: http://localhost:8501
-- 원격: http://[서버IP]:8501
+Once the application starts, access it in your browser at:
+- Local: http://localhost:8501
+- Remote: http://[server-ip]:8501
 
-## 주요 특징
+## Key Features
 
-### 실시간 로그 출력
-- 각 작업의 실행 로그가 실시간으로 웹 브라우저에 표시됩니다
-- 작업 진행 상황을 시각적으로 확인할 수 있습니다
+### Real-time Log Output
+- Execution logs for each task are displayed in real-time in the web browser
+- Visual confirmation of task progress
 
-### 작업 중단 기능
-- 사이드바의 "현재 작업 중단" 버튼으로 실행 중인 작업을 중단할 수 있습니다
+### Task Interruption Feature
+- Use the "Stop Current Task" button in the sidebar to interrupt running tasks
 
-### 탭 기반 인터페이스
-- 각 작업 단계별로 탭으로 구분되어 있어 쉽게 탐색할 수 있습니다
+### Tab-based Interface
+- Each work stage is organized in tabs for easy navigation
 
-### 환경 상태 표시
-- 사이드바에서 현재 환경 설정 상태를 확인할 수 있습니다
+### Environment Status Display
+- Check current environment configuration status in the sidebar
 
-## 사전 요구사항
+## Prerequisites
 
-1. **Python 3.7 이상**
-2. **OMA 환경 설정**
-   - `OMA_BASE_DIR` 환경 변수 설정
-   - 필요한 OMA 스크립트들이 올바른 위치에 있어야 함
-3. **네트워크 접근**
-   - 데이터베이스 연결이 필요한 작업의 경우
+1. **Python 3.7 or higher**
+2. **OMA Environment Setup**
+   - Set `OMA_BASE_DIR` environment variable
+   - Required OMA scripts must be in correct locations
+3. **Network Access**
+   - For tasks requiring database connections
 
-## 환경 변수
+## Environment Variables
 
-- `OMA_BASE_DIR`: OMA 설치 디렉토리 (기본값: ~/workspace/oma)
-- `APPLICATION_NAME`: 현재 프로젝트명 (환경 설정 후 자동 설정)
+- `OMA_BASE_DIR`: OMA installation directory (default: ~/workspace/oma)
+- `APPLICATION_NAME`: Current project name (automatically set after environment setup)
 
-## 문제 해결
+## Troubleshooting
 
-### 포트 충돌
-다른 포트를 사용하려면:
+### Port Conflicts
+To use a different port:
 ```bash
 streamlit run oma_streamlit_app.py --server.port 8502
 ```
 
-### 권한 문제
-스크립트 실행 권한 확인:
+### Permission Issues
+Check script execution permissions:
 ```bash
 chmod +x run_oma_app.sh
 ```
 
-### 환경 변수 문제
-OMA 환경이 제대로 설정되지 않은 경우, 웹 애플리케이션의 "환경 설정" 탭에서 환경을 다시 설정하세요.
+### Environment Variable Issues
+If OMA environment is not properly configured, reset the environment in the "Environment Setup" tab of the web application.
 
-## 기존 Shell 스크립트와의 차이점
+## Differences from Original Shell Scripts
 
-1. **웹 인터페이스**: 터미널 대신 웹 브라우저에서 실행
-2. **실시간 로그**: 로그가 실시간으로 웹에 표시
-3. **시각적 피드백**: 진행률 표시 및 상태 아이콘
-4. **작업 중단**: 웹에서 실행 중인 작업을 중단 가능
-5. **탭 기반 네비게이션**: 각 단계별로 쉽게 접근
+1. **Web Interface**: Runs in web browser instead of terminal
+2. **Real-time Logs**: Logs displayed in real-time on web
+3. **Visual Feedback**: Progress indicators and status icons
+4. **Task Interruption**: Ability to stop running tasks from web interface
+5. **Tab-based Navigation**: Easy access to each stage
 
-## 지원
+## Support
 
-문제가 발생하면 다음을 확인하세요:
-1. OMA 환경 설정이 올바른지 확인
-2. 필요한 스크립트 파일들이 존재하는지 확인
-3. 네트워크 연결 상태 확인 (DB 관련 작업의 경우)
+If you encounter issues, check the following:
+1. Verify OMA environment setup is correct
+2. Ensure required script files exist
+3. Check network connection status (for DB-related tasks)

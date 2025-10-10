@@ -1,5 +1,5 @@
 """
-로그 뷰어 페이지
+Log Viewer Page
 """
 import streamlit as st
 import os

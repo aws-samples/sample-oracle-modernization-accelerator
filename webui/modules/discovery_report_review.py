@@ -1,5 +1,5 @@
 """
-분석 보고서 리뷰 페이지
+Discovery Report Review Page
 """
 import streamlit as st
 import os

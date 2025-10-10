@@ -1,5 +1,5 @@
 """
-qlog 뷰어 페이지
+qlog Viewer Page
 """
 import streamlit as st
 import subprocess

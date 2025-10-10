@@ -8,8 +8,8 @@ import plotly.express as px
 
 
 def render_welcome_page():
-    """환영 페이지 렌더링"""
-    # 로그 뷰어나 qlog 뷰어 상태일 때는 렌더링하지 않음
+    """Welcome page rendering"""
+    # Don't render when in log viewer or qlog viewer state
     selected_action = st.session_state.get('selected_action')
     if selected_action in ["view_running_logs", "view_qlog"]:
         return
@@ -18,8 +18,8 @@ def render_welcome_page():
 
 
 def show_welcome_screen():
-    """환영 화면 표시"""
-    # 로그 뷰어나 qlog 뷰어 상태일 때는 표시하지 않음
+    """Display welcome screen"""
+    # Don't display when in log viewer or qlog viewer state
     selected_action = st.session_state.get('selected_action')
     if selected_action in ["view_running_logs", "view_qlog"]:
         st.stop()
@@ -31,79 +31,79 @@ def show_welcome_screen():
     </div>
     """, unsafe_allow_html=True)
     
-    # 워크플로우 다이어그램 표시
-    st.markdown("## 🗺️ OMA 워크플로우")
+    # Display workflow diagram
+    st.markdown("## 🗺️ OMA Workflow")
     show_workflow_diagram()
     
     st.markdown("---")
     
-    # 현재 환경 상태 요약
+    # Current environment status summary
     env_status = st.session_state.oma_controller.check_environment()
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         if env_status['is_configured']:
-            st.success(f"✅ **프로젝트 설정 완료**\n\n프로젝트: {env_status['application_name']}")
+            st.success(f"✅ **Project Setup Complete**\n\nProject: {env_status['application_name']}")
         else:
-            st.error("❌ **환경 설정 필요**\n\n환경 설정을 먼저 실행하세요")
+            st.error("❌ **Environment Setup Required**\n\nPlease run environment setup first")
     
     with col2:
-        st.info(f"📁 **OMA 디렉토리**\n\n{env_status['oma_base_dir']}")
+        st.info(f"📁 **OMA Directory**\n\n{env_status['oma_base_dir']}")
     
     with col3:
         config_exists = os.path.exists(env_status['config_file'])
         if config_exists:
-            st.success("💾 **설정 파일 존재**\n\n환경 변수 저장됨")
+            st.success("💾 **Config File Exists**\n\nEnvironment variables saved")
         else:
-            st.warning("⚠️ **설정 파일 없음**\n\n환경 변수를 저장하세요")
+            st.warning("⚠️ **No Config File**\n\nPlease save environment variables")
 
 
 def show_workflow_diagram():
-    """OMA 워크플로우 다이어그램 표시 - 향상된 디자인"""
+    """Display OMA workflow diagram - enhanced design"""
     
-    # 워크플로우 단계 정의 - 테스트 및 결과 수정 포함
+    # Define workflow steps - including test and result modification
     steps = [
-        {"id": 1, "name": "프로젝트<br>환경 정보", "x": 1, "y": 6.2, "color": "#FF6B6B", "gradient": "#FF8E8E", "icon": "📊"},
-        {"id": 2, "name": "애플리케이션<br>분석", "x": 2, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "🔍"},
-        {"id": 3, "name": "분석 보고서<br>작성", "x": 3, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "📄"},
-        {"id": 4, "name": "분석 보고서<br>리뷰", "x": 4, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "📋"},
-        {"id": 5, "name": "PostgreSQL<br>메타데이터", "x": 5, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "🗄️"},
-        {"id": 6, "name": "샘플 변환", "x": 2, "y": 3.8, "color": "#45B7D1", "gradient": "#67C3DB", "icon": "🧪"},
-        {"id": 7, "name": "전체 변환", "x": 3, "y": 3.8, "color": "#45B7D1", "gradient": "#67C3DB", "icon": "🚀"},
-        {"id": 8, "name": "테스트 및<br>결과 수정", "x": 4, "y": 3.2, "color": "#FF9500", "gradient": "#FFB347", "icon": "🔧"},
+        {"id": 1, "name": "Project<br>Environment Info", "x": 1, "y": 6.2, "color": "#FF6B6B", "gradient": "#FF8E8E", "icon": "📊"},
+        {"id": 2, "name": "Application<br>Analysis", "x": 2, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "🔍"},
+        {"id": 3, "name": "Analysis Report<br>Generation", "x": 3, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "📄"},
+        {"id": 4, "name": "Discovery Report<br>Review", "x": 4, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "📋"},
+        {"id": 5, "name": "PostgreSQL<br>Metadata", "x": 5, "y": 6.2, "color": "#4ECDC4", "gradient": "#6ED5D8", "icon": "🗄️"},
+        {"id": 6, "name": "Sample Transform", "x": 2, "y": 3.8, "color": "#45B7D1", "gradient": "#67C3DB", "icon": "🧪"},
+        {"id": 7, "name": "Full Transform", "x": 3, "y": 3.8, "color": "#45B7D1", "gradient": "#67C3DB", "icon": "🚀"},
+        {"id": 8, "name": "Test &<br>Result Fix", "x": 4, "y": 3.2, "color": "#FF9500", "gradient": "#FFB347", "icon": "🔧"},
         {"id": 9, "name": "XML Merge", "x": 5, "y": 3.8, "color": "#45B7D1", "gradient": "#67C3DB", "icon": "🔗"},
         {"id": 10, "name": "Compare<br>SQL Test", "x": 2, "y": 1.4, "color": "#96CEB4", "gradient": "#A8D5C4", "icon": "⚖️"},
-        {"id": 11, "name": "변환 보고서<br>생성", "x": 3, "y": 1.4, "color": "#E67E22", "gradient": "#F39C12", "icon": "📊"},
-        {"id": 12, "name": "변환 보고서<br>보기", "x": 4, "y": 1.4, "color": "#E67E22", "gradient": "#F39C12", "icon": "📄"},
+        {"id": 11, "name": "Transform Report<br>Generation", "x": 3, "y": 1.4, "color": "#E67E22", "gradient": "#F39C12", "icon": "📊"},
+        {"id": 12, "name": "View Transform<br>Report", "x": 4, "y": 1.4, "color": "#E67E22", "gradient": "#F39C12", "icon": "📄"},
     ]
     
-    # 연결선 정의 - 테스트 및 결과 수정을 중심으로 한 워크플로우
+    # Define connections - workflow centered around test and result modification
     connections = [
-        (1, 2), (2, 3), (3, 4), (4, 5),  # 2단계: 분석 라인
-        (5, 6), (5, 7),  # 분석 → 샘플/전체 변환
-        (6, 8), (7, 8),  # 샘플/전체 변환 → 테스트 및 결과 수정
-        (8, 9),  # 테스트 및 결과 수정 → XML Merge
+        (1, 2), (2, 3), (3, 4), (4, 5),  # Stage 2: Analysis line
+        (5, 6), (5, 7),  # Analysis → Sample/Full transform
+        (6, 8), (7, 8),  # Sample/Full transform → Test and result fix
+        (8, 9),  # Test and result fix → XML Merge
         (9, 10),  # XML Merge → Compare SQL Test
-        (9, 11), (11, 12)  # XML Merge → 변환 보고서 생성 → 보기
+        (9, 11), (11, 12)  # XML Merge → Transform report generation → View
     ]
     
-    # Plotly 그래프 생성
+    # Create Plotly graph
     fig = go.Figure()
     
-    # 그룹 배경 영역 추가 - 현재 구조에 맞게 수정
+    # Add group background areas - modified for current structure
     group_areas = [
-        {"name": "1단계: 환경 설정", "x": [0.3, 1.7, 1.7, 0.3, 0.3], "y": [5.0, 5.0, 7.4, 7.4, 5.0], 
+        {"name": "Stage 1: Environment Setup", "x": [0.3, 1.7, 1.7, 0.3, 0.3], "y": [5.0, 5.0, 7.4, 7.4, 5.0], 
          "color": "rgba(255, 107, 107, 0.15)", "border": "rgba(255, 107, 107, 0.4)"},
-        {"name": "2단계: 분석", "x": [1.3, 5.7, 5.7, 1.3, 1.3], "y": [5.0, 5.0, 7.4, 7.4, 5.0], 
+        {"name": "Stage 2: Analysis", "x": [1.3, 5.7, 5.7, 1.3, 1.3], "y": [5.0, 5.0, 7.4, 7.4, 5.0], 
          "color": "rgba(78, 205, 196, 0.15)", "border": "rgba(78, 205, 196, 0.4)"},
-        {"name": "3단계: 변환", "x": [1.3, 4.7, 4.7, 1.3, 1.3], "y": [2.6, 2.6, 5.0, 5.0, 2.6], 
+        {"name": "Stage 3: Transformation", "x": [1.3, 4.7, 4.7, 1.3, 1.3], "y": [2.6, 2.6, 5.0, 5.0, 2.6], 
          "color": "rgba(69, 183, 209, 0.15)", "border": "rgba(69, 183, 209, 0.4)"},
-        {"name": "4단계: 테스트 & 보고서", "x": [1.3, 4.7, 4.7, 1.3, 1.3], "y": [0.2, 0.2, 2.6, 2.6, 0.2], 
+        {"name": "Stage 4: Testing & Reports", "x": [1.3, 4.7, 4.7, 1.3, 1.3], "y": [0.2, 0.2, 2.6, 2.6, 0.2], 
          "color": "rgba(230, 126, 34, 0.15)", "border": "rgba(230, 126, 34, 0.4)"}
     ]
     
-    # 배경 영역 추가 - 더 부드러운 스타일
+    # Add background areas - softer style
     for area in group_areas:
         fig.add_trace(go.Scatter(
             x=area["x"],
@@ -117,15 +117,15 @@ def show_workflow_diagram():
             hoverinfo='skip'
         ))
     
-    # 그룹 라벨 추가 - 현재 구조에 맞게 수정
+    # Add group labels - modified for current structure
     group_labels = [
-        {"text": "🔴 1단계: 환경 설정", "x": 1.0, "y": 7.2, "color": "#FF6B6B"},
-        {"text": "🟢 2단계: 분석", "x": 3.5, "y": 7.2, "color": "#4ECDC4"},
-        {"text": "🔵 3단계: 변환", "x": 3.0, "y": 4.8, "color": "#45B7D1"},
-        {"text": "🟠 4단계: 테스트 & 보고서", "x": 3.0, "y": 2.4, "color": "#E67E22"}
+        {"text": "🔴 Stage 1: Environment Setup", "x": 1.0, "y": 7.2, "color": "#FF6B6B"},
+        {"text": "🟢 Stage 2: Analysis", "x": 3.5, "y": 7.2, "color": "#4ECDC4"},
+        {"text": "🔵 Stage 3: Transformation", "x": 3.0, "y": 4.8, "color": "#45B7D1"},
+        {"text": "🟠 Stage 4: Testing & Reports", "x": 3.0, "y": 2.4, "color": "#E67E22"}
     ]
     
-    # 라벨 텍스트만 추가 (배경 박스 제거)
+    # Add label text only (remove background box)
     for label in group_labels:
         fig.add_trace(go.Scatter(
             x=[label["x"]],
@@ -133,18 +133,18 @@ def show_workflow_diagram():
             mode='text',
             text=label["text"],
             textfont=dict(size=16, color=label["color"], family="Arial Black"),
-            textposition="middle center",  # 가운데 정렬
+            textposition="middle center",  # Center alignment
             showlegend=False,
             hoverinfo='skip'
         ))
     
-    # 연결선 추가 - 더 예쁜 스타일과 애니메이션 효과
+    # Add connection lines - prettier style and animation effects
     for from_id, to_id in connections:
         from_step = next(s for s in steps if s["id"] == from_id)
         to_step = next(s for s in steps if s["id"] == to_id)
         
-        # 연결선 스타일 - 테스트 및 결과 수정 관련 연결선 강조
-        if to_id == 8:  # 테스트 및 결과 수정으로 향하는 연결선
+        # Connection line style - emphasize lines to test and result fix
+        if to_id == 8:  # Lines going to test and result fix
             line_color = '#FF6B35'
             line_width = 5
             line_dash = "solid"

@@ -1,5 +1,5 @@
 """
-PostgreSQL 메타데이터 생성 페이지
+PostgreSQL Metadata Generation Page
 """
 import streamlit as st
 import subprocess

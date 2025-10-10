@@ -816,157 +816,157 @@ if 'oma_controller' not in st.session_state:
     st.session_state.oma_controller = OMAController()
 
 def main():
-    # 앱 시작 시 저장된 설정 자동 로드 (한 번만 실행)
+    # Auto-load saved settings at app start (run once)
     if 'config_loaded' not in st.session_state:
         config, var_count = st.session_state.oma_controller.load_saved_config()
         if var_count > 0:
             project_name = os.environ.get('APPLICATION_NAME', 'Unknown')
-            st.success(f"💾 저장된 환경 설정을 복원했습니다 ({var_count}개 변수) - 프로젝트: {project_name}")
+            st.success(f"💾 Restored saved environment settings ({var_count} variables) - Project: {project_name}")
         
-        # 현재 환경변수로 설정 파일을 즉시 업데이트 (환경변수 우선)
+        # Immediately update config file with current environment variables (env vars priority)
         update_result = st.session_state.oma_controller.update_environment_vars()
         if update_result:
-            st.info("🔄 현재 환경변수로 설정 파일을 업데이트했습니다.")
+            st.info("🔄 Updated config file with current environment variables.")
         
         st.session_state.config_loaded = True
     
-    # 환경 상태 확인
+    # Check environment status
     env_status = st.session_state.oma_controller.check_environment()
     
-    # 사이드바 - 메뉴 및 환경 정보
+    # Sidebar - Menu and environment info
     with st.sidebar:
-        st.header("🔧 환경 정보")
+        st.header("🔧 Environment Info")
         
-        # 프로젝트 선택 드롭다운
+        # Project selection dropdown
         available_projects = st.session_state.oma_controller.get_available_projects()
         current_project = env_status['application_name']
         
         if available_projects:
-            # 현재 프로젝트가 목록에 있는지 확인
+            # Check if current project is in the list
             default_index = 0
             if current_project and current_project in available_projects:
                 default_index = available_projects.index(current_project)
             
             selected_project = st.selectbox(
-                "📋 프로젝트 선택:",
+                "📋 Select Project:",
                 options=available_projects,
                 index=default_index,
-                help="oma.properties에서 사용 가능한 프로젝트 목록"
+                help="Available projects from oma.properties"
             )
             
-            # 프로젝트가 변경되었을 때
+            # When project is changed
             if selected_project != current_project:
-                if st.button("🔄 프로젝트 적용", type="primary", use_container_width=True):
+                if st.button("🔄 Apply Project", type="primary", use_container_width=True):
                     if st.session_state.oma_controller.set_project_environment(selected_project):
-                        st.success(f"프로젝트 '{selected_project}'로 변경되었습니다!")
+                        st.success(f"Project changed to '{selected_project}'!")
                         st.rerun()
                     else:
-                        st.error("프로젝트 설정 변경에 실패했습니다.")
+                        st.error("Failed to change project settings.")
         else:
-            st.warning("⚠️ oma.properties에서 프로젝트를 찾을 수 없습니다.")
+            st.warning("⚠️ No projects found in oma.properties.")
         
-        # 현재 환경 상태 표시
+        # Display current environment status
         if env_status['is_configured']:
-            st.success(f"✅ 현재 프로젝트: **{env_status['application_name']}**")
+            st.success(f"✅ Current Project: **{env_status['application_name']}**")
         else:
-            st.error("❌ 프로젝트가 선택되지 않았습니다")
+            st.error("❌ No project selected")
         
         st.info(f"📁 OMA Base Dir: {env_status['oma_base_dir']}")
-        st.info(f"⚙️ 설정 파일: {os.path.basename(env_status['config_file'])}")
+        st.info(f"⚙️ Config File: {os.path.basename(env_status['config_file'])}")
         
-        # 실행 상태 표시 (간단하게)
-        st.markdown("### 🔄 실행 상태")
+        # Display execution status (simplified)
+        st.markdown("### 🔄 Execution Status")
         
-        # 죽은 프로세스 정리 및 현재 상태 확인
+        # Clean up dead processes and check current status
         st.session_state.oma_controller.cleanup_dead_processes()
         
         current_process = st.session_state.oma_controller.current_process
         running_tasks = st.session_state.task_manager.get_running_tasks()
         
-        # 1. current_process 우선 확인 (동적으로 작업 정보 표시)
+        # 1. Check current_process first (dynamically display task info)
         if current_process and current_process.poll() is None:
-            # Task 파일에서 실제 작업 정보 읽기
+            # Read actual task info from Task file
             task_info = get_current_task_info()
             if task_info:
-                task_title = task_info.get('title', '작업')
-                st.error(f"🔴 **{task_title} 실행 중**")
+                task_title = task_info.get('title', 'Task')
+                st.error(f"🔴 **{task_title} Running**")
             else:
-                st.error("🔴 **작업 실행 중**")
+                st.error("🔴 **Task Running**")
             
-            # 진행 시간 계산
+            # Calculate elapsed time
             if hasattr(st.session_state, 'app_analysis_start_time'):
                 elapsed = time.time() - st.session_state.app_analysis_start_time
-                st.caption(f"⏱️ 진행 시간: {int(elapsed//60)}분 {int(elapsed%60)}초")
+                st.caption(f"⏱️ Elapsed Time: {int(elapsed//60)}m {int(elapsed%60)}s")
             
-            # 상세 정보 (Task 파일에서 읽기)
-            with st.expander("📊 작업 상세 정보", expanded=False):
+            # Detailed info (read from Task file)
+            with st.expander("📊 Task Details", expanded=False):
                 st.text(f"PID: {current_process.pid}")
                 if task_info:
-                    st.text(f"작업 ID: {task_info.get('task_id', 'Unknown')}")
-                    st.text(f"로그: {task_info.get('log_file', 'Unknown')}")
+                    st.text(f"Task ID: {task_info.get('task_id', 'Unknown')}")
+                    st.text(f"Log: {task_info.get('log_file', 'Unknown')}")
                     
-                    # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
+                    # Add qlog view button for sample/full transform
                     task_title = task_info.get('title', '')
-                    if '샘플 변환' in task_title or '전체 변환' in task_title:
-                        if st.button("📊 qlog 보기", key="view_qlog_btn", use_container_width=True):
+                    if 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                        if st.button("📊 View qlog", key="view_qlog_btn", use_container_width=True):
                             st.session_state.selected_action = "view_qlog"
                             st.rerun()
                 else:
                     if st.session_state.oma_controller.current_task_id:
-                        st.text(f"작업 ID: {st.session_state.oma_controller.current_task_id}")
-                    st.text("로그: 정보 없음")
+                        st.text(f"Task ID: {st.session_state.oma_controller.current_task_id}")
+                    st.text("Log: No info")
             
-            # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button("📋 로그 보기", key="view_logs_btn", use_container_width=True):
+            # Provide log view button even when running (navigate to main screen log)
+            if st.button("📋 View Logs", key="view_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
                 
-        # 2. TaskManager 기반 작업 확인
+        # 2. Check TaskManager-based tasks
         elif running_tasks:
             task = running_tasks[0]
-            st.warning(f"🟡 **{task['title']} 실행 중**")
+            st.warning(f"🟡 **{task['title']} Running**")
             
-            # 상세 정보
-            with st.expander("📊 작업 상세 정보", expanded=False):
+            # Detailed info
+            with st.expander("📊 Task Details", expanded=False):
                 st.text(f"PID: {task['pid']}")
-                st.text(f"작업 ID: {task['task_id']}")
-                st.text(f"시작: {task['start_time'][:19]}")
+                st.text(f"Task ID: {task['task_id']}")
+                st.text(f"Started: {task['start_time'][:19]}")
                 
-                # 샘플변환, 전체변환인 경우 qlog 보기 버튼 추가
+                # Add qlog view button for sample/full transform
                 task_title = task.get('title', '')
-                if '샘플 변환' in task_title or '전체 변환' in task_title:
-                    if st.button("📊 qlog 보기", key="view_qlog_tm_btn", use_container_width=True):
+                if 'Sample Transform' in task_title or 'Full Transform' in task_title:
+                    if st.button("📊 View qlog", key="view_qlog_tm_btn", use_container_width=True):
                         st.session_state.selected_action = "view_qlog"
                         st.rerun()
             
-            # 실행 중일 때도 로그 보기 버튼 제공 (메인 화면 로그로 이동)
-            if st.button("📋 로그 보기", key="view_logs_tm_btn", use_container_width=True):
+            # Provide log view button even when running (navigate to main screen log)
+            if st.button("📋 View Logs", key="view_logs_tm_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         else:
-            # 대기 중
-            st.success("🟢 **대기 중**")
-            st.caption("현재 실행 중인 작업이 없습니다")
+            # Waiting
+            st.success("🟢 **Waiting**")
+            st.caption("No tasks currently running")
             
-            # 대기 중에도 로그 보기 가능 (최근 로그)
-            if st.button("📋 로그 보기", key="view_recent_logs_btn", use_container_width=True):
+            # Allow log viewing even when waiting (recent logs)
+            if st.button("📋 View Logs", key="view_recent_logs_btn", use_container_width=True):
                 st.session_state.selected_action = "view_running_logs"
                 st.rerun()
         
         st.markdown("---")
         
-        # 프로세스 중단 버튼 (실행 중일 때만 표시)
+        # Process stop button (only show when running)
         if (current_process and current_process.poll() is None) or running_tasks:
-            if st.button("🛑 현재 작업 중단", type="secondary", use_container_width=True):
+            if st.button("🛑 Stop Current Task", type="secondary", use_container_width=True):
                 if st.session_state.oma_controller.stop_current_process():
-                    st.success("작업이 중단되었습니다.")
+                    st.success("Task stopped.")
                     st.rerun()
                 else:
-                    st.info("실행 중인 작업이 없습니다.")
+                    st.info("No running tasks.")
         
         st.markdown("---")
         
-        # 세션 상태 초기화 (한 번만 실행)
+        # Session state initialization (run once)
         if 'session_initialized' not in st.session_state:
             if 'selected_action' not in st.session_state:
                 st.session_state.selected_action = None
@@ -974,31 +974,31 @@ def main():
                 st.session_state.current_screen = 'welcome'
             st.session_state.session_initialized = True
         
-        # 예쁜 아코디언 스타일 메뉴
-        st.header("📋 작업 메뉴")
+        # Pretty accordion style menu
+        st.header("📋 Task Menu")
         
         # 메뉴 트리 구조 정의
         menu_tree = {
-            "📊 프로젝트 환경 정보": {},  # 서브 메뉴 없음 - 바로 실행
-            "📊 애플리케이션 분석": {
-                "🔍 애플리케이션 분석": "app_analysis",
-                "📄 분석 보고서 작성": "app_reporting",
-                "📋 분석 보고서 리뷰": "discovery_report_review",
-                "🗄️ PostgreSQL 메타데이터": "postgresql_meta"
+            "📊 Project Environment Info": {},  # No sub-menu - direct execution
+            "📊 Application Analysis": {
+                "🔍 Application Analysis": "app_analysis",
+                "📄 Analysis Report Generation": "app_reporting",
+                "📋 Discovery Report Review": "discovery_report_review",
+                "🗄️ PostgreSQL Metadata": "postgresql_meta"
             },
-            "🔄 애플리케이션 변환": {
-                "✅ 매퍼 파일 검증": "mapper_validation",
-                "🧪 샘플 변환 실행": "sample_transform",
-                "🚀 전체 변환 실행": "full_transform",
-                "🔗 XML Merge 실행": "merge_transform"
+            "🔄 Application Transformation": {
+                "✅ Mapper File Validation": "mapper_validation",
+                "🧪 Sample Transform Execution": "sample_transform",
+                "🚀 Full Transform Execution": "full_transform",
+                "🔗 XML Merge Execution": "merge_transform"
             },
-            "🧪 SQL 테스트": {
-                "⚙️ Parameter 구성": "parameter_config",
+            "🧪 SQL Testing": {
+                "⚙️ Parameter Configuration": "parameter_config",
                 "⚖️ Compare SQL Test": "source_sqls"
             },
-            "📋 변환 보고서": {
-                "📊 변환 보고서 생성": "transform_report",
-                "📄 변환 보고서 보기": "view_transform_report"
+            "📋 Transformation Reports": {
+                "📊 Generate Transform Report": "transform_report",
+                "📄 View Transform Report": "view_transform_report"
             }
         }
         
@@ -1006,14 +1006,14 @@ def main():
         is_running = st.session_state.oma_controller.is_any_task_running()
         
         for main_menu, sub_menus in menu_tree.items():
-            # 프로젝트 환경 정보는 바로 실행
-            if main_menu == "📊 프로젝트 환경 정보":
+            # Project Environment Info is executed directly
+            if main_menu == "📊 Project Environment Info":
                 if st.button(main_menu, key=f"direct_{main_menu}", use_container_width=True, type="primary", disabled=is_running):
                     st.session_state.selected_action = "project_env_info"
                     st.session_state.current_screen = "project_env_info"
                     st.rerun()
             else:
-                # 다른 메뉴들은 기존 아코디언 방식
+                # Other menus use accordion style
                 with st.expander(main_menu, expanded=False):
                     for sub_menu, action_key in sub_menus.items():
                         if st.button(
@@ -1022,7 +1022,7 @@ def main():
                             use_container_width=True,
                             type="secondary",
                             disabled=is_running,
-                            help=f"{sub_menu} 작업을 실행합니다" if not is_running else "다른 작업이 실행 중입니다"
+                            help=f"Execute {sub_menu} task" if not is_running else "Another task is running"
                         ):
                             st.session_state.selected_action = action_key
                             st.session_state.current_screen = action_key

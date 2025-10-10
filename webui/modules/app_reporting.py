@@ -1,5 +1,5 @@
 """
-분석 보고서 작성 페이지
+Analysis Report Generation Page
 """
 import streamlit as st
 import subprocess

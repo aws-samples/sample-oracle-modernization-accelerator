@@ -1,5 +1,5 @@
 """
-샘플 변환 페이지
+Sample Transform Page
 """
 import streamlit as st
 import subprocess
@@ -9,15 +9,15 @@ import datetime
 
 
 def render_sample_transform_page():
-    """샘플 변환 페이지"""
-    # 상단에 홈 버튼 추가
+    """Sample transform page"""
+    # Add home button at the top
     col1, col2 = st.columns([1, 4])
     with col1:
-        if st.button("🏠 홈으로", key="sample_transform_home"):
+        if st.button("🏠 Home", key="sample_transform_home"):
             st.session_state.selected_action = None
             st.rerun()
     with col2:
-        st.markdown("## 🧪 SQL 샘플 변환")
+        st.markdown("## 🧪 SQL Sample Transform")
     
     # 명령어 정보
     command = 'python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"'

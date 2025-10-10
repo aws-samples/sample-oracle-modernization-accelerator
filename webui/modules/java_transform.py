@@ -1,5 +1,5 @@
 """
-Java Source 변환 페이지
+Java Source Transform Page
 """
 import streamlit as st
 from .utils import execute_command_with_logs
