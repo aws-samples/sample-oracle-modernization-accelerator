@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 공통 메시지 함수들
+# Common message functions
 msg_error() {
     echo -e "${RED}${ERROR_PREFIX}$1${NC}"
 }
@@ -42,10 +42,10 @@ msg_task_failed() {
     echo -e "${RED}$1 ${TASK_FAILED}${NC}"
 }
 
-# 언어 설정 (기본값: 한국어)
+# Language setting (default: Korean)
 LANGUAGE="ko"
 
-# oma.properties에서 언어 설정 읽기
+# Load language setting from oma.properties
 load_language_from_properties() {
     local props_file="$OMA_BASE_DIR/config/oma.properties"
     if [ -f "$props_file" ]; then
@@ -56,7 +56,7 @@ load_language_from_properties() {
     fi
 }
 
-# oma.properties에 언어 설정 저장
+# Save language setting to oma.properties
 save_language_to_properties() {
     local props_file="$OMA_BASE_DIR/config/oma.properties"
     if [ -f "$props_file" ]; then
@@ -64,7 +64,7 @@ save_language_to_properties() {
     fi
 }
 
-# 메시지 로딩 함수
+# Message loading function
 load_messages() {
     local msg_file="$OMA_BASE_DIR/config/messages_${LANGUAGE}.msg"
     if [ -f "$msg_file" ]; then
@@ -74,7 +74,7 @@ load_messages() {
     fi
 }
 
-# 언어 변경 함수
+# Language change function
 change_language() {
     if [ "$LANGUAGE" = "ko" ]; then
         LANGUAGE="en"
@@ -88,25 +88,25 @@ change_language() {
     clear
 }
 
-# OMA_BASE_DIR 환경 변수 확인 및 설정
+# Check and set OMA_BASE_DIR environment variable
 if [ -z "$OMA_BASE_DIR" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     export OMA_BASE_DIR="$SCRIPT_DIR"
     echo "${OMA_BASE_DIR_AUTO_SET}$OMA_BASE_DIR"
 fi
 
-# 언어 설정 로딩
+# Load language settings
 load_language_from_properties
-# 메시지 로딩
+# Load messages
 load_messages
 
-# bin 디렉토리로 이동
+# Move to bin directory
 cd "$OMA_BASE_DIR/bin"
 
-# 화면 지우기
+# Clear screen
 clear
 
-# 색상 정의
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -117,7 +117,7 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 UNDERLINE='\033[4m'
 
-# 구분선 출력 함수
+# Separator output function
 print_separator() {
     printf "${BLUE}${BOLD}%80s${NC}\n" | tr " " "="
 }
@@ -125,7 +125,7 @@ print_separator() {
 
 
 # ====================================================
-# 환경 변수 확인 함수
+# Environment variable check function
 # ====================================================
 check_environment() {
     if [ -z "$APPLICATION_NAME" ]; then
@@ -145,7 +145,7 @@ check_environment() {
         echo -e "${GREEN}   ls -la oma_env_*.sh${NC}"
         print_separator
 
-        # OMA_BASE_DIR에 환경 변수 파일이 있는지 확인
+        # Check if environment variable files exist in OMA_BASE_DIR
         cd "$OMA_BASE_DIR"
         env_files=(oma_env_*.sh)
         if [ -f "${env_files[0]}" ]; then
@@ -237,10 +237,10 @@ check_environment() {
 }
 
 # ====================================================
-# Step별 스크립트 실행 함수들
+# Step-by-step script execution functions
 # ====================================================
 
-# 환경 설정 다시 수행
+# Re-run environment setup
 execute_setenv() {
     print_separator
     echo -e "${YELLOW}${ENV_SETUP_RETRY_MSG}${NC}"
@@ -248,38 +248,38 @@ execute_setenv() {
     cd "$OMA_BASE_DIR/bin"
     ./setEnv.sh
     if [ $? -eq 0 ]; then
-        msg_success "환경 설정이 완료되었습니다."
+        msg_success "Environment setup completed."
         echo -e "${YELLOW}${ENV_VAR_SET_CONTINUE}${NC}"
     else
-        msg_error "환경 설정에 실패했습니다."
+        msg_error "Environment setup failed."
         return 1
     fi
     print_separator
 }
 
-# 현재 환경 변수 확인
+# Check current environment variables
 execute_checkenv() {
     print_separator
-    msg_info "현재 환경 변수를 확인합니다."
+    msg_info "Checking current environment variables."
     cd "$OMA_BASE_DIR/bin"
     ./checkEnv.sh
     print_separator
 }
 
-# DB Schema 변환
+# DB Schema transformation
 execute_db_schema() {
     print_separator
-    msg_wait_3sec "DB Schema 변환"
-    msg_script_exec "DB Schema 변환"
+    msg_wait_3sec "DB Schema transformation"
+    msg_script_exec "DB Schema transformation"
 
     if [ -f "$OMA_BASE_DIR/bin/processDbSchema.sh" ]; then
         msg_running_script "processDbSchema.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processDbSchema.sh
         if [ $? -eq 0 ]; then
-            msg_task_completed "DB Schema 변환이"
+            msg_task_completed "DB Schema transformation"
         else
-            msg_task_failed "DB Schema 변환"
+            msg_task_failed "DB Schema transformation"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/processDbSchema.sh"
@@ -288,20 +288,20 @@ execute_db_schema() {
     print_separator
 }
 
-# 애플리케이션 분석
+# Application analysis
 execute_app_analysis() {
     print_separator
-    msg_wait_3sec "애플리케이션 분석"
-    msg_script_exec "애플리케이션 분석"
+    msg_wait_3sec "Application analysis"
+    msg_script_exec "Application analysis"
 
     if [ -f "$OMA_BASE_DIR/bin/processAppAnalysis.sh" ]; then
         msg_running_script "processAppAnalysis.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processAppAnalysis.sh
         if [ $? -eq 0 ]; then
-            msg_task_completed "애플리케이션 분석이"
+            msg_task_completed "Application analysis"
         else
-            msg_task_failed "애플리케이션 분석"
+            msg_task_failed "Application analysis"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/processAppAnalysis.sh"
@@ -310,20 +310,20 @@ execute_app_analysis() {
     print_separator
 }
 
-# 분석 보고서 작성
+# Analysis report generation
 execute_app_reporting() {
     print_separator
-    msg_wait_3sec "분석 보고서 작성"
-    msg_script_exec "분석 보고서 작성"
+    msg_wait_3sec "Analysis report generation"
+    msg_script_exec "Analysis report generation"
 
     if [ -f "$OMA_BASE_DIR/bin/processAppReporting.sh" ]; then
         msg_running_script "processAppReporting.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processAppReporting.sh
         if [ $? -eq 0 ]; then
-            msg_task_completed "분석 보고서 작성이"
+            msg_task_completed "Analysis report generation"
         else
-            msg_task_failed "분석 보고서 작성"
+            msg_task_failed "Analysis report generation"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/processAppReporting.sh"
@@ -332,24 +332,24 @@ execute_app_reporting() {
     print_separator
 }
 
-# SQL 샘플 변환
+# SQL sample transformation
 execute_sql_sample_transform() {
     print_separator
-    msg_wait_3sec "SQL 샘플 변환 작업"
+    msg_wait_3sec "SQL sample transformation task"
     echo ""
     echo -e "${BLUE}${BOLD}${SAMPLE_TRANSFORM_DESC}${NC}"
     sleep 3
-    msg_script_exec "SQL 샘플 변환"
+    msg_script_exec "SQL sample transformation"
 
     if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
-        msg_info "sqlTransformTarget.py를 샘플 모드로 실행합니다..."
+        msg_info "Running sqlTransformTarget.py in sample mode..."
         echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py --file $APP_TRANSFORM_FOLDER/SampleTransformTarget.csv${NC}"
         cd "$OMA_BASE_DIR/bin"
         python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py" --file "$APP_TRANSFORM_FOLDER/SampleTransformTarget.csv"
         if [ $? -eq 0 ]; then
-            msg_task_completed "SQL 샘플 변환 작업이"
+            msg_task_completed "SQL sample transformation task"
         else
-            msg_task_failed "SQL 샘플 변환 작업"
+            msg_task_failed "SQL sample transformation task"
         fi
     else
         msg_file_not_found "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
@@ -358,24 +358,24 @@ execute_sql_sample_transform() {
     print_separator
 }
 
-# SQL 전체 변환
+# SQL full transformation
 execute_sql_full_transform() {
     print_separator
-    msg_wait_3sec "SQL 전체 변환 작업"
+    msg_wait_3sec "SQL full transformation task"
     echo ""
     echo -e "${BLUE}${BOLD}${FULL_TRANSFORM_DESC}${NC}"
     sleep 3
-    msg_script_exec "SQL 전체 변환"
+    msg_script_exec "SQL full transformation"
 
     if [ -f "$APP_TOOLS_FOLDER/sqlTransformTarget.py" ]; then
-        msg_info "sqlTransformTarget.py를 전체 모드로 실행합니다..."
+        msg_info "Running sqlTransformTarget.py in full mode..."
         echo -e "${BLUE}${BOLD}python3 $APP_TOOLS_FOLDER/sqlTransformTarget.py${NC}"
         cd "$OMA_BASE_DIR/bin"
         python3 "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
         if [ $? -eq 0 ]; then
-            msg_task_completed "SQL 전체 변환 작업이"
+            msg_task_completed "SQL full transformation task"
         else
-            msg_task_failed "SQL 전체 변환 작업"
+            msg_task_failed "SQL full transformation task"
         fi
     else
         msg_file_not_found "$APP_TOOLS_FOLDER/sqlTransformTarget.py"
@@ -384,20 +384,20 @@ execute_sql_full_transform() {
     print_separator
 }
 
-# XML List 생성
+# XML List generation
 execute_xml_list_generation() {
     print_separator
-    msg_wait_3sec "바인드 변수 생성"
-    msg_script_exec "바인드 변수 생성"
+    msg_wait_3sec "Bind variable generation"
+    msg_script_exec "Bind variable generation"
 
     if [ -f "$OMA_BASE_DIR/bin/test/run_bind_generator.sh" ]; then
         msg_running_script "run_bind_generator.sh"
         echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_bind_generator.sh${NC}"
         "$OMA_BASE_DIR/bin/test/run_bind_generator.sh"
         if [ $? -eq 0 ]; then
-            msg_task_completed "바인드 변수 생성이"
+            msg_task_completed "Bind variable generation"
         else
-            msg_task_failed "바인드 변수 생성"
+            msg_task_failed "Bind variable generation"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/test/run_bind_generator.sh"
@@ -409,10 +409,10 @@ execute_xml_list_generation() {
 # SQL Unit Test
 execute_sql_unittest() {
     print_separator
-    msg_wait_3sec "애플리케이션 SQL Unit Test"
+    msg_wait_3sec "Application SQL Unit Test"
     msg_script_exec "SQL Unit Test"
 
-    # Oracle 테스트 실행
+    # Execute Oracle test
     if [ -f "$OMA_BASE_DIR/bin/test/run_oracle.sh" ]; then
         msg_info "${ORACLE_TEST_RUNNING}"
         echo -e "${BLUE}${BOLD}$OMA_BASE_DIR/bin/test/run_oracle.sh $SOURCE_SQL_MAPPER_FOLDER/mapper${NC}"
@@ -428,7 +428,7 @@ execute_sql_unittest() {
         return 1
     fi
 
-    # Target DBMS 테스트 실행
+    # Execute Target DBMS test
     if [ "$TARGET_DBMS_TYPE" = "postgres" ]; then
         if [ -f "$OMA_BASE_DIR/bin/test/run_postgresql.sh" ]; then
             msg_info "${POSTGRESQL_TEST_RUNNING}"
@@ -467,20 +467,20 @@ execute_sql_unittest() {
     print_separator
 }
 
-# 샘플 테스트 및 결과 수정
+# Sample test and result fix
 execute_sample_test_fix() {
     print_separator
-    msg_wait_3sec "샘플 테스트 및 결과 수정"
+    msg_wait_3sec "Sample test and result fix"
     echo -e "${BLUE}${BOLD}${SAMPLE_TEST_FIX_PERFORMING}${NC}"
 
     if [ -f "$APP_TOOLS_FOLDER/../postTransform/editErrors.md" ]; then
-        msg_info "editErrors.md를 사용하여 Amazon Q chat을 실행합니다..."
+        msg_info "Running Amazon Q chat using editErrors.md..."
         echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editErrors.md\"${NC}"
         q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
         if [ $? -eq 0 ]; then
-            msg_task_completed "샘플 테스트 및 결과 수정이"
+            msg_task_completed "Sample test and result fix"
         else
-            msg_task_failed "샘플 테스트 및 결과 수정"
+            msg_task_failed "Sample test and result fix"
         fi
     else
         msg_file_not_found "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
@@ -490,15 +490,15 @@ execute_sample_test_fix() {
     print_separator
 }
 
-# SQL 변환 Merge
+# SQL transformation merge
 execute_sql_transform_merge() {
     print_separator
-    msg_wait_3sec "SQL 변환 Merge 작업"
+    msg_wait_3sec "SQL transformation merge task"
     echo ""
     echo -e "${BLUE}${BOLD}${MERGE_PROCESSING}${NC}"
     sleep 3
 
-    # Merge 작업 전에 delete_target_xml_files.sh 실행
+    # Execute delete_target_xml_files.sh before merge task
     if [ -f "$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh" ]; then
         msg_info "${DELETE_TARGET_XML_RUNNING}"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh${NC}"
@@ -510,19 +510,19 @@ execute_sql_transform_merge() {
             echo -e "${YELLOW}${CONTINUE_PROCESSING}${NC}"
         fi
     else
-        msg_warning "$APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh 파일을 찾을 수 없습니다."
+        msg_warning "Cannot find $APP_TOOLS_FOLDER/../postTransform/delete_target_xml_files.sh file."
         echo -e "${YELLOW}${MERGE_CONTINUE}${NC}"
     fi
-    msg_script_exec "SQL 변환 Merge"
+    msg_script_exec "SQL transformation merge"
 
     if [ -f "$OMA_BASE_DIR/bin/processSqlTransform.sh" ]; then
-        msg_info "processSqlTransform.sh merge 옵션으로 실행합니다..."
+        msg_info "Running processSqlTransform.sh with merge option..."
         cd "$OMA_BASE_DIR/bin"
         ./processSqlTransform.sh merge
         if [ $? -eq 0 ]; then
-            msg_task_completed "SQL 변환 Merge 작업이"
+            msg_task_completed "SQL transformation merge task"
         else
-            msg_task_failed "SQL 변환 Merge 작업"
+            msg_task_failed "SQL transformation merge task"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/processSqlTransform.sh"
@@ -531,20 +531,20 @@ execute_sql_transform_merge() {
     print_separator
 }
 
-# 변환 작업 보고서
+# Transformation task report
 execute_transform_report() {
     print_separator
-    msg_wait_3sec "변환 작업 보고서"
-    msg_script_exec "변환 작업 보고서"
+    msg_wait_3sec "Transformation task report"
+    msg_script_exec "Transformation task report"
 
     if [ -f "$OMA_BASE_DIR/bin/processSqlTransformReport.sh" ]; then
         msg_running_script "processSqlTransformReport.sh"
         cd "$OMA_BASE_DIR/bin"
         ./processSqlTransformReport.sh
         if [ $? -eq 0 ]; then
-            msg_task_completed "변환 작업 보고서가"
+            msg_task_completed "Transformation task report"
         else
-            msg_task_failed "변환 작업 보고서"
+            msg_task_failed "Transformation task report"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/processSqlTransformReport.sh"
@@ -553,32 +553,32 @@ execute_transform_report() {
     print_separator
 }
 
-# PostgreSQL 메타데이터 작성
+# PostgreSQL metadata creation
 execute_postgresql_meta() {
     print_separator
-    msg_wait_3sec "PostgreSQL 데이터베이스 메타데이터 작성"
-    msg_script_exec "PostgreSQL 메타데이터 작성"
+    msg_wait_3sec "PostgreSQL database metadata creation"
+    msg_script_exec "PostgreSQL metadata creation"
 
     if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh" ]; then
         msg_running_script "genPostgreSqlMeta.sh"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh${NC}"
         "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh"
         if [ $? -eq 0 ]; then
-            msg_task_completed "PostgreSQL 메타데이터 작성이"
+            msg_task_completed "PostgreSQL metadata creation"
         else
-            msg_task_failed "PostgreSQL 메타데이터 작성"
+            msg_task_failed "PostgreSQL metadata creation"
         fi
     else
-        msg_error "$APP_TOOLS_FOLDER/genPostgreSqlMeta.sh 파일을 찾을 수 없습니다."
+        msg_error "Cannot find $APP_TOOLS_FOLDER/genPostgreSqlMeta.sh file."
         echo -e "${YELLOW}${AI_ALTERNATIVE}${NC}"
         if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md" ]; then
-            msg_info "genPostgreSQLMeta.md를 사용하여 Amazon Q chat을 실행합니다..."
+            msg_info "Running Amazon Q chat using genPostgreSQLMeta.md..."
             echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
             q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
             if [ $? -eq 0 ]; then
-                msg_task_completed "PostgreSQL 메타데이터 작성이"
+                msg_task_completed "PostgreSQL metadata creation"
             else
-                msg_task_failed "PostgreSQL 메타데이터 작성"
+                msg_task_failed "PostgreSQL metadata creation"
             fi
         else
             msg_file_not_found "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
@@ -588,10 +588,10 @@ execute_postgresql_meta() {
     print_separator
 }
 
-# Java Source 변환
+# Java Source transformation
 execute_java_transform() {
     print_separator
-    msg_wait_3sec "애플리케이션 Java Source 변환 작업"
+    msg_wait_3sec "Application Java Source transformation task"
     echo -e "${BLUE}${BOLD}${JAVA_TRANSFORM_PERFORMING}${NC}"
     echo ""
     echo -e "${RED}${BOLD}${TARGET_JAVA_FOLDER_REQUIRED}${NC}"
@@ -600,13 +600,13 @@ execute_java_transform() {
     echo ""
 
     if [ -f "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md" ]; then
-        msg_info "convertOracleJava.md를 사용하여 Amazon Q chat을 실행합니다..."
+        msg_info "Running Amazon Q chat using convertOracleJava.md..."
         echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md\"${NC}"
         q chat --trust-all-tools "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
         if [ $? -eq 0 ]; then
-            msg_task_completed "Java Source 변환 작업이"
+            msg_task_completed "Java Source transformation task"
         else
-            msg_task_failed "Java Source 변환 작업"
+            msg_task_failed "Java Source transformation task"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
@@ -617,10 +617,10 @@ execute_java_transform() {
 }
 
 # ====================================================
-# 메뉴 함수들
+# Menu functions
 # ====================================================
 
-# 환경 메뉴
+# Environment menu
 show_environment_menu() {
     while true; do
         print_separator
@@ -663,7 +663,7 @@ show_environment_menu() {
     done
 }
 
-# 애플리케이션 분석 메뉴
+# Application analysis menu
 show_analysis_menu() {
     while true; do
         print_separator
@@ -714,7 +714,7 @@ show_analysis_menu() {
     done
 }
 
-# Compare XMLs 실행
+# Execute Compare XMLs
 execute_compare_xmls() {
     print_separator
     echo -e "${BLUE}${BOLD}${XML_COMPARE_TOOL_RUNNING}${NC}"
@@ -723,9 +723,9 @@ execute_compare_xmls() {
         msg_running_script "compareXMLs.sh"
         "$APP_TOOLS_FOLDER/compareXMLs.sh"
         if [ $? -eq 0 ]; then
-            msg_task_completed "XML 파일 비교가"
+            msg_task_completed "XML file comparison"
         else
-            msg_task_failed "XML 파일 비교"
+            msg_task_failed "XML file comparison"
         fi
     else
         msg_file_not_found "$APP_TOOLS_FOLDER/compareXMLs.sh"
@@ -734,20 +734,20 @@ execute_compare_xmls() {
     print_separator
 }
 
-# Parameter 구성 실행
+# Execute Parameter configuration
 execute_parameter_config() {
     print_separator
-    msg_wait_3sec "Parameter 구성"
-    msg_script_exec "Parameter 구성"
+    msg_wait_3sec "Parameter configuration"
+    msg_script_exec "Parameter configuration"
 
     if [ -f "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh" ]; then
         msg_running_script "bulk_prepare.sh"
         echo -e "${BLUE}${BOLD}$APP_TOOLS_FOLDER/../test/bulk_prepare.sh $SOURCE_SQL_MAPPER_FOLDER${NC}"
         (cd "$APP_TOOLS_FOLDER/../test" && ./bulk_prepare.sh "$SOURCE_SQL_MAPPER_FOLDER")
         if [ $? -eq 0 ]; then
-            msg_task_completed "Parameter 구성이"
+            msg_task_completed "Parameter configuration"
         else
-            msg_task_failed "Parameter 구성"
+            msg_task_failed "Parameter configuration"
         fi
     else
         msg_file_not_found "$APP_TOOLS_FOLDER/../test/bulk_prepare.sh"
@@ -756,7 +756,7 @@ execute_parameter_config() {
     print_separator
 }
 
-# 애플리케이션 변환 메뉴
+# Application transformation menu
 show_application_menu() {
     while true; do
         print_separator
@@ -821,11 +821,11 @@ show_application_menu() {
     done
 }
 
-# SQL 결과 불일치 수정
+# SQL result mismatch fix
 execute_sql_result_fix() {
     print_separator
-    msg_wait_3sec "SQL 결과 불일치 수정"
-    msg_script_exec "SQL 결과 불일치 수정"
+    msg_wait_3sec "SQL result mismatch fix"
+    msg_script_exec "SQL result mismatch fix"
 
     if [ -f "$OMA_BASE_DIR/bin/test/analyze_results.sh" ]; then
         msg_running_script "analyze_results.sh"
@@ -833,9 +833,9 @@ execute_sql_result_fix() {
         cd "$OMA_BASE_DIR/bin/test"
         ./analyze_results.sh
         if [ $? -eq 0 ]; then
-            msg_task_completed "SQL 결과 불일치 수정이"
+            msg_task_completed "SQL result mismatch fix"
         else
-            msg_task_failed "SQL 결과 불일치 수정"
+            msg_task_failed "SQL result mismatch fix"
         fi
     else
         msg_file_not_found "$OMA_BASE_DIR/bin/test/analyze_results.sh"
@@ -844,7 +844,7 @@ execute_sql_result_fix() {
     print_separator
 }
 
-# SQL 데이터 테스트 수행 메뉴
+# SQL data test execution menu
 show_test_menu() {
     while true; do
         print_separator
@@ -892,20 +892,20 @@ show_test_menu() {
     done
 }
 
-# 변환 작업 보고서 메뉴
+# Transformation task report menu
 show_completion_menu() {
     clear
     execute_transform_report
 }
 
 # ====================================================
-# 메인 스크립트 시작
+# Main script start
 # ====================================================
 
-# 환경 변수 확인
+# Check environment variables
 check_environment
 
-# 메인 메뉴 루프
+# Main menu loop
 print_separator
 echo -e "${BLUE}${BOLD}${OMA_INTRO}${NC}"
 echo -e "${GREEN}${CURRENT_PROJECT}${APPLICATION_NAME}${NC}"
