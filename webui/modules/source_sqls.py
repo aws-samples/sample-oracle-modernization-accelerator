@@ -1278,57 +1278,27 @@ def analyze_test_result(stdout, stderr, return_code):
         if not stdout:
             return False
         
-        stdout_lower = stdout.lower()
-        
-        # Check success rate from execution result summary
-        if "Execution Result Summary" in stdout or "Actual Success Rate" in stdout:
-            # Failure if success rate is 0%
-            if "Actual Success Rate: 0.0%" in stdout or "Success: 0 items" in stdout:
-                return False
-            
-            # Check failure count
+        # Check success rate from execution result summary (PRIORITY CHECK)
+        if "Execution Results Summary" in stdout or "Actual success rate" in stdout:
             import re
-            failure_match = re.search(r'Failed:\s*(\d+) items', stdout)
+            
+            # Check failure count first
+            failure_match = re.search(r'Failed:\s*(\d+)\s*(items|tests)', stdout)
             if failure_match:
                 failure_count = int(failure_match.group(1))
                 if failure_count > 0:
                     return False
             
             # Check success count
-            success_match = re.search(r'Success:\s*(\d+) items', stdout)
+            success_match = re.search(r'Success:\s*(\d+)\s*(items|tests)', stdout)
             if success_match:
                 success_count = int(success_match.group(1))
                 if success_count > 0:
                     return True
-        
-        # Check general success/failure keywords
-        failure_keywords = [
-            'failed', 'error', 'exception', 'failure',
-            'Failed', 'Error', 'SQLException'
-        ]
-        
-        success_keywords = [
-            'success', 'completed', 'passed',
-            'Success', 'Complete', 'Passed'
-        ]
-        
-        # Failure if failure keywords exist
-        for keyword in failure_keywords:
-            if keyword in stdout_lower:
+            
+            # Failure if success rate is 0%
+            if "Actual success rate: 0.0%" in stdout or re.search(r'Success:\s*0\s*(items|tests)', stdout):
                 return False
-        
-        # Failure if serious error in stderr
-        if stderr:
-            stderr_lower = stderr.lower()
-            critical_errors = ['exception', 'error', 'failed', 'SQLException']
-            for error in critical_errors:
-                if error in stderr_lower:
-                    return False
-        
-        # Success if success keywords exist
-        for keyword in success_keywords:
-            if keyword in stdout_lower:
-                return True
         
         # Final judgment by exit code
         return return_code == 0
@@ -1440,8 +1410,8 @@ def parse_json_from_output(output):
     import re
     import os
     
-    # Find JSON file path
-    json_file_pattern = r'JSON Result File Create: (.+\.json)'
+    # Find JSON file path - updated pattern to match actual output
+    json_file_pattern = r'JSON result file generated: (.+\.json)'
     match = re.search(json_file_pattern, output)
     
     if match:
