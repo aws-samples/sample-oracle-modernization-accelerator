@@ -23,7 +23,7 @@ SQLTransformTarget.py - MyBatis XML 변환 대상 처리 프로그램 (V3.0 개�
 1. 변환 대상 목록 CSV 파일에서 대상 파일 읽기
 2. 각 XML 파일을 추출, 변환, 병합하는 과정 수행
     - 추출 : xmlExtractor.py (체크포인트 지원)
-    - 변환 : 배치별 q chat 실행 (상태 관리)
+    - 변환 : 배치별 kiro-cli chat 실행 (상태 관리)
     - 병합 : xmlMerger.py
 3. 변환 결과 검증
     - xmllint 유효성 검사
@@ -872,7 +872,7 @@ def process_single_batch(group_id, batch_files, extract_folder, transform_folder
         
         # Q Chat 실행
         batch_log_file = os.path.join(qlog_folder, f"{group_id}.log")
-        cmd = f"q chat --trust-all-tools --no-interactive < {batch_prompt_file} > {batch_log_file}"
+        cmd = f"kiro-cli chat --trust-all-tools --no-interactive < {batch_prompt_file} > {batch_log_file}"
         
         # 명령어 히스토리 저장
         cmd_history_file = os.path.join(qprompt_folder, "qchat_command_history.log")

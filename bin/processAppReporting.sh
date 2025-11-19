@@ -40,28 +40,28 @@ process_app_reporting() {
     echo -e "${CYAN}4. Generate integrated analysis report (DiscoveryReport.html)${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}Execution order:${NC}"
-    echo -e "${BLUE}${BOLD}1. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
+    echo -e "${BLUE}${BOLD}1. kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
     echo -e "${BLUE}${BOLD}2. python3 $APP_TOOLS_FOLDER/genSqlTransformTarget.py${NC}"
 
     # 1. Execute appReporting.md (Generate HTML report)
     if [ -f "$APP_TOOLS_FOLDER/appReporting.md" ]; then
         echo -e "${CYAN}1. Generating HTML analysis report...${NC}"
         
-        # Create q chat log directory
+        # Create kiro-cli chat log directory
         mkdir -p "$APP_LOGS_FOLDER/qlogs"
         
         # Record start time in log file
-        echo "=== q chat appReporting.md execution started: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+        echo "=== kiro-cli chat appReporting.md execution started: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
         
-        # Execute q chat and save log
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log" 2>&1
+        # Execute kiro-cli chat and save log
+        kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log" 2>&1
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ HTML analysis report generation completed.${NC}"
-            echo "=== q chat appReporting.md execution completed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+            echo "=== kiro-cli chat appReporting.md execution completed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
         else
             echo -e "${RED}Error: An error occurred during appReporting.md execution.${NC}"
-            echo "=== q chat appReporting.md execution failed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
+            echo "=== kiro-cli chat appReporting.md execution failed: $(date) ===" >> "$APP_LOGS_FOLDER/qlogs/appReporting.log"
             return 1
         fi
     else
@@ -95,8 +95,8 @@ process_app_reporting() {
     fi
     
     # SQL Mapper Report generation (commented section - activate if needed)
-    #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/GenSQLMapperReport.txt${NC}"
-    #q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/GenSQLMapperReport.txt"
+    #echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/GenSQLMapperReport.txt${NC}"
+    #kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/GenSQLMapperReport.txt"
 
     # SQL Transform Target Report generation (commented section - activate if needed)
     #echo -e "${BLUE}${BOLD}Generating SQL Transform Target Report.${NC}"

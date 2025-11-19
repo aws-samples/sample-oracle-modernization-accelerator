@@ -386,9 +386,9 @@ EOF
         echo ""
         log_warning "Next step: Configure Amazon Q CLI on the instance"
         echo "1. Connect to instance: aws ssm start-session --target $INSTANCE_ID --region $REGION"
-        echo "2. Login to Amazon Q: q auth login"
-        echo "3. Set model: q configure set model anthropic.claude-3-5-sonnet-20241022-v2:0"
-        echo "4. Test: q chat"
+        echo "2. Login to Amazon Q: kiro-cli auth login"
+        echo "3. Set model: kiro-cli configure set model anthropic.claude-3-5-sonnet-20241022-v2:0"
+        echo "4. Test: kiro-cli chat"
     else
         log_error "Deployment failed!"
         exit 1

@@ -88,8 +88,8 @@ run_sql_transform_report() {
     log_info "Starting SQL Transform Report generation..."
     log_info "Input file: $APP_TOOLS_FOLDER/sqlTransformReport.md"
     
-    # Execute q chat command
-    if q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"; then
+    # Execute kiro-cli chat command
+    if kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"; then
         log_info "SQL Transform Report generation completed."
     else
         log_error "An error occurred during SQL Transform Report generation."

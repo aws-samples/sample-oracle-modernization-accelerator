@@ -475,8 +475,8 @@ execute_sample_test_fix() {
 
     if [ -f "$APP_TOOLS_FOLDER/../postTransform/editErrors.md" ]; then
         msg_info "Running Amazon Q chat using editErrors.md..."
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editErrors.md\"${NC}"
-        q chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
+        echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools \"$APP_TOOLS_FOLDER/../postTransform/editErrors.md\"${NC}"
+        kiro-cli chat --trust-all-tools "$APP_TOOLS_FOLDER/../postTransform/editErrors.md"
         if [ $? -eq 0 ]; then
             msg_task_completed "Sample test and result fix"
         else
@@ -573,8 +573,8 @@ execute_postgresql_meta() {
         echo -e "${YELLOW}${AI_ALTERNATIVE}${NC}"
         if [ -f "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md" ]; then
             msg_info "Running Amazon Q chat using genPostgreSQLMeta.md..."
-            echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
-            q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
+            echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/genPostgreSqlMeta.md${NC}"
+            kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/genPostgreSqlMeta.md"
             if [ $? -eq 0 ]; then
                 msg_task_completed "PostgreSQL metadata creation"
             else
@@ -601,8 +601,8 @@ execute_java_transform() {
 
     if [ -f "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md" ]; then
         msg_info "Running Amazon Q chat using convertOracleJava.md..."
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools \"$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md\"${NC}"
-        q chat --trust-all-tools "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
+        echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools \"$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md\"${NC}"
+        kiro-cli chat --trust-all-tools "$OMA_BASE_DIR/bin/postTransform/convertOracleJava.md"
         if [ $? -eq 0 ]; then
             msg_task_completed "Java Source transformation task"
         else

@@ -60,8 +60,8 @@ if [[ "$answer" =~ ^[Yy]$ ]]; then
 
 $(cat retransform.md)"
     
-    # Execute q chat (including environment variable information)
-    q chat "$PROMPT"
+    # Execute kiro-cli chat (including environment variable information)
+    kiro-cli chat "$PROMPT"
 else
     echo "👋 Analysis completed."
 fi

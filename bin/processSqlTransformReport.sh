@@ -43,10 +43,10 @@ generate_sql_transform_report() {
     
     echo -e "${CYAN}Executing report generation command...${NC}"
     sleep 1
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
+    echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/sqlTransformReport.md${NC}"
     
     # Execute report generation through Amazon Q
-    q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"
+    kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}SQL transformation work report has been successfully created.${NC}"

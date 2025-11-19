@@ -220,7 +220,7 @@ echo -e "${GREEN}Executing Q...${NC}"
 echo ""
 
 # Execute Q
-q chat
+kiro-cli chat
 
 # Check fix completion after Q execution
 echo ""

@@ -383,8 +383,8 @@ def convert_to_postgres(oracle_ddl, object_type, object_name, strict_mode=False)
             prompt_file.write(prompt)
             prompt_file_path = prompt_file.name
 
-        # Execute q chat command with output processing to remove log messages
-        cmd = f"q chat < {prompt_file_path}"
+        # Execute kiro-cli chat command with output processing to remove log messages
+        cmd = f"kiro-cli chat < {prompt_file_path}"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
         # Clean up temporary file
