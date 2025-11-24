@@ -20,7 +20,7 @@ def render_app_analysis_page():
         st.markdown("## 🔍 Application Analysis")
     
     # Command info
-    command = 'q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md"'
+    command = 'kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md"'
     log_file_path = "$APP_LOGS_FOLDER/qlogs/appAnalysis.log"
     expanded_log_path = os.path.expandvars(log_file_path)
     
@@ -143,7 +143,7 @@ def execute_app_analysis_background(command, log_file_path):
         
         # Find actual process PID
         try:
-            find_cmd = "pgrep -f 'q chat.*appAnalysis'"
+            find_cmd = "pgrep -f 'kiro-cli chat.*appAnalysis'"
             result = subprocess.run(find_cmd, shell=True, capture_output=True, text=True)
             if result.returncode == 0 and result.stdout.strip():
                 actual_pid = int(result.stdout.strip().split('\n')[0])

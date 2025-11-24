@@ -200,7 +200,7 @@ def handle_builtin_commands(command):
         return True
     
     # Q Chat Execute
-    elif cmd == 'qchat' or command.startswith('q chat'):
+    elif cmd == 'qchat' or command.startswith('kiro-cli chat'):
         execute_qchat_command(command)
         return True
     
@@ -263,9 +263,9 @@ def execute_qchat_command(command):
         
         # Q Chat Command 구성
         if command == 'qchat':
-            qchat_cmd = f'q chat --trust-all-tools "{edit_errors_path}"'
+            qchat_cmd = f'kiro-cli chat --trust-all-tools "{edit_errors_path}"'
         else:
-            qchat_cmd = command.replace('q chat', f'q chat --trust-all-tools "{edit_errors_path}"', 1)
+            qchat_cmd = command.replace('kiro-cli chat', f'kiro-cli chat --trust-all-tools "{edit_errors_path}"', 1)
         
         add_to_history("system", f"Executing: {qchat_cmd}")
         add_to_history("system", "Starting Q Chat session...")
@@ -336,7 +336,7 @@ Available commands:
   clear/cls     - Clear terminal
   env           - Show environment variables
   qchat         - Start Q Chat with editErrors.md
-  q chat <args> - Run Q Chat with custom arguments
+  kiro-cli chat <args> - Run Q Chat with custom arguments
   exit/quit     - Exit terminal
   
 Any other command will be executed as a shell command.

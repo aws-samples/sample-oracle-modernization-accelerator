@@ -530,7 +530,7 @@ convert_single_object_batch() {
     print_color $BLUE "Converting using Amazon Q: $simple_object_name"
     echo "Conversion progress:"
     
-    if q chat --trust-all-tools --no-interactive < "$prompt_file" | tee "$output_file"; then
+    if kiro-cli chat --trust-all-tools --no-interactive < "$prompt_file" | tee "$output_file"; then
         echo
         print_color $BLUE "변환 결과 처리 중..."
         
@@ -656,7 +656,7 @@ with open(prompt_file, 'w') as f:
     
     # Execute Q Chat
     print_color $BLUE "Executing Amazon Q conversion..."
-    if q chat --trust-all-tools --no-interactive < "$prompt_file" | tee "$output_file"; then
+    if kiro-cli chat --trust-all-tools --no-interactive < "$prompt_file" | tee "$output_file"; then
         local final_output="$CONVERTED_DIR/${simple_object_name}.sql"
         
         # Extract only SQL content from Q Chat output

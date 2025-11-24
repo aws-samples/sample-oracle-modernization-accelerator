@@ -45,7 +45,7 @@ process_app_analysis() {
     echo -e "${CYAN}4. SQL pattern discovery and basic analysis${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}Execution command:${NC}"
-    echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
+    echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
     echo -e "${YELLOW}Please review activities via this log file: $LOG_FILE${NC}"
 
     # Execute appAnalysis.md (Generate analysis data) - Save log
@@ -61,7 +61,7 @@ process_app_analysis() {
         echo "========================================" >> "$LOG_FILE"
         
         # Execute Q Chat and save log
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md" >> "$LOG_FILE" 2>&1
+        kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md" >> "$LOG_FILE" 2>&1
         
         # Check execution result
         if [ $? -eq 0 ]; then

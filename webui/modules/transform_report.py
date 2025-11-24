@@ -20,7 +20,7 @@ def render_transform_report_page():
         st.markdown("## 📊 Transform Report Create")
     
     # Command Info
-    command = 'q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"'
+    command = 'kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/sqlTransformReport.md"'
     log_file_path = "$APP_LOGS_FOLDER/qlogs/sqlTransformReport.log"
     expanded_log_path = os.path.expandvars(log_file_path)
     
@@ -157,7 +157,7 @@ def render_transform_report_page():
                     
                     # 실제 프로세스 PID 찾기
                     try:
-                        find_cmd = "pgrep -f 'q chat.*sqlTransformReport'"
+                        find_cmd = "pgrep -f 'kiro-cli chat.*sqlTransformReport'"
                         result = subprocess.run(find_cmd, shell=True, capture_output=True, text=True)
                         if result.returncode == 0 and result.stdout.strip():
                             actual_pid = int(result.stdout.strip().split('\n')[0])

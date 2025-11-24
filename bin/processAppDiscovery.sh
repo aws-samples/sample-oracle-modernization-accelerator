@@ -41,14 +41,14 @@ process_mybatis_info() {
     echo -e "${CYAN}5. Generate integrated analysis report (DiscoveryReport.html)${NC}"
     print_separator
     echo -e "${BLUE}${BOLD}Execution order:${NC}"
-    echo -e "${BLUE}${BOLD}1. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
-    echo -e "${BLUE}${BOLD}2. q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
+    echo -e "${BLUE}${BOLD}1. kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
+    echo -e "${BLUE}${BOLD}2. kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
 
     # 1. Execute appAnalysis.md (Generate analysis data)
     if [ -f "$APP_TOOLS_FOLDER/appAnalysis.md" ]; then
         echo -e "${CYAN}1. Generating application analysis data...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md"
+        echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appAnalysis.md${NC}"
+        kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appAnalysis.md"
         
         if [ $? -ne 0 ]; then
             echo -e "${RED}Error: An error occurred during appAnalysis.md execution.${NC}"
@@ -62,8 +62,8 @@ process_mybatis_info() {
     # 2. Execute appReporting.md (Generate HTML report)
     if [ -f "$APP_TOOLS_FOLDER/appReporting.md" ]; then
         echo -e "${CYAN}2. Generating HTML report...${NC}"
-        echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
-        q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md"
+        echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appReporting.md${NC}"
+        kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appReporting.md"
         
         if [ $? -ne 0 ]; then
             echo -e "${RED}Error: An error occurred during appReporting.md execution.${NC}"
@@ -77,8 +77,8 @@ process_mybatis_info() {
     # Previous q call method (commented out)
     # if [ -f "$APP_TOOLS_FOLDER/appDiscovery.txt" ]; then
     #     echo -e "${CYAN}Analyzing application and extracting MyBatis information...${NC}"
-    #     echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
-    #     q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
+    #     echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
+    #     kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/appDiscovery.txt"
     # else
     #     echo -e "${RED}Error: appDiscovery.txt file not found: $APP_TOOLS_FOLDER/appDiscovery.txt${NC}"
     #     return 1
@@ -93,8 +93,8 @@ process_mybatis_info() {
     fi
     
     # SQL Mapper Report generation (commented section - activate if needed)
-    #echo -e "${BLUE}${BOLD}q chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/GenSQLMapperReport.txt${NC}"
-    #q chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/GenSQLMapperReport.txt"
+    #echo -e "${BLUE}${BOLD}kiro-cli chat --trust-all-tools --no-interactive < $APP_TOOLS_FOLDER/GenSQLMapperReport.txt${NC}"
+    #kiro-cli chat --trust-all-tools --no-interactive < "$APP_TOOLS_FOLDER/GenSQLMapperReport.txt"
 
     # SQL Transform Target Report generation (commented section - activate if needed)
     #echo -e "${BLUE}${BOLD}Generating SQL Transform Target Report.${NC}"
