@@ -1,6 +1,6 @@
 # Kiro-MCP
 
-#### 1. oracle-client-mcp
+## 1. oracle-client-mcp
 
 The Oracle MCP server provides direct access to Oracle database operations through Kiro CLI.
 
@@ -15,7 +15,7 @@ The Oracle MCP server provides direct access to Oracle database operations throu
 - `oracle_execute_testcase_readonly` - Execute test cases with read-only connection
 - `oracle_execute_testcase_rollback` - Execute test cases with automatic rollback
 
-#### 2. pg-client-mcp
+## 2. pg-client-mcp
 
 The PostgreSQL MCP server provides equivalent functionalities for PostgreSQL databases, following Spring AI MCP best practices.
 
@@ -33,7 +33,7 @@ The PostgreSQL MCP server provides equivalent functionalities for PostgreSQL dat
 
 **Architecture:** Built on Spring Boot 3.5.5 with Spring AI MCP 1.0.2 for standards compliance and reliability.
 
-#### 3. mma-sc-mcp
+## 3. mma-sc-mcp
 
 The MMA Schema Conversion MCP server analyzes AWS DMS Schema Conversion projects stored in S3, providing detailed object mapping information.
 
@@ -71,7 +71,7 @@ report_dms_sc_project("s3://bucket/prefix/", "table", "DEMO")
 report_dms_sc_project("s3://bucket/prefix/", "table", "DEMO", "ORDERS")
 :::
 
-### Communication Protocol
+## Communication Protocol
 
 All three MCP servers use the **stdio (standard input/output) protocol** for communication with Kiro CLI. It provides:
 
