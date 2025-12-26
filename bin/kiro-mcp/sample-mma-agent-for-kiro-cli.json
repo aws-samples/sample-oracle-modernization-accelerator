@@ -8,8 +8,8 @@
       "command": "java",
       "args": [
         "-jar",
-        "/workshop/MMA-Samples/pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar",
-        "--spring.config.location=/workshop/MMA-Samples/pg-client-mcp/application-secretsmanager.properties"
+        "~/pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar",
+        "--spring.config.location=~/pg-client-mcp/application-secretsmanager.properties"
       ],
       "timeout": 300000,
       "disabled": false
@@ -19,8 +19,8 @@
       "command": "java",
       "args": [
         "-jar",
-        "/workshop/MMA-Samples/oracle-client-mcp/target/oracle-mcp-server-1.0.0.jar",
-        "--spring.config.location=/workshop/MMA-Samples/oracle-client-mcp/application-secretsmanager.properties"
+        "~/oracle-client-mcp/target/oracle-mcp-server-1.0.0.jar",
+        "--spring.config.location=/~/oracle-client-mcp/application-secretsmanager.properties"
       ],
       "timeout": 300000,
       "disabled": false
@@ -30,8 +30,8 @@
       "command": "java",
       "args": [
         "-jar",
-        "/workshop/MMA-Samples/mma-sc-mcp/target/mma-sc-mcp-server-1.0.0.jar",
-        "--spring.config.location=/workshop/MMA-Samples/mma-sc-mcp/application-s3.properties"
+        "~/dma-sc-mcp/target/mma-sc-mcp-server-1.0.0.jar",
+        "--spring.config.location=~/dma-sc-mcp/application-s3.properties"
       ],
       "timeout": 300000,
       "disabled": false

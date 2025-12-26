@@ -82,7 +82,7 @@ All three MCP servers use the **stdio (standard input/output) protocol** for com
 
 ## Integration with Kiro CLI
 
-These MCP servers are configured in the Kiro CLI agent configuration file (sample-mma-agent-for-kiro-cli.json`), allowing Kiro to invoke their tools as needed during migration tasks. The tools are automatically discovered and made available to Kiro's reasoning engine.
+These MCP servers are configured in the Kiro CLI agent configuration file (sample-mma-agent-for-kiro-cli.json), allowing Kiro to invoke their tools as needed during migration tasks. The tools are automatically discovered and made available to Kiro's reasoning engine.
 
 :::code{showCopyAction=false}
 kiro-cli --agent mma-agent
