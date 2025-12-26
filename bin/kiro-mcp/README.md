@@ -58,16 +58,16 @@ The MMA Schema Conversion MCP server analyzes AWS DMS Schema Conversion projects
 
 **Filtering Examples:**
 :::code{showCopyAction=false}
-# All mappings
+#### All mappings
 report_dms_sc_project("s3://bucket/prefix/")
 
-# Only tables
+#### Only tables
 report_dms_sc_project("s3://bucket/prefix/", "table")
 
-# Tables in specific schema
+#### Tables in specific schema
 report_dms_sc_project("s3://bucket/prefix/", "table", "DEMO")
 
-# Specific table
+#### Specific table
 report_dms_sc_project("s3://bucket/prefix/", "table", "DEMO", "ORDERS")
 :::
 
