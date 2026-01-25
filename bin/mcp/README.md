@@ -1,348 +1,177 @@
-# MCP Servers - Production Deployment Guide
+# OMA MCP Servers
 
-Oracle Modernization Accelerator (OMA) MCP Servers with STREAMABLE HTTP transport for Bedrock Agent integration.
+Model Context Protocol (MCP) servers for Oracle Migration Assistant (OMA) tools.
 
-## Overview
+## Servers
 
-Three MCP servers providing database migration tools:
-- **pg-client-mcp**: PostgreSQL/Aurora database operations
-- **oracle-client-mcp**: Oracle database operations  
-- **oma-mcp**: S3-based schema conversion tools
-
-## Prerequisites
-
-- Java 21+
-- Maven 3.6+
-- AWS credentials configured (for Secrets Manager access)
-- Network access to:
-  - Aurora PostgreSQL (aurora.mma.internal:5432)
-  - Oracle Database (oracledb.mma.internal:1521)
-  - S3 bucket (mma-dms-sc-*)
+- **oma-sc-mcp**: DMS Schema Conversion tools
+- **pg-client-mcp**: PostgreSQL database client tools
+- **oracle-client-mcp**: Oracle database client tools
 
 ## Quick Start
 
-### 1. Extract Package
-```bash
-unzip mcp-deployment.zip
-cd mcp-deployment
-```
+### Build All Servers
 
-### 2. Build All Servers
 ```bash
 ./build-all.sh
 ```
 
-This builds:
-- `pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar`
-- `oracle-client-mcp/target/oracle-mcp-server-1.0.0.jar`
-- `oma-mcp/target/oma-mcp-server-1.0.0.jar`
+### Run Locally (All 3 Servers)
 
-### 3. Configure (Optional)
-
-Edit configuration files if needed:
-- `pg-client-mcp/application-secretsmanager.properties`
-- `oracle-client-mcp/application-secretsmanager.properties`
-- `oma-mcp/application-s3.properties`
-
-**Key settings:**
-```properties
-# Server port (default: 8082, 8083, 8084)
-server.port=8082
-
-# AWS Secrets Manager ARN
-mcp.db.connection.detail=arn:aws:secretsmanager:...
-
-# S3 path for schema conversion
-mma.sc.default.s3path=s3://bucket-name/path/
-```
-
-### 4. Run Servers
-
-#### Option A: Individual Servers
 ```bash
-# PostgreSQL MCP (port 8082)
-cd pg-client-mcp
-java -jar target/postgresql-mcp-server-1.0.0.jar \
-  --spring.config.location=application-secretsmanager.properties
+# Start all servers
+cd oma-sc-mcp && java -jar target/oma-sc-mcp-server-1.0.0.jar &
+cd ../pg-client-mcp && java -jar target/postgresql-mcp-server-1.0.0.jar &
+cd ../oracle-client-mcp && java -jar target/oracle-mcp-server-1.0.0.jar &
 
-# Oracle MCP (port 8083)
-cd oracle-client-mcp
-java -jar target/oracle-mcp-server-1.0.0.jar \
-  --spring.config.location=application-secretsmanager.properties
-
-# OMA MCP (port 8084)
-cd oma-mcp
-java -jar target/oma-mcp-server-1.0.0.jar \
-  --spring.config.location=application-s3.properties
+# Servers run on ports 9080, 9081, 9082
 ```
 
-#### Option B: Background Execution
+### Test with OAuth
+
 ```bash
-# Start all servers in background
-nohup java -jar pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar \
-  --spring.config.location=pg-client-mcp/application-secretsmanager.properties \
-  > /var/log/pg-client-mcp.log 2>&1 &
+# Get token
+TOKEN=$(curl -s -X POST https://YOUR_COGNITO_DOMAIN/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=oma-mcp/mcp.access" | jq -r '.access_token')
 
-nohup java -jar oracle-client-mcp/target/oracle-mcp-server-1.0.0.jar \
-  --spring.config.location=oracle-client-mcp/application-secretsmanager.properties \
-  > /var/log/oracle-client-mcp.log 2>&1 &
-
-nohup java -jar oma-mcp/target/oma-mcp-server-1.0.0.jar \
-  --spring.config.location=oma-mcp/application-s3.properties \
-  > /var/log/oma-mcp.log 2>&1 &
+# Test servers
+curl http://localhost:9080/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+curl http://localhost:9081/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+curl http://localhost:9082/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 ```
 
-### 5. Verify
+## Deployment
 
-Check server logs:
-```bash
-tail -f /var/log/pg-client-mcp.log
-# Look for: "Started PostgreSQLMcpServerApplication"
-# Look for: "Registered tools: 3"
-```
+**Recommended: Unified Deployment (All 3 servers on 1 infrastructure)**
 
-Check endpoints are accessible:
-```bash
-curl http://localhost:8082/mcp  # Should return 400 (expected without MCP client)
-curl http://localhost:8083/mcp
-curl http://localhost:8084/mcp
-```
+See [UNIFIED_DEPLOYMENT.md](UNIFIED_DEPLOYMENT.md) for complete setup:
+- 1 EC2 instance running all 3 servers
+- 1 ALB with path-based routing (/oma-sc, /pg, /oracle)
+- 1 CloudFront distribution
+- 1 Cognito User Pool for OAuth2
+- 1 Bedrock AgentCore Gateway with 3 targets
 
-## MCP Endpoints
+**Alternative: Individual Deployment**
 
-| Server | Port | Endpoint | Tools |
-|--------|------|----------|-------|
-| pg-client-mcp | 8082 | http://localhost:8082/mcp | executeSql, executeTestCaseReadOnly, executeTestCaseRollback |
-| oracle-client-mcp | 8083 | http://localhost:8083/mcp | executeSql, executeTestCaseReadOnly, executeTestCaseRollback |
-| oma-mcp | 8084 | http://localhost:8084/mcp | listSchemaConversionReports, getSchemaConversionReport, etc. |
+See [DEPLOYMENT.md](DEPLOYMENT.md) for deploying servers separately.
 
-## Bedrock Agent Integration
+## Server Details
 
-### Using Strands Framework
+### oma-sc-mcp
 
-```python
-from strands import McpClient
+DMS Schema Conversion project analysis tools.
 
-# Connect to MCP server
-client = McpClient(
-    transport="streamable_http",
-    url="http://localhost:8082/mcp"
-)
+**Tools:**
+- `analyze_dms_sc_project`: Analyze DMS SC project and return assessment report
+- `report_dms_sc_project`: Generate detailed report from DMS SC project
+- `get_offline_ddl`: Get offline DDL from DMS SC project
+- `cleanup_local_cache`: Clean up local cache of downloaded projects
 
-# List available tools
-tools = await client.list_tools()
+**Configuration:** `oma-sc-mcp/src/main/resources/application.properties`
 
-# Call a tool
-result = await client.call_tool(
-    name="executeSql",
-    arguments={"query": "SELECT 1"}
-)
-```
+### pg-client-mcp
 
-### Using AgentCore
+PostgreSQL database client tools (to be implemented).
 
-Configure MCP server URL in AgentCore:
-```
-http://<ec2-instance>:8082/mcp
-http://<ec2-instance>:8083/mcp
-http://<ec2-instance>:8084/mcp
-```
+### oracle-client-mcp
 
-## Production Deployment
-
-### Docker (Recommended)
-
-Create `Dockerfile`:
-```dockerfile
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar app.jar
-COPY pg-client-mcp/application-secretsmanager.properties application.properties
-EXPOSE 8082
-CMD ["java", "-jar", "app.jar", "--spring.config.location=application.properties"]
-```
-
-Build and run:
-```bash
-docker build -t pg-client-mcp .
-docker run -d -p 8082:8082 \
-  -e AWS_REGION=us-east-1 \
-  -e AWS_ACCESS_KEY_ID=xxx \
-  -e AWS_SECRET_ACCESS_KEY=xxx \
-  pg-client-mcp
-```
-
-### ECS/Fargate
-
-1. Push Docker images to ECR
-2. Create ECS task definitions with:
-   - Container port: 8082/8083/8084
-   - Environment variables: AWS credentials
-   - Health check: HTTP GET /actuator/health (if enabled)
-3. Deploy as ECS service with ALB
-
-### Systemd Service
-
-Create `/etc/systemd/system/pg-client-mcp.service`:
-```ini
-[Unit]
-Description=PostgreSQL MCP Server
-After=network.target
-
-[Service]
-Type=simple
-User=mcp
-WorkingDirectory=/opt/mcp-deployment/pg-client-mcp
-ExecStart=/usr/bin/java -jar target/postgresql-mcp-server-1.0.0.jar --spring.config.location=application-secretsmanager.properties
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-```bash
-sudo systemctl enable pg-client-mcp
-sudo systemctl start pg-client-mcp
-sudo systemctl status pg-client-mcp
-```
-
-## Troubleshooting
-
-### Server won't start
-```bash
-# Check Java version
-java -version  # Must be 21+
-
-# Check logs
-tail -100 /var/log/pg-client-mcp.log
-
-# Common issues:
-# - AWS credentials not configured
-# - Secrets Manager access denied
-# - Port already in use
-```
-
-### 400 Bad Request
-This is **expected** when testing with curl. MCP protocol requires:
-- MCP client library (not raw HTTP)
-- Session management
-- Proper headers (Mcp-Session-Id)
-
-Use MCP Inspector or Bedrock Agent to test properly.
-
-### Database connection failed
-```bash
-# Check Secrets Manager access
-aws secretsmanager get-secret-value \
-  --secret-id arn:aws:secretsmanager:us-east-1:775881734961:secret:MMA-secret-aurora-admin-Zi7ao5
-
-# Check network connectivity
-telnet aurora.mma.internal 5432
-telnet oracledb.mma.internal 1521
-```
-
-### Tools not registered
-Check logs for:
-```
-INFO - Registered tools: 3
-```
-
-If 0 tools, check:
-- `@Tool` annotations in source code
-- `spring.ai.mcp.server.annotation-scanner.base-packages=com.example`
-- `spring.ai.mcp.server.capabilities.tool=true`
+Oracle database client tools (to be implemented).
 
 ## Architecture
 
 ```
-Bedrock Agent / Strands
-    ↓ (MCP Client)
-HTTP POST /mcp
-    ↓
-Spring AI MCP Server (WebFlux)
-    ↓
-@Tool annotated methods
-    ↓
-Database / S3
+Client → CloudFront (HTTPS) → ALB → EC2 → MCP Server
+                                            ↓
+                                     Cognito OAuth2
 ```
 
-**Transport**: STREAMABLE HTTP (MCP protocol over HTTP)
-**Framework**: Spring AI MCP 1.1.0-M2
-**Runtime**: Spring Boot 3.5.5 + WebFlux (Reactive)
+## Development
 
-## Configuration Reference
+### Prerequisites
+- Java 21
+- Maven 3.6+
+- Spring Boot 3.5.5
+- Spring AI MCP 1.1.0-M2
 
-### Server Properties
+### Project Structure
+
+```
+oma-mcp/
+├── oma-sc-mcp/
+│   ├── src/main/java/com/example/
+│   │   ├── OmaScMcpServerApplication.java
+│   │   ├── OmaScMcpTools.java
+│   │   ├── StandardMcpController.java  # HTTP MCP endpoint
+│   │   └── SecurityConfig.java         # OAuth2 configuration
+│   ├── src/main/resources/
+│   │   └── application.properties
+│   └── pom.xml
+├── pg-client-mcp/
+└── oracle-client-mcp/
+```
+
+### Adding OAuth2 Security
+
+1. Add dependency to `pom.xml`:
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+```
+
+2. Configure `application.properties`:
 ```properties
-# MCP Protocol
-spring.ai.mcp.server.protocol=STREAMABLE
-spring.ai.mcp.server.type=SYNC
-
-# Capabilities
-spring.ai.mcp.server.capabilities.tool=true
-spring.ai.mcp.server.capabilities.resource=true
-spring.ai.mcp.server.capabilities.prompt=true
-
-# HTTP Settings
-spring.ai.mcp.server.streamable-http.mcp-endpoint=/mcp
-spring.ai.mcp.server.streamable-http.keep-alive-interval=30s
-spring.ai.mcp.server.streamable-http.response-mime-type=text/plain+stream
-
-# Server
-server.port=8082
-spring.main.web-application-type=reactive
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://cognito-idp.us-east-1.amazonaws.com/YOUR_USER_POOL_ID
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://cognito-idp.us-east-1.amazonaws.com/YOUR_USER_POOL_ID/.well-known/jwks.json
 ```
 
-### Database Connection
-```properties
-# Secrets Manager
-mcp.db.connection.type=secretsmanager
-mcp.db.connection.detail=arn:aws:secretsmanager:region:account:secret:name
-
-# Direct (not recommended for production)
-mcp.db.connection.type=direct
-spring.datasource.url=jdbc:postgresql://host:5432/db
-spring.datasource.username=user
-spring.datasource.password=pass
+3. Create `SecurityConfig.java`:
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/mcp").authenticated()
+                .anyRequest().permitAll()
+            )
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
+            .csrf(csrf -> csrf.disable());
+        return http.build();
+    }
+}
 ```
 
-## Security
+## Testing
 
-- **Secrets Manager**: Database credentials stored in AWS Secrets Manager
-- **IAM Roles**: Use EC2 instance roles instead of access keys
-- **Network**: Deploy in private subnet, expose via ALB
-- **TLS**: Enable HTTPS in production (ALB termination or Spring Boot SSL)
+### Get OAuth Token
 
-## Monitoring
-
-### Health Check
-Enable Spring Boot Actuator:
-```properties
-management.endpoints.web.exposure.include=health,info
-management.endpoint.health.show-details=always
+```bash
+TOKEN=$(curl -s -X POST https://YOUR_DOMAIN.auth.us-east-1.amazoncognito.com/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=oma-mcp/mcp.access" | jq -r '.access_token')
 ```
 
-Check: `http://localhost:8082/actuator/health`
+### Test MCP Endpoint
 
-### Logs
-- Application logs: `/var/log/*-mcp.log`
-- Spring logs: Configure `logging.file.name`
-- CloudWatch: Use CloudWatch agent for centralized logging
+```bash
+# Initialize
+curl https://YOUR_CLOUDFRONT_DOMAIN/mcp \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 
-### Metrics
-- JVM metrics: Enable Micrometer
-- MCP metrics: Tool invocation counts, latency
-- Database metrics: Connection pool stats
-
-## Support
-
-For issues or questions:
-- Check logs with DEBUG level: `logging.level.org.springframework.ai.mcp=DEBUG`
-- Review Spring AI MCP documentation: https://docs.spring.io/spring-ai/reference/api/mcp/
-- GitHub issues: Spring AI MCP project
+# List tools
+curl https://YOUR_CLOUDFRONT_DOMAIN/mcp \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+```
 
 ## License
 
-See individual MCP server directories for license information.
+Proprietary - Oracle Migration Assistant
