@@ -1,0 +1,6 @@
+env.sh
+env.sh.local
+*.pem
+*.key
+deployment-info.txt
+*.log
