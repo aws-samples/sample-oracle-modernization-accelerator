@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+\#!/usr/bin/env python3.11
 """
 Oracle to PostgreSQL Conversion Agent (Single Session Version)
 Uses single MCP SSE session for all operations
@@ -83,6 +83,13 @@ async def process_conversion(session, s3_path):
             if not ddl_data.get('success') or not ddl_data.get('ddls'):
                 print(f"   ⊘ DDL not found, skipping")
                 stats["skipped"] += 1
+                stats["objects"].append({
+                    "name": obj['objectIdentifier'],
+                    "type": obj['objectType'],
+                    "complexity": obj['complexity'],
+                    "status": "skipped",
+                    "reason": "DDL not found in DMS SC project"
+                })
                 continue
             
             oracle_ddl = ddl_data['ddls'][0]['ddl']
@@ -176,17 +183,41 @@ Successfully converted **{stats['success']} out of {stats['success'] + stats['fa
     
     for obj_type, objs in by_type.items():
         report += f"\n### {obj_type} ({len(objs)} objects)\n\n"
-        report += "| Object Name | Status | File |\n"
-        report += "|-------------|--------|------|\n"
+        report += "| Object Name | Status | File/Reason |\n"
+        report += "|-------------|--------|-------------|\n"
         for obj in objs:
-            status = "✅" if obj['status'] == 'success' else "❌"
-            file_name = obj.get('file', 'N/A')
-            report += f"| {obj['name']} | {status} | {file_name} |\n"
+            if obj['status'] == 'success':
+                status = "✅"
+                file_info = obj.get('file', 'N/A')
+            elif obj['status'] == 'failed':
+                status = "❌"
+                file_info = obj.get('error', 'Unknown error')
+            else:  # skipped
+                status = "⊘"
+                file_info = obj.get('reason', 'Skipped')
+            report += f"| {obj['name']} | {status} | {file_info} |\n"
     
     if stats['failed_objects']:
         report += "\n---\n\n## Failed Objects\n\n"
         for obj in stats['failed_objects']:
             report += f"- {obj}\n"
+    
+    # Add skipped objects explanation
+    skipped_objs = [obj for obj in stats['objects'] if obj['status'] == 'skipped']
+    if skipped_objs:
+        report += "\n---\n\n## Skipped Objects\n\n"
+        for obj in skipped_objs:
+            report += f"**{obj['name']}**\n"
+            report += f"- Type: {obj['type']}\n"
+            report += f"- Reason: {obj.get('reason', 'Unknown')}\n"
+            
+            # Add explanation for Oracle Text internal tables
+            if 'DR$' in obj['name']:
+                report += f"- Note: This is an Oracle Text index internal table (DR$ prefix). "
+                report += f"These system-generated tables are automatically managed by Oracle Text and "
+                report += f"do not have DDL in the DMS SC project. PostgreSQL Full-Text Search handles "
+                report += f"these internally, so manual conversion is not needed.\n"
+            report += "\n"
     
     report += f"""
 ---
