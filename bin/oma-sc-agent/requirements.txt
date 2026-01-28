@@ -1,3 +1,9 @@
-boto3>=1.34.0
-httpx>=0.27.0
-mcp>=1.0.0
+# Original dependencies
+# MCP SDK (installed separately from GitHub)
+# mcp
+
+# Strands Agents SDK
+strands-agents
+
+# Strands Agents SDK
+strands-agents

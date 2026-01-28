@@ -44,10 +44,13 @@ echo "✅ Prerequisites OK"
 # 2. Install Python dependencies
 echo ""
 echo "2. Installing Python dependencies..."
-# Install from GitHub for Python 3.10+ requirement
+# Install MCP SDK from GitHub for Python 3.10+ requirement
 python3.11 -m pip install -q git+https://github.com/modelcontextprotocol/python-sdk.git --user
+# Install Strands Agents SDK
+python3.11 -m pip install -q strands-agents --user
+# Install other dependencies
 python3.11 -m pip install -q -r requirements.txt --user
-echo "✅ Dependencies installed"
+echo "✅ Dependencies installed (including Strands Agents SDK)"
 
 # 3. Check MCP servers
 echo ""

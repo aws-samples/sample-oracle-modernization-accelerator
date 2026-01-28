@@ -1,4 +1,4 @@
-\#!/usr/bin/env python3.11
+#!/usr/bin/env python3.11
 """
 Oracle to PostgreSQL Conversion Agent (Single Session Version)
 Uses single MCP SSE session for all operations
@@ -162,9 +162,9 @@ Successfully converted **{stats['success']} out of {stats['success'] + stats['fa
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Success | {stats['success']} | {stats['success']/(stats['success']+stats['failed']+stats['skipped'])*100:.1f}% |
-| ❌ Failed | {stats['failed']} | {stats['failed']/(stats['success']+stats['failed']+stats['skipped'])*100:.1f}% |
-| ⊘ Skipped | {stats['skipped']} | {stats['skipped']/(stats['success']+stats['failed']+stats['skipped'])*100:.1f}% |
+| ✅ Success | {stats['success']} | {(stats['success']/(stats['success']+stats['failed']+stats['skipped'])*100) if (stats['success']+stats['failed']+stats['skipped']) > 0 else 0:.1f}% |
+| ❌ Failed | {stats['failed']} | {(stats['failed']/(stats['success']+stats['failed']+stats['skipped'])*100) if (stats['success']+stats['failed']+stats['skipped']) > 0 else 0:.1f}% |
+| ⊘ Skipped | {stats['skipped']} | {(stats['skipped']/(stats['success']+stats['failed']+stats['skipped'])*100) if (stats['success']+stats['failed']+stats['skipped']) > 0 else 0:.1f}% |
 | **Total** | **{stats['success']+stats['failed']+stats['skipped']}** | **100%** |
 
 ---

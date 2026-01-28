@@ -384,12 +384,56 @@ public class OmaScMcpTools {
 
     private Map<String, Object> performAnalysis(Path basePath, String projectId) throws IOException {
         Map<String, Object> analysis = new HashMap<>();
-        analysis.put("servers", extractServerDetails(basePath));
-        analysis.put("table_mappings", extractTableMappings(basePath));
-        analysis.put("view_mappings", extractObjectMappings(basePath, "view", "Views"));
-        analysis.put("function_mappings", extractObjectMappings(basePath, "function", "Functions"));
-        analysis.put("procedure_mappings", extractObjectMappings(basePath, "procedure", "Procedures"));
-        extractAndSaveDDLs(basePath);
+        
+        // Parallel execution using CompletableFuture
+        try {
+            var serversFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractServerDetails(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var tablesFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractTableMappings(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var viewsFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "view", "Views"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var functionsFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "function", "Functions"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var proceduresFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "procedure", "Procedures"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var ddlFuture = java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try { extractAndSaveDDLs(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            // Wait for all tasks to complete
+            java.util.concurrent.CompletableFuture.allOf(
+                serversFuture, tablesFuture, viewsFuture, 
+                functionsFuture, proceduresFuture, ddlFuture
+            ).join();
+            
+            // Collect results
+            analysis.put("servers", serversFuture.join());
+            analysis.put("table_mappings", tablesFuture.join());
+            analysis.put("view_mappings", viewsFuture.join());
+            analysis.put("function_mappings", functionsFuture.join());
+            analysis.put("procedure_mappings", proceduresFuture.join());
+            
+        } catch (Exception e) {
+            throw new IOException("Parallel analysis failed", e);
+        }
+        
         Path analysisFile = basePath.resolve("analysis_results.json");
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(analysisFile.toFile(), analysis);
         return analysis;

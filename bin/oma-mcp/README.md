@@ -34,9 +34,9 @@ Tools:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Oracle to PostgreSQL Agent (ora_to_pg_sc_agent.py)        │
-│  • Single SSE session for all operations                    │
-│  • Async workflow: Analyze → Extract → Convert → Save       │
+│  Oracle to PostgreSQL Agent (Strands Framework)             │
+│  • Python CSV parsing + LLM conversion                      │
+│  • Async workflow: Parse → Filter → Convert → Save          │
 └─────────────────────────────────────────────────────────────┘
                             │
         ┌───────────────────┼───────────────────┐
@@ -104,7 +104,11 @@ ps aux | grep "\.jar" | grep java
 cd ../oma-sc-agent
 
 # Convert schema
-python3 ora_to_pg_sc_agent.py s3://YOUR-BUCKET/dms-sc-migration-project/YOUR-PROJECT.zip
+# Run Strands agent (recommended)
+python3.11 ora_to_pg_strands_agent.py s3://YOUR-BUCKET/dms-sc-migration-project/YOUR-PROJECT.zip
+
+# Or run original agent (fallback)
+python3.11 ora_to_pg_sc_agent.py s3://YOUR-BUCKET/dms-sc-migration-project/YOUR-PROJECT.zip
 
 # Check results
 ls -lh /tmp/oma-conversion/
@@ -156,10 +160,13 @@ export ORACLE_CONNECTION_DETAIL="arn:aws:secretsmanager:region:account:secret:na
 
 ### Stack
 - Java 21 (Amazon Corretto)
-- Spring Boot 4.0.1
+- Spring Boot 3.5.5
 - Spring AI MCP 2.0.0-M2
 - MCP Protocol (SSE transport)
+- Spring WebFlux (reactive)
 - AWS SDK (S3, Secrets Manager, Bedrock)
+- Python 3.11 + Strands Agents SDK 1.23.0
+- MCP SDK 1.11.0
 
 ### Security
 - No authentication (localhost only)
@@ -167,8 +174,9 @@ export ORACLE_CONNECTION_DETAIL="arn:aws:secretsmanager:region:account:secret:na
 - IAM role-based AWS access
 
 ### Performance
-- Processing: ~15 objects in 2-3 minutes
-- Single SSE session for stability
+- Processing: ~18 objects in 2-3 minutes
+- Hybrid approach: Python parsing + LLM conversion
+- Parallel DDL extraction (5 workers)
 - Async workflow with error handling
 
 ## Project Structure

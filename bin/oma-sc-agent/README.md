@@ -1,6 +1,6 @@
 # Oracle to PostgreSQL Conversion Agent
 
-Automated schema conversion using AWS DMS Schema Conversion, Bedrock Claude 3.5, and MCP servers.
+Automated schema conversion using AWS DMS Schema Conversion, Bedrock Claude 3.5, Strands Agents SDK, and MCP servers.
 
 ## Quick Start
 
@@ -9,20 +9,24 @@ Automated schema conversion using AWS DMS Schema Conversion, Bedrock Claude 3.5,
 cd /workshop/oma-mcp
 ./start-servers.sh
 
-# 2. Run conversion
+# 2. Run Strands agent (recommended)
 cd /workshop/oma-sc-agent
+python3.11 ora_to_pg_strands_agent.py s3://BUCKET/dms-sc-migration-project/PROJECT.zip
+
+# Or run original agent (fallback)
 python3.11 ora_to_pg_sc_agent.py s3://BUCKET/dms-sc-migration-project/PROJECT.zip
 
 # 3. Check results
 ls -lh /workshop/pg-ddl/
-cat /workshop/pg-ddl/CONVERSION_REPORT.md
 ```
 
 ## Architecture
 
 ```
-Oracle to PostgreSQL Agent (Python 3.11)
-    ↓ Single SSE Session
+Oracle to PostgreSQL Agent (Strands Framework)
+    ├─ Python: CSV parsing & filtering
+    └─ Strands: AI-driven conversion
+    ↓ SSE Transport (MCP 1.11.0)
 MCP Servers (localhost:9080-9082)
     ├─ oma-sc-mcp (9080) - DMS SC + Bedrock
     ├─ pg-client-mcp (9081) - PostgreSQL client
@@ -36,28 +40,32 @@ AWS Services
 
 ## Files
 
-- `ora_to_pg_sc_agent.py` - Main conversion agent
-- `requirements.txt` - Python dependencies (boto3, httpx, mcp)
-- `setup.sh` - Quick prerequisite checker
-- `AGENT_DESIGN.md` - Detailed design document
+- `ora_to_pg_strands_agent.py` - **Strands agent (recommended)**
+- `ora_to_pg_sc_agent.py` - Original agent (fallback)
+- `requirements.txt` - Python dependencies
+- `setup.sh` - Environment setup
+- `STRANDS_GUIDE.md` - Strands framework guide
+- `AGENT_DESIGN.md` - Design document
 - `ARCHITECTURE.md` - System architecture
 
 ## Features
 
+- ✅ **Hybrid approach**: Python parsing + AI conversion
+- ✅ **Smart filtering**: Only Medium/Complex objects
 - ✅ Automated DMS SC project analysis
 - ✅ Oracle DDL extraction (offline, no live DB)
 - ✅ AI-powered PostgreSQL conversion (Bedrock Claude 3.5)
-- ✅ Batch processing (15+ objects in 1-2 minutes)
+- ✅ Batch processing (17 objects in ~3 minutes)
 - ✅ Automatic report generation
-- ✅ Single SSE session (stable, no reconnections)
+- ✅ Parallel DDL extraction (5 workers)
 
-## Workflow
+## Workflow (Strands Agent)
 
-1. **Analyze**: Parse DMS SC project CSV files for Complex/Medium objects
-2. **Extract**: Get Oracle DDL from offline cache
-3. **Convert**: Use Bedrock Claude 3.5 to convert to PostgreSQL
+1. **Parse CSV**: Python extracts Medium/Complex objects from DMS SC CSV
+2. **Filter**: Only 17 objects (skip Simple objects)
+3. **Convert**: Strands agent converts each object using MCP tools
 4. **Save**: Write DDL files to `/workshop/pg-ddl/`
-5. **Report**: Generate conversion summary report
+5. **Report**: Generate conversion summary
 
 See [AGENT_DESIGN.md](AGENT_DESIGN.md) for complete details.
 
