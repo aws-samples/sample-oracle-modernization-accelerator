@@ -7,11 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springaicommunity.mcp.annotation.McpTool;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
+import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
+import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.regions.Region;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,24 +75,60 @@ public class OmaScMcpTools {
             String projectId = UUID.randomUUID().toString();
             Files.createDirectories(localBase);
             
-            List<S3Object> objects = listS3Objects(s3Client, bucket, prefix);
-            List<Map<String, Object>> fileMetadata = new ArrayList<>();
-            
-            for (S3Object obj : objects) {
-                if (obj.key().endsWith("/")) continue;
-                String content = getS3ObjectContent(s3Client, bucket, obj.key());
-                JsonNode json = objectMapper.readTree(content);
-                Path localFile = localBase.resolve(obj.key().replace(prefix, "").replaceFirst("^/", ""));
-                Files.createDirectories(localFile.getParent());
-                Files.writeString(localFile, content);
-                fileMetadata.add(Map.of("file_path", obj.key(), "local_path", localFile.toString(), "size", obj.size()));
+            // Check if it's a ZIP file
+            if (prefix.endsWith(".zip")) {
+                logger.info("Detected ZIP file, downloading and extracting: {}", prefix);
+                byte[] zipBytes = s3Client.getObjectAsBytes(
+                    GetObjectRequest.builder().bucket(bucket).key(prefix).build()
+                ).asByteArray();
+                
+                Path zipFile = localBase.resolve("project.zip");
+                Files.write(zipFile, zipBytes);
+                
+                // Extract ZIP
+                try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+                        new java.io.ByteArrayInputStream(zipBytes))) {
+                    java.util.zip.ZipEntry entry;
+                    while ((entry = zis.getNextEntry()) != null) {
+                        if (entry.isDirectory()) continue;
+                        Path targetFile = localBase.resolve(entry.getName());
+                        Files.createDirectories(targetFile.getParent());
+                        Files.copy(zis, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+                logger.info("ZIP file extracted to: {}", localBase);
+                
+                // Also download DDL files from s-* directories
+                String projectPrefix = prefix.substring(0, prefix.lastIndexOf('/') + 1);
+                logger.info("Downloading DDL files from: {}", projectPrefix);
+                List<S3Object> ddlObjects = listS3Objects(s3Client, bucket, projectPrefix + "s-");
+                for (S3Object obj : ddlObjects) {
+                    if (obj.key().endsWith("/")) continue;
+                    String content = getS3ObjectContent(s3Client, bucket, obj.key());
+                    Path localFile = localBase.resolve(obj.key().replace(projectPrefix, ""));
+                    Files.createDirectories(localFile.getParent());
+                    Files.writeString(localFile, content, java.nio.charset.StandardCharsets.UTF_8);
+                }
+                logger.info("Downloaded {} DDL files", ddlObjects.size());
+            } else {
+                // Original directory-based logic
+                List<S3Object> objects = listS3Objects(s3Client, bucket, prefix);
+                List<Map<String, Object>> fileMetadata = new ArrayList<>();
+                
+                for (S3Object obj : objects) {
+                    if (obj.key().endsWith("/")) continue;
+                    String content = getS3ObjectContent(s3Client, bucket, obj.key());
+                    Path localFile = localBase.resolve(obj.key().replace(prefix, "").replaceFirst("^/", ""));
+                    Files.createDirectories(localFile.getParent());
+                    Files.writeString(localFile, content, java.nio.charset.StandardCharsets.UTF_8);
+                    fileMetadata.add(Map.of("file_path", obj.key(), "local_path", localFile.toString(), "size", obj.size()));
+                }
             }
             
             Map<String, Object> analysis = performAnalysis(localBase, projectId);
             result.put("success", true);
             result.put("project_id", projectId);
             result.put("local_base", localBase.toString());
-            result.put("files_processed", fileMetadata.size());
             result.putAll(analysis);
             
         } catch (Exception e) {
@@ -141,27 +183,52 @@ public class OmaScMcpTools {
         
         try {
             Path localBase = getLocalPathFromS3(s3Path);
-            Path ddlDir = localBase.resolve("ddl/" + (ddlType != null && ddlType.equalsIgnoreCase("source") ? "source" : "target"));
+            Path ddlDir = localBase.resolve("ddl/source");
+            
+            logger.info("Looking for DDL in: {}", ddlDir);
+            logger.info("Directory exists: {}", Files.exists(ddlDir));
             
             if (!Files.exists(ddlDir)) {
                 result.put("success", false);
-                result.put("error", "DDL directory not found. Run analyze_dms_sc_project first.");
+                result.put("error", "DDL directory not found");
                 return result;
             }
             
-            String pattern = String.format("%s_%s_%s.sql", 
-                schemaName != null ? schemaName : "*",
-                objectType != null ? objectType : "*", 
-                objectName != null ? objectName : "*"
-            ).replaceAll("[^a-zA-Z0-9_.*-]", "_");
-            
             List<Map<String, String>> ddls = new ArrayList<>();
+            long fileCount = Files.walk(ddlDir, 1)
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".sql"))
+                .count();
+            
+            logger.info("Found {} SQL files in directory", fileCount);
+            
             Files.walk(ddlDir, 1)
                 .filter(Files::isRegularFile)
-                .filter(p -> matchesPattern(p.getFileName().toString(), pattern))
+                .filter(p -> p.toString().endsWith(".sql"))
                 .forEach(p -> {
                     try {
-                        ddls.add(Map.of("filename", p.getFileName().toString(), "ddl", Files.readString(p)));
+                        String filename = p.getFileName().toString();
+                        String filenameLower = filename.toLowerCase();
+                        
+                        boolean matches = true;
+                        if (schemaName != null && !schemaName.isEmpty()) {
+                            if (!filenameLower.startsWith(schemaName.toLowerCase() + "_")) {
+                                matches = false;
+                            }
+                        }
+                        if (objectName != null && !objectName.isEmpty()) {
+                            if (!filenameLower.contains(objectName.toLowerCase())) {
+                                matches = false;
+                            }
+                        }
+                        
+                        if (matches) {
+                            String sql = Files.readString(p);
+                            ddls.add(Map.of("filename", filename, "ddl", sql));
+                            logger.info("Found DDL: {} (length: {})", filename, sql.length());
+                        } else {
+                            logger.info("Skipped: {} (schema={}, object={})", filename, schemaName, objectName);
+                        }
                     } catch (IOException e) {
                         logger.error("Failed to read DDL file: {}", p, e);
                     }
@@ -172,7 +239,71 @@ public class OmaScMcpTools {
             result.put("ddls", ddls);
             
         } catch (Exception e) {
-            logger.error("Failed to retrieve DDL", e);
+            logger.error("Failed to retrieve DDL: {}", e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+        }
+        
+        return result;
+    }
+
+    @McpTool(name = "convert_ddl_to_pg", description = "Convert Oracle DDL to PostgreSQL using Bedrock Claude. Parameters: oracleDdl, objectType, complexity")
+    public Map<String, Object> convertDdlToPg(String oracleDdl, String objectType, String complexity) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            String prompt = String.format("""
+                Convert this Oracle DDL to PostgreSQL-compatible DDL.
+                
+                Object Type: %s
+                Complexity: %s
+                
+                Oracle DDL:
+                %s
+                
+                Requirements:
+                - Follow Aurora PostgreSQL best practices
+                - Convert PL/SQL to PL/pgSQL
+                - Map Oracle types to PostgreSQL types (VARCHAR2→VARCHAR, NUMBER→NUMERIC, DATE→TIMESTAMP)
+                - Convert built-ins (SYSDATE→CURRENT_TIMESTAMP, NVL→COALESCE, DECODE→CASE)
+                - Preserve business logic exactly
+                - For procedures, convert to functions returning VOID
+                - For packages, create standalone functions
+                
+                Return ONLY the PostgreSQL DDL, no explanations.
+                """, objectType, complexity, oracleDdl);
+            
+            Map<String, Object> requestBody = Map.of(
+                "anthropic_version", "bedrock-2023-05-31",
+                "max_tokens", 4096,
+                "messages", List.of(Map.of("role", "user", "content", prompt))
+            );
+            
+            String requestJson = objectMapper.writeValueAsString(requestBody);
+            
+            try (BedrockRuntimeClient bedrockClient = BedrockRuntimeClient.builder()
+                    .region(Region.US_EAST_1)
+                    .build()) {
+                
+                InvokeModelRequest request = InvokeModelRequest.builder()
+                    .modelId("us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+                    .body(SdkBytes.fromUtf8String(requestJson))
+                    .build();
+                
+                InvokeModelResponse response = bedrockClient.invokeModel(request);
+                String responseBody = response.body().asUtf8String();
+                
+                JsonNode responseJson = objectMapper.readTree(responseBody);
+                String pgDdl = responseJson.get("content").get(0).get("text").asText();
+                
+                result.put("success", true);
+                result.put("postgresql_ddl", pgDdl);
+                result.put("object_type", objectType);
+                result.put("complexity", complexity);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Failed to convert DDL", e);
             result.put("success", false);
             result.put("error", e.getMessage());
         }
@@ -245,17 +376,64 @@ public class OmaScMcpTools {
     }
 
     private String getS3ObjectContent(S3Client s3Client, String bucket, String key) throws IOException {
-        return s3Client.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key(key).build()).asUtf8String();
+        ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(
+            GetObjectRequest.builder().bucket(bucket).key(key).build()
+        );
+        return new String(objectBytes.asByteArray(), java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private Map<String, Object> performAnalysis(Path basePath, String projectId) throws IOException {
         Map<String, Object> analysis = new HashMap<>();
-        analysis.put("servers", extractServerDetails(basePath));
-        analysis.put("table_mappings", extractTableMappings(basePath));
-        analysis.put("view_mappings", extractObjectMappings(basePath, "view", "Views"));
-        analysis.put("function_mappings", extractObjectMappings(basePath, "function", "Functions"));
-        analysis.put("procedure_mappings", extractObjectMappings(basePath, "procedure", "Procedures"));
-        extractAndSaveDDLs(basePath);
+        
+        // Parallel execution using CompletableFuture
+        try {
+            var serversFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractServerDetails(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var tablesFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractTableMappings(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var viewsFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "view", "Views"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var functionsFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "function", "Functions"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var proceduresFuture = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try { return extractObjectMappings(basePath, "procedure", "Procedures"); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            var ddlFuture = java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try { extractAndSaveDDLs(basePath); } 
+                catch (IOException e) { throw new RuntimeException(e); }
+            });
+            
+            // Wait for all tasks to complete
+            java.util.concurrent.CompletableFuture.allOf(
+                serversFuture, tablesFuture, viewsFuture, 
+                functionsFuture, proceduresFuture, ddlFuture
+            ).join();
+            
+            // Collect results
+            analysis.put("servers", serversFuture.join());
+            analysis.put("table_mappings", tablesFuture.join());
+            analysis.put("view_mappings", viewsFuture.join());
+            analysis.put("function_mappings", functionsFuture.join());
+            analysis.put("procedure_mappings", proceduresFuture.join());
+            
+        } catch (Exception e) {
+            throw new IOException("Parallel analysis failed", e);
+        }
+        
         Path analysisFile = basePath.resolve("analysis_results.json");
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(analysisFile.toFile(), analysis);
         return analysis;

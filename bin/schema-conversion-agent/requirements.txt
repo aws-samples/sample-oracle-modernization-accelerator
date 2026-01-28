@@ -1,0 +1,9 @@
+# Original dependencies
+# MCP SDK (installed separately from GitHub)
+# mcp
+
+# Strands Agents SDK
+strands-agents
+
+# Strands Agents SDK
+strands-agents

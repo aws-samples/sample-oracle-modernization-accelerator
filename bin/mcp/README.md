@@ -1,176 +1,245 @@
 # OMA MCP Servers
 
-Model Context Protocol (MCP) servers for Oracle Migration Assistant (OMA) tools.
+Model Context Protocol (MCP) servers for Oracle to PostgreSQL migration using AWS DMS Schema Conversion and Bedrock.
 
-## Servers
+## Overview
 
-- **oma-sc-mcp**: DMS Schema Conversion tools
-- **pg-client-mcp**: PostgreSQL database client tools
-- **oracle-client-mcp**: Oracle database client tools
+Three MCP servers that work together to automate Oracle to PostgreSQL schema conversion:
 
-## Quick Start
+### 1. oma-sc-mcp (Port 9080)
+**DMS Schema Conversion + Bedrock DDL Converter**
 
-### Build All Servers
+Tools:
+- `analyze`: Analyze DMS SC project from S3
+- `get_ddl`: Extract Oracle DDL for specific objects
+- `convert`: Convert Oracle DDL to PostgreSQL using Bedrock Claude
 
-```bash
-./build-all.sh
-```
+### 2. pg-client-mcp (Port 9081)
+**PostgreSQL Database Client**
 
-### Run Locally (All 3 Servers)
+Tools:
+- `executeSql`: Execute SQL query on PostgreSQL
+- `executeTestCase`: Execute test with rollback
+- `executeTestCaseReadOnly`: Execute test in read-only mode
 
-```bash
-# Start all servers
-cd oma-sc-mcp && java -jar target/oma-sc-mcp-server-1.0.0.jar &
-cd ../pg-client-mcp && java -jar target/postgresql-mcp-server-1.0.0.jar &
-cd ../oracle-client-mcp && java -jar target/oracle-mcp-server-1.0.0.jar &
+### 3. oracle-client-mcp (Port 9082)
+**Oracle Database Client**
 
-# Servers run on ports 9080, 9081, 9082
-```
-
-### Test with OAuth
-
-```bash
-# Get token
-TOKEN=$(curl -s -X POST https://YOUR_COGNITO_DOMAIN/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=oma-mcp/mcp.access" | jq -r '.access_token')
-
-# Test servers
-curl http://localhost:9080/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
-curl http://localhost:9081/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
-curl http://localhost:9082/mcp -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
-```
-
-## Deployment
-
-**Recommended: Unified Deployment (All 3 servers on 1 infrastructure)**
-
-See [UNIFIED_DEPLOYMENT.md](UNIFIED_DEPLOYMENT.md) for complete setup:
-- 1 EC2 instance running all 3 servers
-- 1 ALB with path-based routing (/oma-sc, /pg, /oracle)
-- 1 CloudFront distribution
-- 1 Cognito User Pool for OAuth2
-- 1 Bedrock AgentCore Gateway with 3 targets
-
-**Alternative: Individual Deployment**
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for deploying servers separately.
-
-## Server Details
-
-### oma-sc-mcp
-
-DMS Schema Conversion project analysis tools.
-
-**Tools:**
-- `analyze_dms_sc_project`: Analyze DMS SC project and return assessment report
-- `report_dms_sc_project`: Generate detailed report from DMS SC project
-- `get_offline_ddl`: Get offline DDL from DMS SC project
-- `cleanup_local_cache`: Clean up local cache of downloaded projects
-
-**Configuration:** `oma-sc-mcp/src/main/resources/application.properties`
-
-### pg-client-mcp
-
-PostgreSQL database client tools (to be implemented).
-
-### oracle-client-mcp
-
-Oracle database client tools (to be implemented).
+Tools:
+- `executeSql`: Execute SQL query on Oracle
+- `executeTestCase`: Execute test with rollback
+- `executeTestCaseReadOnly`: Execute test in read-only mode
 
 ## Architecture
 
 ```
-Client → CloudFront (HTTPS) → ALB → EC2 → MCP Server
-                                            ↓
-                                     Cognito OAuth2
+┌─────────────────────────────────────────────────────────────┐
+│  Oracle to PostgreSQL Agent (Strands Framework)             │
+│  • Python CSV parsing + LLM conversion                      │
+│  • Async workflow: Parse → Filter → Convert → Save          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│ oma-sc-mcp   │   │ pg-client    │   │ oracle-client│
+│ Port 9080    │   │ Port 9081    │   │ Port 9082    │
+└──────────────┘   └──────────────┘   └──────────────┘
+        │                   │                   │
+        └───────────────────┴───────────────────┘
+                            │
+                    ┌───────┴────────┐
+                    ▼                ▼
+            ┌──────────────┐  ┌──────────────┐
+            │ AWS S3       │  │ Bedrock      │
+            │ Secrets Mgr  │  │ Claude 3.5   │
+            └──────────────┘  └──────────────┘
 ```
 
-## Development
+## Quick Start
 
-### Prerequisites
-- Java 21
-- Maven 3.6+
-- Spring Boot 3.5.5
-- Spring AI MCP 1.1.0-M2
+### 1. Configure Environment
 
-### Project Structure
+```bash
+# Copy template and edit
+cp env.sh.template env.sh
+nano env.sh
 
-```
-oma-mcp/
-├── oma-sc-mcp/
-│   ├── src/main/java/com/example/
-│   │   ├── OmaScMcpServerApplication.java
-│   │   ├── OmaScMcpTools.java
-│   │   ├── StandardMcpController.java  # HTTP MCP endpoint
-│   │   └── SecurityConfig.java         # OAuth2 configuration
-│   ├── src/main/resources/
-│   │   └── application.properties
-│   └── pom.xml
-├── pg-client-mcp/
-└── oracle-client-mcp/
+# Required variables:
+# - DMS_SC_S3_BUCKET: Your S3 bucket name
+# - DMS_SC_SCHEMA_NAME: Schema to convert (e.g., DEMO)
+# - PG_CONNECTION_DETAIL: PostgreSQL Secrets Manager ARN
+# - ORACLE_CONNECTION_DETAIL: Oracle Secrets Manager ARN
+
+# Load environment
+source env.sh
 ```
 
-### Adding OAuth2 Security
+### 2. Validate and Auto-Install
 
-1. Add dependency to `pom.xml`:
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-</dependency>
+```bash
+# Automatically checks and installs:
+# - pip (if missing)
+# - Python dependencies (boto3, httpx)
+# - Verifies AWS access and database secrets
+./validate-setup.sh
 ```
 
-2. Configure `application.properties`:
-```properties
-spring.security.oauth2.resourceserver.jwt.issuer-uri=https://cognito-idp.us-east-1.amazonaws.com/YOUR_USER_POOL_ID
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://cognito-idp.us-east-1.amazonaws.com/YOUR_USER_POOL_ID/.well-known/jwks.json
+### 3. Build and Start Servers
+
+```bash
+# Build all 3 servers
+./build-all.sh
+
+# Start all servers
+./start-servers.sh
+
+# Verify
+ps aux | grep "\.jar" | grep java
 ```
 
-3. Create `SecurityConfig.java`:
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/mcp").authenticated()
-                .anyRequest().permitAll()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
-            .csrf(csrf -> csrf.disable());
-        return http.build();
-    }
+### 4. Run Agent
+
+```bash
+cd ../oma-sc-agent
+
+# Convert schema
+# Run Strands agent (recommended)
+python3.11 ora_to_pg_strands_agent.py s3://YOUR-BUCKET/dms-sc-migration-project/YOUR-PROJECT.zip
+
+# Or run original agent (fallback)
+python3.11 ora_to_pg_sc_agent.py s3://YOUR-BUCKET/dms-sc-migration-project/YOUR-PROJECT.zip
+
+# Check results
+ls -lh /tmp/oma-conversion/
+```
+
+## Configuration
+
+### Environment Variables (env.sh)
+
+```bash
+# DMS SC Configuration
+export DMS_SC_S3_BUCKET="your-bucket-name"
+export DMS_SC_SCHEMA_NAME="YOUR_SCHEMA"
+
+# PostgreSQL (Secrets Manager)
+export PG_CONNECTION_TYPE="secretsmanager"
+export PG_CONNECTION_DETAIL="arn:aws:secretsmanager:region:account:secret:name"
+
+# Oracle (Secrets Manager)
+export ORACLE_CONNECTION_TYPE="secretsmanager"
+export ORACLE_CONNECTION_DETAIL="arn:aws:secretsmanager:region:account:secret:name"
+```
+
+### Secrets Manager Format
+
+**PostgreSQL:**
+```json
+{
+  "username": "postgres",
+  "password": "your-password",
+  "host": "your-cluster.region.rds.amazonaws.com",
+  "port": 5432,
+  "dbname": "postgres"
 }
 ```
 
-## Testing
-
-### Get OAuth Token
-
-```bash
-TOKEN=$(curl -s -X POST https://YOUR_DOMAIN.auth.us-east-1.amazoncognito.com/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=oma-mcp/mcp.access" | jq -r '.access_token')
+**Oracle:**
+```json
+{
+  "username": "admin",
+  "password": "your-password",
+  "host": "your-instance.region.rds.amazonaws.com",
+  "port": 1521,
+  "dbname": "ORCL"
+}
 ```
 
-### Test MCP Endpoint
+## Technical Details
+
+### Stack
+- Java 21 (Amazon Corretto)
+- Spring Boot 3.5.5
+- Spring AI MCP 2.0.0-M2
+- MCP Protocol (SSE transport)
+- Spring WebFlux (reactive)
+- AWS SDK (S3, Secrets Manager, Bedrock)
+- Python 3.11 + Strands Agents SDK 1.23.0
+- MCP SDK 1.11.0
+
+### Security
+- No authentication (localhost only)
+- Database credentials via AWS Secrets Manager
+- IAM role-based AWS access
+
+### Performance
+- Processing: ~18 objects in 2-3 minutes
+- Hybrid approach: Python parsing + LLM conversion
+- Parallel DDL extraction (5 workers)
+- Async workflow with error handling
+
+## Project Structure
+
+```
+oma-mcp/
+├── oma-sc-mcp/              # DMS SC + Bedrock tools
+│   ├── src/main/java/com/example/
+│   │   ├── OmaScMcpServerApplication.java
+│   │   ├── OmaScMcpTools.java
+│   │   └── DatabaseConfig.java
+│   └── pom.xml
+├── pg-client-mcp/           # PostgreSQL client
+├── oracle-client-mcp/       # Oracle client
+├── build-all.sh             # Build all servers
+├── start-servers.sh         # Start all servers
+├── validate-setup.sh        # Validate and auto-install
+└── env.sh.template          # Environment template
+```
+
+## Troubleshooting
+
+### Servers Not Starting
 
 ```bash
-# Initialize
-curl https://YOUR_CLOUDFRONT_DOMAIN/mcp \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+# Check logs
+tail -f /tmp/oma-sc.log
+tail -f /tmp/pg-client.log
+tail -f /tmp/oracle-client.log
 
-# List tools
-curl https://YOUR_CLOUDFRONT_DOMAIN/mcp \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+# Check ports
+lsof -i :9080
+lsof -i :9081
+lsof -i :9082
 ```
+
+### Database Connection Issues
+
+```bash
+# Test secrets access
+aws secretsmanager get-secret-value --secret-id YOUR-SECRET-ARN
+
+# Test connectivity
+telnet your-db-host 5432  # PostgreSQL
+telnet your-db-host 1521  # Oracle
+```
+
+### Python Dependencies
+
+```bash
+# Re-run validation (auto-installs)
+./validate-setup.sh
+
+# Or install manually
+python3 -m pip install -r ../oma-sc-agent/requirements.txt --user
+```
+
+## Documentation
+
+- **README.md** - This file (overview)
+- **QUICK_START.md** - Quick deployment guide
+- **env.sh.template** - Environment configuration template
+- **../oma-sc-agent/AGENT_DESIGN.md** - Agent design details
 
 ## License
 
