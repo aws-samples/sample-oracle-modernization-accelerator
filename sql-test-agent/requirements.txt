@@ -6,7 +6,7 @@ structlog==24.1.0
 # Database Drivers
 cx-Oracle==8.3.0
 psycopg2-binary==2.9.9
-mysql-connector-python==8.2.0
+mysql-connector-python==9.1.0
 
 # MCP Framework
 mcp==0.9.0
