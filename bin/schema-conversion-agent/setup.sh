@@ -7,86 +7,113 @@ echo "============================================"
 echo "Oracle to PostgreSQL Conversion Agent Setup"
 echo "============================================"
 
-# Load environment variables
-if [ -f "/workshop/mcp/env.sh" ]; then
-    echo ""
-    echo "Loading environment variables from env.sh..."
-    source /workshop/mcp/env.sh
-    echo "✅ Environment loaded"
-    echo "   S3 Bucket: $DMS_SC_S3_BUCKET"
-    echo "   Schema: $DMS_SC_SCHEMA_NAME"
-else
-    echo "⚠️  env.sh not found. Using default values."
+# Check if environment variables are already loaded
+if [ -z "$DMS_SC_S3_BUCKET" ]; then
+    echo "❌ Environment variables not loaded"
+    echo "Please run: source bin/oma_env_demo.sh"
+    exit 1
 fi
+
+# Use DMS_SC_SCHEMA_NAME if set, otherwise derive from ORACLE_SVC_USER_LIST
+if [ -z "$DMS_SC_SCHEMA_NAME" ]; then
+    export DMS_SC_SCHEMA_NAME="${ORACLE_SVC_USER_LIST//\"/}"
+fi
+
+echo "✅ Environment loaded"
+echo "   S3 Bucket: $DMS_SC_S3_BUCKET"
+echo "   Schema: $DMS_SC_SCHEMA_NAME"
 
 # 1. Check prerequisites
 echo ""
 echo "1. Checking prerequisites..."
 
-if ! command -v python3.11 &> /dev/null; then
-    echo "❌ Python 3.11 not found. Please install Python 3.11+"
-    echo "   sudo yum install -y python3.11 python3.11-pip"
-    exit 1
+# Check for Python 3.10+
+PYTHON_CMD=""
+for py_version in python3.11 python3.10; do
+    if command -v $py_version &> /dev/null; then
+        PYTHON_CMD=$py_version
+        break
+    fi
+done
+
+if [ -z "$PYTHON_CMD" ]; then
+    echo "⚠️  Python 3.10+ not found. Installing Python 3.11..."
+    sudo yum install -y python3.11 python3.11-pip &> /dev/null
+    if command -v python3.11 &> /dev/null; then
+        PYTHON_CMD="python3.11"
+        echo "✅ Python 3.11 installed"
+    else
+        echo "❌ Failed to install Python 3.11"
+        exit 1
+    fi
+else
+    echo "✅ $PYTHON_CMD found"
 fi
 
 if ! command -v java &> /dev/null; then
-    echo "❌ Java not found. Please install Java 21+"
+    echo "❌ Java not found"
     exit 1
 fi
 
 if ! command -v aws &> /dev/null; then
-    echo "❌ AWS CLI not found. Please install AWS CLI"
+    echo "❌ AWS CLI not found"
     exit 1
 fi
 
-echo "✅ Prerequisites OK"
+echo "✅ Prerequisites OK ($PYTHON_CMD, Java, AWS CLI)"
 
 # 2. Install Python dependencies
 echo ""
 echo "2. Installing Python dependencies..."
-# Install MCP SDK from GitHub for Python 3.10+ requirement
-python3.11 -m pip install -q git+https://github.com/modelcontextprotocol/python-sdk.git --user
-# Install Strands Agents SDK
-python3.11 -m pip install -q strands-agents --user
-# Install other dependencies
-python3.11 -m pip install -q -r requirements.txt --user
-echo "✅ Dependencies installed (including Strands Agents SDK)"
+$PYTHON_CMD -m pip install -q --upgrade pip --user 2>/dev/null
+$PYTHON_CMD -m pip install -q git+https://github.com/modelcontextprotocol/python-sdk.git --user 2>/dev/null || echo "⚠️  MCP SDK already installed or failed"
+$PYTHON_CMD -m pip install -q strands-agents --user 2>/dev/null || echo "⚠️  strands-agents installation failed"
+$PYTHON_CMD -m pip install -q boto3 httpx --user 2>/dev/null || echo "⚠️  boto3/httpx already installed or failed"
+
+# Verify strands-agents installation
+if $PYTHON_CMD -c "import strands" &> /dev/null; then
+    echo "✅ Dependencies installed (including strands-agents)"
+else
+    echo "❌ strands-agents installation failed. Python 3.10+ is required."
+    exit 1
+fi
 
 # 3. Check MCP servers
 echo ""
 echo "3. Checking MCP servers..."
 
-if ! curl -s http://localhost:9080/health &> /dev/null; then
-    echo "⚠️  oma-sc-mcp not running on port 9080"
-    echo "   Start with: cd /workshop/mcp/oma-sc-mcp && java -jar target/oma-sc-mcp-server-1.0.0.jar &"
+MCP_OK=true
+if ! ps aux | grep -q "[j]ava.*oma-sc-mcp-server"; then
+    echo "⚠️  oma-sc-mcp not running"
+    MCP_OK=false
 fi
 
-if ! curl -s http://localhost:9081/health &> /dev/null; then
-    echo "⚠️  pg-client-mcp not running on port 9081"
-    echo "   Start with: cd /workshop/mcp/pg-client-mcp && java -jar target/postgresql-mcp-server-1.0.0.jar &"
+if ! ps aux | grep -q "[j]ava.*postgresql-mcp-server"; then
+    echo "⚠️  pg-client-mcp not running"
+    MCP_OK=false
 fi
 
-# 4. Test OAuth
+if ! ps aux | grep -q "[j]ava.*oracle-mcp-server"; then
+    echo "⚠️  oracle-client-mcp not running"
+    MCP_OK=false
+fi
+
+if [ "$MCP_OK" = true ]; then
+    echo "✅ All MCP servers running"
+else
+    echo ""
+    echo "Start MCP servers with:"
+    echo "  cd bin/mcp && ./start-servers.sh"
+fi
+
+# 4. Test Bedrock access
 echo ""
-echo "4. Testing OAuth connection..."
-TOKEN=$(curl -s -X POST https://agentcore-8e9e317c.auth.us-east-1.amazoncognito.com/oauth2/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=5p5b2k57kq43tmodn9otpm451s&client_secret=uo5ge7vlk2350kehra92196lrh20p1aiutki9flsfrltccji4lb&scope=oma-mcp/mcp.access" | jq -r '.access_token')
-
-if [ -z "$TOKEN" ] || [ "$TOKEN" == "null" ]; then
-    echo "❌ Failed to get OAuth token"
-    exit 1
+echo "4. Testing Bedrock access..."
+if aws bedrock list-foundation-models --region us-east-1 --query 'modelSummaries[?contains(modelId, `claude-3-5-sonnet`)].modelId' --output text &> /dev/null; then
+    echo "✅ Bedrock access OK"
+else
+    echo "⚠️  Cannot access Bedrock. Check AWS credentials and permissions"
 fi
-echo "✅ OAuth token obtained"
-
-# 5. Test Bedrock access
-echo ""
-echo "5. Testing Bedrock access..."
-if ! aws bedrock list-foundation-models --region us-east-1 --query 'modelSummaries[?contains(modelId, `claude-3-5-sonnet`)].modelId' --output text &> /dev/null; then
-    echo "❌ Cannot access Bedrock. Check AWS credentials and permissions"
-    exit 1
-fi
-echo "✅ Bedrock access OK"
 
 echo ""
 echo "============================================"
@@ -94,12 +121,12 @@ echo "✅ Setup complete!"
 echo "============================================"
 echo ""
 echo "Environment:"
-echo "  S3 Bucket: ${DMS_SC_S3_BUCKET:-mma-dms-sc-940597661534}"
-echo "  Schema: ${DMS_SC_SCHEMA_NAME:-DEMO}"
+echo "  S3 Bucket: $DMS_SC_S3_BUCKET"
+echo "  Schema: $DMS_SC_SCHEMA_NAME"
 echo ""
 echo "Usage:"
-echo "  python3.11 ora_to_pg_sc_agent.py <s3_path>"
+echo "  $PYTHON_CMD schema_convert_agent.py <s3_path>"
 echo ""
 echo "Example:"
-echo "  python3.11 ora_to_pg_sc_agent.py s3://${DMS_SC_S3_BUCKET:-mma-dms-sc-940597661534}/dms-sc-migration-project/PROJECT.zip"
+echo "  $PYTHON_CMD schema_convert_agent.py s3://$DMS_SC_S3_BUCKET/dms-sc-migration-project/PROJECT.zip"
 echo ""

@@ -64,8 +64,18 @@ def get_migration_project_info(client, project_arn):
     }
 
 def create_selection_rules(schema_name, server_name, database_name):
-    """Create source selection rules - empty rules use project defaults"""
-    return {"rules": []}
+    """Create source selection rules"""
+    return {
+        "rules": [{
+            "rule-id": "1",
+            "rule-name": "1",
+            "rule-action": "explicit",
+            "rule-type": "selection",
+            "object-locator": {
+                "full-path": f'Servers."{server_name}".Schemas.{schema_name}'
+            }
+        }]
+    }
 
 def wait_for_completion(client, describe_func, project_arn, operation_name, request_id=None):
     """Wait for DMS SC operation to complete"""

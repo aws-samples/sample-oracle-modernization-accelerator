@@ -16,6 +16,11 @@ export ORACLE_CONNECTION_TYPE="password"
 export PG_CONNECTION_DETAIL="${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}"
 export ORACLE_CONNECTION_DETAIL="${ORACLE_ADM_USER}:${ORACLE_ADM_PASSWORD}@${ORACLE_HOST}:${ORACLE_PORT}/${ORACLE_SID}"
 
+# Set default S3 path for oma-sc-mcp (use latest DMS SC project if available)
+if [ -n "$DMS_SC_S3_BUCKET" ]; then
+    export OMA_SC_DEFAULT_S3PATH="s3://${DMS_SC_S3_BUCKET}/dms-sc-migration-project/"
+fi
+
 # Kill existing
 pkill -f "oma-sc-mcp-server" 2>/dev/null
 pkill -f "postgresql-mcp-server" 2>/dev/null

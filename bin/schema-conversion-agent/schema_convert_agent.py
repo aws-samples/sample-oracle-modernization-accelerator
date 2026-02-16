@@ -97,13 +97,17 @@ Provide corrected SQL that passes all validations."""
 class ConvertStage:
     """Parallel conversion stage"""
     
-    def __init__(self, oma_sc_client):
+    def __init__(self, oma_sc_client, s3_path):
         self.oma_sc_client = oma_sc_client
+        self.s3_path = s3_path
         self.agent = Agent(
             tools=oma_sc_client.list_tools_sync(),
-            system_prompt="""Extract and convert Oracle DDL to PostgreSQL.
+            system_prompt=f"""Extract and convert Oracle DDL to PostgreSQL.
 Use oma_sc_get_offline_ddl to extract Oracle DDL.
-Use oma_sc_convert_ddl_to_pg to convert to PostgreSQL."""
+Use oma_sc_convert_ddl_to_pg to convert to PostgreSQL.
+
+IMPORTANT: The DMS SC project is at: {s3_path}
+When calling tools, use s3Path parameter: "{s3_path}" """
         )
     
     async def convert_single(self, obj):
@@ -182,9 +186,9 @@ class SchemaConversionOrchestrator:
         
         print("✅ MCP clients ready")
     
-    def setup_stages(self):
+    def setup_stages(self, s3_path):
         """Setup processing stages"""
-        self.convert_stage = ConvertStage(self.oma_sc_client)
+        self.convert_stage = ConvertStage(self.oma_sc_client, s3_path)
         self.validate_stage = ValidationSwarm(self.pg_client, self.oracle_client)
     
     def parse_csv(self, s3_path):
@@ -241,7 +245,7 @@ class SchemaConversionOrchestrator:
         
         # Setup
         self.setup_clients()
-        self.setup_stages()
+        self.setup_stages(s3_path)
         
         # Stage 1: Parse CSV
         objects = self.parse_csv(s3_path)

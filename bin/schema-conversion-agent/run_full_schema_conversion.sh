@@ -8,10 +8,19 @@ echo "Full Oracle to PostgreSQL Workflow"
 echo "Using Strands Agents SDK"
 echo "=========================================="
 
-# Load environment
-source /workshop/mcp/env.sh
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cd /workshop/oma-sc-agent
+# Check if environment is loaded
+if [ -z "$DMS_SC_S3_BUCKET" ]; then
+    echo "❌ Environment not loaded. Please run: source bin/oma_env_demo.sh"
+    exit 1
+fi
+
+# Set schema name
+export DMS_SC_SCHEMA_NAME="${ORACLE_SVC_USER_LIST//\"/}"
+
+cd "$SCRIPT_DIR"
 
 # Step 1: Run DMS SC automation
 echo ""
@@ -20,7 +29,7 @@ OUTPUT=$(python3.11 dms_sc_automation.py 2>&1)
 echo "$OUTPUT"
 
 # Extract S3 path from output
-S3_PATH=$(echo "$OUTPUT" | grep "s3://mma-dms-sc" | grep "\.zip" | tail -1 | awk '{print $NF}')
+S3_PATH=$(echo "$OUTPUT" | grep "s3://${DMS_SC_S3_BUCKET}" | grep "\.zip" | tail -1 | awk '{print $NF}')
 
 if [ -z "$S3_PATH" ]; then
     echo "❌ Failed to get S3 path from DMS SC output"
