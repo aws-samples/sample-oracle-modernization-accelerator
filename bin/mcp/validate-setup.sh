@@ -10,13 +10,13 @@ echo "🔍 Validating OMA MCP Setup"
 echo "============================================================"
 echo ""
 
-# Check if env.sh exists and is sourced
-if [ -f "env.sh" ]; then
-  echo "✅ env.sh found"
-  source env.sh
-else
-  echo "❌ env.sh not found"
+# Check if environment variables are loaded
+if [ -z "$APPLICATION_NAME" ] || [ -z "$ORACLE_HOST" ] || [ -z "$PGHOST" ]; then
+  echo "❌ Environment variables not loaded"
+  echo "Please run: source bin/oma_env_<project>.sh"
   ERRORS=$((ERRORS + 1))
+else
+  echo "✅ Environment variables loaded (project: $APPLICATION_NAME)"
 fi
 
 echo ""
@@ -120,14 +120,16 @@ else
   ERRORS=$((ERRORS + 1))
 fi
 
-# Secrets Manager access
-if [ -n "$PG_CONNECTION_DETAIL" ]; then
+# Secrets Manager access (only if using secretsmanager connection type)
+if [ -n "$PG_CONNECTION_DETAIL" ] && [[ "$PG_CONNECTION_DETAIL" == arn:aws:secretsmanager:* ]]; then
   if aws secretsmanager describe-secret --secret-id "$PG_CONNECTION_DETAIL" &> /dev/null; then
     echo "✅ PostgreSQL secret accessible"
   else
     echo "❌ Cannot access PostgreSQL secret"
     ERRORS=$((ERRORS + 1))
   fi
+else
+  echo "✅ Using direct database connection (not Secrets Manager)"
 fi
 
 # Bedrock access
@@ -142,7 +144,7 @@ echo ""
 echo "4️⃣  Checking MCP Server Builds..."
 echo "------------------------------------------------------------"
 
-if [ -f "oma-sc-mcp/target/oma-sc-mcp-server-1.0.0.jar" ]; then
+if [ -f "schema-conversion-mcp/target/oma-sc-mcp-server-1.0.0.jar" ]; then
   echo "✅ oma-sc-mcp built"
 else
   echo "⚠️  oma-sc-mcp not built (run ./build-all.sh)"
@@ -170,13 +172,13 @@ echo "------------------------------------------------------------"
 if $PYTHON_CMD -c "import boto3, httpx" &> /dev/null; then
   echo "✅ Python dependencies installed"
 else
-  echo "⚙️  Installing Python dependencies..."
-  $PYTHON_CMD -m pip install -r ../oma-sc-agent/requirements.txt --user --quiet
+  echo "⚙️  Installing basic Python dependencies..."
+  $PYTHON_CMD -m pip install boto3 httpx --user --quiet 2>/dev/null
   if $PYTHON_CMD -c "import boto3, httpx" &> /dev/null; then
     echo "✅ Python dependencies installed"
   else
-    echo "❌ Failed to install Python dependencies"
-    ERRORS=$((ERRORS + 1))
+    echo "⚠️  Some Python dependencies missing (optional for MCP servers)"
+    WARNINGS=$((WARNINGS + 1))
   fi
 fi
 

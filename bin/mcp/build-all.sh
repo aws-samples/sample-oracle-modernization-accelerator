@@ -9,10 +9,10 @@ echo
 
 cd "$(dirname "$0")"
 
-echo "=== Building oma-sc-mcp ==="
-cd oma-sc-mcp
+echo "=== Building schema-conversion-mcp ==="
+cd schema-conversion-mcp
 mvn clean package -DskipTests
-echo "✓ oma-sc-mcp built successfully"
+echo "✓ schema-conversion-mcp built successfully"
 echo
 
 cd ..
@@ -37,7 +37,7 @@ echo "=== Build Summary ==="
 echo "All OMA MCP servers built successfully!"
 echo
 echo "JAR files:"
-echo "  - oma-sc-mcp/target/oma-sc-mcp-server-1.0.0.jar"
+echo "  - schema-conversion-mcp/target/oma-sc-mcp-server-1.0.0.jar"
 echo "  - pg-client-mcp/target/postgresql-mcp-server-1.0.0.jar"
 echo "  - oracle-client-mcp/target/oracle-mcp-server-1.0.0.jar"
 
