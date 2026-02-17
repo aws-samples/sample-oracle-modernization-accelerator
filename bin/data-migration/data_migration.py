@@ -210,28 +210,7 @@ def create_and_run_task(dms):
     """Create and run DMS replication task"""
     print("\n🚀 Step 2: Creating DMS replication task...")
     
-    task_id = f"data-migration-{SCHEMA_NAME.lower()}"
-    
-    # Check if task already exists
-    try:
-        existing = dms.describe_replication_tasks(
-            Filters=[{'Name': 'replication-task-id', 'Values': [task_id]}]
-        )
-        if existing['ReplicationTasks']:
-            task_arn = existing['ReplicationTasks'][0]['ReplicationTaskArn']
-            print(f"   ⚠️  Task '{task_id}' already exists, deleting...")
-            dms.delete_replication_task(ReplicationTaskArn=task_arn)
-            
-            # Wait for deletion
-            print("   ⏳ Waiting for deletion...")
-            waiter = dms.get_waiter('replication_task_deleted')
-            waiter.wait(
-                Filters=[{'Name': 'replication-task-arn', 'Values': [task_arn]}],
-                WaiterConfig={'Delay': 15, 'MaxAttempts': 40}
-            )
-            print("   ✅ Old task deleted")
-    except Exception as e:
-        pass  # Task doesn't exist, continue
+    task_id = f"data-migration-{SCHEMA_NAME.lower()}-{int(time.time())}"
     
     try:
         response = dms.create_replication_task(
