@@ -202,6 +202,11 @@ def generate_html_report(pdf_path, csv_files):
         except Exception as e:
             print(f"   ⚠️  Failed to read {csv_file.name}: {e}")
     
+    # Read prompt template
+    prompt_file = Path(__file__).parent / "db_assess_prompt.txt"
+    with open(prompt_file, 'r', encoding='utf-8') as f:
+        prompt_template = f.read()
+    
     # Prepare content
     content = [
         {
@@ -219,38 +224,7 @@ def generate_html_report(pdf_path, csv_files):
     
     content.append({
         "type": "text",
-        "text": f"""Analyze this DMS Schema Conversion assessment report (PDF and CSV data) and generate a comprehensive HTML Database Discovery Report.
-
-CSV Data:
-{csv_text}
-
-Complexity Definitions:
-- Simple: Less than 2 hours per object
-- Medium: 2-6 hours per object  
-- Significant/Complex: More than 6 hours per object
-
-Include:
-1. Executive Summary
-   - Total objects analyzed
-   - Complexity breakdown (Simple/Medium/Complex counts)
-   - Estimated conversion effort in Man-Months (MM)
-     * Calculate: (Simple × 2h + Medium × 4h + Complex × 8h) / 160h per MM
-   - Key findings and recommendations
-
-2. Schema Analysis (tables, views, procedures, functions, packages with counts)
-
-3. Conversion Complexity
-   - Objects by complexity level with counts
-   - Estimated hours and MM per complexity
-   - Top complex objects requiring manual review
-
-4. Action Items (high/medium priority items)
-
-5. Detailed Object List (table with: Object Name, Type, Schema, Complexity, Estimated Hours)
-
-Generate complete HTML with modern CSS styling, responsive tables, color-coded complexity indicators.
-Show MM calculations prominently in the Executive Summary.
-Return ONLY the HTML code."""
+        "text": prompt_template.format(csv_text=csv_text)
     })
     
     # Call Bedrock
@@ -322,13 +296,26 @@ def main():
     report_path = Path(OUTPUT_DIR) / "database_analysis_report.html"
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print(f"   ✅ Report saved")
+    print(f"   ✅ Report saved locally")
+    
+    # Upload to S3
+    print(f"\n☁️  Step 7: Uploading to S3...")
+    s3_key = f"dms-sc-migration-project/database_analysis_report.html"
+    try:
+        s3_client.upload_file(str(report_path), DMS_SC_S3_BUCKET, s3_key)
+        s3_url = f"s3://{DMS_SC_S3_BUCKET}/{s3_key}"
+        print(f"   ✅ Uploaded to {s3_url}")
+    except Exception as e:
+        print(f"   ⚠️  S3 upload failed: {e}")
+        s3_url = None
     
     print("\n" + "="*60)
     print("✅ ASSESSMENT COMPLETE")
     print("="*60)
-    print(f"\n📄 Report: {report_path}")
+    print(f"\n📄 Local: {report_path}")
     print(f"   Open: file://{report_path}")
+    if s3_url:
+        print(f"\n☁️  S3: {s3_url}")
     
     return True
 

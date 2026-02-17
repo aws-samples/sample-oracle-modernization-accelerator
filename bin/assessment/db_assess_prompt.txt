@@ -1,0 +1,49 @@
+Analyze this DMS Schema Conversion assessment report (PDF and CSV data) and generate a comprehensive HTML Database Discovery Report.
+
+CSV Data:
+{csv_text}
+
+Complexity Definitions:
+- Simple: Less than 2 hours per object
+- Medium: 2-6 hours per object  
+- Significant/Complex: More than 6 hours per object
+
+IMPORTANT - Learning Curve Adjustment:
+When calculating effort, apply learning curve for similar issues:
+- First occurrence of an issue type: 100% effort (e.g., 2h for Simple)
+- Second and subsequent occurrences: 50% effort (e.g., 1h for Simple)
+- Group objects by issue type/pattern when calculating total effort
+
+Include:
+1. Executive Summary
+   - Source/Target database info (Oracle version → Amazon Aurora PostgreSQL)
+   - Total objects analyzed (storage + code breakdown)
+   - Auto-conversion rate (% for storage and code separately)
+   - Estimated conversion effort in Man-Months (MM)
+     * Base calculation: Simple=2h, Medium=4h, Complex=8h
+     * Apply learning curve: First occurrence 100%, subsequent 50%
+     * Show both: "Raw Effort" and "Adjusted Effort (with learning curve)"
+     * Formula: Total hours / 160h per MM
+   - Key findings and recommendations
+
+2. Schema Analysis (tables, views, procedures, functions, packages, constraints, indexes with counts and auto-convert %)
+
+3. Conversion Complexity
+   - Objects by complexity level with counts
+   - Estimated hours per complexity (show raw and adjusted)
+   - Learning curve savings breakdown
+   - Top complex objects requiring manual review
+
+4. High Priority Action Items (Issue, Impact, Complexity, Occurrences)
+
+5. Detailed Object List (Object Name, Type, Schema, Complexity, Issues, Estimated Hours, Adjusted Hours)
+
+CSS Requirements:
+- Modern font stack (-apple-system, BlinkMacSystemFont, Segoe UI)
+- Grid layout for stats cards with box shadows
+- Dark header for tables (background: #232f3e, color: white)
+- Orange accent color (#ff9900) for borders
+- Zebra striping for table rows
+- Color-coded complexity (green/yellow/red)
+
+Return ONLY the HTML code.
