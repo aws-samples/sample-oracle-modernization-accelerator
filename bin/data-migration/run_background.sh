@@ -4,7 +4,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="/workshop/dms-sc-output/data_migration_$(date +%Y%m%d_%H%M%S).log"
+BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+OUTPUT_DIR="$BASE_DIR/target-database"
+mkdir -p "$OUTPUT_DIR"
+LOG_FILE="$OUTPUT_DIR/data_migration_$(date +%Y%m%d_%H%M%S).log"
 
 echo "Starting data migration in background..."
 echo "Log file: $LOG_FILE"

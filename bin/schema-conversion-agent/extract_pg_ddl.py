@@ -9,7 +9,9 @@ import psycopg2
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-OUTPUT_DIR = "/workshop/pg-ddl"
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent.parent.parent  # Go up to workshop level
+OUTPUT_DIR = str(BASE_DIR / "target-database" / "pg-ddl")
 
 def get_db_connection():
     """Get PostgreSQL connection"""

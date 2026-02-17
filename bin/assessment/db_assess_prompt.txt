@@ -4,14 +4,14 @@ CSV Data:
 {csv_text}
 
 Complexity Definitions:
-- Simple: Less than 2 hours per object
-- Medium: 2-6 hours per object  
-- Significant/Complex: More than 6 hours per object
+- Simple: Less than 1 hours per object
+- Medium: 1-3 hours per object  
+- Significant/Complex: More than 3 hours per object
 
 IMPORTANT - Learning Curve Adjustment:
 When calculating effort, apply learning curve for similar issues:
-- First occurrence of an issue type: 100% effort (e.g., 2h for Simple)
-- Second and subsequent occurrences: 50% effort (e.g., 1h for Simple)
+- First occurrence of an issue type: 100% effort (e.g., 1h for Simple)
+- Second and subsequent occurrences: 50% effort (e.g., 0.5h for Simple)
 - Group objects by issue type/pattern when calculating total effort
 
 Include:
@@ -34,9 +34,15 @@ Include:
    - Learning curve savings breakdown
    - Top complex objects requiring manual review
 
-4. High Priority Action Items (Issue, Impact, Complexity, Occurrences)
+4. High Priority Action Items (Issue, Impact, Complexity, Occurrences, Recommended Solution)
+   - For each issue, provide specific solution approach:
+     * Code refactoring steps
+     * Alternative PostgreSQL features to use
+     * Workarounds or best practices
+     * Example code snippets where applicable
 
-5. Detailed Object List (Object Name, Type, Schema, Complexity, Issues, Estimated Hours, Adjusted Hours)
+5. Detailed Object List (Object Name, Type, Schema, Complexity, Issues, Recommended Solution, Estimated Hours, Adjusted Hours)
+   - Include specific solution for each object's issues
 
 CSS Requirements:
 - Modern font stack (-apple-system, BlinkMacSystemFont, Segoe UI)

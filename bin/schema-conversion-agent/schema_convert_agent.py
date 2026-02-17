@@ -7,11 +7,13 @@ import os
 import asyncio
 from pathlib import Path
 from mcp.client.sse import sse_client
-from strands import Agent
+from strands.agent import Agent
 from strands.tools.mcp import MCPClient
 
 # Configuration
-OUTPUT_DIR = "/workshop/pg-ddl"
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent.parent.parent  # Go up to workshop level
+OUTPUT_DIR = str(BASE_DIR / "target-database" / "pg-ddl")
 DMS_SC_SCHEMA_NAME = os.getenv("DMS_SC_SCHEMA_NAME", "DEMO")
 
 
@@ -295,6 +297,60 @@ class SchemaConversionOrchestrator:
         print(f"\n📁 Results: {OUTPUT_DIR}/")
 
 
+def get_latest_conversion_zip():
+    """Get latest DMS SC conversion zip from S3 (with CSV files)"""
+    import boto3
+    import zipfile
+    import tempfile
+    
+    bucket = os.getenv("DMS_SC_S3_BUCKET")
+    if not bucket:
+        return None
+    
+    s3 = boto3.client('s3', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = s3.list_objects_v2(
+            Bucket=bucket,
+            Prefix='dms-sc-migration-project/',
+            MaxKeys=1000
+        )
+        
+        if 'Contents' not in response:
+            return None
+        
+        # Filter for .zip files and check if they contain CSV
+        zip_files = [
+            obj for obj in response['Contents']
+            if obj['Key'].endswith('.zip')
+        ]
+        
+        if not zip_files:
+            return None
+        
+        # Find the latest zip that contains CSV files (not just SQL)
+        for obj in sorted(zip_files, key=lambda x: x['LastModified'], reverse=True):
+            try:
+                with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+                    s3.download_file(bucket, obj['Key'], tmp.name)
+                    with zipfile.ZipFile(tmp.name, 'r') as zf:
+                        csv_files = [f for f in zf.namelist() if f.endswith('.csv')]
+                        if csv_files:
+                            s3_path = f"s3://{bucket}/{obj['Key']}"
+                            print(f"Found latest conversion with CSV: {s3_path}")
+                            Path(tmp.name).unlink()
+                            return s3_path
+                    Path(tmp.name).unlink()
+            except Exception as e:
+                continue
+        
+        return None
+        
+    except Exception as e:
+        print(f"Error finding conversion zip: {e}")
+        return None
+
+
 def main(s3_path):
     """Main entry point"""
     orchestrator = SchemaConversionOrchestrator()
@@ -303,10 +359,40 @@ def main(s3_path):
 
 if __name__ == "__main__":
     import sys
+    import boto3
     
-    if len(sys.argv) < 2:
+    # Load environment if not already loaded
+    if not os.getenv("DMS_SC_S3_BUCKET"):
+        import subprocess
+        env_script = Path(__file__).parent.parent / "oma_env_demo.sh"
+        if env_script.exists():
+            print(f"Loading environment from {env_script}...")
+            result = subprocess.run(
+                f"source {env_script} && env",
+                shell=True,
+                executable="/bin/bash",
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                for line in result.stdout.split('\n'):
+                    if '=' in line and not line.startswith('_'):
+                        try:
+                            key, value = line.split('=', 1)
+                            os.environ[key] = value
+                        except:
+                            pass
+    
+    # Get S3 path from argument or auto-discover
+    s3_path = None
+    if len(sys.argv) >= 2:
+        s3_path = sys.argv[1]
+    else:
+        s3_path = get_latest_conversion_zip()
+    
+    if not s3_path:
         print("Usage: python3.11 ora_to_pg_orchestrator.py <s3-path>")
+        print("\nOr set DMS_SC_S3_BUCKET environment variable to auto-discover latest conversion")
         sys.exit(1)
     
-    s3_path = sys.argv[1]
     main(s3_path)

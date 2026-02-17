@@ -14,7 +14,10 @@ from datetime import datetime
 
 # Configuration
 REGION = os.getenv("AWS_REGION", "us-east-1")
-OUTPUT_DIR = "/workshop/dms-sc-output"
+# Get OUTPUT_DIR relative to script location
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent.parent.parent  # Go up to workshop level
+OUTPUT_DIR = str(BASE_DIR / "target-database")
 DMS_SC_S3_BUCKET = os.getenv("DMS_SC_S3_BUCKET")
 DMS_MIGRATION_PROJECT_ARN = os.getenv("DMS_MIGRATION_PROJECT_ARN")
 DMS_SC_SCHEMA_NAME = os.getenv("ORACLE_SVC_USER_LIST", "DEMO").strip('"')

@@ -13,7 +13,7 @@ import json
 import asyncio
 from pathlib import Path
 from mcp.client.sse import sse_client
-from strands import Agent
+from strands.agent import Agent
 from strands.tools.mcp import MCPClient
 
 # Configuration

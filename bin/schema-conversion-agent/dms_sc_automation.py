@@ -9,12 +9,37 @@ import sys
 import os
 import time
 import boto3
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
+# Load environment if not already loaded
+if not os.getenv("DMS_MIGRATION_PROJECT_ARN"):
+    env_script = "/workshop/sample-oracle-modernization-accelerator/bin/oma_env_demo.sh"
+    if os.path.exists(env_script):
+        print(f"Loading environment from {env_script}...")
+        result = subprocess.run(
+            f"source {env_script} && env",
+            shell=True,
+            executable="/bin/bash",
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value
+            print("Environment loaded successfully")
+        else:
+            print(f"Warning: Failed to load environment: {result.stderr}")
+
 # Configuration
 REGION = os.getenv("AWS_REGION", "us-east-1")
-OUTPUT_DIR = "/workshop/dms-sc-output"
+# Get OUTPUT_DIR relative to script location
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent.parent.parent  # Go up to workshop level
+OUTPUT_DIR = str(BASE_DIR / "target-database")
 
 def get_migration_project_arn():
     """Get migration project ARN from environment or parameter"""
@@ -548,9 +573,31 @@ def main(migration_project_arn, schema_name):
         return False
 
 if __name__ == "__main__":
+    # Load environment if not already loaded
+    if not os.getenv("DMS_MIGRATION_PROJECT_ARN"):
+        env_script = "/workshop/sample-oracle-modernization-accelerator/bin/oma_env_demo.sh"
+        if os.path.exists(env_script):
+            print(f"Loading environment from {env_script}...")
+            result = subprocess.run(
+                f"source {env_script} && env",
+                shell=True,
+                executable="/bin/bash",
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                for line in result.stdout.split('\n'):
+                    if '=' in line and not line.startswith('_'):
+                        try:
+                            key, value = line.split('=', 1)
+                            os.environ[key] = value
+                        except:
+                            pass
+                print("Environment loaded successfully\n")
+    
     # Get from environment variables or command line
     migration_project_arn = os.getenv("DMS_MIGRATION_PROJECT_ARN")
-    schema_name = os.getenv("DMS_SC_SCHEMA_NAME")
+    schema_name = os.getenv("DMS_SC_SCHEMA_NAME") or os.getenv("ORACLE_SVC_USER_LIST", "").strip('"')
     
     # Override with command line if provided
     if len(sys.argv) >= 3:
