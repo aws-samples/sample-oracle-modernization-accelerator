@@ -1,0 +1,96 @@
+[COMMON]
+OMA_BASE_DIR=/home/ec2-user/workspace/oma
+# ko,en
+LANGUAGE=en
+AWS_REGION=ap-northeast-2
+
+# Bedrock LLM Configuration
+BEDROCK_REGION=ap-northeast-2
+BEDROCK_MODEL_ID=global.anthropic.claude-opus-4-7
+
+# App Conversion Settings
+MAX_WORKERS=7
+ORACLE_DICT_PATH=${OMA_BASE_DIR}/app/output/oracle_dictionary.json
+MAPPER_WORK_DIR=${OMA_BASE_DIR}/app/mappers
+OMA_TYPE_HANDLERS=com.oma.typehandler.CodeDescTypeHandler,com.oma.typehandler.IcomCodeDescTypeHandler,com.oma.typehandler.UrMstDescTypeHandler
+
+# Database Transform 폴더
+DBMS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/database
+DBMS_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/database
+
+
+# Application Transform 폴더
+APPLICATION_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/application
+APP_TOOLS_FOLDER=${OMA_BASE_DIR}/bin/application
+APP_TRANSFORM_FOLDER=${APPLICATION_FOLDER}/transform
+APP_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/application
+
+# Test 폴더
+TEST_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/test
+TEST_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/test
+
+# Oracle Connection
+ORACLE_HOST=10.0.139.149
+ORACLE_PORT=1521
+ORACLE_SID=ORCLPDB1
+ORACLE_CONN_TYPE=service
+ORACLE_USER=WMSON
+ORACLE_PASSWORD=welcome1
+ORACLE_SCHEMA=WMSON
+
+# PostgreSQL Connection (Standard PG* variables)
+PGHOST=omabox-stack-aurora-cluster.cluster-chgmek0wsdgp.ap-northeast-2.rds.amazonaws.com
+PGPORT=5432
+PGDATABASE=wmson
+PGSCHEMA=wmson
+PGUSER=wmson
+PGPASSWORD=welcome1
+
+# MySQL Connection
+MYSQL_HOST=omabox-stack-aurora-cluster.cluster-chgmek0wsdgp.ap-northeast-2.rds.amazonaws.com
+MYSQL_PORT=3306
+MYSQL_DATABASE=wmson
+MYSQL_USER=wmson
+MYSQL_PASSWORD=welcome1
+
+# Target DB Type (postgres or mysql)
+TARGET_DB_TYPE=postgres
+
+# Application 환경 변수 설정
+[your application name]
+# JAVA_SOURCE_FOLDER : Application Java Source 위치 
+# SOURCE_SQL_MAPPER_FOLDER : 변환 대상이 되는 Source SQL XML 위치
+# TARGET_SQL_MAPPER_FOLDER : 변환된 xml 이 저장 되는 위치
+# TRANSFORM_JNDI : 변환 대상 JNDI 기술 ( ,로 이루어진 리스트 형태가능 )
+# TRANSFORM_RELATED_CLASS : 전체 대상일 경우 : _ALL_
+
+JAVA_SOURCE_FOLDER=${your source application source path}
+SOURCE_SQL_MAPPER_FOLDER=${JAVA_SOURCE_FOLDER}/main/resources
+TARGET_SQL_MAPPER_FOLDER=${your target application mapper path}
+APPLICATION_NAME=${your application name}
+TRANSFORM_JNDI=jdbc
+TRANSFORM_RELATED_CLASS=_ALL_
+
+#Transform DBMS ( orcl, postgres, mysql ), Target DB유형에 따라서 변환 프롬프트 가변 실행
+SOURCE_DBMS_TYPE=orcl
+TARGET_DBMS_TYPE=postgres
+
+#Source DBMS Connection (Legacy - Use [COMMON] section values):
+ORACLE_ADM_USER=${your oracle admin username}
+ORACLE_ADM_PASSWORD=${your oracle admin user password}
+ORACLE_SVC_CONNECT_STRING=${your oracle connect string}
+#Source Migration Schema List
+ORACLE_SVC_USER_LIST="WMSON"
+NLS_DATE_FORMAT=YYYY-MM-DD
+NLS_LANG=KOREAN_KOREA.AL32UTF8
+NLS_TIMESTAMP_FORMAT=YYYY-MM-DD HH24:MI:SS
+
+#TargetSQL Connection (Legacy - Use [COMMON] section values):
+PG_ADM_USER=${your postgres admin username}
+PG_ADM_PASSWORD=${your postgres admin user password}
+PG_SVC_USER=wmson
+PG_SVC_PASSWORD=welcome1
+
+# DMS SC Project Configuration
+DMS_SC_S3_BUCKET=
+DMS_MIGRATION_PROJECT_ARN=

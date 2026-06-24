@@ -1,0 +1,21 @@
+{
+  "enabled": false,
+  "variables": {
+    "GRIDPAGING_ROWNUMTYPE_TOP": {
+      "oracle": "SELECT GRID_PAGING.*, 1 AS PAGING_CURRENT, 1000 AS PAGING_LIMIT FROM (",
+      "postgres": "SELECT GRID_PAGING.*, 1 AS PAGING_CURRENT, 1000 AS PAGING_LIMIT FROM ("
+    },
+    "GRIDPAGING_ROWNUMTYPE_BOTTOM": {
+      "oracle": ") GRID_PAGING WHERE ROWNUM <= 1000",
+      "postgres": ") GRID_PAGING LIMIT '1000'::int OFFSET ('1'::int - 1) * '1000'::int"
+    },
+    "sysdate": {
+      "oracle": "SYSDATE",
+      "postgres": "CURRENT_TIMESTAMP"
+    },
+    "CUSTOM_VARIABLE": {
+      "oracle": "custom_oracle_value",
+      "postgres": "custom_postgres_value"
+    }
+  }
+}

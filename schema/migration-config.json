@@ -1,0 +1,17 @@
+{
+  "project": {
+    "name": "oma-1781670305"
+  },
+  "db": {},
+  "phase1": {
+    "status": "failed",
+    "completed_at": "",
+    "migration_id": "oma-1781670305",
+    "total_duration_seconds": 1676.8,
+    "tables_total": 0,
+    "tables_success": 0,
+    "functions_total": 0,
+    "data_tables_migrated": 0,
+    "data_total_rows": 0
+  }
+}

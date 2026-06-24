@@ -1,0 +1,128 @@
+# ===================================
+# Site-Specific Data (DO NOT COMMIT)
+# ===================================
+
+# Environment configuration
+.env
+.env.*
+
+# Site-specific data
+mappers/
+source/
+target/
+logs/
+
+# Site-specific outputs
+output/*
+!output/.gitkeep
+
+# ===================================
+# Project-Specific Configurations
+# ===================================
+
+# Extension variables (generated per project)
+extensions/extension.json
+
+# OGNL implementation (generated per project)
+docs/OGNL_IMPLEMENTATION_GUIDE.md
+lib/ognl_handlers/ognl_scan_report.json
+lib/ognl_handlers/*.jar
+lib/ognl_handlers/com/
+lib/ognl_handlers/org/
+
+# TypeHandlers (project-specific)
+lib/typehandlers/*.jar
+
+# ===================================
+# Build Artifacts
+# ===================================
+
+# Maven
+tools/validator/target/
+**/target/
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Java
+*.class
+*.jar
+!tools/validator/pom.xml
+
+# ===================================
+# IDE & Editor
+# ===================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ===================================
+# Operating System
+# ===================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+
+# ===================================
+# Temporary Files
+# ===================================
+
+# General
+*.tmp
+*.bak
+*.backup
+*.old
+
+# Compressed files (project-specific backups)
+*.tar.gz
+*.zip
+*.7z
+
+# ===================================
+# Optional: Keep Directory Structure
+# ===================================
+
+# Keep empty directories by adding .gitkeep
+!extensions/.gitkeep
+!lib/ognl_handlers/.gitkeep
+!lib/typehandlers/.gitkeep
+!docs/.gitkeep
+!logs/.gitkeep

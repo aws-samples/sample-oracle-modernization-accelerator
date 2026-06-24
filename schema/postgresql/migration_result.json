@@ -1,0 +1,83 @@
+{
+  "migration_id": "oma-1781670305",
+  "schema_migration": {
+    "migration_id": "oma-1781670305",
+    "status": "FAILED",
+    "error": "[Errno 32] Broken pipe",
+    "error_type": "BrokenPipeError",
+    "duration_seconds": 1603.1,
+    "nodes": {},
+    "execution_order": [],
+    "timestamp": "2026-06-17T04:51:48Z",
+    "resumable": true
+  },
+  "data_migration": {
+    "status": "Status.COMPLETED",
+    "timestamp": "2026-06-17T04:53:02.507763+00:00",
+    "nodes": {
+      "data_migrate": {
+        "status": "Status.COMPLETED",
+        "result_summary": "## Migration Result\n\nUnfortunately, the migration **failed** due to a system-level dependency error. The tool is unable to load a required internal module (`common.tools.postgres_tools`).\n\n```json\n{\n  \"data_migration\": {\n    \"total_tables\": 0,\n    \"total_rows_oracle\": 0,\n    \"total_rows_imported\": 0,\n    \"success_count\": 0,\n    \"failed_count\": 0,\n    \"skipped_count\": 0,\n    \"sequences_synced\": 0,\n    \"tables\": [],\n    \"errors\": [\n      {\n        \"error_type\": \"ModuleNotFoundError\",\n        \"message\": \"No module named 'common.tools.postgres_tools'\",\n        \"resolution\": \"The runtime environment is missing the required 'common.tools.postgres_tools' module. This is a server-side configuration issue that needs to be resolved by the platform/infrastructure team before the migration can proceed.\"\n      }\n    ]\n  }\n}\n```\n\n### What Happened\nThe `migrate_all_tables` tool depends on an internal Python module (`common.tools.postgres_tools`) that is not available in the current runtime environment.\n\n### Recommended Next Steps\n1. **Verify the environment** \u2014 Ensure the migration agent's runtime has all required dependencies installed (particularly `common.tools.postgres_tools`).\n2. **Check deployment configuration** \u2014 The module path suggests a package that should be bundled with the agent but may not have been deployed correctly.\n3. **Retry after fix** \u2014 Once the dependency is resolved, re-run the same command:\n   ```\n   migrate_all_tables(schema='WMSON', truncate_first=True)\n   ```\n\nI'm ready to retry the migration as soon as the environment issue is resolved.\n",
+        "token_usage": {
+          "input_tokens": 4486,
+          "output_tokens": 654
+        },
+        "execution_time": 13895,
+        "execution_count": 1
+      },
+      "data_verify": {
+        "status": "Status.COMPLETED",
+        "result_summary": "I now have all the information needed to provide the comprehensive verification report.\n\n---\n\n# Data Verification Report \u2014 CRITICAL FAILURE\n\n## Summary\n\nThe data migration from Oracle schema `WMSON` to PostgreSQL **completely failed**. The PostgreSQL database has the correct schema structure (688 tables, 226 sequences), but **ALL tables contain ZERO rows**. The Oracle source contains **265,421,039 rows** across 487 non-empty tables.\n\n## Root Cause\n\nAs reported by the data migration agent, the migration tool (`migrate_all_tables`) failed due to a `ModuleNotFoundError: No module named 'common.tools.postgres_tools'`. This means no data was ever transferred.\n\n## Verification Results\n\n| Check | Oracle | PostgreSQL | Status |\n|-------|--------|-----------|--------|\n| Total Tables | 688 | 688 | \u2705 Schema matches |\n| Total Rows | 265,421,039 | 0 | \u274c **CRITICAL: 0% migrated** |\n| Non-empty Tables | 487 | 0 | \u274c **CRITICAL** |\n| Sequences | N/A | 226 exist | \u26a0\ufe0f Not synced |\n\n## Key Tables With Data Loss\n\n| Table | Oracle Rows | PG Rows | Gap |\n|-------|------------|---------|-----|\n| TWORK_INFO_IVHS | 34,510,256 | 0 | -34,510,256 |\n| TORDER_INFO_CO_DT | 20,299,288 | 0 | -20,299,288 |\n| TORDER_INFO_SO_DT | 20,099,650 | 0 | -20,099,650 |\n| TWORK_INFO_OB_DT | 19,832,312 | 0 | -19,832,312 |\n| TORDER_INFO_SO_WBLNO | 8,481,137 | 0 | -8,481,137 |\n| TWORK_INFO_AL_DT | 8,427,126 | 0 | -8,427,126 |\n| TORDER_EAI_DLVPERFORMANCE_BATCH | 8,379,547 | 0 | -8,379,547 |\n| TORDER_INFO_WMS_PERFORMANCE | 8,321,158 | 0 | -8,321,158 |\n| TWORK_INFO_PI_DT | 8,428,093 | 0 | -8,428,093 |\n| TWORK_INTF_OB_DT_RCV | 8,936,384 | 0 | -8,936,384 |\n\n```json\n{\n  \"data_verification\": {\n    \"overall_status\": \"FAIL\",\n    \"row_count_check\": {\n      \"status\": \"FAIL\",\n      \"total_oracle\": 265421039,\n      \"total_pg\": 0,\n      \"tables_checked\": 688,\n      \"tables_with_data_oracle\": 487,\n      \"tables_with_data_pg\": 0,\n      \"mismatches\": [\n        {\n          \"description\": \"ALL 487 non-empty Oracle tables have 0 ro...",
+        "token_usage": {
+          "input_tokens": 462496,
+          "output_tokens": 2530
+        },
+        "execution_time": 59786,
+        "execution_count": 1
+      }
+    },
+    "metrics": {
+      "total_tokens": 470166,
+      "total_input_tokens": 466982,
+      "total_output_tokens": 3184,
+      "duration_seconds": 0,
+      "execution_order": [
+        "data_migrate",
+        "data_verify"
+      ],
+      "nodes": {
+        "data_migrate": {
+          "input_tokens": 4486,
+          "output_tokens": 654,
+          "duration_seconds": 13895,
+          "status": "Status.COMPLETED",
+          "execution_count": 1
+        },
+        "data_verify": {
+          "input_tokens": 462496,
+          "output_tokens": 2530,
+          "duration_seconds": 59786,
+          "status": "Status.COMPLETED",
+          "execution_count": 1
+        }
+      }
+    },
+    "execution_time": 0,
+    "total_nodes": 2,
+    "completed_nodes": 2,
+    "failed_nodes": 0,
+    "execution_order": [
+      "data_migrate",
+      "data_verify"
+    ]
+  },
+  "data_verification": {
+    "success": false,
+    "error": "No module named 'common.tools.postgres_tools'",
+    "data_migration": {},
+    "data_verification": {
+      "overall_status": "ERROR"
+    }
+  },
+  "total_duration_seconds": 1676.8
+}

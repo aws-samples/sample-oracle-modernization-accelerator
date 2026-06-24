@@ -1,0 +1,69 @@
+[COMMON]
+OMA_BASE_DIR=/home/ec2-user/workspace/oma
+# ko,en
+LANGUAGE=en
+AWS_REGION=ap-northeast-2
+
+# Database Transform 폴더
+DBMS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/database
+DBMS_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/database
+
+
+# Application Transform 폴더
+APPLICATION_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/application
+APP_TOOLS_FOLDER=${OMA_BASE_DIR}/bin/application
+APP_TRANSFORM_FOLDER=${APPLICATION_FOLDER}/transform
+APP_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/application
+
+# Test 폴더
+TEST_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/test
+TEST_LOGS_FOLDER=${OMA_BASE_DIR}/${APPLICATION_NAME}/logs/test
+
+# Application 환경 변수 설정
+[erp]
+# JAVA_SOURCE_FOLDER : Application Java Source 위치 
+# SOURCE_SQL_MAPPER_FOLDER : 변환 대상이 되는 Source SQL XML 위치
+# TARGET_SQL_MAPPER_FOLDER : 변환된 xml 이 저장 되는 위치
+# TRANSFORM_JNDI : 변환 대상 JNDI 기술 ( ,로 이루어진 리스트 형태가능 )
+# TRANSFORM_RELATED_CLASS : 전체 대상일 경우 : _ALL_
+
+JAVA_SOURCE_FOLDER=/home/ec2-user/workspace/orcl-erp/src
+SOURCE_SQL_MAPPER_FOLDER=${JAVA_SOURCE_FOLDER}/main/resources
+TARGET_SQL_MAPPER_FOLDER=/home/ec2-user/workspace/pg-erp/src/main/resources
+APPLICATION_NAME=erp
+TRANSFORM_JNDI=jdbc
+TRANSFORM_RELATED_CLASS=_ALL_
+
+#Transform DBMS ( orcl, postgres, mysql ), Target DB유형에 따라서 변환 프롬프트 가변 실행
+SOURCE_DBMS_TYPE=orcl
+TARGET_DBMS_TYPE=postgres
+
+#Source DBMS Connection:
+ORACLE_ADM_USER=system
+ORACLE_ADM_PASSWORD=welcome1
+ORACLE_HOST=10.0.130.90
+ORACLE_PORT=1521
+ORACLE_SID=XEPDB1
+ORACLE_SVC_USER=erp
+ORACLE_SVC_PASSWORD=welcome1
+ORACLE_SVC_CONNECT_STRING=10.0.130.90:1521/XEPDB1
+#Source Migration Schema List
+ORACLE_SVC_USER_LIST="ERP"
+NLS_DATE_FORMAT=YYYY-MM-DD
+NLS_LANG=KOREAN_KOREA.AL32UTF8
+NLS_TIMESTAMP_FORMAT=YYYY-MM-DD HH24:MI:SS
+
+#TargetSQL Connection:
+PG_SVC_PASSWORD=welcome1
+PGPORT=5432
+PG_ADM_USER=postgres
+PG_ADM_PASSWORD=welcome1
+PG_SVC_USER=erp
+PGUSER=postgres
+PGPASSWORD=welcome1
+PGDATABASE=erp
+PGHOST=
+
+# DMS SC Project Configuration
+DMS_SC_S3_BUCKET=
+DMS_MIGRATION_PROJECT_ARN=

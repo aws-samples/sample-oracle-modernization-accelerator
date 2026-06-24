@@ -1,0 +1,717 @@
+"""
+PostgreSQL Database MCP Tools
+
+Tools for interacting with PostgreSQL databases including DDL execution,
+query validation, syntax checking, and metadata queries.
+"""
+
+import os
+import json
+import asyncio
+import threading
+from typing import Optional
+import asyncpg
+from strands import tool
+
+
+_aurora_secret_cache: dict | None = None
+
+
+def _run_async(coro):
+    """Run an async coroutine safely, whether or not an event loop is running."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop is not None and loop.is_running():
+        # We're inside an already-running loop (e.g. Strands agent).
+        # Run in a separate thread with its own event loop.
+        result = [None]
+        exception = [None]
+
+        def _thread_target():
+            try:
+                result[0] = asyncio.run(coro)
+            except Exception as e:
+                exception[0] = e
+
+        t = threading.Thread(target=_thread_target)
+        t.start()
+        t.join()
+        if exception[0] is not None:
+            raise exception[0]
+        return result[0]
+    else:
+        return asyncio.run(coro)
+
+
+def _get_aurora_secret() -> dict | None:
+    """Load Aurora credentials from Secrets Manager (cached)."""
+    global _aurora_secret_cache
+    if _aurora_secret_cache is not None:
+        return _aurora_secret_cache
+    try:
+        import boto3
+        region = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-2")
+        client = boto3.client("secretsmanager", region_name=region)
+        val = client.get_secret_value(SecretId="oma-secret-postgres-service")
+        _aurora_secret_cache = json.loads(val["SecretString"])
+        return _aurora_secret_cache
+    except Exception:
+        pass
+    _aurora_secret_cache = {}
+    return _aurora_secret_cache
+
+
+async def get_pg_connection():
+    """
+    Create PostgreSQL database connection.
+
+    Priority: env vars (PG*) > Secrets Manager > defaults.
+    """
+    sm = _get_aurora_secret() or {}
+
+    host = os.environ.get('PGHOST') or sm.get('host') or 'localhost'
+    port = int(os.environ.get('PGPORT') or sm.get('port', '5432'))
+    database = os.environ.get('PGDATABASE') or sm.get('dbname') or sm.get('database')
+    user = os.environ.get('PGUSER') or sm.get('username')
+    password = os.environ.get('PGPASSWORD') or sm.get('password')
+
+    if not all([database, user, password]):
+        raise ValueError(
+            "Missing PostgreSQL credentials. Set PG* env vars or configure Secrets Manager."
+        )
+
+    conn = await asyncpg.connect(
+        host=host,
+        port=port,
+        database=database,
+        user=user,
+        password=password,
+    )
+    # Set search_path to include the user's schema so unqualified table
+    # references resolve correctly (e.g. app queries without schema prefix).
+    try:
+        await conn.execute(f'SET search_path TO "{user}", public')
+    except Exception:
+        pass
+    return conn
+
+
+@tool
+def pg_execute_ddl(sql: str) -> str:
+    """
+    Execute DDL statement on PostgreSQL database.
+
+    Args:
+        sql: DDL statement to execute (CREATE, ALTER, DROP, etc.)
+
+    Returns:
+        JSON string with execution result. Format:
+        {
+            "success": true,
+            "message": "DDL executed successfully",
+            "rows_affected": 0
+        }
+
+    Example:
+        >>> pg_execute_ddl("CREATE TABLE test (id SERIAL PRIMARY KEY, name VARCHAR(100))")
+    """
+    async def _execute():
+        try:
+            conn = await get_pg_connection()
+
+            # Execute DDL
+            result = await conn.execute(sql)
+
+            await conn.close()
+
+            return json.dumps({
+                "success": True,
+                "message": "DDL executed successfully",
+                "result": result
+            })
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+
+    return _run_async(_execute())
+
+
+@tool
+def pg_query(sql: str) -> str:
+    """
+    Execute read-only SQL query on PostgreSQL database.
+
+    Args:
+        sql: SELECT query to execute
+
+    Returns:
+        JSON string with query results. Format:
+        {
+            "success": true,
+            "rows": [...],
+            "row_count": N,
+            "columns": [...]
+        }
+
+    Example:
+        >>> pg_query("SELECT * FROM users LIMIT 10")
+    """
+    async def _query():
+        try:
+            # Validate SQL is read-only
+            sql_upper = sql.strip().upper()
+            if not sql_upper.startswith('SELECT') and not sql_upper.startswith('WITH'):
+                return json.dumps({
+                    "success": False,
+                    "error": "Only SELECT queries are allowed"
+                })
+
+            conn = await get_pg_connection()
+
+            # Execute query
+            rows = await conn.fetch(sql)
+
+            await conn.close()
+
+            # Convert rows to dict
+            result_rows = [dict(row) for row in rows]
+            columns = list(result_rows[0].keys()) if result_rows else []
+
+            return json.dumps({
+                "success": True,
+                "rows": result_rows,
+                "row_count": len(result_rows),
+                "columns": columns
+            }, default=str)
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+
+    return _run_async(_query())
+
+
+@tool
+def pg_explain(sql: str) -> str:
+    """
+    Run EXPLAIN ANALYZE on a query to get execution plan.
+
+    Args:
+        sql: Query to analyze
+
+    Returns:
+        JSON string with query plan. Format:
+        {
+            "success": true,
+            "plan": [...],
+            "execution_time": 123.45
+        }
+
+    Example:
+        >>> pg_explain("SELECT * FROM large_table WHERE id > 1000")
+    """
+    async def _explain():
+        try:
+            conn = await get_pg_connection()
+
+            # Execute EXPLAIN ANALYZE
+            explain_sql = f"EXPLAIN (ANALYZE, FORMAT JSON) {sql}"
+            result = await conn.fetchval(explain_sql)
+
+            await conn.close()
+
+            # Extract execution time
+            plan = result[0] if result else {}
+            execution_time = plan.get('Execution Time', 0) if isinstance(plan, dict) else 0
+
+            return json.dumps({
+                "success": True,
+                "plan": result,
+                "execution_time": execution_time
+            }, default=str)
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+
+    return _run_async(_explain())
+
+
+@tool
+def pg_syntax_check(sql: str) -> str:
+    """
+    Check SQL syntax without executing (using PREPARE and immediate DEALLOCATE).
+
+    Args:
+        sql: SQL statement to validate
+
+    Returns:
+        JSON string with validation result. Format:
+        {
+            "success": true,
+            "valid": true,
+            "message": "Syntax is valid"
+        }
+
+    Example:
+        >>> pg_syntax_check("CREATE TABLE test (id INTEGER PRIMARY KEY)")
+    """
+    async def _syntax_check():
+        conn = None
+        try:
+            conn = await get_pg_connection()
+
+            # Use a savepoint-based approach: start transaction, try the SQL, rollback
+            tr = conn.transaction()
+            await tr.start()
+            try:
+                if sql.strip().upper().startswith('SELECT'):
+                    await conn.fetch(f"EXPLAIN {sql}")
+                else:
+                    # For DDL, execute inside transaction then rollback
+                    await conn.execute(sql)
+            except Exception as e:
+                # SQL syntax error — rollback and report
+                await tr.rollback()
+                return json.dumps({
+                    "success": True,
+                    "valid": False,
+                    "error": str(e)
+                })
+            else:
+                # SQL is valid — rollback to avoid side effects
+                await tr.rollback()
+                return json.dumps({
+                    "success": True,
+                    "valid": True,
+                    "message": "Syntax is valid"
+                })
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+        finally:
+            if conn:
+                await conn.close()
+
+    return _run_async(_syntax_check())
+
+
+@tool
+def pg_get_column_type(table_name: str, column_name: str) -> str:
+    """
+    Get column data type from information_schema.
+
+    Args:
+        table_name: Table name
+        column_name: Column name
+
+    Returns:
+        JSON string with column type info. Format:
+        {
+            "success": true,
+            "table_name": "users",
+            "column_name": "email",
+            "data_type": "character varying",
+            "character_maximum_length": 255,
+            "is_nullable": "NO"
+        }
+
+    Example:
+        >>> pg_get_column_type("users", "email")
+    """
+    async def _get_column_type():
+        try:
+            conn = await get_pg_connection()
+
+            query = """
+                SELECT
+                    table_schema,
+                    table_name,
+                    column_name,
+                    data_type,
+                    character_maximum_length,
+                    numeric_precision,
+                    numeric_scale,
+                    is_nullable,
+                    column_default
+                FROM information_schema.columns
+                WHERE table_name = $1
+                  AND column_name = $2
+            """
+
+            row = await conn.fetchrow(query, table_name.lower(), column_name.lower())
+
+            await conn.close()
+
+            if row:
+                result = dict(row)
+                return json.dumps({
+                    "success": True,
+                    **result
+                }, default=str)
+            else:
+                return json.dumps({
+                    "success": False,
+                    "error": f"Column {column_name} not found in table {table_name}"
+                })
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+
+    return _run_async(_get_column_type())
+
+
+@tool
+def pg_get_table_list() -> str:
+    """
+    List all tables in current schema.
+
+    Returns:
+        JSON string with table list. Format:
+        {
+            "success": true,
+            "tables": [
+                {
+                    "table_schema": "public",
+                    "table_name": "users",
+                    "table_type": "BASE TABLE"
+                },
+                ...
+            ]
+        }
+
+    Example:
+        >>> pg_get_table_list()
+    """
+    async def _get_table_list():
+        try:
+            conn = await get_pg_connection()
+
+            query = """
+                SELECT
+                    table_schema,
+                    table_name,
+                    table_type
+                FROM information_schema.tables
+                WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+                ORDER BY table_schema, table_name
+            """
+
+            rows = await conn.fetch(query)
+
+            await conn.close()
+
+            tables = [dict(row) for row in rows]
+
+            return json.dumps({
+                "success": True,
+                "tables": tables,
+                "count": len(tables)
+            })
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__
+            })
+
+    return _run_async(_get_table_list())
+
+
+def pg_import_table_data(table_name: str, columns: str, rows: str) -> str:
+    """
+    Import rows into a PostgreSQL table from JSON data.
+
+    Automatically coerces Oracle data types to PostgreSQL equivalents:
+    - String timestamps -> datetime objects
+    - Numeric strings -> proper types
+    - None/null handling
+
+    Args:
+        table_name: Target table name (lowercase)
+        columns: JSON array of column names, e.g. '["user_id", "username"]'
+        rows: JSON array of row arrays, e.g. '[[1, "john"], [2, "jane"]]'
+
+    Returns:
+        JSON string with import result:
+        {"success": true, "table_name": "users", "rows_inserted": 500}
+
+    Example:
+        >>> pg_import_table_data("users", '["user_id","name"]', '[[1,"john"]]')
+    """
+    async def _import():
+        try:
+            from datetime import datetime as _dt
+            from decimal import Decimal as _Decimal
+
+            col_list = json.loads(columns)
+            row_list = json.loads(rows)
+
+            if not col_list or not row_list:
+                return json.dumps({
+                    "success": True,
+                    "table_name": table_name,
+                    "rows_inserted": 0,
+                    "message": "No data to import",
+                })
+
+            conn = await get_pg_connection()
+
+            # Try to disable FK constraint checking (requires superuser/rds_superuser)
+            try:
+                await conn.execute("SET session_replication_role = 'replica'")
+            except Exception:
+                pass  # Will rely on caller to handle FK ordering
+
+            # Query target column types and identify generated columns
+            pg_cols = [c.lower() for c in col_list]
+            type_query = """
+                SELECT column_name, data_type, is_generated
+                FROM information_schema.columns
+                WHERE table_name = $1 AND table_schema = 'public'
+            """
+            type_rows = await conn.fetch(type_query, table_name.lower())
+            col_types = {r["column_name"]: r["data_type"] for r in type_rows}
+            generated_cols = {r["column_name"] for r in type_rows if r["is_generated"] == "ALWAYS"}
+
+            # Filter out generated columns from insert
+            if generated_cols:
+                keep_idx = [i for i, c in enumerate(pg_cols) if c not in generated_cols]
+                pg_cols = [pg_cols[i] for i in keep_idx]
+                row_list = [[row[i] for i in keep_idx] for row in row_list]
+
+            def coerce_value(val, col_name):
+                """Coerce an Oracle-exported value to match PG column type."""
+                if val is None:
+                    return None
+
+                pg_type = col_types.get(col_name, "")
+
+                # Timestamp columns: parse string to datetime
+                if "timestamp" in pg_type:
+                    if isinstance(val, str):
+                        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S",
+                                    "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S.%f"):
+                            try:
+                                return _dt.strptime(val, fmt)
+                            except ValueError:
+                                continue
+                        return val  # fallback
+                    return val
+
+                # Date columns: parse to date
+                if pg_type == "date":
+                    if isinstance(val, str):
+                        try:
+                            return _dt.strptime(val[:10], "%Y-%m-%d").date()
+                        except ValueError:
+                            return val
+                    return val
+
+                # Numeric/decimal columns: ensure proper numeric type
+                if pg_type in ("numeric", "integer", "bigint", "smallint", "double precision", "real"):
+                    if isinstance(val, str):
+                        try:
+                            return _Decimal(val) if "." in val else int(val)
+                        except (ValueError, Exception):
+                            return val
+                    return val
+
+                # Character/text columns: ensure string
+                if pg_type in ("character varying", "character", "text", "char"):
+                    return str(val) if val is not None else None
+
+                # Boolean
+                if pg_type == "boolean":
+                    if isinstance(val, str):
+                        return val.upper() in ("Y", "TRUE", "1", "T")
+                    return bool(val)
+
+                return val
+
+            col_str = ", ".join(f'"{c}"' for c in pg_cols)
+            placeholders = ", ".join(f"${i+1}" for i in range(len(pg_cols)))
+            insert_sql = f'INSERT INTO "{table_name.lower()}" ({col_str}) VALUES ({placeholders}) ON CONFLICT DO NOTHING'
+
+            inserted = 0
+            errors = 0
+            first_error = None
+            for row in row_list:
+                try:
+                    coerced = [coerce_value(row[i], pg_cols[i]) for i in range(len(pg_cols))]
+                    await conn.execute(insert_sql, *coerced)
+                    inserted += 1
+                except Exception as row_err:
+                    errors += 1
+                    if first_error is None:
+                        first_error = str(row_err)
+
+            await conn.close()
+
+            result = {
+                "success": True,
+                "table_name": table_name.lower(),
+                "rows_inserted": inserted,
+                "rows_attempted": len(row_list),
+                "errors": errors,
+            }
+            if first_error:
+                result["first_error"] = first_error
+            return json.dumps(result)
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "table_name": table_name,
+                "error": str(e),
+                "error_type": type(e).__name__,
+            })
+
+    return _run_async(_import())
+
+
+@tool
+def pg_sync_sequences() -> str:
+    """
+    Sync all PostgreSQL sequences to match max(id) + 1 for their tables.
+
+    Finds all sequences, identifies which table/column they serve,
+    and sets the sequence value to max(column_value) + 1.
+
+    Returns:
+        JSON string with sync results:
+        {"success": true, "synced": [{"sequence": "...", "table": "...", "new_val": 501}]}
+
+    Example:
+        >>> pg_sync_sequences()
+    """
+    async def _sync():
+        try:
+            conn = await get_pg_connection()
+
+            # First try auto-linked sequences (SERIAL/IDENTITY columns)
+            auto_query = """
+                SELECT
+                    s.relname AS seq_name,
+                    t.relname AS table_name,
+                    a.attname AS column_name
+                FROM pg_class s
+                JOIN pg_depend d ON d.objid = s.oid
+                JOIN pg_class t ON t.oid = d.refobjid
+                JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+                WHERE s.relkind = 'S'
+                  AND d.deptype = 'a'
+                ORDER BY s.relname
+            """
+            auto_rows = await conn.fetch(auto_query)
+
+            # Also find standalone sequences (Oracle-style seq_<table>)
+            # and match them to tables by naming convention
+            all_seq_query = """
+                SELECT sequencename FROM pg_sequences
+                WHERE schemaname = 'public'
+                ORDER BY sequencename
+            """
+            all_seqs = await conn.fetch(all_seq_query)
+
+            all_tables_query = """
+                SELECT table_name FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+            """
+            all_tables = {r["table_name"] for r in await conn.fetch(all_tables_query)}
+
+            # Build mapping: seq_name -> (table_name, column_name)
+            seq_map = {}
+            # From auto-links
+            for row in auto_rows:
+                seq_map[row["seq_name"]] = (row["table_name"], row["column_name"])
+
+            # From naming convention: seq_<tablename> -> <tablename>.<tablename_singular>_id or first PK column
+            auto_linked = {row["seq_name"] for row in auto_rows}
+            for row in all_seqs:
+                sname = row["sequencename"]
+                if sname in auto_linked:
+                    continue
+                # Try seq_<table> pattern
+                if sname.startswith("seq_"):
+                    tname = sname[4:]  # remove seq_ prefix
+                    if tname in all_tables:
+                        # Find primary key column
+                        pk_query = """
+                            SELECT a.attname
+                            FROM pg_index i
+                            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+                            WHERE i.indrelid = $1::regclass AND i.indisprimary
+                            LIMIT 1
+                        """
+                        try:
+                            pk_col = await conn.fetchval(pk_query, tname)
+                            if pk_col:
+                                seq_map[sname] = (tname, pk_col)
+                        except Exception:
+                            pass
+
+            synced = []
+            errors = []
+
+            for seq_name, (table_name, col_name) in seq_map.items():
+                try:
+                    max_val = await conn.fetchval(
+                        f'SELECT COALESCE(MAX("{col_name}"), 0) FROM "{table_name}"'
+                    )
+                    new_val = max_val + 1
+                    await conn.execute(
+                        f"SELECT setval('{seq_name}', $1, true)", max_val if max_val > 0 else 1
+                    )
+                    synced.append({
+                        "sequence": seq_name,
+                        "table": table_name,
+                        "column": col_name,
+                        "max_value": max_val,
+                        "new_val": new_val,
+                    })
+                except Exception as e:
+                    errors.append({
+                        "sequence": seq_name,
+                        "error": str(e),
+                    })
+
+            await conn.close()
+
+            return json.dumps({
+                "success": True,
+                "synced": synced,
+                "synced_count": len(synced),
+                "errors": errors,
+            }, default=str)
+
+        except Exception as e:
+            return json.dumps({
+                "success": False,
+                "error": str(e),
+                "error_type": type(e).__name__,
+            })
+
+    return _run_async(_sync())

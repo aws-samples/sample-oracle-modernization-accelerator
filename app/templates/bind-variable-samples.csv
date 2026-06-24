@@ -1,0 +1,8 @@
+source_file,sql_id,parameter_name,sample_value,data_type,if_test
+sample-mapper.xml,selectUser,userId,USR001,VARCHAR,
+sample-mapper.xml,selectUser,status,ACTIVE,VARCHAR,status != null
+sample-mapper.xml,selectItems,itemId,1001,INTEGER,
+sample-mapper.xml,selectItems,itemId,1002,INTEGER,
+sample-mapper.xml,selectItems,itemId,1003,INTEGER,
+sample-mapper.xml,insertOrder,totalAmount,50000,NUMERIC,
+sample-mapper.xml,insertOrder,orderDate,2026-01-01,DATE,
