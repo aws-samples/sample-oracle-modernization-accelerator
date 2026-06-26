@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMA Schema2 - Simplified Migration Pipeline
+OMA Schema - Simplified Migration Pipeline
 
 Simple, procedural, agent-minimal approach:
 1. DMS SC Auto-Conversion (95%)
@@ -22,7 +22,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("oma.schema2")
+logger = logging.getLogger("oma.schema")
 
 
 def load_environment():
@@ -86,7 +86,7 @@ def load_environment():
 def main():
     """Main migration pipeline."""
     logger.info("=" * 60)
-    logger.info("OMA Schema2 - Simplified Migration Pipeline")
+    logger.info("OMA Schema - Simplified Migration Pipeline")
     logger.info("=" * 60)
 
     # Load environment

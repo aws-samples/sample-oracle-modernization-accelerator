@@ -177,8 +177,8 @@ psql -c "SELECT version();"  # 별도 -h, -p, -U 옵션 불필요!
 Schema 변환 프로그램이 자동으로 `oma.properties`를 읽습니다.
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 
 # 내부에서 자동으로:
 # 1. oma.properties [COMMON] 섹션 로드

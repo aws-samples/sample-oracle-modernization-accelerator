@@ -179,8 +179,8 @@ psql -c "SELECT version();"  # No need for -h, -p, -U options!
 The schema conversion program automatically reads `oma.properties`.
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 
 # Internally:
 # 1. Load oma.properties [COMMON] section

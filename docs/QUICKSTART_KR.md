@@ -3,7 +3,7 @@
 Oracle에서 PostgreSQL/MySQL로 30분 안에 마이그레이션을 시작하세요.
 
 > 영어 버전: [QUICKSTART.md](QUICKSTART.md)  
-> 전체 문서: [README_KR.md](README_KR.md)
+> 전체 문서: [README_KR.md](../README_KR.md)
 
 ---
 
@@ -210,65 +210,101 @@ python3.11 --version
 
 ---
 
-## Step 2: Schema Migration (10-60분)
+## Step 2: Schema Migration (~30분 + Data Migration)
 
 ### 2.1. Schema 마이그레이션 실행
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 **실행 중 출력 예시:**
 
 ```
-[INFO] PHASE 1: Schema Migration Pipeline
-[INFO] Discovering Oracle schema: YOUR_SCHEMA
-[INFO] Found 688 tables, 2450 indexes, 1230 constraints
-[INFO] Agent 'Code Migrator': Converting DDL...
-[INFO] Schema status: COMPLETED (245.3s)
+[INFO] ============================================================
+[INFO] OMA Schema - Simplified Migration Pipeline
+[INFO] ============================================================
+[INFO] Loading environment...
+[INFO] ✓ Environment loaded
+[INFO] Oracle schema: YOUR_SCHEMA
+[INFO] PostgreSQL: app_user@postgres-oma.xxxxx/postgres (schema: your_schema)
 
-[INFO] PHASE 2: Data Migration via DMS Full Load Task
-[INFO] Creating DMS Full Load task...
+[INFO] ============================================================
+[INFO] Step 1: DMS Schema Conversion (95% 자동)
+[INFO] ============================================================
+[INFO] Running DMS SC conversion...
+[INFO] DMS SC Summary:
+[INFO]   Total objects: 688
+[INFO]   Converted: 680
+[INFO]   Failed: 8
+
+[INFO] ============================================================
+[INFO] Step 1.5: Fixing Oracle PK NUMBER columns
+[INFO] ============================================================
+[INFO] Applying PK type fixes...
+[INFO] ✓ Fixed 45 PK columns
+
+[INFO] ============================================================
+[INFO] Step 2: Dropping FK Constraints
+[INFO] ============================================================
+[INFO] ✓ Dropped 230 constraints
+
+[INFO] ============================================================
+[INFO] Step 3: DMS Full Load
+[INFO] ============================================================
+[INFO] Discovering DMS infrastructure...
+[INFO] Creating Full Load task...
 [INFO] DMS task progress: 25% (tables=172, rows=3,456,789)
 [INFO] DMS task progress: 50% (tables=344, rows=7,891,234)
-[INFO] Data migration completed in 1834.2s
+[INFO] DMS task progress: 100% (tables=688, rows=15,234,567)
 
-[INFO] PHASE 3: Data Integrity Verification
-[INFO] Verification completed: 688 matches, 0 mismatches
+[INFO] ============================================================
+[INFO] Step 4: Recreating FK Constraints
+[INFO] ============================================================
+[INFO] ✓ Recreated 230 constraints
 
-[INFO] PHASE 4: Report Generation
-✓ Migration report saved to: results/migration-report.json
+[INFO] ============================================================
+[INFO] Step 5: Launching Conversion Agent (Background)
+[INFO] ============================================================
+[INFO] ✓ Conversion Agent launched in background
+[INFO]   (Will download S3 results and convert complex objects)
+
+[INFO] ============================================================
+[INFO] Migration Completed Successfully!
+[INFO] ============================================================
+[INFO] DMS SC: 680 objects converted, 8 failed
+[INFO] Data Load: 688 tables, 15,234,567 rows
+[INFO] Constraints: 230 dropped, 230 recreated
 ```
 
 ### 2.2. 결과 확인
 
 ```bash
-# 변환된 DDL 확인
-cat results/ddl_output.sql | head -50
+# Conversion Agent 로그 확인
+cat /tmp/conversion_agent.log
 
-# 마이그레이션 리포트 확인
-cat results/migration-report.json | jq '.'
+# PostgreSQL 객체 확인
+psql -h $PGHOST -U $PGUSER -d $PGDATABASE -c \
+  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'your_schema';"
 
-# 데이터 검증 리포트
-cat results/verification-report.json | jq '.summary'
+# DMS Task 통계 확인
+aws dms describe-table-statistics --replication-task-arn <arn>
 ```
 
-### 2.3. (선택사항) 중단된 마이그레이션 재개
+### 2.3. (선택사항) 중단된 마이그레이션 재실행
 
 ```bash
-# 중단된 migration_id 확인
-ls results/checkpoints/
-
-# 재개
-python3.11 run_migration.py --resume oma-migration-1719876543
+# main.py는 멱등성을 가집니다 - 단순히 다시 실행
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 ✅ **Step 2 완료!** Schema와 데이터가 모두 마이그레이션되었습니다.
 
 ---
 
-## Step 3: App Migration (10-30분)
+## Step 3: App Migration (30-60분)
 
 **⚠️ 중요: App 변환은 반드시 Claude Code를 사용하여 스킬로 실행합니다!**
 
@@ -753,7 +789,7 @@ export DMS_SOURCE_ENDPOINT_ARN="arn:aws:dms:..."
 export DMS_TARGET_ENDPOINT_ARN="arn:aws:dms:..."
 
 # 3. 재실행
-python3.11 run_migration.py
+python3.11 main.py
 ```
 
 ---
@@ -842,12 +878,12 @@ echo $BEDROCK_REGION
 ### Schema Migration
 
 ```bash
-# 데이터 마이그레이션만 (Phase 2만)
-python3.11 run_data_migration_only.py
+# 전체 파이프라인 실행
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 
-# 시퀀스 사용처 추출
-cd schema/tools
-python3.11 extract_sequence_usage.py --schema YOUR_SCHEMA
+# Conversion Agent 로그 확인
+cat /tmp/conversion_agent.log
 ```
 
 ### App Migration
@@ -886,10 +922,10 @@ tail -f logs/validation.log
 
 ## 참고 자료
 
-- **전체 문서**: [README_KR.md](README_KR.md)
-- **Schema 가이드**: [schema/README_KR.md](schema/README_KR.md)
-- **App 가이드**: [app/README_KR.md](app/README_KR.md)
-- **환경 설정**: [env/README_KR.md](env/README_KR.md)
+- **전체 문서**: [README_KR.md](../README_KR.md)
+- **Schema 가이드**: [schema/README_KR.md](../schema/README_KR.md)
+- **App 가이드**: [app/README_KR.md](../app/README_KR.md)
+- **환경 설정**: [env/README_KR.md](../env/README_KR.md)
 
 ---
 

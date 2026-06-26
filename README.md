@@ -3,7 +3,7 @@
 AI-powered automation tool for migrating Oracle databases to PostgreSQL/MySQL.
 
 > Korean version: [README_KR.md](README_KR.md)  
-> Quick Start: [QUICKSTART.md](QUICKSTART.md)
+> Quick Start: [QUICKSTART.md](docs/QUICKSTART.md)
 
 ---
 
@@ -39,10 +39,12 @@ Oracle DDL → PostgreSQL/MySQL DDL
 ```
 
 **Key Features:**
-- AI agents collaborate for automatic DDL conversion
+- DMS Schema Conversion auto-converts 95% of objects
+- AI agent handles remaining 5% (failed/unsupported objects)
+- NUMBER type optimization (Oracle PK NUMBER → PostgreSQL NUMERIC)
+- Constraint-aware data loading (drop → load → recreate)
 - Large-scale data transfer via AWS DMS Full Load Task
-- Automatic data integrity verification (Oracle vs Target DB)
-- Checkpoint-based resume capability
+- Single procedural script (`main.py`) - no complex orchestration
 
 **Learn More:** [schema/README.md](schema/README.md)
 
@@ -97,22 +99,13 @@ CloudFormation Templates
 ```
 oma/
 ├── schema/                    # Schema Migration
-│   ├── postgresql/            # PostgreSQL target
-│   │   ├── scripts/
-│   │   │   └── run_migration.py    # Main script
-│   │   ├── agents/            # Strands Agents (AI agents)
-│   │   └── tools/             # PostgreSQL tools
-│   ├── mysql/                 # MySQL target
-│   │   ├── scripts/
-│   │   │   └── run_migration.py
-│   │   ├── agents/
-│   │   └── tools/
-│   ├── common/                # Common modules
-│   │   ├── orchestrator/      # Pipeline orchestration
-│   │   ├── tools/             # Oracle/DMS tools
-│   │   └── rules/             # Conversion rules
-│   ├── tools/                 # Utilities
-│   │   └── extract_sequence_usage.py
+│   ├── main.py                # Main pipeline script
+│   ├── tools/
+│   │   ├── dms_sc.py              # DMS Schema Conversion
+│   │   ├── conversion_agent.py    # AI agent (failed objects)
+│   │   ├── number_type_optimizer.py  # NUMBER→NUMERIC fix
+│   │   ├── constraint_manager.py  # Drop/Recreate constraints
+│   │   └── dms_load.py           # DMS Full Load
 │   └── README.md
 │
 ├── app/                       # App Migration
@@ -143,7 +136,8 @@ oma/
 │
 ├── README.md                  # This file
 ├── README_KR.md               # Korean version
-└── QUICKSTART.md              # Quick start guide
+└── docs/
+    └── QUICKSTART.md          # Quick start guide
 ```
 
 ---
@@ -174,23 +168,26 @@ Step 1: Infrastructure Setup (env/)
 
 Step 2: Schema Migration (schema/)
   │
-  ├─→ Phase 1: Schema Conversion (AI Agents)
-  │    - Discover Oracle schema
-  │    - Convert DDL (tables, indexes, constraints, sequences)
-  │    - Apply converted DDL
+  ├─→ Step 1: DMS Schema Conversion (95% auto)
+  │    - Execute DMS SC project
+  │    - Download and apply converted DDL
+  │    - AI agent converts failed objects (5%)
   │
-  ├─→ Phase 2: Data Migration (AWS DMS)
-  │    - Create DMS Full Load Task
-  │    - Transfer large-scale data (parallel processing)
-  │    - Monitor progress
+  ├─→ Step 1.5: NUMBER Type Optimization
+  │    - Fix Oracle PK NUMBER → PostgreSQL NUMERIC
+  │    - Prevent BIGINT insertion errors from DMS
   │
-  ├─→ Phase 3: Data Integrity Verification
-  │    - Compare row counts
-  │    - Verify sample data
-  │    - Generate verification report
+  ├─→ Step 2: Drop FK Constraints
+  │    - Save constraint definitions
+  │    - Drop all FK constraints for data loading
   │
-  └─→ Phase 4: Report Generation
-       - Generate comprehensive migration report
+  ├─→ Step 3: DMS Full Load (Data)
+  │    - Auto-discover DMS infrastructure
+  │    - Create and run Full Load task
+  │    - Transfer large-scale data (parallel)
+  │
+  └─→ Step 4: Recreate FK Constraints
+       - Restore all FK constraints
 
        ↓
 
@@ -231,7 +228,7 @@ Step 3: Application Migration (app/)
 ### AI & LLM
 
 - **Bedrock Claude Opus 4.7**: Schema and SQL conversion
-- **Strands Agents SDK**: Multi-agent collaboration system
+- **Strands Agents SDK**: AI agent for failed object conversion
 - **LLM-based Parsing**: LLM understands SQL structure instead of regex
 
 ### AWS Services
@@ -288,8 +285,8 @@ vi oma.properties  # Enter database connection info
 **2. Schema Migration**
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 **3. App Migration**
@@ -304,7 +301,7 @@ cd /home/ec2-user/workspace/oma/app
 /validate          # Validate SQL
 ```
 
-**Detailed Guide:** [QUICKSTART.md](QUICKSTART.md)
+**Detailed Guide:** [QUICKSTART.md](docs/QUICKSTART.md)
 
 ---
 
@@ -476,11 +473,8 @@ OMA generates detailed reports for each stage.
 
 ```
 schema/results/
-├── ddl_output.sql                    # Converted DDL
 ├── migration-report.json             # Overall migration report
-├── schema-conversion-report.json     # Phase 1 details
-├── data-migration-report.json        # Phase 2 details
-└── verification-report.json          # Phase 3 verification
+└── conversion_agent.log              # AI agent conversion log
 ```
 
 ### App Migration Reports
@@ -513,11 +507,10 @@ app/output/
 **Resume schema migration from interrupted point.**
 
 ```bash
-# Check interrupted migration
-ls schema/results/checkpoints/
-
-# Resume
-python3.11 run_migration.py --resume oma-migration-1719876543
+# main.py logs progress at each step
+# If interrupted, simply re-run:
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 ### 2. Parallel Processing
@@ -554,12 +547,12 @@ python3.11 tools/validator.py --parallel 4
 </select>
 ```
 
-### 4. DMS Schema Conversion (Optional)
+### 4. DMS Schema Conversion
 
-**Use AWS DMS SC instead of AI agents.**
+**DMS SC is used by default in main.py. Configure in oma.properties:**
 
 ```properties
-# Add to oma.properties
+# oma.properties
 DMS_SC_S3_BUCKET=oma-dms-sc-896586841913
 DMS_MIGRATION_PROJECT_ARN=arn:aws:dms:...
 ```
@@ -692,8 +685,8 @@ python3.11 tools/validator.py --verbose
 # Auto-load from Secrets Manager
 export USE_SECRETS_MANAGER=true
 
-# run_migration.py automatically reads from Secrets Manager
-python3.11 run_migration.py
+# main.py automatically reads from Secrets Manager
+python3.11 main.py
 ```
 
 ### 2. Network Security

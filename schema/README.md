@@ -1,4 +1,4 @@
-# OMA Schema2 - Simplified Migration Pipeline
+# OMA Schema - Simplified Migration Pipeline
 
 **Simple, procedural, agent-minimal approach**
 
@@ -19,7 +19,7 @@
 ## Directory Structure
 
 ```
-schema2/
+schema/
 ├── main.py                      # Main orchestrator
 ├── tools/
 │   ├── dms_sc.py               # DMS Schema Conversion
@@ -35,7 +35,7 @@ schema2/
 ## Usage
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema2
+cd /home/ec2-user/workspace/oma/schema
 python3.11 main.py
 ```
 
@@ -72,10 +72,4 @@ python3.11 main.py
 - Execute saved constraint DDLs
 - Verify constraint creation
 
-## Key Differences from schema/
 
-- **No multi-agent pipeline**: Single sequential script
-- **No graph orchestration**: Simple procedural steps
-- **No discovery agent**: DMS SC provides inventory
-- **No design gate**: DMS SC creates objects directly
-- **Agent only for failures**: 95% auto-converted, 5% agent-converted

@@ -3,7 +3,7 @@
 Start migrating from Oracle to PostgreSQL/MySQL in 30 minutes.
 
 > Korean version: [QUICKSTART_KR.md](QUICKSTART_KR.md)  
-> Full documentation: [README.md](README.md)
+> Full documentation: [README.md](../README.md)
 
 ---
 
@@ -210,65 +210,101 @@ python3.11 --version
 
 ---
 
-## Step 2: Schema Migration (10-60 minutes)
+## Step 2: Schema Migration (~30 minutes + Data Migration)
 
 ### 2.1. Run Schema Migration
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 **Output during execution:**
 
 ```
-[INFO] PHASE 1: Schema Migration Pipeline
-[INFO] Discovering Oracle schema: YOUR_SCHEMA
-[INFO] Found 688 tables, 2450 indexes, 1230 constraints
-[INFO] Agent 'Code Migrator': Converting DDL...
-[INFO] Schema status: COMPLETED (245.3s)
+[INFO] ============================================================
+[INFO] OMA Schema - Simplified Migration Pipeline
+[INFO] ============================================================
+[INFO] Loading environment...
+[INFO] ✓ Environment loaded
+[INFO] Oracle schema: YOUR_SCHEMA
+[INFO] PostgreSQL: app_user@postgres-oma.xxxxx/postgres (schema: your_schema)
 
-[INFO] PHASE 2: Data Migration via DMS Full Load Task
-[INFO] Creating DMS Full Load task...
+[INFO] ============================================================
+[INFO] Step 1: DMS Schema Conversion (95% auto)
+[INFO] ============================================================
+[INFO] Running DMS SC conversion...
+[INFO] DMS SC Summary:
+[INFO]   Total objects: 688
+[INFO]   Converted: 680
+[INFO]   Failed: 8
+
+[INFO] ============================================================
+[INFO] Step 1.5: Fixing Oracle PK NUMBER columns
+[INFO] ============================================================
+[INFO] Applying PK type fixes...
+[INFO] ✓ Fixed 45 PK columns
+
+[INFO] ============================================================
+[INFO] Step 2: Dropping FK Constraints
+[INFO] ============================================================
+[INFO] ✓ Dropped 230 constraints
+
+[INFO] ============================================================
+[INFO] Step 3: DMS Full Load
+[INFO] ============================================================
+[INFO] Discovering DMS infrastructure...
+[INFO] Creating Full Load task...
 [INFO] DMS task progress: 25% (tables=172, rows=3,456,789)
 [INFO] DMS task progress: 50% (tables=344, rows=7,891,234)
-[INFO] Data migration completed in 1834.2s
+[INFO] DMS task progress: 100% (tables=688, rows=15,234,567)
 
-[INFO] PHASE 3: Data Integrity Verification
-[INFO] Verification completed: 688 matches, 0 mismatches
+[INFO] ============================================================
+[INFO] Step 4: Recreating FK Constraints
+[INFO] ============================================================
+[INFO] ✓ Recreated 230 constraints
 
-[INFO] PHASE 4: Report Generation
-✓ Migration report saved to: results/migration-report.json
+[INFO] ============================================================
+[INFO] Step 5: Launching Conversion Agent (Background)
+[INFO] ============================================================
+[INFO] ✓ Conversion Agent launched in background
+[INFO]   (Will download S3 results and convert complex objects)
+
+[INFO] ============================================================
+[INFO] Migration Completed Successfully!
+[INFO] ============================================================
+[INFO] DMS SC: 680 objects converted, 8 failed
+[INFO] Data Load: 688 tables, 15,234,567 rows
+[INFO] Constraints: 230 dropped, 230 recreated
 ```
 
 ### 2.2. Check Results
 
 ```bash
-# Check converted DDL
-cat results/ddl_output.sql | head -50
+# Check migration log
+cat /tmp/conversion_agent.log
 
-# Check migration report
-cat results/migration-report.json | jq '.'
+# Verify PostgreSQL objects
+psql -h $PGHOST -U $PGUSER -d $PGDATABASE -c \
+  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'your_schema';"
 
-# Check data verification report
-cat results/verification-report.json | jq '.summary'
+# Check DMS task statistics
+aws dms describe-table-statistics --replication-task-arn <arn>
 ```
 
-### 2.3. (Optional) Resume Interrupted Migration
+### 2.3. (Optional) Re-run if Interrupted
 
 ```bash
-# Check interrupted migration_id
-ls results/checkpoints/
-
-# Resume
-python3.11 run_migration.py --resume oma-migration-1719876543
+# main.py is idempotent - simply re-run
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 ✅ **Step 2 Complete!** Schema and data have been migrated.
 
 ---
 
-## Step 3: App Migration (10-30 minutes)
+## Step 3: App Migration (30-60 minutes)
 
 **⚠️ Important: App conversion must be executed using Claude Code with skills!**
 
@@ -757,7 +793,7 @@ export DMS_SOURCE_ENDPOINT_ARN="arn:aws:dms:..."
 export DMS_TARGET_ENDPOINT_ARN="arn:aws:dms:..."
 
 # 3. Re-run
-python3.11 run_migration.py
+python3.11 main.py
 ```
 
 ---
@@ -837,12 +873,12 @@ echo $BEDROCK_REGION
 ### Schema Migration
 
 ```bash
-# Data migration only (Phase 2 only)
-python3.11 run_data_migration_only.py
+# Run full pipeline
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 
-# Extract sequence usage
-cd schema/tools
-python3.11 extract_sequence_usage.py --schema YOUR_SCHEMA
+# Check conversion agent log
+cat /tmp/conversion_agent.log
 ```
 
 ### App Migration
@@ -881,10 +917,10 @@ tail -f logs/validation.log
 
 ## References
 
-- **Full Documentation**: [README.md](README.md)
-- **Schema Guide**: [schema/README.md](schema/README.md)
-- **App Guide**: [app/README.md](app/README.md)
-- **Environment Setup**: [env/README.md](env/README.md)
+- **Full Documentation**: [README.md](../README.md)
+- **Schema Guide**: [schema/README.md](../schema/README.md)
+- **App Guide**: [app/README.md](../app/README.md)
+- **Environment Setup**: [env/README.md](../env/README.md)
 
 ---
 

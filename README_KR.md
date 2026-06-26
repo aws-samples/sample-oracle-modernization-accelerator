@@ -3,7 +3,7 @@
 Oracle 데이터베이스를 PostgreSQL/MySQL로 자동 마이그레이션하는 AI 기반 도구입니다.
 
 > 영어 버전: [README.md](README.md)  
-> 빠른 시작: [QUICKSTART_KR.md](QUICKSTART_KR.md)
+> 빠른 시작: [QUICKSTART_KR.md](docs/QUICKSTART_KR.md)
 
 ---
 
@@ -39,12 +39,14 @@ Oracle DDL → PostgreSQL/MySQL DDL
 ```
 
 **주요 기능:**
-- AI 에이전트가 협업하여 DDL 자동 변환
+- DMS Schema Conversion으로 95% 객체 자동 변환
+- AI 에이전트가 나머지 5% (실패/미지원 객체) 처리
+- NUMBER 타입 최적화 (Oracle PK NUMBER → PostgreSQL NUMERIC)
+- Constraint 인식 데이터 로딩 (드롭 → 로드 → 재생성)
 - AWS DMS Full Load Task로 대용량 데이터 이동
-- Oracle vs Target DB 데이터 무결성 자동 검증
-- 체크포인트 기반 재개 기능
+- 단일 절차적 스크립트 (`main.py`) - 복잡한 오케스트레이션 없음
 
-**자세히 보기:** [schema/README_KR.md](schema/README_KR.md)
+**자세히 보기:** [schema/README.md](schema/README.md)
 
 ---
 
@@ -97,23 +99,14 @@ CloudFormation Templates
 ```
 oma/
 ├── schema/                    # Schema Migration (스키마 변환)
-│   ├── postgresql/            # PostgreSQL 타겟
-│   │   ├── scripts/
-│   │   │   └── run_migration.py    # 메인 스크립트
-│   │   ├── agents/            # Strands Agents (AI 에이전트)
-│   │   └── tools/             # PostgreSQL 도구
-│   ├── mysql/                 # MySQL 타겟
-│   │   ├── scripts/
-│   │   │   └── run_migration.py
-│   │   ├── agents/
-│   │   └── tools/
-│   ├── common/                # 공통 모듈
-│   │   ├── orchestrator/      # 파이프라인 오케스트레이션
-│   │   ├── tools/             # Oracle/DMS 도구
-│   │   └── rules/             # 변환 규칙
-│   ├── tools/                 # 유틸리티
-│   │   └── extract_sequence_usage.py
-│   └── README_KR.md
+│   ├── main.py                # 메인 파이프라인 스크립트
+│   ├── tools/
+│   │   ├── dms_sc.py              # DMS Schema Conversion
+│   │   ├── conversion_agent.py    # AI 에이전트 (실패 객체)
+│   │   ├── number_type_optimizer.py  # NUMBER→NUMERIC 수정
+│   │   ├── constraint_manager.py  # Constraint 드롭/재생성
+│   │   └── dms_load.py           # DMS Full Load
+│   └── README.md
 │
 ├── app/                       # App Migration (애플리케이션 변환)
 │   ├── tools/
@@ -143,7 +136,8 @@ oma/
 │
 ├── README_KR.md               # 이 파일
 ├── README.md                  # 영문 버전
-└── QUICKSTART_KR.md           # 빠른 시작 가이드
+└── docs/
+    └── QUICKSTART_KR.md       # 빠른 시작 가이드
 ```
 
 ---
@@ -174,23 +168,26 @@ Step 1: Infrastructure Setup (env/)
 
 Step 2: Schema Migration (schema/)
   │
-  ├─→ Phase 1: Schema Conversion (AI Agents)
-  │    - Oracle 스키마 탐색
-  │    - DDL 변환 (테이블, 인덱스, 제약조건, 시퀀스)
-  │    - 변환된 DDL 적용
+  ├─→ Step 1: DMS Schema Conversion (95% 자동)
+  │    - DMS SC 프로젝트 실행
+  │    - 변환된 DDL 다운로드 및 적용
+  │    - AI 에이전트로 실패 객체 변환 (5%)
   │
-  ├─→ Phase 2: Data Migration (AWS DMS)
-  │    - DMS Full Load Task 생성
-  │    - 대용량 데이터 이동 (병렬 처리)
-  │    - 진행 상황 모니터링
+  ├─→ Step 1.5: NUMBER 타입 최적화
+  │    - Oracle PK NUMBER → PostgreSQL NUMERIC 수정
+  │    - DMS의 BIGINT 삽입 오류 방지
   │
-  ├─→ Phase 3: Data Integrity Verification
-  │    - Row Count 비교
-  │    - Sample Data 검증
-  │    - 검증 리포트 생성
+  ├─→ Step 2: FK Constraint 드롭
+  │    - Constraint 정의 저장
+  │    - 데이터 로딩을 위한 FK 전부 드롭
   │
-  └─→ Phase 4: Report Generation
-       - 전체 마이그레이션 리포트 생성
+  ├─→ Step 3: DMS Full Load (데이터)
+  │    - DMS 인프라 자동 탐색
+  │    - Full Load Task 생성 및 실행
+  │    - 대용량 데이터 병렬 전송
+  │
+  └─→ Step 4: FK Constraint 재생성
+       - 모든 FK Constraint 복원
 
        ↓
 
@@ -231,7 +228,7 @@ Step 3: Application Migration (app/)
 ### AI & LLM
 
 - **Bedrock Claude Opus 4.7**: 스키마 및 SQL 변환
-- **Strands Agents SDK**: Multi-agent 협업 시스템
+- **Strands Agents SDK**: 실패 객체 AI 에이전트 변환
 - **LLM-based Parsing**: 정규식 대신 LLM이 SQL 구조 이해
 
 ### AWS Services
@@ -288,8 +285,8 @@ vi oma.properties  # 데이터베이스 연결 정보 입력
 **2. Schema 마이그레이션**
 
 ```bash
-cd /home/ec2-user/workspace/oma/schema/postgresql/scripts
-python3.11 run_migration.py
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 **3. App 마이그레이션**
@@ -304,7 +301,7 @@ cd /home/ec2-user/workspace/oma/app
 /validate          # SQL 검증
 ```
 
-**자세한 가이드:** [QUICKSTART_KR.md](QUICKSTART_KR.md)
+**자세한 가이드:** [QUICKSTART_KR.md](docs/QUICKSTART_KR.md)
 
 ---
 
@@ -476,11 +473,8 @@ OMA는 각 단계마다 상세한 리포트를 생성합니다.
 
 ```
 schema/results/
-├── ddl_output.sql                    # 변환된 DDL
 ├── migration-report.json             # 전체 마이그레이션 리포트
-├── schema-conversion-report.json     # Phase 1 상세
-├── data-migration-report.json        # Phase 2 상세
-└── verification-report.json          # Phase 3 검증
+└── conversion_agent.log              # AI 에이전트 변환 로그
 ```
 
 ### App Migration Reports
@@ -513,11 +507,10 @@ app/output/
 **Schema 마이그레이션을 중단된 지점부터 재개할 수 있습니다.**
 
 ```bash
-# 중단된 마이그레이션 확인
-ls schema/results/checkpoints/
-
-# 재개
-python3.11 run_migration.py --resume oma-migration-1719876543
+# main.py는 각 단계별 진행 상황을 로깅합니다
+# 중단 시 단순히 다시 실행:
+cd /home/ec2-user/workspace/oma/schema
+python3.11 main.py
 ```
 
 ### 2. 병렬 처리
@@ -554,12 +547,12 @@ python3.11 tools/validator.py --parallel 4
 </select>
 ```
 
-### 4. DMS Schema Conversion (선택사항)
+### 4. DMS Schema Conversion
 
-**AI 에이전트 대신 AWS DMS SC를 사용할 수 있습니다.**
+**main.py에서 DMS SC를 기본으로 사용합니다. oma.properties에서 설정:**
 
 ```properties
-# oma.properties에 설정 추가
+# oma.properties
 DMS_SC_S3_BUCKET=oma-dms-sc-896586841913
 DMS_MIGRATION_PROJECT_ARN=arn:aws:dms:...
 ```
@@ -692,8 +685,8 @@ python3.11 tools/validator.py --verbose
 # Secrets Manager에서 자동 로드
 export USE_SECRETS_MANAGER=true
 
-# run_migration.py가 자동으로 Secrets Manager에서 읽음
-python3.11 run_migration.py
+# main.py가 자동으로 Secrets Manager에서 읽음
+python3.11 main.py
 ```
 
 ### 2. 네트워크 보안

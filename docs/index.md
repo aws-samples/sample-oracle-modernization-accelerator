@@ -21,7 +21,7 @@ AI-powered automation tool for migrating Oracle databases to PostgreSQL/MySQL.
 
 ## Documentation
 
-- [Quick Start Guide](../QUICKSTART.md)
+- [Quick Start Guide](QUICKSTART.md)
 - [Schema Migration](../schema/README.md)
 - [App Migration](../app/README.md)
 - [Infrastructure Setup](../env/README.md)

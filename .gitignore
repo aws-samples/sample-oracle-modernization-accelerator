@@ -1,1 +1,3 @@
 webui/venv/
+__pycache__/
+*.pyc
