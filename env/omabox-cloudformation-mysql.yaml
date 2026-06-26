@@ -654,7 +654,7 @@ Resources:
           DataProviderIdentifier: !Ref SourceDataProvider
       TargetDataProviderDescriptors:
         - DataProviderArn: !GetAtt DestinationDataProvider.DataProviderArn
-          SecretsManagerSecretId: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:oma-secret-mysql-admin'
+          SecretsManagerSecretId: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:oma-secret-mysql-service'
           SecretsManagerAccessRoleArn: !GetAtt DmsScSecretsManagerRole.Arn
           DataProviderIdentifier: !Ref DestinationDataProvider
 
@@ -733,9 +733,9 @@ Resources:
       EndpointIdentifier: !Sub '${AWS::StackName}-target-aurora'
       EndpointType: target
       EngineName: mysql
-      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-mysql-admin:SecretString:dbname}}'
-      Username: !Sub '{{resolve:secretsmanager:oma-secret-mysql-admin:SecretString:username}}'
-      Password: !Sub '{{resolve:secretsmanager:oma-secret-mysql-admin:SecretString:password}}'
+      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-mysql-service:SecretString:database}}'
+      Username: !Sub '{{resolve:secretsmanager:oma-secret-mysql-service:SecretString:username}}'
+      Password: !Sub '{{resolve:secretsmanager:oma-secret-mysql-service:SecretString:password}}'
       ServerName: !GetAtt AuroraCluster.Endpoint.Address
       Port: 3306
       KmsKeyId: !Ref KMSKey

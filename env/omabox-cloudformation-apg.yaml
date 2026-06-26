@@ -734,9 +734,9 @@ Resources:
       EndpointIdentifier: !Sub '${AWS::StackName}-target-aurora'
       EndpointType: target
       EngineName: aurora-postgresql
-      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:database}}'
-      Username: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:username}}'
-      Password: !Sub '{{resolve:secretsmanager:oma-secret-postgres-admin:SecretString:password}}'
+      DatabaseName: !Sub '{{resolve:secretsmanager:oma-secret-postgres-service:SecretString:database}}'
+      Username: !Sub '{{resolve:secretsmanager:oma-secret-postgres-service:SecretString:username}}'
+      Password: !Sub '{{resolve:secretsmanager:oma-secret-postgres-service:SecretString:password}}'
       ServerName: !GetAtt AuroraCluster.Endpoint.Address
       Port: 5432
       KmsKeyId: !Ref KMSKey

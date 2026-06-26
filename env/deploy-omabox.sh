@@ -96,6 +96,9 @@ setup_secrets() {
         read -p "Enter PostgreSQL Service Username [pguser]: " TARGET_SERVICE_USER
         TARGET_SERVICE_USER=${TARGET_SERVICE_USER:-pguser}
         read -s -p "Enter PostgreSQL Service Password: " TARGET_SERVICE_PASSWORD
+        echo ""
+        read -p "Enter PostgreSQL Service Database Name [$TARGET_SERVICE_USER]: " TARGET_SERVICE_DATABASE
+        TARGET_SERVICE_DATABASE=${TARGET_SERVICE_DATABASE:-$TARGET_SERVICE_USER}
     else
         echo "3. MySQL Credentials (for Aurora MySQL):"
         echo "Note: Aurora endpoint will be automatically configured after deployment"
@@ -115,6 +118,9 @@ setup_secrets() {
         read -p "Enter MySQL Service Username [mysqluser]: " TARGET_SERVICE_USER
         TARGET_SERVICE_USER=${TARGET_SERVICE_USER:-mysqluser}
         read -s -p "Enter MySQL Service Password: " TARGET_SERVICE_PASSWORD
+        echo ""
+        read -p "Enter MySQL Service Database Name [$TARGET_SERVICE_USER]: " TARGET_SERVICE_DATABASE
+        TARGET_SERVICE_DATABASE=${TARGET_SERVICE_DATABASE:-$TARGET_SERVICE_USER}
     fi
     echo ""
     echo ""
@@ -195,7 +201,7 @@ EOF
   "password": "$TARGET_SERVICE_PASSWORD",
   "host": "placeholder-will-be-updated",
   "port": $TARGET_PORT,
-  "database": "$TARGET_DATABASE"
+  "database": "$TARGET_SERVICE_DATABASE"
 }
 EOF
 )
@@ -480,7 +486,8 @@ deploy_cloudformation() {
         
         TARGET_SERVICE_USER=$(echo "$TARGET_SERVICE_CREDS" | jq -r '.username')
         TARGET_SERVICE_PASSWORD=$(echo "$TARGET_SERVICE_CREDS" | jq -r '.password')
-        
+        TARGET_SERVICE_DATABASE=$(echo "$TARGET_SERVICE_CREDS" | jq -r '.database')
+
         # Update Target Database Admin Secret
         TARGET_ADMIN_SECRET_UPDATED=$(cat <<EOF
 {
@@ -505,7 +512,7 @@ EOF
   "password": "$TARGET_SERVICE_PASSWORD",
   "host": "$AURORA_ENDPOINT",
   "port": $TARGET_PORT,
-  "database": "$TARGET_DATABASE"
+  "database": "$TARGET_SERVICE_DATABASE"
 }
 EOF
 )
@@ -535,17 +542,28 @@ EOF
             
             export PGPASSWORD="$TARGET_ADMIN_PASSWORD"
             
-            # Create database and service user
-            psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d postgres -c "CREATE DATABASE $TARGET_DATABASE ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0;" 2>/dev/null
+            # Create service user
             psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d postgres -c "CREATE USER $TARGET_SERVICE_USER WITH PASSWORD '$TARGET_SERVICE_PASSWORD';" 2>/dev/null
-            psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d postgres -c "ALTER DATABASE $TARGET_DATABASE OWNER TO $TARGET_SERVICE_USER;"
-            
+
+            # Create admin database (if different from service database)
+            if [ "$TARGET_DATABASE" != "$TARGET_SERVICE_DATABASE" ]; then
+                psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d postgres -c "CREATE DATABASE $TARGET_DATABASE ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0;" 2>/dev/null
+            fi
+
+            # Create service database (owned by service user)
+            psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d postgres -c "CREATE DATABASE $TARGET_SERVICE_DATABASE ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0 OWNER $TARGET_SERVICE_USER;" 2>/dev/null
+
+            # Create schema owned by service user
+            psql -h "$AURORA_ENDPOINT" -U "$TARGET_ADMIN_USER" -d "$TARGET_SERVICE_DATABASE" -c "CREATE SCHEMA IF NOT EXISTS $TARGET_SERVICE_USER AUTHORIZATION $TARGET_SERVICE_USER;" 2>/dev/null
+
             unset PGPASSWORD
-            
+
             if [ $? -eq 0 ]; then
                 log_success "PostgreSQL database initialized successfully!"
-                echo "- Database: $TARGET_DATABASE"
-                echo "- Owner: $TARGET_SERVICE_USER"
+                echo "- Admin Database: $TARGET_DATABASE"
+                echo "- Service Database: $TARGET_SERVICE_DATABASE"
+                echo "- Service User: $TARGET_SERVICE_USER"
+                echo "- Service Schema: $TARGET_SERVICE_USER"
             else
                 log_warning "PostgreSQL initialization completed with warnings (database/user may already exist)"
             fi
